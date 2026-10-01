@@ -8,6 +8,14 @@ Un jeu de conduite Android inspiré d'*Euro Truck Simulator*, dans le village de
 Autres aperçus dans [`docs/apercus/`](docs/apercus/) : bocage et Alpes, village et église,
 trottoirs et lanternes, rond-point, passage à niveau, entrée de Rochetoirin…
 
+## Télécharger
+
+**[RochetoirinSimulator-v0.3.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.3.apk)** (16 Mo, Android 7.0+, OpenGL ES 3.0)
+
+Ouvrir le lien depuis le téléphone, puis ouvrir le fichier et autoriser l'installation depuis
+cette source (« Installer quand même » si Play Protect avertit : l'APK est signé avec une clé
+de debug, il n'est pas publié sur le Play Store).
+
 ## Ce qui est fidèle à la réalité
 
 | Élément | Source | Précision |
