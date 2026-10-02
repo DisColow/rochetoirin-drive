@@ -8,21 +8,29 @@ from geo import to_lonlat
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "data")
-ZONE = (-600.0, -160.0, -180.0, 230.0)    # x0, z0, x1, z1 (m, repère local)
+ZONE = (-690.0, -190.0, 450.0, 750.0)    # x0, z0, x1, z1 (m, repère local) : tout le bourg
 
 
 def main():
     x0, z0, x1, z1 = ZONE
     lo0, la1 = to_lonlat(x0, z0); lo1, la0 = to_lonlat(x1, z1)
-    q = dict(SERVICE="WFS", VERSION="2.0.0", REQUEST="GetFeature", TYPENAMES="CADASTRALPARCELS.PARCELLAIRE_EXPRESS:parcelle",
-             BBOX="%f,%f,%f,%f,urn:ogc:def:crs:EPSG::4326" % (la0, lo0, la1, lo1), outputFormat="application/json", count="2000")
-    url = "https://data.geopf.fr/wfs/ows?" + urllib.parse.urlencode(q)
-    for k in range(6):
-        try:
-            d = json.load(urllib.request.urlopen(url, timeout=120))
+    feats, start = [], 0
+    while True:
+        q = dict(SERVICE="WFS", VERSION="2.0.0", REQUEST="GetFeature", TYPENAMES="CADASTRALPARCELS.PARCELLAIRE_EXPRESS:parcelle",
+                 BBOX="%f,%f,%f,%f,urn:ogc:def:crs:EPSG::4326" % (la0, lo0, la1, lo1), outputFormat="application/json",
+                 count="1000", startIndex=str(start))
+        url = "https://data.geopf.fr/wfs/ows?" + urllib.parse.urlencode(q)
+        for k in range(6):
+            try:
+                d = json.load(urllib.request.urlopen(url, timeout=120))
+                break
+            except Exception as e:
+                print("nouvel essai", k, e); time.sleep(5 * (k + 1))
+        feats += d["features"]
+        if len(d["features"]) < 1000:
             break
-        except Exception as e:
-            print("nouvel essai", k, e); time.sleep(5 * (k + 1))
+        start += 1000
+    d = dict(type="FeatureCollection", features=feats)
     json.dump(d, open(os.path.join(DATA, "cadastre_balcon.json"), "w"))
     print(len(d["features"]), "parcelles")
 

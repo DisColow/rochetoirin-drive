@@ -1026,11 +1026,15 @@ def trees(forests, hedges_poly, poplars, orchards, landes, buildings, block, cls
             if hl:
                 ht = STRtree(hl)
                 # les petits houppiers le long d'une limite font partie de la haie (déjà modélisée)
-                from prepare_quartier import in_zone
+                from shapely.geometry import Point as _Pt
 
                 def hedge_near(x, z, r):
-                    # dans le quartier, la végétation étroite est tracée en haies : seuls les houppiers larges restent des arbres
-                    return in_zone(x, z) and r < 1.6
+                    # le long des haies tracées (limites, bandes vertes de l'orthophoto) : la végétation étroite fait partie
+                    # de la haie ; les houppiers larges et les arbustes isolés restent des végétaux
+                    if r >= 1.6:
+                        return False
+                    pt = _Pt(x, z)
+                    return any(hl[k].distance(pt) < 1.8 for k in ht.query(pt.buffer(1.8)))
         real = village.trees(lambda x, z, r: not free(x, z) or hedge_near(x, z, r) or center.in_square(x, z))
         for x, z, t, h in real:
             inst.append((x, float(terrain.height(x, z)), z, h, t, rng.random()))

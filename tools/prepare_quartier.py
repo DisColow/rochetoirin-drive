@@ -38,6 +38,16 @@ LAUREL = (0.25, 0.38, 0.16)
 GREEN_MESH = (0.12, 0.30, 0.18)
 
 
+# clôtures, murets, haies, portails et sols : tout le bourg couvert par l'orthophoto (le style « rue du Balcon »
+# des trottoirs, lampadaires et toits reste limité à ZONE)
+FENCE_ZONE = (-660.0, -160.0, 420.0, 720.0)
+
+
+def fence_poly():
+    x0, z0, x1, z1 = FENCE_ZONE
+    return box(x0, z0, x1, z1)
+
+
 def zone_poly():
     x0, z0, x1, z1 = ZONE
     return box(x0, z0, x1, z1)
@@ -68,7 +78,7 @@ class Quartier:
                 ring = np.frombuffer(cb[p + 4:p + 4 + k * 8], "<f4").reshape(-1, 2).astype(float); p += 4 + k * 8
                 if len(ring) >= 3:
                     buildings.append(Polygon(ring).buffer(0))
-        Z = zone_poly().buffer(30)
+        Z = fence_poly().buffer(30)
         self.buildings = [b for b in buildings if Z.intersects(b)]
         self.btree = STRtree(self.buildings) if self.buildings else None
         rows = pickle.load(open(os.path.join(DATA, "road_rows.pkl"), "rb"))
@@ -148,7 +158,7 @@ class Quartier:
                 edges.setdefault(key, [a, b, []])[2].append(pid)
         # découpe en morceaux de ~2,5 m et classement
         self.pieces = []      # dict(a, b, kind, parcels, street, side)
-        zone = zone_poly()
+        zone = fence_poly()
         for (ka, kb), (a, b, pids) in edges.items():
             if not any(self.res.get(p) for p in pids):
                 continue
@@ -164,7 +174,12 @@ class Quartier:
                     continue
                 if any(bd.intersects(seg.buffer(0.15)) for bd in self._near_b(seg)):
                     continue      # mur de la maison en limite
-                street = len(pids) == 1 and self.roads.distance(Point(mid)) < 4.0
+                # côté rue : limite proche de la chaussée, bordée d'une seule parcelle habitée (l'autre éventuelle est
+                # une voie, un chemin ou un terrain non bâti) ; la parcelle habitée passe en tête
+                res_p = [p_ for p_ in pids if self.res.get(p_)]
+                street = len(res_p) == 1 and self.roads.distance(Point(mid)) < 5.0
+                if street:
+                    pids = res_p + [p_ for p_ in pids if p_ not in res_p]
                 d = np.subtract(p1, p0); d /= np.linalg.norm(d); nrm_ = np.array([-d[1], d[0]])
                 # la haie réelle (tracée d'après la photo) peut être décalée d'un mètre ou deux de la limite
                 best, boff = 0.0, 0.0
@@ -177,6 +192,9 @@ class Quartier:
                 hed = best
                 kind = "hedge" if hed > 0.3 else ("front" if street else "mesh")
                 dark = self.frac(self.dark, samples) > 0.45
+                import center
+                if center.in_area(*((np.array(p0) + np.array(p1)) / 2)):
+                    continue                                   # centre du village : murs et grilles faits main (center.py)
                 self.pieces.append(dict(a=tuple(p0), b=tuple(p1), kind=kind, pids=pids, street=street, dark=dark,
                                         off=float(boff), nrm=tuple(nrm_)))
 
@@ -199,7 +217,7 @@ class Quartier:
         m = self.hedgem.copy()
         H_, W_ = m.shape
         xs = self.v.x0 + (np.arange(W_) + 0.5) * self.c; zs = self.v.z0 + (np.arange(H_) + 0.5) * self.c
-        x0, z0, x1, z1 = ZONE
+        x0, z0, x1, z1 = FENCE_ZONE
         i0, i1 = np.searchsorted(xs, x0), np.searchsorted(xs, x1); j0, j1 = np.searchsorted(zs, z0), np.searchsorted(zs, z1)
         sub = m[j0:j1, i0:i1]
         X, Z = np.meshgrid(xs[i0:i1], zs[j0:j1])
@@ -253,7 +271,7 @@ class Quartier:
         """Tronçons de haie taillée d'après la photo : (centre, axe, longueur, largeur, sombre)."""
         out = []
         m = self.hedgem
-        x0, z0, x1, z1 = ZONE
+        x0, z0, x1, z1 = FENCE_ZONE
         zone = zone_poly()
         bunion = unary_union(self.buildings).buffer(0.4) if self.buildings else None
         roads = self.roads.buffer(0.3)
@@ -334,15 +352,38 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
         stats[k] = stats.get(k, 0) + n
 
     home12 = q.parcel_at(*ADDR12)
+    # clôtures côté rue relevées maison par maison sur Street View (clotures_bourg.json, clé = bâtiment BD TOPO)
+    survey = {}
+    sp = os.path.join(HERE, "clotures_bourg.json")
+    if os.path.exists(sp):
+        from prepare_decor import load, loc, polys
+        sv = json.load(open(sp))
+        for f in load("batiment"):
+            a_ = sv.get(f["properties"]["cleabs"])
+            if not a_:
+                continue
+            for bp in polys(loc(f["geometry"])):
+                pid = q.parcel_at(*bp.representative_point().coords[0])
+                if pid is not None:
+                    survey[pid] = a_
+    count("parcelles relevées sur Street View", len(survey))
+    WALLC = {"creme": CREAM, "gris": CONCRETE, "blanc": WHITE, "rose": (0.86, 0.68, 0.60), "pierre": None}
+    GRILC = {"blanc": WHITE, "noir": IRON, "vert": (0.10, 0.30, 0.18), "gris": (0.30, 0.31, 0.32), "bois": WOOD,
+             "beige": (0.80, 0.74, 0.62), "brande": (0.55, 0.45, 0.30), "grillage": GREEN_MESH}
 
     def style_of(pid):
-        """Clôture côté rue (relevés Street View 2014/2022 de la rue du Balcon)."""
+        """Clôture côté rue : relevé Street View de la maison si disponible, sinon répartition de la rue du Balcon."""
+        if pid in survey:
+            return "sv"
         h = sum(ord(ch) * (k + 1) for k, ch in enumerate(str(pid))) % 20
         return "lisses" if h < 10 else ("bois" if h < 14 else ("rigide" if h < 18 else "fer"))
 
     def gate_of(pid):
         if pid == home12:
             return "plein_blanc"
+        if pid in survey and survey[pid].get("portail"):
+            g = survey[pid]["portail"]
+            return {"plein_gris": "plein_gris", "ajoure_gris": "plein_gris", "lisses_blanc": "barreaux_blanc"}.get(g, g)
         h = sum(ord(ch) * (k + 2) for k, ch in enumerate(str(pid))) % 20
         return "plein_blanc" if h < 9 else ("fer" if h < 15 else ("bois" if h < 18 else "barreaux_blanc"))
 
@@ -358,8 +399,77 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
                     return True
         return False
 
+    def front_sv(m, a, b, d, L, mid, y, sv, p):
+        """Clôture côté rue d'après le relevé : muret (couleur), grille / panneaux rigides / occultants / lisses."""
+        f = sv["front"]
+        nn = np.array([-d[1], d[0]])
+        wall = WALLC.get(sv.get("mur", ""), CREAM)
+        stone = sv.get("mur") == "pierre"
+        gcol = GRILC.get(sv.get("grille", ""), None)
+        h_m = {"muret": 0.9, "muret_grille": 0.75, "muret_rigide": 0.6, "mur": 1.8, "occult": 0.5, "lisses": 0.6,
+               "bois": 0.6, "grillage": 0.0}.get(f, 0.6)
+        if f == "grillage" and sv.get("mur"):
+            h_m = 0.3
+        if f == "lisses" and not sv.get("mur"):
+            h_m = 0.0
+        if h_m > 0:
+            if stone:
+                obox(m, (mid[0], y + h_m / 2 - 0.2, mid[1]), d, (L, h_m + 0.4, 0.3), STONE, M_RUBBLE)
+            else:
+                obox(m, (mid[0], y + h_m / 2 - 0.2, mid[1]), d, (L, h_m + 0.4, 0.2), wall or CREAM, M_CREPI)
+            obox(m, (mid[0], y + h_m - 0.17, mid[1]), d, (L + 0.04, 0.05, 0.27), (0.78, 0.76, 0.72), M_CURB)
+        top = y + h_m - 0.15
+        p0 = np.array([a[0], top, a[1]]); p1 = np.array([b[0], top, b[1]])
+        def panel(hh, col, pat, mat=M_MESH):
+            quad3(m, p0, p1, p1 + [0, hh, 0], p0 + [0, hh, 0], col, mat, [(0, 0), (L, 0), (L, hh), (0, hh)], pat,
+                  n=(nn[0], 0, nn[1]))
+        if f == "muret_grille":
+            panel(0.9, gcol or IRON, 1.0)
+            obox(m, (mid[0], top + 0.92, mid[1]), d, (L, 0.04, 0.04), gcol or IRON, M_STEEL)
+            for t in np.arange(0.0, L + 0.01, 2.5):          # piliers enduits
+                pp = a + d * min(t, L)
+                obox(m, (pp[0], q.H(*pp) + 0.6, pp[1]), d, (0.35, 1.7, 0.35), wall or CREAM, M_CREPI)
+                obox(m, (pp[0], q.H(*pp) + 1.48, pp[1]), d, (0.42, 0.06, 0.42), (0.80, 0.78, 0.74), M_CURB)
+        elif f in ("muret_rigide", "grillage"):
+            panel(1.2 if f == "muret_rigide" else 1.5, gcol or GREEN_MESH, 0.0)
+            for t in np.arange(0.0, L + 0.01, 2.5):
+                pp = a + d * min(t, L)
+                obox(m, (pp[0], top + 0.65, pp[1]), d, (0.05, 1.3, 0.05), gcol or GREEN_MESH, M_STEEL)
+        elif f == "occult":
+            # panneaux occultants pleins (PVC, composite, brande) entre poteaux
+            hh = 1.5
+            col = gcol or (0.30, 0.31, 0.32)
+            quad3(m, p0, p1, p1 + [0, hh, 0], p0 + [0, hh, 0], col, M_PLAIN, n=(nn[0], 0, nn[1]))
+            quad3(m, p1, p0, p0 + [0, hh, 0], p1 + [0, hh, 0], col, M_PLAIN, n=(-nn[0], 0, -nn[1]))
+            for t in np.arange(0.0, L + 0.01, 1.8):
+                pp = a + d * min(t, L)
+                obox(m, (pp[0], top + hh / 2, pp[1]), d, (0.08, hh + 0.05, 0.08), (0.22, 0.23, 0.24), M_STEEL)
+        elif f == "lisses":
+            col = gcol or WHITE
+            for k in range(3):
+                obox(m, (mid[0], top + 0.25 + k * 0.32, mid[1]), d, (L, 0.14, 0.04), col, M_PLAIN)
+            for t in np.arange(0.0, L + 0.01, 2.0):
+                pp = a + d * min(t, L)
+                obox(m, (pp[0], top + 0.6, pp[1]), d, (0.1, 1.2, 0.1), col, M_PLAIN)
+        elif f == "bois":
+            for k in range(3):
+                obox(m, (mid[0], top + 0.3 + k * 0.3, mid[1]), d, (L, 0.15, 0.04), WOOD, M_PLAIN)
+            for t in np.arange(0.0, L + 0.01, 2.0):
+                pp = a + d * min(t, L)
+                obox(m, (pp[0], top + 0.6, pp[1]), d, (0.12, 1.2, 0.12), WOOD, M_PLAIN)
+        elif f == "mur":
+            obox(m, (mid[0], y + 1.75, mid[1]), d, (L + 0.06, 0.08, 0.3), (0.62, 0.42, 0.32), M_TILES + 0.2)
+
     hedge_segs = []
     parcels_d = dict(q.parcels)
+    # façades relevées sans haie (muret, grille, clôture, ouverte) : les « haies » vues d'avion le long de ces façades
+    # sont en réalité des arbustes ou des arbres derrière la clôture ; on ne les trace pas
+    no_hedge = []
+    for p in q.pieces:
+        sv_ = survey.get(p["pids"][0]) if p["street"] else None
+        if sv_ and sv_["front"] not in ("haieT", "haieL", "haieP"):
+            no_hedge.append(LineString([p["a"], p["b"]]).buffer(3.0))
+    no_hedge = unary_union(no_hedge) if no_hedge else None
     for p in q.pieces:
         a, b = np.array(p["a"]), np.array(p["b"])
         L = float(np.linalg.norm(b - a)); d = (b - a) / L
@@ -369,6 +479,11 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
         ya, yb = q.H(*a), q.H(*b)
         y = min(ya, yb)
         m = Mesh()
+        sv0 = survey.get(p["pids"][0]) if p["street"] else None
+        if sv0 and p["kind"] == "hedge" and sv0["front"] not in ("haieT", "haieL", "haieP", "rien"):
+            p = dict(p, kind="front")
+        if sv0 and sv0["front"] == "rien":
+            continue                                     # façade ouverte d'après Street View
         if p["kind"] == "hedge":
             # haie continue le long de la limite, à la position réelle mesurée sur la photo
             o = np.array(p["nrm"]) * p["off"]
@@ -377,6 +492,13 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
             import vegetation
             hk = vegetation.hedge_kind(*mid)            # essence relevée sur Street View à proximité
             thuja = (hk == "T") if hk else (p["dark"] or (sum(map(ord, str(p["pids"]))) % 10) < 3)
+            sv_ = survey.get(p["pids"][0]) if p["street"] else None
+            if sv_ and sv_["front"] in ("haieT", "haieL", "haieP"):
+                thuja = sv_["front"] == "haieT"
+            elif sv_ and sv_["front"] != "rien":
+                p = dict(p, kind="front")                # relevé : pas de haie sur cette façade
+            elif sv_:
+                continue                                 # façade ouverte (pelouse, cour)
             col = tuple(np.clip(np.array(THUJA if thuja else LAUREL) * (0.95 + 0.1 * ((sum(map(ord, str(p["pids"]))) % 7) / 7)), 0, 1))
             h = 2.0 if thuja else 1.7
             w = 1.0 if thuja else 0.9
@@ -389,8 +511,15 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
                     inw = -inw
                 mcol = CREAM if (sum(map(ord, str(p["pids"]))) % 3) else CONCRETE
                 ym = min(q.H(*a), q.H(*b))
-                obox(m, (mid[0], ym + 0.15, mid[1]), d, (L + 0.02, 0.9, 0.2), mcol, M_CREPI)
-                obox(m, (mid[0], ym + 0.62, mid[1]), d, (L + 0.04, 0.05, 0.26), (0.78, 0.76, 0.72), M_CURB)
+                if sv_ and sv_.get("mur"):
+                    mcol = WALLC.get(sv_["mur"]) or CREAM
+                if not sv_ or sv_.get("mur"):
+                    mm_ = M_RUBBLE if sv_ and sv_.get("mur") == "pierre" else M_CREPI
+                    obox(m, (mid[0], ym + 0.15, mid[1]), d, (L + 0.02, 0.9, 0.2), STONE if mm_ == M_RUBBLE else mcol, mm_)
+                    obox(m, (mid[0], ym + 0.62, mid[1]), d, (L + 0.04, 0.05, 0.26), (0.78, 0.76, 0.72), M_CURB)
+                if sv_ and sv_.get("grille") == "grillage":
+                    p0_ = np.array([a[0], ym, a[1]]); p1_ = np.array([b[0], ym, b[1]])
+                    quad3(m, p0_, p1_, p1_ + [0, 1.5, 0], p0_ + [0, 1.5, 0], GREEN_MESH, M_MESH, [(0, 0), (L, 0), (L, 1.5), (0, 1.5)], 0.0)
                 if np.dot(o, inw) < 0.45:
                     o = inw * 0.6
                     a_, b_ = a + o, b + o
@@ -406,7 +535,25 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
             continue
         elif p["kind"] == "front":
             st = style_of(p["pids"][0])
-            if st == "lisses":
+            if st == "sv" and sv0["front"] in ("haieT", "haieL", "haieP"):
+                # haie relevée sur une limite que la photo aérienne ne montre pas verte : haie sur muret
+                thuja = sv0["front"] == "haieT"
+                mcol = WALLC.get(sv0.get("mur", ""), CREAM) or CREAM
+                if sv0.get("mur"):
+                    obox(m, (mid[0], y + 0.15, mid[1]), d, (L + 0.02, 0.9, 0.2), mcol, M_CREPI)
+                nn_ = np.array([-d[1], d[0]])
+                par = parcels_d[p["pids"][0]]
+                if not par.contains(Point(mid + nn_ * 1.0)):
+                    nn_ = -nn_
+                c_ = mid + nn_ * 0.6
+                h, w = (2.0, 1.0) if thuja else (1.7, 0.9)
+                col = THUJA if thuja else (LAUREL if sv0["front"] == "haieL" else (0.45, 0.25, 0.15))
+                obox(m, (c_[0], y + h / 2 - 0.25, c_[1]), d, (L + 0.35, h + 0.5, w), col, M_HEDGE + (0.2 if thuja else 0.7))
+                count("haies relevées sur Street View (m)", L)
+            elif st == "sv":
+                front_sv(m, a, b, d, L, mid, y, sv0, p)
+                count("clôtures relevées sur Street View (m)", L)
+            elif st == "lisses":
                 # muret blanc + lisses horizontales entre piliers (cf. 8 rue du Balcon)
                 obox(m, (mid[0], y + 0.15, mid[1]), d, (L, 0.9, 0.2), WHITE, M_CREPI)
                 for t in (0.0, L):
@@ -462,6 +609,8 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
     hs_tree = STRtree(hedge_segs) if hedge_segs else None
     for coords, w, dark in q.hedge_polylines():
         ln = LineString(coords)
+        if no_hedge is not None and ln.intersection(no_hedge).length > 0.4 * ln.length:
+            continue
         if hs_tree is not None:
             # déjà couverte par une haie posée sur une limite de parcelle ?
             near = [hedge_segs[k] for k in hs_tree.query(ln.buffer(2.5))]
@@ -529,7 +678,12 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
             c0 = mid + d * s * 0.02; c1 = mid + d * s * 1.63
             cm = (c0 + c1) / 2
             p0 = np.array([c0[0], y + 0.06, c0[1]]); p1 = np.array([c1[0], y + 0.06, c1[1]])
-            if kind == "plein_blanc":
+            if kind == "plein_gris":
+                quad3(m, p0, p1, p1 + [0, 1.5, 0], p0 + [0, 1.5, 0], (0.28, 0.29, 0.30), M_PLAIN, n=(inw[0], 0, inw[1]))
+                quad3(m, p1, p0, p0 + [0, 1.5, 0], p1 + [0, 1.5, 0], (0.28, 0.29, 0.30), M_PLAIN, n=(-inw[0], 0, -inw[1]))
+                for k in range(1, 5):
+                    obox(m, (cm[0], y + 0.06 + k * 0.3, cm[1]), d, (1.61, 0.02, 0.07), (0.22, 0.23, 0.24), M_PLAIN)
+            elif kind == "plein_blanc":
                 # vantail plein en PVC blanc, haut légèrement cintré (12 rue du Balcon)
                 top0, top1 = 1.45, 1.30
                 quad3(m, p0, p1, p1 + [0, top1, 0], p0 + [0, top0, 0], WHITE, M_PLAIN, n=(inw[0], 0, inw[1]))
@@ -562,7 +716,7 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
             add_coll(np.array(ring))
             count("voitures dans les entrées")
 
-    # caniveaux en béton le long de la chaussée (pas de trottoir dans le quartier)
+    # caniveaux en béton le long de la chaussée (pas de trottoir dans le quartier ; ailleurs, les trottoirs les remplacent)
     rows = pickle.load(open(os.path.join(DATA, "road_rows.pkl"), "rb"))
     zone = zone_poly()
     for r in rows:
@@ -587,12 +741,12 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
         count("caniveaux (m)", 2 * float(r["s"][-1]))
 
     # sols : gravier, béton, enrobé (cellules de 1 m regroupées par lignes)
-    zone = zone_poly()
+    zone = fence_poly()
     res_parcels = [p for pid, p in q.parcels if q.res.get(pid)]
     allowed = unary_union(res_parcels).difference(unary_union(q.buildings).buffer(0.3)) if res_parcels else None
     if allowed is not None:
         from shapely import vectorized
-        x0, z0, x1, z1 = ZONE
+        x0, z0, x1, z1 = FENCE_ZONE
         step = 1.0
         xs = np.arange(x0, x1, step) + step / 2; zs = np.arange(z0, z1, step) + step / 2
         X, Zg = np.meshgrid(xs, zs)
@@ -611,7 +765,7 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
         parcels_all = unary_union([p for pid, p in q.parcels])
         homes = unary_union(res_parcels).buffer(0.2)
         verge = q.roads.buffer(6.0).intersection(homes.buffer(6.0)).difference(parcels_all).difference(q.roads.buffer(0.2))
-        vmask = vectorized.contains(verge, X, Zg)
+        vmask = vectorized.contains(verge.intersection(zone_poly()), X, Zg)      # accotements enrobés : rue du Balcon
         # on ne garde que les plaques reliées à la rue ou à une maison (allées, cours, terrasses, parkings) :
         # l'herbe grillée claire au milieu d'un jardin n'est pas du gravier
         anchor = vectorized.contains(q.roads.buffer(1.5), X, Zg) | vectorized.contains(unary_union(q.buildings).buffer(1.5), X, Zg)
