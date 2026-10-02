@@ -5,7 +5,7 @@ Un jeu de conduite Android inspiré d'*Euro Truck Simulator*, dans le village de
 
 ## Télécharger
 
-**[RochetoirinSimulator-v0.8.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.8.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
+**[RochetoirinSimulator-v0.9.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.9.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
 
 Ouvrir le lien depuis le téléphone, puis ouvrir le fichier et autoriser l'installation depuis
 cette source (« Installer quand même » si Play Protect avertit : l'APK est signé avec une clé
@@ -60,6 +60,13 @@ roulables, puis raccordé en douceur au relief réel.
 
 Les bâtiments, arbres, haies, poteaux, îlots et glissières sont **solides** : un choc arrête le
 véhicule et coûte une petite facture de carrosserie. Les trottoirs, îlots et ralentisseurs se montent (bordures basses, sans obstacle).
+
+### La voiture : vrai modèle 3D d'Espace IV
+
+Modèle « [2008 Renault Espace](https://sketchfab.com/3d-models/2008-renault-espace-b8e7c65711134fca865f635ccddafcf5) »
+de [tonielpro520](https://sketchfab.com/tonielpro520), licence [CC-BY-4.0](http://creativecommons.org/licenses/by/4.0/) :
+carrosserie repeinte en rouge, simplifié pour le mobile (`tools/import_car.py`), roues animées, volant animé,
+plaques 4127 XR 38, habitacle visible depuis la caméra cabine.
 
 ### Végétation du bourg en modèles 3D (Poly Haven, CC0)
 
@@ -244,7 +251,7 @@ app/src/main/java/fr/rochetoirin/sim/
 tools/                   préparation des données (Python)
 ```
 
-Données : © contributeurs OpenStreetMap (ODbL) ; modèles 3D de végétation Poly Haven (CC0) ; IGN RGE ALTI, BD TOPO, BD ORTHO, Parcellaire Express et RPG (Licence Ouverte Etalab).
+Données : © contributeurs OpenStreetMap (ODbL) ; modèles 3D de végétation Poly Haven (CC0) ; « 2008 Renault Espace » par tonielpro520 (Sketchfab, CC-BY-4.0) ; IGN RGE ALTI, BD TOPO, BD ORTHO, Parcellaire Express et RPG (Licence Ouverte Etalab).
 
 ## Tests
 

@@ -202,6 +202,34 @@ object CarModel {
         }
     }
 
+    /**
+     * Modèle 3D importé (tools/import_car.py : « 2008 Renault Espace » de tonielpro520 sur Sketchfab, CC-BY-4.0),
+     * volant procédural ; null si l'asset est absent ou illisible (on retombe sur le modèle procédural).
+     */
+    fun load(bytes: ByteArray?): Meshes? {
+        if (bytes == null || bytes.size < 8) return null
+        val bb = java.nio.ByteBuffer.wrap(bytes).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        if (bb.get().toInt() != 'C'.code || bb.get().toInt() != 'A'.code || bb.get().toInt() != 'R'.code || bb.get().toInt() != '1'.code) return null
+        fun block(): Pair<FloatArray, IntArray> {
+            val nv = bb.int; val ni = bb.int
+            val v = FloatArray(nv * 12); bb.asFloatBuffer().get(v); bb.position(bb.position() + nv * 48)
+            val i = IntArray(ni); bb.asIntBuffer().get(i); bb.position(bb.position() + ni * 4)
+            return v to i
+        }
+        return try {
+            val body = block(); val glass = block(); val wheel = block()
+            if (bb.remaining() >= 4) {
+                val n = bb.int
+                if (n >= 6) {                                  // volant et œil du conducteur mesurés sur le modèle
+                    for (k in 0..2) STEERING_POS[k] = bb.float
+                    for (k in 0..2) DRIVER_EYE[k] = bb.float
+                }
+            }
+            val steer = steeringWheel()
+            Meshes(body.first, body.second, glass.first, glass.second, wheel.first, wheel.second, steer.vertices(), steer.indices())
+        } catch (e: Exception) { null }
+    }
+
     fun build(): Meshes {
         val body = Builder()
         val glass = Builder()

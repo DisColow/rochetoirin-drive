@@ -164,7 +164,7 @@ class Renderer(
             roadChunks.add(Chunk(Mesh(Gl.floats(v), Gl.ints(rc.indices), intArrayOf(3, 3, 4)), b))
         }
 
-        val car = CarModel.build()
+        val car = CarModel.load(try { open("car.bin").use { it.readBytes() } } catch (e: Exception) { null }) ?: CarModel.build()
         val layout = intArrayOf(3, 3, 4, 2)
         body = Mesh(Gl.floats(car.bodyV), Gl.ints(car.bodyI), layout)
         glass = Mesh(Gl.floats(car.glassV), Gl.ints(car.glassI), layout)
