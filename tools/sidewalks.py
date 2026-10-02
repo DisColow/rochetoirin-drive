@@ -93,7 +93,59 @@ def carriageway(roads, by_node, node_pos):
 
 
 def tri_poly(poly, step=8.0):
-    """Triangulation d'un polygone (avec trous) après densification des bords."""
+    """Triangulation d'un polygone (avec trous) après densification des bords. Le polygone est d'abord réparé
+    (contour auto-intersecté après simplification) ; si earcut ne couvre pas toute l'aire, triangulation de
+    Delaunay contrainte (shapely)."""
+    poly = shapely.make_valid(poly)
+    if poly.geom_type != "Polygon":
+        parts = [g for g in getattr(poly, "geoms", []) if g.geom_type == "Polygon"]
+        if not parts:
+            return np.zeros((0, 2)), []
+        poly = max(parts, key=lambda g: g.area)
+    v, t = _earcut(poly, step)
+    if len(t):
+        P = v[np.array(t).reshape(-1, 3)]
+        area = 0.5 * np.abs((P[:, 1, 0] - P[:, 0, 0]) * (P[:, 2, 1] - P[:, 0, 1]) - (P[:, 2, 0] - P[:, 0, 0]) * (P[:, 1, 1] - P[:, 0, 1])).sum()
+        if area > 0.95 * poly.area:
+            return v, t
+    tris = shapely.constrained_delaunay_triangles(shapely.segmentize(poly, step))
+    verts, idx = [], []
+    for tr in getattr(tris, "geoms", []):
+        c = np.asarray(tr.exterior.coords)[:3]
+        b0 = len(verts); verts.extend(map(tuple, c)); idx.extend([b0, b0 + 1, b0 + 2])
+    return np.array(verts) if verts else np.zeros((0, 2)), idx
+
+
+def subdivide(v, tri, maxlen=2.0):
+    """Découpe les triangles jusqu'à ce qu'aucune arête ne dépasse maxlen (surfaces posées sur un terrain bombé :
+    sans sommets intérieurs, le sol perce la surface au milieu)."""
+    V = [tuple(p) for p in np.asarray(v)]
+    cache = {}
+
+    def mid(a, b):
+        k = (min(a, b), max(a, b))
+        if k not in cache:
+            V.append(((V[a][0] + V[b][0]) / 2, (V[a][1] + V[b][1]) / 2)); cache[k] = len(V) - 1
+        return cache[k]
+
+    T = [tuple(tri[i:i + 3]) for i in range(0, len(tri), 3)]
+    out = []
+    while T:
+        a, b, c = T.pop()
+        la = np.hypot(*np.subtract(V[a], V[b])); lb = np.hypot(*np.subtract(V[b], V[c])); lc = np.hypot(*np.subtract(V[c], V[a]))
+        m = max(la, lb, lc)
+        if m <= maxlen:
+            out.extend((a, b, c)); continue
+        if m == la:
+            d = mid(a, b); T += [(a, d, c), (d, b, c)]
+        elif m == lb:
+            d = mid(b, c); T += [(a, b, d), (a, d, c)]
+        else:
+            d = mid(c, a); T += [(a, b, d), (d, b, c)]
+    return np.array(V), out
+
+
+def _earcut(poly, step):
     poly = orient(shapely.segmentize(poly, step), 1.0)
     rings = [np.asarray(poly.exterior.coords)[:-1]] + [np.asarray(h.coords)[:-1] for h in poly.interiors]
     rings = [r for r in rings if len(r) >= 3]

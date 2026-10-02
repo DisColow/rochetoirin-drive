@@ -679,6 +679,38 @@ def main():
     if village is not None:
         cl = np.array(cls)
         print(village.landcover(cl, X0, Z0, LC_RES, zone, GARDEN, YARD, MEADOW, FOREST), "cellules de sol d'après l'orthophoto")
+        # pas de taches : dans le bourg, une cour (enrobé / gravier vu sur la photo) n'existe que si elle est grande
+        # (>= 12 cellules, 190 m² : cour de ferme, parking) et son contour est lissé ; le reste redevient jardin
+        from scipy import ndimage as _nd0
+        inv = np.zeros(cl.shape, bool)
+        vr_ = village.rect().bounds
+        i0_, j0_ = int((vr_[0] - X0) / LC_RES), int((vr_[1] - Z0) / LC_RES)
+        i1_, j1_ = int((vr_[2] - X0) / LC_RES), int((vr_[3] - Z0) / LC_RES)
+        inv[max(0, j0_):j1_, max(0, i0_):i1_] = True
+        yard = (cl == YARD) & inv
+        yard_s = _nd0.binary_closing(_nd0.binary_opening(yard, iterations=1), iterations=1) & yard
+        lab0, n0 = _nd0.label(yard_s)
+        if n0:
+            sz0 = _nd0.sum(np.ones_like(lab0), lab0, index=np.arange(1, n0 + 1))
+            keep0 = np.concatenate([[False], np.asarray(sz0) >= 12])
+            # une cour est pleine : un anneau de « cour » autour d'une pelouse est une erreur de la photo
+            for c0 in range(1, n0 + 1):
+                if keep0[c0]:
+                    mm0 = lab0 == c0
+                    if _nd0.binary_fill_holes(mm0).sum() > 1.4 * mm0.sum():
+                        keep0[c0] = False
+            yard_s = keep0[lab0] & yard_s
+        cl[yard & ~yard_s] = GARDEN
+        # pas de taches : cours et jardins sans îlots isolés de moins de 3 cellules (48 m²)
+        from scipy import ndimage as _nd
+        for a_, b_ in ((YARD, GARDEN), (GARDEN, YARD)):
+            lab, nl = _nd.label(cl == a_)
+            if nl:
+                size = _nd.sum(np.ones_like(lab), lab, index=np.arange(1, nl + 1))
+                small = np.concatenate([[False], np.asarray(size) < 3])
+                # seulement les îlots entourés de l'autre classe
+                ring = _nd.binary_dilation(lab > 0) & ~(lab > 0)
+                cl[small[lab] & (lab > 0)] = b_
         cls = Image.fromarray(cl); dc = ImageDraw.Draw(cls)
 
     # --- eau
@@ -841,13 +873,39 @@ def main():
     print(nb, "bâtiments maillés,", nroof, "toits colorés d'après l'orthophoto,", nfac, "façades d'après Street View,", narc, "architectures relevées")
     if village is not None:
         npool = 0
+        pool_log = []
+        surf = None
+        sp_ = os.path.join(DATA, "surfaces.pkl")
+        if os.path.exists(sp_):
+            import pickle as _pk
+            surf = _pk.load(open(sp_, "rb"))["carr_ext"]
+        # parcelles habitées (cadastre) : une piscine est entièrement dans l'une d'elles
+        res_parcels = []
+        cp_ = os.path.join(DATA, "cadastre_balcon.json")
+        if os.path.exists(cp_):
+            from shapely.strtree import STRtree as _ST
+            bl_ = [p for p, _ in buildings]
+            bt_ = _ST(bl_)
+            for f_ in json.load(open(cp_))["features"]:
+                for pp_ in polys(loc(f_["geometry"])):
+                    if any(pp_.contains(bl_[k].representative_point()) and bl_[k].area > 25 for k in bt_.query(pp_)):
+                        res_parcels.append(pp_)
         for poly, round_ in village.pools():
-            if any(p.intersects(poly) for p, _ in buildings if p.distance(poly) < 1):
+            if res_parcels and not any(pp_.buffer(-0.5).contains(poly) for pp_ in res_parcels if pp_.intersects(poly)):
+                continue
+            # une piscine est dans un jardin : à plus de 3 m de la chaussée et 1,5 m des maisons
+            if any(p.distance(poly) < 1.5 for p, _ in buildings if p.distance(poly) < 3):
+                continue
+            if surf is not None and surf.distance(poly) < 3.0:
+                continue
+            if poly.area > 90 or poly.area < 9:
                 continue
             if center.in_area(poly.centroid.x, poly.centroid.y):
                 continue      # centre : toits et bâches bleutés pris pour des piscines
             props.add(poly.centroid.x, poly.centroid.y, pool_mesh(poly, round_), big=False)
+            pool_log.append([list(c) for c in poly.exterior.coords])
             npool += 1
+        json.dump(pool_log, open(os.path.join(DATA, "pools.json"), "w"))
         print(npool, "piscines")
 
     # --- pylônes et lignes électriques
@@ -1096,6 +1154,17 @@ def trees(forests, hedges_poly, poplars, orchards, landes, buildings, block, cls
         if c in (PASTURE, MEADOW) and rng.random() < 0.5:
             add(x, z, T_OAK, rng.uniform(10, 19))
 
+    # règle « la logique prime » : aucun tronc sur la chaussée ni sur un trottoir (1 m de marge)
+    sp_ = os.path.join(DATA, "surfaces.pkl")
+    if os.path.exists(sp_):
+        import pickle as _pk, shapely as _sh
+        S_ = _pk.load(open(sp_, "rb"))
+        hard = _sh.union(S_["carr_ext"], S_["walk"]).buffer(1.0)
+        _sh.prepare(hard)
+        arr = np.array([(t[0], t[2]) for t in inst])
+        bad = _sh.contains_xy(hard, arr[:, 0], arr[:, 1])
+        inst = [t for t, b_ in zip(inst, bad) if not b_]
+        print(int(bad.sum()), "arbres retirés de la chaussée / des trottoirs")
     print(len(inst), "arbres et arbustes")
     nCx = int(math.ceil((X1 - X0) / CHUNK)); nCz = int(math.ceil((Z1 - Z0) / CHUNK))
     buckets = {}

@@ -5,7 +5,7 @@ Un jeu de conduite Android inspiré d'*Euro Truck Simulator*, dans le village de
 
 ## Télécharger
 
-**[RochetoirinSimulator-v0.10.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.10.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
+**[RochetoirinSimulator-v0.11.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.11.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
 
 Ouvrir le lien depuis le téléphone, puis ouvrir le fichier et autoriser l'installation depuis
 cette source (« Installer quand même » si Play Protect avertit : l'APK est signé avec une clé
@@ -86,6 +86,16 @@ fruitiers, arbustes) ; les autres prennent l'essence de leurs voisins relevés. 
 thuyas ou en lauriers selon le relevé. Ajouts d'après OpenStreetMap et Street View : abribus bleu vitré de l'arrêt
 « Rochetoirin - Église » et zigzags jaunes des arrêts de bus, croix de chemin en pierre, terrains de foot, city-stade,
 tennis, boulodromes, aire de jeux, table de pique-nique, borne de recharge, poteau d'incendie, panneaux d'information.
+
+### La logique prime sur la donnée brute
+
+Les sources (OSM, orthophoto, cadastre) sont imprécises de quelques mètres : quand elles mènent à une scène absurde,
+le générateur corrige vers le plausible (`docs/kb/21-coherence.md`). Rien sur la chaussée ni les trottoirs, clôtures et
+haies d'un seul tenant par limite, routes jamais superposées (doublons supprimés, chaussées écartées), plus de taches
+de sol (allées et cours aux formes nettes), piscines seulement dans les jardins. `tools/check_coherence.py` vérifie
+tout automatiquement (de 1 836 violations à 4, toutes hors des rues du bourg).
+
+![Vue aérienne du bourg](docs/apercus/coherence-vue-aerienne.jpg)
 
 ### Clôtures et portails de tout le bourg
 

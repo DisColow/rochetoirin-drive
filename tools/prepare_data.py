@@ -164,7 +164,150 @@ def parse_osm():
                              oneway=False, name="Voie ferrée", bridge=t.get("bridge") not in (None, "no"),
                              nodes=[n for n in e["nodes"] if n in nodes], tags=t))
     ways = merge_dual_carriageways(nodes, ways)
+    ways = dedupe_and_cross(nodes, ways)
+    separate_overlaps(nodes, ways)
     return nodes, ways
+
+
+def dedupe_and_cross(nodes, ways):
+    """Règle « la logique prime » sur le réseau :
+      * voie posée sur une autre (doublon OSM : 80 % de sa longueur dans la chaussée d'une voie plus large) -> supprimée ;
+      * deux voies qui se croisent sans nœud commun (hors ponts) -> nœud de carrefour inséré dans les deux ;
+      * segments de plus de 12 m densifiés (nœuds propres à la voie) pour pouvoir écarter les chaussées collées."""
+    from shapely.geometry import LineString, Point
+    from shapely.strtree import STRtree
+    road = [w for w in ways if w["cls"] != "rail" and len(w["nodes"]) >= 2]
+    lines = [LineString([nodes[n] for n in w["nodes"]]) for w in road]
+    tree = STRtree(lines)
+    rank = {"motorway": 9, "trunk": 8, "primary": 7, "secondary": 6, "tertiary": 5, "unclassified": 4, "residential": 4,
+            "living_street": 3, "service": 2, "track": 1}
+    drop = set()
+    for i, w in enumerate(road):
+        if w["bridge"]:
+            continue
+        for j in tree.query(lines[i].buffer(8)):
+            if j == i or j in drop or road[j]["bridge"]:
+                continue
+            o = road[j]
+            if (rank.get(o["cls"].replace("_link", ""), 3), o["width"], lines[j].length) <= \
+                    (rank.get(w["cls"].replace("_link", ""), 3), w["width"], lines[i].length):
+                continue
+            inside = lines[i].intersection(lines[j].buffer(o["width"] / 2)).length
+            if inside > 0.8 * lines[i].length:
+                drop.add(i); break
+    ways = [w for w in ways if not any(w is road[i] for i in drop)]
+    road = [w for k, w in enumerate(road) if k not in drop]
+    # croisements sans nœud commun
+    lines = [LineString([nodes[n] for n in w["nodes"]]) for w in road]
+    tree = STRtree(lines)
+    nid = [min(list(nodes) + [0]) - 1]
+    ncross = 0
+
+    def insert(w, p):
+        best, kb = 1e9, 0
+        for k in range(len(w["nodes"]) - 1):
+            d = LineString([nodes[w["nodes"][k]], nodes[w["nodes"][k + 1]]]).distance(p)
+            if d < best:
+                best, kb = d, k
+        for k in (kb, kb + 1):
+            if math.dist(nodes[w["nodes"][k]], (p.x, p.y)) < 1.0:
+                return w["nodes"][k]
+        return kb
+
+    for i, w in enumerate(road):
+        for j in tree.query(lines[i]):
+            if j <= i:
+                continue
+            o = road[j]
+            if w["bridge"] or o["bridge"] or set(w["nodes"]) & set(o["nodes"]):
+                continue
+            x = lines[i].intersection(lines[j])
+            if x.is_empty or x.geom_type != "Point":
+                continue
+            a_ = insert(w, x); b_ = insert(o, x)
+            n = a_ if isinstance(a_, int) and a_ in nodes and not isinstance(a_, bool) and a_ in w["nodes"] and math.dist(nodes[a_], (x.x, x.y)) < 1 else None
+            if n is None:
+                n = nid[0]; nid[0] -= 1
+                nodes[n] = (x.x, x.y)
+                w["nodes"].insert(a_ + 1, n)
+            if n not in o["nodes"]:
+                kb = insert(o, x)
+                if kb in o["nodes"] and math.dist(nodes[kb], (x.x, x.y)) < 1:
+                    # nœud existant de l'autre voie : on l'utilise pour les deux
+                    w["nodes"] = [kb if m == n else m for m in w["nodes"]]
+                else:
+                    o["nodes"].insert(kb + 1, n)
+            ncross += 1
+    # densification
+    nd = 0
+    for w in road:
+        out = [w["nodes"][0]]
+        for a_, b_ in zip(w["nodes"][:-1], w["nodes"][1:]):
+            L = math.dist(nodes[a_], nodes[b_])
+            k = int(L // 12.0)
+            for t in range(1, k + 1):
+                f = t / (k + 1)
+                n = nid[0]; nid[0] -= 1
+                nodes[n] = (nodes[a_][0] + (nodes[b_][0] - nodes[a_][0]) * f, nodes[a_][1] + (nodes[b_][1] - nodes[a_][1]) * f)
+                out.append(n); nd += 1
+            out.append(b_)
+        w["nodes"] = out
+    print("réseau : %d doublons supprimés, %d croisements raccordés, %d nœuds de densification" % (len(drop), ncross, nd))
+    return ways
+
+
+def separate_overlaps(nodes, ways, iters=12):
+    """Règle « la logique prime » : deux chaussées ne se chevauchent jamais hors carrefour. Les nœuds propres à une
+    voie (non partagés) trop proches d'une autre voie sont écartés jusqu'à laisser 0,5 m entre les bords
+    (3 m entre deux chaussées d'autoroute, place de la glissière). Les zones de carrefour (autour des nœuds
+    partagés et des extrémités) et les bretelles qui se détachent progressivement ne sont pas touchées."""
+    from shapely.geometry import LineString, Point
+    from shapely.strtree import STRtree
+    use = {}
+    for w in ways:
+        for n in w["nodes"]:
+            use[n] = use.get(n, 0) + 1
+    road = [w for w in ways if w["cls"] != "rail" and not w["bridge"] and len(w["nodes"]) >= 2]
+    moved_total = 0
+    for it in range(iters):
+        lines = [LineString([nodes[n] for n in w["nodes"]]) for w in road]
+        tree = STRtree(lines)
+        shift = {}
+        for i, w in enumerate(road):
+            for k, n in enumerate(w["nodes"]):
+                if use.get(n, 0) > 1 or k == 0 or k == len(w["nodes"]) - 1:
+                    continue
+                p = Point(nodes[n])
+                for j in tree.query(p.buffer(20.0)):
+                    if j == i:
+                        continue
+                    o = road[j]
+                    link = ("link" in w["cls"]) != ("link" in o["cls"])
+                    if link and {"motorway", "motorway_link"} >= {w["cls"], o["cls"]}:
+                        continue                         # bretelle qui se détache : biseau normal
+                    shared = set(w["nodes"]) & set(o["nodes"])
+                    ends = [nodes[m] for m in shared] + [nodes[o["nodes"][0]], nodes[o["nodes"][-1]],
+                                                         nodes[w["nodes"][0]], nodes[w["nodes"][-1]]]
+                    jz = max(w["width"], o["width"]) * 1.6 + 4.0
+                    if any(math.dist(nodes[n], e) < jz for e in ends):
+                        continue                         # carrefour
+                    gap = 3.0 if w["cls"] == "motorway" and o["cls"] == "motorway" else 0.5
+                    need = (w["width"] + o["width"]) / 2 + gap
+                    d = lines[j].distance(p)
+                    if d >= need or d < 1e-3:
+                        continue
+                    q = lines[j].interpolate(lines[j].project(p))
+                    v = np.array([p.x - q.x, p.y - q.y]) / d
+                    # les deux voies s'écartent : chacune fait la moitié du chemin (l'autre via ses propres nœuds)
+                    amt = (need - d) * 0.55
+                    s0 = shift.get(n, np.zeros(2))
+                    shift[n] = s0 + v * amt if np.linalg.norm(v * amt) > np.linalg.norm(s0) else s0
+        if not shift:
+            break
+        for n, v in shift.items():
+            nodes[n] = (nodes[n][0] + float(v[0]), nodes[n][1] + float(v[1]))
+        moved_total += len(shift)
+    print("chaussées superposées écartées :", moved_total, "déplacements de nœuds")
 
 
 # ---------------------------------------------------------------------------------

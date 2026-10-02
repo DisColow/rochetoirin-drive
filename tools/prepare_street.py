@@ -144,6 +144,7 @@ def main():
         i, j = px(x, z); v = int(rid[j, i]); return v != 0 and v != own + 1
 
     props = Chunks()
+    _ROAD_IN = [None]            # chaussée rétrécie (préparée) une fois les trottoirs construits
     decals = {}      # tuile -> (verts, idx) au format routes (10 flottants)
     surf = {}        # tuile (32 m) -> tableau 64 × 64 de cm
     extra_coll = []  # nouveaux obstacles (anneaux)
@@ -179,6 +180,8 @@ def main():
                     np.maximum(t, a, out=t)
 
     def pole_coll(x, z, r=0.15):
+        if _ROAD_IN[0] is not None and _ROAD_IN[0].contains(Point(x, z)):
+            return
         extra_coll.append(np.array([[x - r, z - r], [x + r, z - r], [x + r, z + r], [x - r, z + r]]))
 
     def plate(m, center, normal, w, h, cell, shape_back=True):
@@ -299,6 +302,19 @@ def main():
     walk = unary_union([q for q in sw_mod.polys(walk) if q.area > 2.5]).simplify(0.06)
     print("trottoirs :", shapely.get_num_coordinates(walk), "sommets de contour")
     walk_pieces.extend(sw_mod.polys(walk))
+    pickle.dump(dict(carriage=carriage, carr_ext=carr_ext, walk=walk), open(os.path.join(DATA, "surfaces.pkl"), "wb"))
+    import shapely as _sh0
+    _ROAD_IN[0] = carriage.buffer(-0.1)
+    _sh0.prepare(_ROAD_IN[0])
+    _raw_add = props.add
+
+    def _small_guard(x, z, m, big=False):
+        if not big and m.v:
+            xz = np.array([(v[0], v[2]) for v in m.v])
+            if np.ptp(xz[:, 0]) < 2.5 and np.ptp(xz[:, 1]) < 2.5 and _ROAD_IN[0].contains(Point(xz[:, 0].mean(), xz[:, 1].mean())):
+                return                                   # panneau / poteau / lampadaire tombé sur la chaussée
+        _raw_add(x, z, m, big)
+    props.add = _small_guard
     walk_b = walk.boundary
 
     def sw_top(x, z):
@@ -630,6 +646,9 @@ def main():
                 extra_coll.append(island_mesh(q, props, surf))
                 count("îlots de rond-point")
     # chaussées séparées : terre-plein (glissière sur l'autoroute, bordure ailleurs)
+    import shapely as _shp
+    carr_in = carriage.buffer(-0.2)
+    _shp.prepare(carr_in)
     oneways = [i for i, r in enumerate(roads) if r.oneway and r.cls in ("motorway", "trunk", "primary", "secondary", "tertiary")
                and r.tags.get("junction") != "roundabout"]
     for i in oneways:
@@ -652,7 +671,7 @@ def main():
                 continue
             k1 = min(r.n - 1, k0 + 3)
             if r.cls == "motorway":
-                guardrail(r, float(r.s[k0]), float(r.s[k1]), props, extra_coll)
+                guardrail(r, float(r.s[k0]), float(r.s[k1]), props, extra_coll, carr_in)
             else:
                 median_curb(r, float(r.s[k0]), float(r.s[k1]), props, surf_poly)
         count("terre-pleins (tronçons)")
@@ -690,10 +709,51 @@ def main():
 
     # ---------------------------------------------------------------- centre du village (d'après Street View)
     meta = json.load(open(os.path.join(ASSETS, "map.json")))
-    for k, v in center.furniture(props.add, extra_coll.append, center.roads_union_from(meta)).items():
+    # règle « la logique prime » : rien de ce qui suit (mobilier, centre, quartier) ne mord sur la chaussée,
+    # ni (sauf poteaux) sur les trottoirs
+    import shapely as _sh
+    road_in = carriage.buffer(-0.15)
+    _sh.prepare(road_in); _sh.prepare(walk)
+    rejected = {"maillages": 0, "obstacles": 0}
+
+    def _foot(xz):
+        from shapely.geometry import MultiPoint
+        return MultiPoint(xz).convex_hull if len(xz) >= 3 else Point(xz[0]).buffer(0.1)
+
+    def _ov(big, g):
+        if not big.intersects(g):
+            return 0.0
+        return _sh.clip_by_rect(big, *g.bounds).intersection(g).area
+
+    def _bad(g, small_ok):
+        if g.is_empty:
+            return False
+        if _ov(road_in, g) > 0.05 * g.area + 0.02:
+            return True
+        return (not small_ok) and _ov(walk, g) > 0.25 * g.area
+
+    def guarded_add(x, z, m, big=False):
+        # part des sommets posés sur la chaussée / le trottoir (une enveloppe convexe pénaliserait les haies en L)
+        xz = np.array([(v[0], v[2]) for v in m.v])
+        if len(xz):
+            on_r = _sh.contains_xy(road_in, xz[:, 0], xz[:, 1]).mean()
+            small = (np.ptp(xz[:, 0]) * np.ptp(xz[:, 1])) < 0.8
+            on_w = 0.0 if small else _sh.contains_xy(walk, xz[:, 0], xz[:, 1]).mean()
+            if on_r > 0.05 or on_w > 0.25:
+                rejected["maillages"] += 1
+                return
+        props.add(x, z, m, big)
+
+    def guarded_coll(ring):
+        g = Polygon(ring).buffer(0)
+        if _bad(g, g.area < 0.6):
+            rejected["obstacles"] += 1
+            return
+        extra_coll.append(ring)
+    for k, v in center.furniture(guarded_add, guarded_coll, center.roads_union_from(meta)).items():
         stats["centre : " + k] = v
     import mobilier
-    for k, v in mobilier.build(props.add, extra_coll.append, roads, Mesh, lambda x, z: float(terrain.height(x, z))).items():
+    for k, v in mobilier.build(guarded_add, guarded_coll, roads, Mesh, lambda x, z: float(terrain.height(x, z))).items():
         stats["bourg : " + k] = v
     for q, hfun in center.RAISED:
         sw_mod.surf_shape(surf, q, hfun, X0, Z0)
@@ -702,12 +762,14 @@ def main():
     if os.path.exists(os.path.join(DATA, "cadastre_balcon.json")) and os.path.exists(os.path.join(DATA, "ortho_village.jpg")):
         from prepare_village import Village
         q = quartier_mod.Quartier(Village(), terrain)
-        for k, v in quartier_mod.build(q, Mesh, center.obox, center.quad3, props.add, extra_coll.append, center.parked_car).items():
+        for k, v in quartier_mod.build(q, Mesh, center.obox, center.quad3, guarded_add, guarded_coll, center.parked_car).items():
             stats["rue du Balcon : " + k] = v
 
     paved_rects = []
+    paved_polys = []
     if os.path.exists(os.path.join(DATA, "cadastre_balcon.json")) and os.path.exists(os.path.join(DATA, "ortho_village.jpg")):
         paved_rects = getattr(q, "paved_rects", [])
+        paved_polys = getattr(q, "paved_polys", [])
     # ---------------------------------------------------------------- masque de l'herbe 3D (2 m / pixel)
     # 255 = pas d'herbe : chaussées (+ marge), trottoirs, voies ferrées, bâtiments, obstacles, surfaces du quartier
     GM = 2.0
@@ -725,6 +787,9 @@ def main():
         dg.polygon([gpx(x, z) for x, z in q.buffer(0.5).exterior.coords], fill=255, outline=255)
     for xa, za, xb, zb in paved_rects:
         dg.rectangle([gpx(xa, za), gpx(xb, zb)], fill=255)
+    for ring in (paved_polys if "paved_polys" in dir() else []):
+        if len(ring) >= 3:
+            dg.polygon([gpx(x, z) for x, z in ring], fill=255)
     gm.save(os.path.join(ASSETS, "grassmask.png"), optimize=True)
 
     # ---------------------------------------------------------------- occlusion ambiante du sol (2 m / pixel)
@@ -912,7 +977,7 @@ def island_mesh(q, props, surf):
     return np.array([[c.x - s / 2, c.y - s / 2], [c.x + s / 2, c.y - s / 2], [c.x + s / 2, c.y + s / 2], [c.x - s / 2, c.y + s / 2]])
 
 
-def guardrail(r, s0, s1, props, coll):
+def guardrail(r, s0, s1, props, coll, carriage=None):
     """Glissière de sécurité métallique sur le bord gauche (terre-plein central de l'autoroute)."""
     m = Mesh()
     lat = -(r.hw + 0.7)
@@ -920,10 +985,15 @@ def guardrail(r, s0, s1, props, coll):
     pts = []
     while s <= s1 + 0.01:
         q, N, T = r.at(s, lat)
+        if carriage is not None and carriage.contains(Point(q[0], q[2])):
+            break                                    # glissière qui tomberait sur l'autre chaussée : on s'arrête
         pts.append(q)
         pole(m, q[0], q[1] - 0.1, q[1] + 0.8, q[2], 0.1, (0.6, 0.62, 0.63), M_STEEL)
         s += 4.0
     for a, b in zip(pts[:-1], pts[1:]):
+        mid_ = (a + b) / 2
+        if carriage is not None and carriage.contains(Point(mid_[0], mid_[2])):
+            continue                                 # tronçon de glissière qui traverserait l'autre chaussée
         d = norm(b - a)
         side = norm(np.cross(d, [0, 1, 0]))
         for hh in (0.55, 0.75):

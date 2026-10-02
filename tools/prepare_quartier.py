@@ -156,47 +156,99 @@ class Quartier:
                 ka = (round(a[0], 1), round(a[1], 1)); kb = (round(b[0], 1), round(b[1], 1))
                 key = (ka, kb) if ka < kb else (kb, ka)
                 edges.setdefault(key, [a, b, []])[2].append(pid)
-        # découpe en morceaux de ~2,5 m et classement
-        self.pieces = []      # dict(a, b, kind, parcels, street, side)
+        # découpe en morceaux de ~2,5 m, puis harmonisation par limite (règle « la logique prime ») : un seul type,
+        # un seul décalage et une seule essence par limite, posés d'un bout à l'autre sans trou
+        self.pieces = []      # dict(a, b, kind, pids, street, dark, off, nrm, edge)
         zone = fence_poly()
-        for (ka, kb), (a, b, pids) in edges.items():
+        import center
+        hard = self.roads
+        sp = os.path.join(DATA, "surfaces.pkl")
+        if os.path.exists(sp):
+            S = pickle.load(open(sp, "rb"))
+            hard = unary_union([hard, S["walk"], S["carriage"]])     # trottoirs et enrobé : rien dessus
+        self.hard = hard
+        veg = self.hedgem | self.v.tree[:self.hedgem.shape[0], :self.hedgem.shape[1]]
+        for ei, ((ka, kb), (a, b, pids)) in enumerate(edges.items()):
             if not any(self.res.get(p) for p in pids):
                 continue
-            L = math.dist(a, b)
+            a = np.array(a, float); b = np.array(b, float)
+            L = float(np.linalg.norm(b - a))
+            d = (b - a) / L; nrm_ = np.array([-d[1], d[0]])
+            mid0 = (a + b) / 2
+            res_p = [p_ for p_ in pids if self.res.get(p_)]
+            # côté rue : chaussée à moins de 5 m, ou parcelle voisine non bâtie qui porte la chaussée (impasse, voie privée)
+            dr = self.roads.distance(Point(mid0))
+            lane = any(not self.res.get(p_) and self.roads.intersects(dict(self.parcels)[p_]) for p_ in pids if p_ not in res_p)
+            street = len(res_p) == 1 and (dr < 5.0 or (lane and dr < 14.0))
+            if street:
+                pids = res_p + [p_ for p_ in pids if p_ not in res_p]
+                # limite côté rue : reculée dans la parcelle tant qu'elle mord sur la chaussée ou le trottoir
+                par = dict(self.parcels)[pids[0]]
+                inw = nrm_ if par.contains(Point(mid0 + nrm_ * 1.0)) else -nrm_
+                for push in (0.0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.5, 3.0):
+                    seg = LineString([a + inw * push, b + inw * push])
+                    if not hard.intersects(seg.buffer(0.35)):
+                        break
+                else:
+                    # limite qui longe un trottoir de biais : on garde la plus longue partie dégagée (reculée d'1,2 m)
+                    seg = LineString([a + inw * 1.2, b + inw * 1.2]).difference(hard.buffer(0.35))
+                    parts = [g for g in getattr(seg, "geoms", [seg]) if g.geom_type == "LineString" and g.length > 1.0]
+                    if not parts:
+                        continue
+                    seg = max(parts, key=lambda g: g.length)
+                a, b = np.array(seg.coords[0]), np.array(seg.coords[-1])
+                L = float(np.linalg.norm(b - a))
             n = max(1, int(round(L / 2.5)))
+            raw = []
             for k in range(n):
-                p0 = np.add(a, np.subtract(b, a) * k / n); p1 = np.add(a, np.subtract(b, a) * (k + 1) / n)
+                p0 = a + (b - a) * k / n; p1 = a + (b - a) * (k + 1) / n
                 mid = (p0 + p1) / 2
-                if not zone.contains(Point(mid)):
-                    continue
-                seg = LineString([p0, p1])
-                if self.roads.intersects(seg.buffer(0.2)):
-                    continue
-                if any(bd.intersects(seg.buffer(0.15)) for bd in self._near_b(seg)):
-                    continue      # mur de la maison en limite
-                # côté rue : limite proche de la chaussée, bordée d'une seule parcelle habitée (l'autre éventuelle est
-                # une voie, un chemin ou un terrain non bâti) ; la parcelle habitée passe en tête
-                res_p = [p_ for p_ in pids if self.res.get(p_)]
-                street = len(res_p) == 1 and self.roads.distance(Point(mid)) < 5.0
-                if street:
-                    pids = res_p + [p_ for p_ in pids if p_ not in res_p]
-                d = np.subtract(p1, p0); d /= np.linalg.norm(d); nrm_ = np.array([-d[1], d[0]])
-                # la haie réelle (tracée d'après la photo) peut être décalée d'un mètre ou deux de la limite
+                if not zone.contains(Point(mid)) or center.in_area(*mid):
+                    raw.append(None); continue
+                segk = LineString([p0, p1])
+                if hard.intersects(segk.buffer(0.2)):
+                    raw.append(None); continue
+                if any(bd.intersects(segk.buffer(0.15)) for bd in self._near_b(segk)):
+                    raw.append(None); continue      # mur de la maison en limite
                 best, boff = 0.0, 0.0
-                veg = self.hedgem | self.v.tree[:self.hedgem.shape[0], :self.hedgem.shape[1]]
                 for off in (-2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0):
                     samples = [tuple(mid + d * t + nrm_ * (off + o)) for t in np.linspace(-1.0, 1.0, 5) for o in (-0.4, 0.0, 0.4)]
                     f_ = self.frac(veg, samples) - 0.02 * abs(off)
                     if f_ > best:
                         best, boff = f_, off
-                hed = best
-                kind = "hedge" if hed > 0.3 else ("front" if street else "mesh")
-                dark = self.frac(self.dark, samples) > 0.45
-                import center
-                if center.in_area(*((np.array(p0) + np.array(p1)) / 2)):
-                    continue                                   # centre du village : murs et grilles faits main (center.py)
-                self.pieces.append(dict(a=tuple(p0), b=tuple(p1), kind=kind, pids=pids, street=street, dark=dark,
-                                        off=float(boff), nrm=tuple(nrm_)))
+                samples = [tuple(mid + d * t + nrm_ * o) for t in np.linspace(-1.0, 1.0, 5) for o in (-0.4, 0.0, 0.4)]
+                raw.append(dict(p0=p0, p1=p1, hed=best, off=boff, dark=self.frac(self.dark, samples) > 0.45))
+            ok = [r for r in raw if r]
+            if not ok:
+                continue
+            # un seul type pour toute la limite : haie si la majorité des morceaux est verte
+            hedge = np.mean([r["hed"] > 0.3 for r in ok]) >= 0.5
+            kind = "hedge" if hedge else ("front" if street else "mesh")
+            offs = [r["off"] for r in ok if r["hed"] > 0.3]
+            off = float(np.median(offs)) if (hedge and offs) else 0.0
+            if hedge:
+                # la haie décalée ne doit ni mordre sur le trottoir ni sortir de la parcelle de plus de 0,5 m
+                for cand in (off, off * 0.5, 0.0):
+                    lnh = LineString([a + nrm_ * cand, b + nrm_ * cand])
+                    if not hard.intersects(lnh.buffer(0.55)):
+                        off = cand; break
+            dark = np.mean([r["dark"] for r in ok]) > 0.5
+            # trous isolés d'un morceau (arbre, poteau détecté) comblés : la clôture reste continue
+            # trous de 1 ou 2 morceaux entre deux tronçons : comblés tant qu'aucune maison ni chaussée ne s'y trouve
+            for gap in (1, 2):
+                for k in range(1, len(raw) - gap):
+                    if raw[k - 1] and raw[k + gap] if k + gap < len(raw) else False:
+                        if all(raw[k + g_] is None for g_ in range(gap)):
+                            for g_ in range(gap):
+                                kk = k + g_
+                                p0 = a + (b - a) * kk / n; p1 = a + (b - a) * (kk + 1) / n
+                                sg = LineString([p0, p1])
+                                if not hard.intersects(sg.buffer(0.2)) and not any(bd.intersects(sg.buffer(0.15)) for bd in self._near_b(sg)):
+                                    raw[kk] = dict(p0=p0, p1=p1)
+            for r in raw:
+                if r:
+                    self.pieces.append(dict(a=tuple(r["p0"]), b=tuple(r["p1"]), kind=kind, pids=pids, street=street,
+                                            dark=bool(dark), off=off, nrm=tuple(nrm_), edge=ei))
 
     def parcel_at(self, x, z):
         best = None
@@ -347,6 +399,7 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
     rnd = random.Random(12)
     stats = {}
     q.paved_rects = []        # surfaces en dur (pour le masque de l'herbe 3D)
+    q.paved_polys = []
 
     def count(k, n=1):
         stats[k] = stats.get(k, 0) + n
@@ -470,12 +523,38 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
         if sv_ and sv_["front"] not in ("haieT", "haieL", "haieP"):
             no_hedge.append(LineString([p["a"], p["b"]]).buffer(3.0))
     no_hedge = unary_union(no_hedge) if no_hedge else None
+    fence_log = []
+
+    def flog(p, gate=False):
+        a_, b_ = np.array(p["a"]), np.array(p["b"])
+        dd = (b_ - a_) / max(np.linalg.norm(b_ - a_), 1e-9)
+        if dd[0] < 0 or (dd[0] == 0 and dd[1] < 0):
+            dd = -dd
+        t0, t1 = sorted((float(np.dot(a_, dd)), float(np.dot(b_, dd))))
+        fence_log.append(dict(line=str(p.get("edge")), t0=t0, t1=t1, b=[round(float(v), 1) for v in b_], gate=gate))
+
+    # morceaux contigus d'une même limite fusionnés en un seul tronçon : haies et murets d'un seul tenant,
+    # coupés seulement au portail
+    runs = []
     for p in q.pieces:
+        mid_p = (np.array(p["a"]) + np.array(p["b"])) / 2
+        if p["street"] and in_gate(p["pids"], mid_p):
+            flog(p, gate=True)
+            runs.append(None)
+            continue
+        flog(p)
+        r_ = runs[-1] if runs else None
+        if r_ is not None and r_["edge"] == p["edge"] and math.dist(r_["b"], p["a"]) < 0.05 \
+                and abs(q.H(*r_["a"]) - q.H(*p["b"])) < 0.4:
+            r_["b"] = p["b"]
+        else:
+            runs.append(dict(p))
+    for p in runs:
+        if p is None:
+            continue
         a, b = np.array(p["a"]), np.array(p["b"])
         L = float(np.linalg.norm(b - a)); d = (b - a) / L
         mid = (a + b) / 2
-        if p["street"] and in_gate(p["pids"], mid):
-            continue
         ya, yb = q.H(*a), q.H(*b)
         y = min(ya, yb)
         m = Mesh()
@@ -604,10 +683,21 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
         nn = np.array([-d[1], d[0]]) * (0.45 if p["kind"] == "hedge" else 0.12)
         add_coll(np.array([a - nn, b - nn, b + nn, a + nn]))
 
+    json.dump(dict(segments=fence_log), open(os.path.join(DATA, "fences.json"), "w"))
     # haies taillées continues, tracées d'après la photo
     tiles = {}
     hs_tree = STRtree(hedge_segs) if hedge_segs else None
-    for coords, w, dark in q.hedge_polylines():
+    import shapely as _sh
+    hard_b = q.hard.buffer(0.9)
+    _sh.prepare(hard_b)
+    for coords0, w, dark in q.hedge_polylines():
+      # haie tracée d'après la photo : coupée là où elle mordrait sur la chaussée ou un trottoir
+      lnc = LineString(coords0)
+      g0 = lnc.difference(_sh.clip_by_rect(hard_b, *lnc.buffer(3).bounds)) if hard_b.intersects(lnc) else lnc
+      for part in (getattr(g0, "geoms", [g0]) if not g0.is_empty else []):
+        if part.geom_type != "LineString" or part.length < 2.0:
+            continue
+        coords = list(part.coords)
         ln = LineString(coords)
         if no_hedge is not None and ln.intersection(no_hedge).length > 0.4 * ln.length:
             continue
@@ -769,37 +859,108 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
         # on ne garde que les plaques reliées à la rue ou à une maison (allées, cours, terrasses, parkings) :
         # l'herbe grillée claire au milieu d'un jardin n'est pas du gravier
         anchor = vectorized.contains(q.roads.buffer(1.5), X, Zg) | vectorized.contains(unary_union(q.buildings).buffer(1.5), X, Zg)
+        # pas de taches : chaque nature de sol est lissée (ouverture + fermeture), les plaques de moins de 15 m² et
+        # celles qui ne touchent ni la rue ni une maison disparaissent, une plaque prend une seule nature (majoritaire)
+        sm = np.zeros_like(cls)
+        for k in (1, 2, 3):
+            mk = ndi.binary_closing(ndi.binary_opening(cls == k, iterations=1), iterations=2) & ok
+            sm[(mk) & (sm == 0)] = k
+        cls = sm
         lab, nl = ndi.label(cls > 0)
         if nl:
             touch = ndi.maximum(anchor, lab, index=np.arange(1, nl + 1))
             size = ndi.sum(np.ones_like(lab), lab, index=np.arange(1, nl + 1))
-            keep = np.concatenate([[False], (np.asarray(touch) > 0) & (np.asarray(size) >= 5)])
+            keep = np.concatenate([[False], (np.asarray(touch) > 0) & (np.asarray(size) >= 15)])
             cls[~keep[lab]] = 0
-        cls[vmask & (cls == 0)] = 3
+            for c_ in range(1, nl + 1):
+                if keep[c_]:
+                    mm = lab == c_
+                    cls[mm] = np.bincount(cls[mm], minlength=4)[1:].argmax() + 1
+        # règle « la logique prime » : pas de plaques pixelisées. Sols durs = formes nettes :
+        #   * une allée droite du portail à la maison (nature majoritaire sous l'allée sur la photo, gravier sinon) ;
+        #   * une cour seulement si la photo montre une grande surface dure (>= 60 m²) collée à la maison,
+        #     contour lissé ;
+        #   * accotements enrobés de la rue du Balcon (polygone).
+        from shapely.geometry import MultiPoint
+        import sidewalks as swm
         cols = {1: (0.80, 0.75, 0.64), 2: (0.70, 0.69, 0.66), 3: (0.36, 0.36, 0.37)}
         mats = {1: M_GRAVEL, 2: M_PAVE, 3: M_PAVE}
         names = {1: "gravier (m²)", 2: "béton / dallage (m²)", 3: "enrobé (m²)"}
-        tiles = {}
-        for j in range(cls.shape[0]):
-            i = 0
-            while i < cls.shape[1]:
-                k = cls[j, i]
-                if k == 0:
-                    i += 1
+        surfaces = []                                   # (polygone, nature)
+        blds = unary_union(q.buildings) if q.buildings else None
+
+        def nature(poly):
+            from shapely import vectorized as _v
+            m_ = _v.contains(poly, X, Zg)
+            vals = cls[m_]
+            vals = vals[vals > 0]
+            return int(np.bincount(vals, minlength=4)[1:].argmax() + 1) if len(vals) > 3 else 1
+
+        for g in gates:
+            mid, inw = np.array(g["mid"]), np.array(g["inward"])
+            par = dict(q.parcels)[g["pid"]]
+            # jusqu'à la maison la plus proche dans l'axe (25 m max), sinon 6 m
+            L_ = 6.0
+            for t in np.arange(1.0, 25.0, 0.5):
+                if blds is not None and blds.distance(Point(mid + inw * t)) < 1.0:
+                    L_ = max(3.0, t - 0.6); break
+            d_ = np.array(g["d"])
+            rect = Polygon([mid - d_ * 1.6, mid + d_ * 1.6, mid + d_ * 1.6 + inw * L_, mid - d_ * 1.6 + inw * L_])
+            rect = rect.intersection(par.buffer(-0.1))
+            if blds is not None:
+                rect = rect.difference(blds.buffer(0.2))
+            for pg in getattr(rect, "geoms", [rect]):
+                if pg.geom_type == "Polygon" and pg.area > 4:
+                    surfaces.append((pg, nature(pg)))
+        lab, nl = ndi.label(cls > 0)
+        if nl and blds is not None:
+            for c_ in range(1, nl + 1):
+                mm = lab == c_
+                if mm.sum() * step * step < 60:
                     continue
-                i1 = i
-                while i1 + 1 < cls.shape[1] and cls[j, i1 + 1] == k and i1 - i < 12:
-                    i1 += 1
-                xa, xb = x0 + i * step, x0 + (i1 + 1) * step
-                za, zb = z0 + j * step, z0 + (j + 1) * step
-                q.paved_rects.append((xa, za, xb, zb))
-                key = (int((xa - x0) // 64), int((za - z0) // 64))
+                pts = np.c_[X[mm], Zg[mm]]
+                g_ = MultiPoint(pts).buffer(0.75, quad_segs=2)
+                g_ = g_.buffer(1.5).buffer(-1.5).simplify(0.6)
+                if blds.distance(g_) > 1.5:
+                    continue                          # surface dure isolée au milieu d'un jardin : pelouse grillée
+                g_ = g_.intersection(allowed).difference(blds.buffer(0.2))
+                for pg in getattr(g_, "geoms", [g_]):
+                    # une cour est pleine et compacte : pas d'anneau autour d'une pelouse, pas de lanière
+                    if pg.geom_type == "Polygon" and any(Polygon(h).area > 6 for h in pg.interiors):
+                        continue
+                    if pg.geom_type == "Polygon" and pg.area < 0.6 * pg.convex_hull.area:
+                        continue
+                    if pg.geom_type == "Polygon" and pg.area > 20:
+                        k_ = int(np.bincount(cls[mm], minlength=4)[1:].argmax() + 1)
+                        surfaces.append((pg, k_))
+        verge_z = verge.intersection(zone_poly())
+        for pg in getattr(verge_z, "geoms", [verge_z]):
+            if pg.geom_type == "Polygon" and pg.area > 4:
+                surfaces.append((pg.simplify(0.3), 3))
+        # une seule couche : les surfaces se recouvrant sont fusionnées par nature (la plus « dure » l'emporte)
+        done = None
+        tiles = {}
+        for pg, k in sorted(surfaces, key=lambda t: -t[1]):
+            if done is not None:
+                pg = pg.difference(done)
+            if pg.is_empty:
+                continue
+            done = pg if done is None else done.union(pg)
+            for part in getattr(pg, "geoms", [pg]):
+                if part.geom_type != "Polygon" or part.area < 1.0:
+                    continue
+                v, tri = swm.tri_poly(part, 2.0)
+                if len(tri) == 0:
+                    continue
+                v, tri = swm.subdivide(v, tri, 2.5)
+                c = part.representative_point()
+                key = (int((c.x - x0) // 64), int((c.y - z0) // 64))
                 mm = tiles.setdefault(key, Mesh())
-                ids = [mm.vert((x, q.H(x, z) + 0.035, z), (0, 1, 0), cols[k], (x, z), mats[k]) for x, z in
-                       ((xa, za), (xb, za), (xb, zb), (xa, zb))]
-                mm.quad(*ids)
-                count(names[k], (xb - xa) * step)
-                i = i1 + 1
+                ids = [mm.vert((float(x), q.H(x, z) + 0.035, float(z)), (0, 1, 0), cols[k], (float(x), float(z)), mats[k]) for x, z in v]
+                for t in range(0, len(tri), 3):
+                    mm.tri(ids[tri[t]], ids[tri[t + 1]], ids[tri[t + 2]])
+                q.paved_polys.append(list(part.exterior.coords))
+                count(names[k], part.area)
         for (kx, kz), mm in tiles.items():
             add(x0 + kx * 64 + 32, z0 + kz * 64 + 32, mm, True)
     return {k: int(v) for k, v in stats.items()}
