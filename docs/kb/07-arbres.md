@@ -27,3 +27,13 @@ la partie fractionnaire = (rayon du houppier / hauteur) / 2 (largeur du panneau)
 - Collisions : `Decor` mappe 6-7 chêne, 8-9 fruitier, 10-11 buisson, 12-13 résineux.
 - Régénérer : `python3 tools/arbres/dl.py <modèles>` puis `node bake.js <modèles>` puis `python3 assemble.py`
   (variable TREE_WORK = dossier de travail).
+
+## Essences du bourg (v0.8)
+
+`veg_labels.json` : 467 végétaux identifiés à l'œil sur Street View (planches de vignettes centrées sur chaque houppier
+de l'orthophoto, vues masquées par un bâtiment écartées). L'orthophoto seule ne permet pas de distinguer les essences
+(classifieur à 20 %, le hasard) ; on propage donc l'essence des voisins relevés (`vegetation.Species`, accord de 64 %
+avec le plus proche voisin), sous contrainte de taille. Rendu : F grands feuillus (island_tree), P petits arbres,
+C sapins (fir_tree_01), T thuyas/cyprès (cône dense procédural ; haies continues en matériau 19 graine < 0,48),
+L lauriers/photinias (searsia si houppier >= 1,3 m, sinon boule dense), B arbustes de jardin (boule dense), X fausse
+détection (supprimée). Les haies de la rue du Balcon prennent l'essence relevée la plus proche (`hedge_kind`).

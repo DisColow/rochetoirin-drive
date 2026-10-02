@@ -94,8 +94,9 @@ class Village:
         return tuple(float(v) for v in c)
 
     # ------------------------------------------------------------------ arbres
-    def trees(self, blocked):
-        """[(x, z, type, hauteur)] ; blocked(x, z, rayon) -> True si l'emplacement est interdit (route, maison, haie)."""
+    def trees(self, blocked, raw=False):
+        """[(x, z, type, hauteur)] ; blocked(x, z, rayon) -> True si l'emplacement est interdit (route, maison, haie).
+        Essences d'après Street View (vegetation.Species) ; raw=True : types bruts (indices des houppiers inchangés)."""
         d = ndi.distance_transform_edt(self.tree) * self.c        # rayon local du houppier (m)
         out = []
         taken = np.zeros_like(self.tree)
@@ -103,6 +104,7 @@ class Village:
         peaks = (d == ndi.maximum_filter(d, size=5)) & (d >= 0.6)
         js, is_ = np.nonzero(peaks)
         order = np.argsort(-d[js, is_])
+        cands = []
         for k in order:
             j, i = js[k], is_[k]
             if taken[j, i]:
@@ -111,31 +113,53 @@ class Village:
             x = self.x0 + (i + 0.5) * self.c; z = self.z0 + (j + 0.5) * self.c
             rr = int(max(2, r * 1.5 / self.c))
             taken[max(0, j - rr):j + rr + 1, max(0, i - rr):i + rr + 1] = True
+            conifer = self.dark[max(0, j - 2):j + 3, max(0, i - 2):i + 3].mean() > 0.6
+            cands.append((x, z, r, conifer, i, j))
+        if raw:
+            for x, z, r, conifer, i, j in cands:
+                if r < 1.4:
+                    t, h = (T_BUSH if r < 1.1 else T_SHRUB), 1.8 + r * 1.2
+                elif conifer:
+                    t, h = T_CONIFER, min(18.0, 3.0 + r * 3.2)
+                elif r < 2.6:
+                    t, h = T_FRUIT, 3.0 + r * 1.6
+                else:
+                    t, h = T_OAK, min(24.0, 3.0 + r * 3.0)
+                if not blocked(x, z, r):
+                    out.append((x, z, t, h))
+            return out
+        from vegetation import Species
+        sp = Species()
+        for idx, (x, z, r, conifer, i, j) in enumerate(cands):
+            sp.register(idx, x, z)
+        self.species_count = {}
+        for idx, (x, z, r, conifer, i, j) in enumerate(cands):
             if blocked(x, z, r):
                 continue
-            conifer = self.dark[max(0, j - 2):j + 3, max(0, i - 2):i + 3].mean() > 0.6
-            if r < 1.4:      # haies (thuyas, lauriers) et arbustes
-                t, h = (T_BUSH if r < 1.1 else T_SHRUB), 1.8 + r * 1.2
-            elif conifer:
-                t, h = T_CONIFER, min(18.0, 3.0 + r * 3.2)
-            elif r < 2.6:
-                t, h = T_FRUIT, 3.0 + r * 1.6
-            else:
-                t, h = T_OAK, min(24.0, 3.0 + r * 3.0)
-            if t in (T_BUSH, T_SHRUB, T_CONIFER):
-                # arbustes, haies libres et résineux : modèles 3D (Poly Haven, CC0) en imposteurs
-                rng_ = (i * 7919 + j * 104729) % 100
-                model = (6 if rng_ < 70 else 7) if t == T_CONIFER else (4 if r >= 0.9 or rng_ < 30 else 5)
-                if t != T_CONIFER:
-                    h = max(h, 1.6)
-                t = 6 + model + min(0.49, r / h / 2)
-            elif t in (T_OAK, T_FRUIT):
-                # feuillus du bourg : modèles 3D (Poly Haven, CC0) rendus en imposteurs ;
-                # type = 6 + modèle, partie fractionnaire = rayon du houppier / hauteur / 2
-                rng_ = (i * 7919 + j * 104729) % 100
-                model = (0 if rng_ < 65 else 1) if t == T_OAK else (2 if rng_ < 45 else (1 if rng_ < 80 else 3))
-                t = 6 + model + min(0.49, r / h / 2)
-            out.append((x, z, t, h))
+            cls = sp.classify(idx, x, z, r, conifer)
+            self.species_count[cls] = self.species_count.get(cls, 0) + 1
+            if cls == "X":
+                continue                                   # fausse détection (pelouse) vue sur Street View
+            rng_ = (i * 7919 + j * 104729) % 100
+            # modèles 3D (Poly Haven, CC0) en imposteurs : type = 6 + modèle + (rayon / hauteur) / 2
+            if cls == "T":                                 # thuya / cyprès : colonne dense (cône procédural)
+                out.append((x, z, T_CONIFER, 2.0 + r * 2.4))
+                continue
+            if cls == "F":
+                h, model = (min(24.0, 3.0 + r * 3.0) if r >= 2.0 else 4.0 + r * 2.5), (0 if rng_ < 65 else 1)
+            elif cls == "P":
+                h, model = 3.0 + r * 1.6, (2 if rng_ < 50 else (1 if rng_ < 80 else 3))
+            elif cls == "C":
+                h, model = min(20.0, 4.0 + r * 3.4), (6 if rng_ < 70 else 7)
+            elif cls == "L" and r >= 1.3:
+                h, model = 1.8 + r * 1.3, 4                # grand laurier, photinia : persistant dense (modèle 3D)
+            elif cls == "L":                               # petit laurier taillé : boule dense
+                out.append((x, z, T_BUSH, 1.6 + r * 1.2))
+                continue
+            else:                                          # arbuste de jardin : boule dense (procédural)
+                out.append((x, z, T_BUSH if r < 1.1 else T_SHRUB, max(1.2, 1.0 + r * 1.1)))
+                continue
+            out.append((x, z, 6 + model + min(0.49, r / h / 2), h))
         return out
 
     # ------------------------------------------------------------------ piscines

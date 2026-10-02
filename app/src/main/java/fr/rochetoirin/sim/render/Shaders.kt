@@ -714,11 +714,13 @@ void main() {
         c *= 1.0 - 0.12 * (1.0 - smoothstep(0.0, 0.6, vUV.y));   // salissures en pied de mur
     } else if (m == 19) {                                  // haie taillée (thuyas, lauriers) : feuillage dense
         // feuillage photographié sur un modèle 3D d'arbuste (Poly Haven, CC0), raccord sans couture ; uv en mètres
-        vec2 hu = vUV / vec2(2.28, 1.78) + seed * 3.7;
-        vec3 lf = pow(texture(uHedge, hu).rgb, vec3(2.2)) * vec3(0.80, 1.05, 0.85);
+        // graine < 0,48 : thuyas (écailles fines, vert sombre) ; sinon lauriers / photinias (grandes feuilles luisantes)
+        bool thuja = seed < 0.48;
+        vec2 hu = vUV / (thuja ? vec2(0.9, 0.7) : vec2(2.28, 1.78)) + seed * 3.7;
+        vec3 lf = pow(texture(uHedge, hu).rgb, vec3(2.2)) * (thuja ? vec3(1.15, 1.45, 0.85) : vec3(0.85, 1.12, 0.80));
         float n1 = texture(uNoise, vPos.xz * 0.11 + vPos.y * 0.05).a;
         c = lf * clamp(c / vec3(0.24, 0.34, 0.16), 0.75, 1.3) * (0.85 + 0.3 * n1);
-        spec = 0.04;
+        spec = thuja ? 0.03 : 0.12;
     } else if (m == 20) {                                  // gravier / gravillons
         float g1 = hash12(floor(vPos.xz / 0.035));
         float g2 = texture(uNoise, vPos.xz * 0.35).a;

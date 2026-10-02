@@ -5,7 +5,7 @@ Un jeu de conduite Android inspiré d'*Euro Truck Simulator*, dans le village de
 
 ## Télécharger
 
-**[RochetoirinSimulator-v0.7.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.7.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
+**[RochetoirinSimulator-v0.8.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.8.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
 
 Ouvrir le lien depuis le téléphone, puis ouvrir le fichier et autoriser l'installation depuis
 cette source (« Installer quand même » si Play Protect avertit : l'APK est signé avec une clé
@@ -71,6 +71,14 @@ voisines, éclairé par le vrai soleil grâce aux normales et à la profondeur c
 Les haies taillées utilisent une texture de feuillage cuite à partir du même arbuste.
 
 ![Arbres en modèles 3D](docs/apercus/arbres-modeles-3d.jpg)
+
+### Essences relevées sur Street View et mobilier du bourg
+
+467 végétaux du bourg ont été identifiés un à un sur Street View (thuyas, lauriers et photinias, sapins, feuillus,
+fruitiers, arbustes) ; les autres prennent l'essence de leurs voisins relevés. Les haies de la rue du Balcon sont en
+thuyas ou en lauriers selon le relevé. Ajouts d'après OpenStreetMap et Street View : abribus bleu vitré de l'arrêt
+« Rochetoirin - Église » et zigzags jaunes des arrêts de bus, croix de chemin en pierre, terrains de foot, city-stade,
+tennis, boulodromes, aire de jeux, table de pique-nique, borne de recharge, poteau d'incendie, panneaux d'information.
 
 ### Architecture des maisons d'après Street View
 

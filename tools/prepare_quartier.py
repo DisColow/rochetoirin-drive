@@ -374,7 +374,9 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
             o = np.array(p["nrm"]) * p["off"]
             a_, b_ = a + o, b + o
             mid_ = (a_ + b_) / 2
-            thuja = p["dark"] or (sum(map(ord, str(p["pids"]))) % 10) < 3
+            import vegetation
+            hk = vegetation.hedge_kind(*mid)            # essence relevée sur Street View à proximité
+            thuja = (hk == "T") if hk else (p["dark"] or (sum(map(ord, str(p["pids"]))) % 10) < 3)
             col = tuple(np.clip(np.array(THUJA if thuja else LAUREL) * (0.95 + 0.1 * ((sum(map(ord, str(p["pids"]))) % 7) / 7)), 0, 1))
             h = 2.0 if thuja else 1.7
             w = 1.0 if thuja else 0.9
@@ -395,7 +397,7 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
                     mid_ = (a_ + b_) / 2
                 if p["pids"][0] == home12:
                     col, h, w = THUJA, 2.1, 1.0         # thuyas taillés à ~2 m (Street View 2014)
-            obox(m, (mid_[0], y2 + h / 2 - 0.25, mid_[1]), d, (L + 0.35, h + 0.5, w), col, M_HEDGE + 0.37)
+            obox(m, (mid_[0], y2 + h / 2 - 0.25, mid_[1]), d, (L + 0.35, h + 0.5, w), col, M_HEDGE + (0.2 if thuja else 0.7))
             hedge_segs.append(LineString([a_, b_]))
             count("haies sur limites (m)", L)
             add(mid_[0], mid_[1], m, False)
@@ -465,10 +467,12 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
             near = [hedge_segs[k] for k in hs_tree.query(ln.buffer(2.5))]
             if near and ln.buffer(2.5).intersection(unary_union(near)).length > 0.5 * ln.length:
                 continue
-        thuja = dark or rnd.random() < 0.3
+        import vegetation
+        hk = vegetation.hedge_kind(*coords[len(coords) // 2])
+        thuja = (hk == "T") if hk else (dark or rnd.random() < 0.3)
         col = tuple(np.clip(np.array(THUJA if thuja else LAUREL) * rnd.uniform(0.9, 1.1), 0, 1))
         h = rnd.uniform(1.8, 2.2) if thuja else rnd.uniform(1.5, 1.9)
-        mat = M_HEDGE + rnd.random() * 0.9
+        mat = M_HEDGE + (rnd.uniform(0.0, 0.45) if thuja else rnd.uniform(0.5, 0.95))   # graine : < 0,48 thuya
         P = np.array(coords)
         # prolonge un peu les extrémités pour fermer les angles
         if len(P) >= 2:
