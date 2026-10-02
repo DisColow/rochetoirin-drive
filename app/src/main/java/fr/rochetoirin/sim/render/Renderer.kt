@@ -47,6 +47,9 @@ class Renderer(
     private var decalChunks = ArrayList<Chunk>()
     private var texSigns = 0
     private var texLeaf = 0
+    private var pImp = 0; private var pImpDepth = 0
+    private var texImpCol = 0; private var texImpNrm = 0; private var texHedge = 0
+    private val impParams = FloatArray(32)
     private var texMask = 0
     private var texAO = 0
     private var pGrass = 0
@@ -101,6 +104,18 @@ class Renderer(
         pPropsDepth = Gl.program(Shaders.PROPS_VS, Shaders.PROPS_DEPTH_FS)
         pTreeDepth = Gl.program(Shaders.TREE_VS, Shaders.TREE_DEPTH_FS)
         texLeaf = Textures.upload(Textures.leaves(), repeat = false)
+        pImp = Gl.program(Shaders.IMP_VS, Shaders.IMP_FS)
+        pImpDepth = Gl.program(Shaders.IMP_VS, Shaders.IMP_DEPTH_FS)
+        texImpCol = loadRgba("trees_imp_col.webp")
+        texImpNrm = loadRgba("trees_imp_nrm.webp")
+        texHedge = loadRgba("hedge_leaves.png", repeat = true)
+        try {
+            val ja = org.json.JSONArray(open("trees_imp.json").bufferedReader().readText())
+            for (k in 0 until minOf(8, ja.length())) {
+                val o = ja.getJSONObject(k); val h = o.getDouble("H").toFloat()
+                impParams[k * 4] = o.getDouble("S").toFloat() / h; impParams[k * 4 + 1] = o.getDouble("R").toFloat() / h
+            }
+        } catch (e: Exception) { }
         pGrass = Gl.program(Shaders.GRASS_VS, Shaders.GRASS_FS)
         pCarDepth = Gl.program(Shaders.CAR_VS, Shaders.DEPTH_FS)
         shadows = ShadowMaps(2048)
@@ -179,6 +194,39 @@ class Renderer(
             k += stride
         }
         return b
+    }
+
+    /** RVBA non prémultiplié (l'alpha porte la couverture ou la profondeur), avec mipmaps. */
+    private fun loadRgba(name: String, repeat: Boolean = false): Int {
+        val opts = android.graphics.BitmapFactory.Options().apply { inScaled = false; inPremultiplied = false; inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888 }
+        val bmp = try { open(name).use { android.graphics.BitmapFactory.decodeStream(it, null, opts) } } catch (e: Exception) { null } ?: return 0
+        val w = bmp.width; val h = bmp.height
+        val px = IntArray(w * h)
+        bmp.getPixels(px, 0, w, 0, 0, w, h)
+        bmp.recycle()
+        val buf = java.nio.ByteBuffer.allocateDirect(w * h * 4)
+        for (c in px) { buf.put((c shr 16).toByte()); buf.put((c shr 8).toByte()); buf.put(c.toByte()); buf.put((c ushr 24).toByte()) }
+        buf.position(0)
+        val t = IntArray(1)
+        glGenTextures(1, t, 0)
+        glBindTexture(GL_TEXTURE_2D, t[0])
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf)
+        glGenerateMipmap(GL_TEXTURE_2D)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        val wrap = if (repeat) GL_REPEAT else GL_CLAMP_TO_EDGE
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap)
+        return t[0]
+    }
+
+    private fun impUniforms(p: Int, dirMode: Boolean) {
+        glUniform4fv(glGetUniformLocation(p, "uImp"), 8, impParams, 0)
+        glUniform1f(glGetUniformLocation(p, "uDirMode"), if (dirMode) 1f else 0f)
+        glUniform3f(glGetUniformLocation(p, "uFaceDir"), sun[0], 0f, sun[2])
+        bindTex(p, "uImpCol", texImpCol, 9)
+        bindTex(p, "uImpNrm", texImpNrm, 10)
     }
 
     private fun loadNearest(name: String, linear: Boolean = false): Int {
@@ -342,6 +390,11 @@ class Renderer(
             glUniformMatrix4fv(glGetUniformLocation(pTreeDepth, "uVP"), 1, false, lvp, 0)
             bindTex(pTreeDepth, "uLeaf", texLeaf, 3)
             trees?.drawDepth(k == 0) { b -> sm.touches(k, b.minX, b.minZ, b.maxX, b.maxZ, 25f) }
+            glUseProgram(pImpDepth)
+            glUniformMatrix4fv(glGetUniformLocation(pImpDepth, "uVP"), 1, false, lvp, 0)
+            glUniform3f(glGetUniformLocation(pImpDepth, "uCamPos"), eye[0], eye[1], eye[2])
+            impUniforms(pImpDepth, true)
+            trees?.drawImpostorDepth { b -> sm.touches(k, b.minX, b.minZ, b.maxX, b.maxZ, 25f) }
             glUseProgram(pCarDepth)
             glUniformMatrix4fv(glGetUniformLocation(pCarDepth, "uVP"), 1, false, lvp, 0)
             drawCarParts(pCarDepth, withSteer = false)
@@ -449,6 +502,7 @@ class Renderer(
         glUniform1f(glGetUniformLocation(pProps, "uTime"), time)
         bindTex(pProps, "uNoise", texNoise, 1)
         bindTex(pProps, "uSigns", texSigns, 2)
+        bindTex(pProps, "uHedge", texHedge, 11)
         for (c in propChunks) {
             if (!inRange(c.bounds, near, far) || !frustum.visible(c.bounds)) continue
             val d = minDist(c.bounds)
@@ -467,6 +521,11 @@ class Renderer(
             glUniformMatrix4fv(glGetUniformLocation(p, "uVP"), 1, false, vp, 0)
             bindTex(p, "uNoise", texNoise, 1)
             bindTex(p, "uLeaf", texLeaf, 3)
+        }
+        trees?.drawImpostors(pImp, { b -> inRange(b, near, far) && frustum.visible(b) }, { b -> minDist(b) }) { p ->
+            common(p)
+            glUniformMatrix4fv(glGetUniformLocation(p, "uVP"), 1, false, vp, 0)
+            impUniforms(p, false)
         }
 
         if (carVisible) drawCar(opaque = true)

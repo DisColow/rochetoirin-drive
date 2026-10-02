@@ -1,0 +1,75 @@
+<!doctype html><html><body style="margin:0;background:#000">
+<script type="importmap">{"imports":{"three":"./lib/three.module.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+const N=8, PX=512;
+const r=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
+r.setSize(PX,PX); r.setPixelRatio(1); r.outputColorSpace=THREE.SRGBColorSpace;
+r.setClearColor(0x000000,0); document.body.appendChild(r.domElement);
+window.bake=async(spec)=>{
+  const [name,only]=spec.split(':');
+  const g=await new GLTFLoader().loadAsync(`./${name}/${name}.gltf`);
+  let root=g.scene;
+  if(only){const keep=root.getObjectByName(only);root=new THREE.Group();keep.position.set(0,0,0);keep.parent.remove(keep);root.add(keep);} const box=new THREE.Box3().setFromObject(root);
+  const cx=(box.min.x+box.max.x)/2, cz=(box.min.z+box.max.z)/2; let R=0; const v=new THREE.Vector3();
+  root.updateMatrixWorld(true);
+  root.traverse(o=>{if(o.isMesh){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i+=3){v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);R=Math.max(R,Math.hypot(v.x-cx,v.z-cz));}}});
+  root.position.set(-cx,0,-cz);
+  const H=box.max.y-box.min.y;
+  const S=Math.max(2*R,H)*1.03;
+  const meshes=[]; root.traverse(o=>{if(o.isMesh)meshes.push(o)});
+  let alpha={};try{alpha=await (await fetch(`./${name}/alpha.json`)).json();}catch(e){}
+  const tl=new THREE.TextureLoader(), cache={};
+  const amFor=(mm)=>{const nm=mm.name||'';let f=null;
+    for(const [k,v] of Object.entries(alpha)){if(k==='*'){if(mm.transparent||mm.alphaTest>0)f=f||v;}else if(nm.includes(k))f=v;}
+    if(!f)return null; if(!cache[f]){const t=tl.load(`./${name}/${f}`);t.flipY=false;t.colorSpace=THREE.NoColorSpace;cache[f]=t;} return cache[f];};
+  const NV=`varying vec3 vN; varying vec2 vUv; void main(){vUv=uv; vN=normalize(normalMatrix*normal); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`;
+  const NF=`uniform sampler2D am; uniform float useA; varying vec3 vN; varying vec2 vUv; void main(){ if(useA>0.5 && texture2D(am,vUv).g<0.5) discard; vec3 n=normalize(vN); if(!gl_FrontFacing) n=-n; gl_FragColor=vec4(n*0.5+0.5,1.0);}`;
+  const basic=new Map(), nrmM=new Map(), depM=new Map();
+  for(const m of meshes){const mm=m.material, am=amFor(mm);
+    basic.set(m,new THREE.MeshBasicMaterial({map:mm.map,color:mm.color,side:THREE.DoubleSide,alphaMap:am,alphaTest:am?0.5:0}));
+    nrmM.set(m,new THREE.ShaderMaterial({side:THREE.DoubleSide,uniforms:{am:{value:am},useA:{value:am?1:0}},vertexShader:NV,fragmentShader:NF}));
+    depM.set(m,new THREE.MeshDepthMaterial({side:THREE.DoubleSide,alphaMap:am,alphaTest:am?0.5:0}));}
+  await new Promise(r=>setTimeout(r,1500));
+  const scene=new THREE.Scene(); scene.add(root);
+  const cam=new THREE.OrthographicCamera(-S/2,S/2,S/2,-S/2,0.01,4*S);
+  const out={S,H,R,ymin:box.min.y,cx,cz,views:[]};
+  for(let k=0;k<N;k++){
+    const th=2*Math.PI*k/N;
+    cam.position.set(Math.sin(th)*2*S, box.min.y+S/2, Math.cos(th)*2*S);
+    cam.near=2*S-S/2*1.5; cam.far=2*S+S/2*1.5; cam.updateProjectionMatrix();
+    cam.lookAt(0, box.min.y+S/2, 0);
+    const shots={};
+    for(const [pass,mp] of [['col',basic],['nrm',nrmM],['dep',depM]]){
+      for(const m of meshes) m.material = mp.get(m);
+      r.render(scene,cam); shots[pass]=r.domElement.toDataURL('image/png');
+    }
+    out.views.push(shots);
+  }
+  return out;
+};
+// texture de haie taillée : copies du buisson sur une grille périodique (raccord sans couture)
+window.bakeHedge=async(spec)=>{
+  const [name,only]=spec.split(':');
+  const g=await new GLTFLoader().loadAsync(`./${name}/${name}.gltf`);
+  const src=g.scene.getObjectByName(only); src.position.set(0,0,0); src.parent.remove(src);
+  let alpha={};try{alpha=await (await fetch(`./${name}/alpha.json`)).json();}catch(e){}
+  const tl=new THREE.TextureLoader();let am=null;
+  if(alpha['*']){am=tl.load(`./${name}/${alpha['*']}`);am.flipY=false;am.colorSpace=THREE.NoColorSpace;}
+  src.traverse(o=>{if(o.isMesh){const mm=o.material;o.material=new THREE.MeshBasicMaterial({map:mm.map,side:THREE.DoubleSide,
+    alphaMap:(mm.transparent||mm.alphaTest>0)?am:null,alphaTest:(mm.transparent||mm.alphaTest>0)?0.5:0});}});
+  await new Promise(r=>setTimeout(r,1500));
+  const box=new THREE.Box3().setFromObject(src), bw=box.max.x-box.min.x, bh=box.max.y-box.min.y;
+  const sx=bw*0.42, sy=bh*0.38, nx=3, ny=2, W=nx*sx, H=ny*sy;
+  const scene=new THREE.Scene(); let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+  for(let j=-1;j<=ny;j++)for(let i=-1;i<=nx;i++){
+    const base=[rnd(),rnd(),rnd()];
+    for(const [ox,oy] of [[0,0]]){const c=src.clone();c.position.set(i*sx+(base[0]-0.5)*sx*0.4-(box.min.x+box.max.x)/2, j*sy-box.min.y-bh*0.35+(base[1]-0.5)*sy*0.3, (base[2]-0.5)*bw*0.5);
+      c.rotation.y=base[0]*6.28; scene.add(c);}}
+  const cam=new THREE.OrthographicCamera(0,W,H,0,0.1,100); cam.position.set(0,0,20); cam.lookAt(0,0,0);
+  r.setClearColor(new THREE.Color(0.07,0.12,0.05),1); r.render(scene,cam); const url=r.domElement.toDataURL('image/png'); r.setClearColor(0x000000,0);
+  return {url,W,H};
+};
+window.ready=true;
+</script></body></html>

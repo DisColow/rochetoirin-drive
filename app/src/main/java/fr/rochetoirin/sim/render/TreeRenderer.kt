@@ -37,6 +37,8 @@ class TreeRenderer(chunks: List<TreeChunk>) {
     private val lo = mesh(0)
     private val quad: Geo
     private val list = ArrayList<TChunk>()
+    private class IChunk(val bounds: Bounds, val count: Int, val vao: Int)
+    private val imp = ArrayList<IChunk>()
 
     init {
         // panneau : deux triangles, coins (-1..1, 0..1)
@@ -50,9 +52,33 @@ class TreeRenderer(chunks: List<TreeChunk>) {
 
         for (c in chunks) {
             if (c.count == 0) continue
-            val d = c.data
+            // feuillus du bourg en imposteurs (type >= 6) : tampon séparé
+            val all = c.data
+            val isImp = BooleanArray(c.count) { all[it * 6 + 4] >= 5.9f }
+            val ni = isImp.count { it }
+            if (ni > 0) {
+                val di = FloatArray(ni * 6); var q = 0
+                val b = Bounds(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)
+                for (k in 0 until c.count) if (isImp[k]) {
+                    System.arraycopy(all, k * 6, di, q * 6, 6); q++
+                    val x = all[k * 6]; val y = all[k * 6 + 1]; val z = all[k * 6 + 2]; val h = all[k * 6 + 3]
+                    b.minX = min(b.minX, x - h); b.maxX = max(b.maxX, x + h)
+                    b.minZ = min(b.minZ, z - h); b.maxZ = max(b.maxZ, z + h)
+                    b.minY = min(b.minY, y - 1); b.maxY = max(b.maxY, y + h * 1.6f)
+                }
+                val inst = Gl.genBuffer()
+                glBindBuffer(GL_ARRAY_BUFFER, inst)
+                glBufferData(GL_ARRAY_BUFFER, di.size * 4, Gl.floats(di), GL_STATIC_DRAW)
+                imp.add(IChunk(b, ni, vao(quad, inst, true)))
+            }
+            if (ni == c.count) continue
+            val d = if (ni == 0) all else FloatArray((c.count - ni) * 6).also { o ->
+                var q = 0
+                for (k in 0 until c.count) if (!isImp[k]) { System.arraycopy(all, k * 6, o, q * 6, 6); q++ }
+            }
+            val count = c.count - ni
             val b = Bounds(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)
-            for (k in 0 until c.count) {
+            for (k in 0 until count) {
                 val x = d[k * 6]; val y = d[k * 6 + 1]; val z = d[k * 6 + 2]; val h = d[k * 6 + 3]
                 b.minX = min(b.minX, x - 6); b.maxX = max(b.maxX, x + 6)
                 b.minZ = min(b.minZ, z - 6); b.maxZ = max(b.maxZ, z + 6)
@@ -61,7 +87,7 @@ class TreeRenderer(chunks: List<TreeChunk>) {
             val inst = Gl.genBuffer()
             glBindBuffer(GL_ARRAY_BUFFER, inst)
             glBufferData(GL_ARRAY_BUFFER, d.size * 4, Gl.floats(d), GL_STATIC_DRAW)
-            list.add(TChunk(b, c.count, vao(hi, inst, false), vao(lo, inst, false), vao(quad, inst, true)))
+            list.add(TChunk(b, count, vao(hi, inst, false), vao(lo, inst, false), vao(quad, inst, true)))
         }
         glBindVertexArray(0)
     }
@@ -105,6 +131,27 @@ class TreeRenderer(chunks: List<TreeChunk>) {
                 glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, c.count)
             }
         }
+    }
+
+    /** Imposteurs (modèles 3D photographiés) : un panneau par arbre, jusqu'à 3,2 km. */
+    fun drawImpostors(p: Int, visible: (Bounds) -> Boolean, distance: (Bounds) -> Float, setup: (Int) -> Unit) {
+        var used = false
+        for (c in imp) {
+            if (!visible(c.bounds) || distance(c.bounds) > 3200f) continue
+            if (!used) { glUseProgram(p); setup(p); used = true }
+            glBindVertexArray(c.vao)
+            glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, c.count)
+        }
+        glBindVertexArray(0)
+    }
+
+    fun drawImpostorDepth(touches: (Bounds) -> Boolean) {
+        for (c in imp) {
+            if (!touches(c.bounds)) continue
+            glBindVertexArray(c.vao)
+            glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, c.count)
+        }
+        glBindVertexArray(0)
     }
 
     /** Carte d'ombre : maillage fin pour la cascade proche, simplifié pour la lointaine. */

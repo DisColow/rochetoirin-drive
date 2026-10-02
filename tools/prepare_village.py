@@ -122,6 +122,19 @@ class Village:
                 t, h = T_FRUIT, 3.0 + r * 1.6
             else:
                 t, h = T_OAK, min(24.0, 3.0 + r * 3.0)
+            if t in (T_BUSH, T_SHRUB, T_CONIFER):
+                # arbustes, haies libres et résineux : modèles 3D (Poly Haven, CC0) en imposteurs
+                rng_ = (i * 7919 + j * 104729) % 100
+                model = (6 if rng_ < 70 else 7) if t == T_CONIFER else (4 if r >= 0.9 or rng_ < 30 else 5)
+                if t != T_CONIFER:
+                    h = max(h, 1.6)
+                t = 6 + model + min(0.49, r / h / 2)
+            elif t in (T_OAK, T_FRUIT):
+                # feuillus du bourg : modèles 3D (Poly Haven, CC0) rendus en imposteurs ;
+                # type = 6 + modèle, partie fractionnaire = rayon du houppier / hauteur / 2
+                rng_ = (i * 7919 + j * 104729) % 100
+                model = (0 if rng_ < 65 else 1) if t == T_OAK else (2 if rng_ < 45 else (1 if rng_ < 80 else 3))
+                t = 6 + model + min(0.49, r / h / 2)
             out.append((x, z, t, h))
         return out
 

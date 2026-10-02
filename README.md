@@ -5,7 +5,7 @@ Un jeu de conduite Android inspiré d'*Euro Truck Simulator*, dans le village de
 
 ## Télécharger
 
-**[RochetoirinSimulator-v0.6.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.6.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
+**[RochetoirinSimulator-v0.7.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.7.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
 
 Ouvrir le lien depuis le téléphone, puis ouvrir le fichier et autoriser l'installation depuis
 cette source (« Installer quand même » si Play Protect avertit : l'APK est signé avec une clé
@@ -60,6 +60,32 @@ roulables, puis raccordé en douceur au relief réel.
 
 Les bâtiments, arbres, haies, poteaux, îlots et glissières sont **solides** : un choc arrête le
 véhicule et coûte une petite facture de carrosserie. Les trottoirs, îlots et ralentisseurs se montent (bordures basses, sans obstacle).
+
+### Végétation du bourg en modèles 3D (Poly Haven, CC0)
+
+Les feuillus, arbustes et résineux du bourg (repérés sur l'orthophoto) sont des modèles 3D photoréalistes de
+[Poly Haven](https://polyhaven.com) (licence CC0) : island_tree_01/02/03, tree_small_02, searsia_lucida, fir_tree_01.
+Trop lourds pour un téléphone (0,3 à 17 millions de polygones), ils sont « photographiés » sous 8 angles
+(`tools/arbres/`, three.js dans Chromium) en **imposteurs** : un panneau par arbre qui choisit et fond les deux vues
+voisines, éclairé par le vrai soleil grâce aux normales et à la profondeur cuites, avec ombres portées.
+Les haies taillées utilisent une texture de feuillage cuite à partir du même arbuste.
+
+![Arbres en modèles 3D](docs/apercus/arbres-modeles-3d.jpg)
+
+### Architecture des maisons d'après Street View
+
+127 maisons du bourg ont été relevées une à une sur les vues Street View (`tools/archi_bourg.json`) : toit à deux pans
+ou à croupes, nombre de niveaux, garage en sous-sol, portes de garage, escalier extérieur, auvent, balcon, cheminée,
+combles, panneaux solaires, maisons anciennes, granges en pisé ou en pierre. `tools/archi.py` reconstruit chaque maison
+en conséquence, éléments posés sur la façade côté rue (celle que voit la caméra Street View) ; la couleur des tuiles
+est mesurée sur les photos.
+
+![Maison sur sous-sol avec escalier](docs/apercus/maison-sous-sol-escalier.jpg)
+
+### Base de connaissance et agent
+
+`docs/kb/` : fiches courtes (formats, pipeline, rendu, physique, pièges…) interrogées par `python3 tools/kb.py search "…"`
+(BM25, sans dépendance) ; `.claude/agents/rochetoirin-dev.md` : agent de développement du projet qui s'appuie dessus.
 
 ### Trottoirs et carrefours (`tools/sidewalks.py`)
 
@@ -210,7 +236,7 @@ app/src/main/java/fr/rochetoirin/sim/
 tools/                   préparation des données (Python)
 ```
 
-Données : © contributeurs OpenStreetMap (ODbL) ; IGN RGE ALTI, BD TOPO, BD ORTHO, Parcellaire Express et RPG (Licence Ouverte Etalab).
+Données : © contributeurs OpenStreetMap (ODbL) ; modèles 3D de végétation Poly Haven (CC0) ; IGN RGE ALTI, BD TOPO, BD ORTHO, Parcellaire Express et RPG (Licence Ouverte Etalab).
 
 ## Tests
 

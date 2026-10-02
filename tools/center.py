@@ -1125,7 +1125,7 @@ def furniture(add, add_coll, roads_union=None):
             top = lambda x, z: np.atleast_1d(np.vectorize(H)(x, z)) + swm.CURB + 0.07
             kind = lambda mids: np.where(shapely.distance(gb, shapely.points(mids)) < 0.03, 1, 0)
             base = lambda x, z, k: H(x, z) - 0.04
-            # bordure continue (12 cm, franchissable) + terre végétalisée
+            # bordure continue (10 cm au-dessus de l'enrobé, franchissable) + terre végétalisée
             swm.raised_mesh(m, g, top, base, kind, (0.34, 0.42, 0.20), M_GRASS, M_CURB, step=3.0, band=0.15)
             RAISED.append((g, lambda x, z: np.full(np.shape(x), swm.CURB + 0.07)))
             # arbustes bas

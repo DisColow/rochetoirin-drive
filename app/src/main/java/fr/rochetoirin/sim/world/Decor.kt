@@ -119,7 +119,7 @@ class Decor(open: (String) -> InputStream, private val world: World) {
                 val x = d[k * 6]; val z = d[k * 6 + 2]; val type = d[k * 6 + 4].toInt()
                 val ci = cellOfX(x); val cj = cellOf(z)
                 val l = tt[cj * gw + ci]
-                l.add(x); l.add(z); l.add(TreeType.TRUNK[type.coerceIn(0, 5)])
+                l.add(x); l.add(z); l.add(TreeType.TRUNK[when { type >= 12 -> 3; type >= 10 -> 1; type >= 8 -> 4; type >= 6 -> 0; else -> type.coerceIn(0, 5) }])
             }
         }
         tIndex = Array(tt.size) { tt[it].toFloatArray() }

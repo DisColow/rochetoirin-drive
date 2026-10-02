@@ -585,6 +585,7 @@ void main() {
 in vec3 vPos; in vec3 vN; in vec3 vCol; in vec2 vUV; flat in vec2 vMat;
 uniform sampler2D uNoise;
 uniform sampler2D uSigns;
+uniform sampler2D uHedge;
 uniform float uTime;
 out vec4 o;
 const vec3 SHUT[6] = vec3[6](vec3(0.42, 0.28, 0.18), vec3(0.86, 0.86, 0.83), vec3(0.66, 0.68, 0.68),
@@ -712,11 +713,11 @@ void main() {
         c *= (0.93 + 0.1 * n1 * fade) * (0.95 + 0.08 * n2);
         c *= 1.0 - 0.12 * (1.0 - smoothstep(0.0, 0.6, vUV.y));   // salissures en pied de mur
     } else if (m == 19) {                                  // haie taillée (thuyas, lauriers) : feuillage dense
-        vec3 q = vPos * 2.2 + seed * 17.0;
-        float n1 = texture(uNoise, q.xz * 0.5 + q.y * 0.37).a;
-        float n2 = texture(uNoise, vec2(q.x + q.z, q.y) * 0.9).g;
-        float holes = smoothstep(0.30, 0.10, n1 * n2 * 2.0);
-        c *= mix(1.0, (0.62 + 0.62 * n1) * (1.0 - 0.45 * holes), fade * 0.8 + 0.2);
+        // feuillage photographié sur un modèle 3D d'arbuste (Poly Haven, CC0), raccord sans couture ; uv en mètres
+        vec2 hu = vUV / vec2(2.28, 1.78) + seed * 3.7;
+        vec3 lf = pow(texture(uHedge, hu).rgb, vec3(2.2)) * vec3(0.80, 1.05, 0.85);
+        float n1 = texture(uNoise, vPos.xz * 0.11 + vPos.y * 0.05).a;
+        c = lf * clamp(c / vec3(0.24, 0.34, 0.16), 0.75, 1.3) * (0.85 + 0.3 * n1);
         spec = 0.04;
     } else if (m == 20) {                                  // gravier / gravillons
         float g1 = hash12(floor(vPos.xz / 0.035));
@@ -957,6 +958,90 @@ void main() {
     // contre-jour : la lumière traverse les feuilles
     if (vTrunk < 0.5) col += c * SUN * pow(max(dot(-V, uSunDir), 0.0), 4.0) * 0.5 * (0.35 + 0.65 * sh);
     o = vec4(fogged(col, vPos), 1.0);
+}
+"""
+    // --------------------------------------------------------------------------- arbres en imposteurs
+    // Modèles 3D (Poly Haven, CC0) photographiés sous 8 angles : couleur + normale + profondeur par vue.
+    const val IMP_VS = HEADER + """
+layout(location = 0) in vec2 aCorner;  // x : -1..1, y : 0..1
+layout(location = 3) in vec4 aI0;      // x, y, z, hauteur
+layout(location = 4) in vec2 aI1;      // 6 + modèle (0-3 feuillus, 4-5 arbustes, 6-7 résineux) + (rayon / hauteur) / 2, aléa
+uniform mat4 uVP;
+uniform vec3 uCamPos;
+uniform vec3 uFaceDir;                 // passe d'ombre : direction du soleil (sinon caméra)
+uniform float uDirMode;
+uniform vec4 uImp[8];                  // côté de cellule / H, rayon / H du modèle
+out vec2 vUV0; out vec2 vUV1; out float vBlend; out vec3 vPos; out vec3 vTo; out vec2 vRot; out float vDepthScale; out float vRnd;
+void main() {
+    float t = floor(aI1.x);
+    int mi = clamp(int(t) - 6, 0, 7);
+    float wr = fract(aI1.x) * 2.0;     // rayon du houppier / hauteur (orthophoto)
+    float h = aI0.w;
+    vec4 P = uImp[mi];
+    float sy = h;                                        // une unité « H du modèle » = h mètres
+    float sx = clamp(wr * h / max(P.y, 0.05), 0.75 * h, 1.35 * h);
+    vec3 to = uDirMode > 0.5 ? uFaceDir : uCamPos - aI0.xyz;
+    to.y = 0.0;
+    to = normalize(to + vec3(1e-4, 0.0, 0.0));
+    float yaw = aI1.y * 6.2832;
+    float c = cos(yaw), s = sin(yaw);
+    vRot = vec2(c, s);
+    // direction de vue dans le repère du modèle
+    vec2 tl = vec2(c * to.x + s * to.z, -s * to.x + c * to.z);
+    float th = atan(tl.x, tl.y);
+    if (th < 0.0) th += 6.2832;
+    float f = th / 6.2832 * 8.0;
+    float i0 = floor(f);
+    vBlend = f - i0;
+    float i1 = mod(i0 + 1.0, 8.0); i0 = mod(i0, 8.0);
+    vec2 cuv = vec2(aCorner.x * 0.5 + 0.5, 1.0 - aCorner.y);
+    vUV0 = vec2((i0 + cuv.x) / 8.0, (float(mi) + cuv.y) / 8.0);
+    vUV1 = vec2((i1 + cuv.x) / 8.0, (float(mi) + cuv.y) / 8.0);
+    vec3 right = vec3(to.z, 0.0, -to.x);
+    vPos = aI0.xyz + right * (aCorner.x * P.x * sx * 0.5) + vec3(0.0, aCorner.y * P.x * sy - 0.15, 0.0);
+    vTo = to;
+    vDepthScale = P.x * sx * 0.75;     // profondeur atlas (0..1) -> mètres le long de la vue
+    vRnd = aI1.y;
+    gl_Position = uVP * vec4(vPos, 1.0);
+}
+"""
+    const val IMP_FS = HEADER + COMMON + """
+in vec2 vUV0; in vec2 vUV1; in float vBlend; in vec3 vPos; in vec3 vTo; in vec2 vRot; in float vDepthScale; in float vRnd;
+uniform sampler2D uImpCol;
+uniform sampler2D uImpNrm;
+out vec4 o;
+void main() {
+    vec4 c0 = texture(uImpCol, vUV0), c1 = texture(uImpCol, vUV1);
+    float a = mix(c0.a, c1.a, vBlend);
+    if (a < 0.5) discard;
+    // une vue seule quand l'autre est transparente (pas de feuillage fantôme)
+    vec4 cc = c0.a < 0.3 ? c1 : (c1.a < 0.3 ? c0 : mix(c0, c1, vBlend));
+    vec4 n0 = texture(uImpNrm, vUV0), n1 = texture(uImpNrm, vUV1);
+    vec4 nd = c0.a < 0.3 ? n1 : (c1.a < 0.3 ? n0 : mix(n0, n1, vBlend));
+    vec3 nm = normalize(nd.rgb * 2.0 - 1.0);
+    vec3 n = normalize(vec3(vRot.x * nm.x - vRot.y * nm.z, nm.y, vRot.y * nm.x + vRot.x * nm.z));
+    float front = clamp((nd.a - 0.30) / 0.42, 0.0, 1.0);          // 1 = devant (exposé), 0 = cœur du houppier
+    vec3 p = vPos + vTo * (nd.a - 0.5) * 2.0 * vDepthScale;
+    vec3 alb = pow(cc.rgb, vec3(2.2)) * 2.8 * (0.9 + 0.2 * vRnd);
+    bool wood = cc.r > cc.g * 1.02;
+    float sh = sunShadow(p, n);
+    float ndl = dot(n, uSunDir);
+    float diff = (wood ? max(ndl, 0.0) : clamp((ndl + 0.35) / 1.35, 0.0, 1.0)) * sh;
+    vec3 amb = mix(vec3(0.28, 0.29, 0.22), vec3(0.40, 0.48, 0.60), n.y * 0.5 + 0.5);
+    float ao = 0.45 + 0.55 * front;
+    vec3 col = alb * (SUN * diff * 0.85 + amb * ao);
+    vec3 V = normalize(uCamPos - p);
+    if (!wood) col += alb * SUN * pow(max(dot(-V, uSunDir), 0.0), 4.0) * 0.45 * (0.35 + 0.65 * sh);
+    o = vec4(fogged(col, p), 1.0);
+}
+"""
+    const val IMP_DEPTH_FS = HEADER + """
+in vec2 vUV0; in vec2 vUV1; in float vBlend; in vec3 vPos; in vec3 vTo; in vec2 vRot; in float vDepthScale; in float vRnd;
+uniform sampler2D uImpCol;
+out vec4 o;
+void main() {
+    if (texture(uImpCol, vBlend < 0.5 ? vUV0 : vUV1).a < 0.5) discard;
+    o = vec4(1.0);
 }
 """
     const val BILLBOARD_VS = HEADER + TREE_PARAMS + """

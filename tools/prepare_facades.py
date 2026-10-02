@@ -60,7 +60,7 @@ def facade_quads(cam, poly, ground, wall_top):
     return out
 
 
-def analyse(img, quads, ground, wall_top, cam):
+def analyse(img, quads, ground, wall_top, cam, roof_quads=None):
     W, H = img.size
     mask = Image.new("L", (W, H), 0)
     d = ImageDraw.Draw(mask)
@@ -112,7 +112,32 @@ def analyse(img, quads, ground, wall_top, cam):
         counts[4] = counts[4] // 3          # le « vert » est souvent un reste de feuillage
         if counts.max() > 40:
             shutter = int(counts.argmax())
-    return dict(wall=[float(x) / 255 for x in wall], shutter=shutter, n=int(len(px)), vis=float(vis))
+    res = dict(wall=[float(x) / 255 for x in wall], shutter=shutter, n=int(len(px)), vis=float(vis))
+    if roof_quads:
+        rc = roof_color(a, roof_quads, sky, exg, Lum)
+        if rc is not None:
+            res["roof"] = rc
+    return res
+
+
+def roof_color(a, quads, sky, exg, Lum):
+    """Teinte des tuiles : pixels du toit au-dessus de la façade, hors ciel, feuillage et reflets."""
+    H, W = Lum.shape
+    mask = Image.new("L", (W, H), 0)
+    d = ImageDraw.Draw(mask)
+    for pts in quads:
+        d.polygon([tuple(q) for q in pts], fill=255)
+    m = (np.array(mask) > 0) & ~sky & (exg < 10) & (Lum > 25) & (Lum < 215)
+    sat = a.max(axis=2) - a.min(axis=2)
+    m &= ~((a[..., 2] > a[..., 0] + 8) & (Lum > 120))   # ciel pâle mal détecté
+    m &= a[..., 0] >= a[..., 2] + 6                      # tuiles : teinte chaude (le ciel et le zinc sont froids)
+    if m.sum() < 150:
+        return None
+    px = a[m]
+    med = np.median(px, axis=0)
+    if med.max() - med.min() < 14:                        # gris : mélange de ciel et d'ombre, mesure écartée
+        return None
+    return [float(x) / 255 for x in med]
 
 
 def main(debug_dir=None):
@@ -141,7 +166,14 @@ def main(debug_dir=None):
         quads = facade_quads(cam, poly, ground, wall_top)
         if not quads:
             continue
-        res = analyse(img, quads, ground, wall_top, cam)
+        # bande de toit au-dessus des façades vues (débord + premiers rangs de tuiles)
+        mrr = np.array(poly.minimum_rotated_rectangle.exterior.coords)
+        width = float(min(np.linalg.norm(mrr[1] - mrr[0]), np.linalg.norm(mrr[2] - mrr[1])))
+        rise = min(2.2, 0.22 * width)
+        rq = []
+        for k_, (pts, L) in enumerate(facade_quads(cam, poly, wall_top + 0.25, wall_top + 0.25 + rise)):
+            rq.append(pts)
+        res = analyse(img, quads, ground, wall_top, cam, rq)
         if res:
             out[cle] = res
         if debug_dir and k < 24:

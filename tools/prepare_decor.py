@@ -217,11 +217,21 @@ def facade_wall(rgb):
     L = float(c @ (0.299, 0.587, 0.114))
     if L < 1e-3:
         return tuple(c)
-    Lt = min(max(L * 1.2, 0.66), 0.88)
+    Lt = min(max(L * 1.2, 0.72), 0.9)
     mean = c.mean()
     c = mean + (c - mean) * 0.9                 # saturation légèrement adoucie (dominante JPEG)
     c = np.clip(c * (Lt / L), 0.0, 0.95)
     return tuple(float(x) for x in c)
+
+
+def facade_roof(rgb):
+    """Tuiles mesurées sur photo : teinte gardée, luminance ramenée dans la plage des tuiles en plein jour."""
+    c = np.array(rgb, float)
+    L = float(c @ (0.299, 0.587, 0.114))
+    if L < 1e-3:
+        return tuple(c)
+    Lt = min(max(L, 0.24), 0.46)
+    return tuple(float(x) for x in np.clip(c * (Lt / L), 0.0, 0.9))
 
 
 def building_mesh(poly, ground_min, wall_top, roof_h, style, wcol, rcol, wallmat, seed, floors, gable=False):
@@ -718,6 +728,8 @@ def main():
     fpath = os.path.join(DATA, "facades.json")
     facades = json.load(open(fpath)) if os.path.exists(fpath) else {}
     nfac = 0
+    narc = 0
+    import archi
     for p, pr in buildings:
         ov = center.override(p, pr)
         if ov == "skip":
@@ -780,10 +792,32 @@ def main():
                 if pr.get("hauteur") and pr["hauteur"] > 4.5:
                     wall_top = max(wall_top, gmin + 5.6)
                 floors = max(1, int(round((wall_top - gmin) / 2.9)))
+        # architecture relevée sur Street View (toit, niveaux, garages, balcons…), cf. archi.py
+        arc = archi.data().get(pr.get("cleabs")) if not ov and nature != "Eglise" else None
+        mrr = p.minimum_rotated_rectangle
+        mx_ = np.array(mrr.exterior.coords)
+        width = float(min(np.linalg.norm(mx_[1] - mx_[0]), np.linalg.norm(mx_[2] - mx_[1])))
+        if arc:
+            wall_top, roof_h, g2, flat, wcol, wallmat, floors = archi.plan(arc, wall_top, gmin, roof_h, wcol, wallmat, rng)
+            if flat:
+                style, roof_h, gable = "flat", 0.0, False
+            else:
+                if style != "tiles":
+                    style = "tiles"
+                gable = bool(g2 and p.area / max(mrr.area, 1e-6) > 0.7)
+                roof_h = archi.roof_height(arc, width)
+            narc += 1
+        elif village is not None and not gable and style == "tiles" and usage in ("Résidentiel", "Indifférencié") \
+                and p.area > 40 and p.area / max(mrr.area, 1e-6) > 0.85 and village.contains(p.centroid.x, p.centroid.y) \
+                and int(str(pr.get("cleabs"))[-4:] or 0) % 100 < 45:
+            gable = True                     # répartition observée dans le bourg : près d'une maison sur deux à deux pans
+            roof_h = max(roof_h, width * 0.3)
         # couleurs réelles mesurées sur Street View (prepare_facades.py) : teinte de l'enduit, volets
         fc = facades.get(pr.get("cleabs")) if wallmat == M_WALL and not ov else None
         if fc:
             wcol = facade_wall(fc["wall"])
+            if fc.get("roof") is not None and style == "tiles":
+                rcol = facade_roof(fc["roof"])
             if fc.get("shutter") is not None:
                 seed = (fc["shutter"] + 0.5) / 6.0
             nfac += 1
@@ -798,10 +832,13 @@ def main():
             church_extra(m, p, gmin, wall_top, (pr.get("altitude_maximale_toit") or (gmin + 20)), wcol)
         if ov:
             center.dressed_extras(m, p, ov, gmin, wall_top, roads_union)
+        if arc:
+            roof_top = wall_top + (min(roof_h, width * 0.45) if gable else roof_h * 0.9)
+            archi.extras(m, p, arc, gmin, wall_top, roof_top, box_mesh, rng, gable_ring=mrr if gable else None, ground=terrain.height)
         c = p.centroid
         props.add(c.x, c.y, m, big=p.area > 60 or wall_top - gmin > 7)
         nb += 1
-    print(nb, "bâtiments maillés,", nroof, "toits colorés d'après l'orthophoto,", nfac, "façades d'après Street View")
+    print(nb, "bâtiments maillés,", nroof, "toits colorés d'après l'orthophoto,", nfac, "façades d'après Street View,", narc, "architectures relevées")
     if village is not None:
         npool = 0
         for poly, round_ in village.pools():
