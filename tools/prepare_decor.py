@@ -210,6 +210,20 @@ def triangulate(ring):
     return list(earcut.triangulate_float64(a, np.array([len(a)], dtype=np.uint32)))
 
 
+def facade_wall(rgb):
+    """Enduit mesuré sur photo : on garde teinte et saturation, la luminance est ramenée à celle
+    d'un mur en plein jour (les photos sont souvent à l'ombre ou sous-exposées)."""
+    c = np.array(rgb, float)
+    L = float(c @ (0.299, 0.587, 0.114))
+    if L < 1e-3:
+        return tuple(c)
+    Lt = min(max(L * 1.2, 0.66), 0.88)
+    mean = c.mean()
+    c = mean + (c - mean) * 0.9                 # saturation légèrement adoucie (dominante JPEG)
+    c = np.clip(c * (Lt / L), 0.0, 0.95)
+    return tuple(float(x) for x in c)
+
+
 def building_mesh(poly, ground_min, wall_top, roof_h, style, wcol, rcol, wallmat, seed, floors, gable=False):
     m = Mesh()
     if gable:
@@ -701,6 +715,9 @@ def main():
     for x, z, m, big in custom:
         props.add(x, z, m, big)
     print(len(custom), "modèles dédiés au centre du village")
+    fpath = os.path.join(DATA, "facades.json")
+    facades = json.load(open(fpath)) if os.path.exists(fpath) else {}
+    nfac = 0
     for p, pr in buildings:
         ov = center.override(p, pr)
         if ov == "skip":
@@ -763,6 +780,13 @@ def main():
                 if pr.get("hauteur") and pr["hauteur"] > 4.5:
                     wall_top = max(wall_top, gmin + 5.6)
                 floors = max(1, int(round((wall_top - gmin) / 2.9)))
+        # couleurs réelles mesurées sur Street View (prepare_facades.py) : teinte de l'enduit, volets
+        fc = facades.get(pr.get("cleabs")) if wallmat == M_WALL and not ov else None
+        if fc:
+            wcol = facade_wall(fc["wall"])
+            if fc.get("shutter") is not None:
+                seed = (fc["shutter"] + 0.5) / 6.0
+            nfac += 1
         # léger retrait : évite que deux murs mitoyens soient confondus (scintillement)
         pm = p.buffer(-0.12, join_style=2)
         if pm.is_empty or not isinstance(pm, Polygon):
@@ -777,7 +801,7 @@ def main():
         c = p.centroid
         props.add(c.x, c.y, m, big=p.area > 60 or wall_top - gmin > 7)
         nb += 1
-    print(nb, "bâtiments maillés,", nroof, "toits colorés d'après l'orthophoto")
+    print(nb, "bâtiments maillés,", nroof, "toits colorés d'après l'orthophoto,", nfac, "façades d'après Street View")
     if village is not None:
         npool = 0
         for poly, round_ in village.pools():

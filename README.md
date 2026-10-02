@@ -5,7 +5,7 @@ Un jeu de conduite Android inspiré d'*Euro Truck Simulator*, dans le village de
 
 ## Télécharger
 
-**[RochetoirinSimulator-v0.4.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.4.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
+**[RochetoirinSimulator-v0.5.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.5.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
 
 Ouvrir le lien depuis le téléphone, puis ouvrir le fichier et autoriser l'installation depuis
 cette source (« Installer quand même » si Play Protect avertit : l'APK est signé avec une clé
@@ -93,6 +93,16 @@ Le cœur du village est modélisé à la main (`tools/center.py`) au lieu d'êtr
 | Parking de la rue de Ravette | enrobé, îlots plantés avec bordures, voitures garées, logements à volets bleu-gris |
 | Cimetière | murs gris à chaperon, portail, ~200 tombes en granit, cyprès ; conteneurs de tri |
 
+### Façades du village d'après Street View (API Google Street View Static)
+
+`tools/fetch_streetview.py` récupère, pour chaque maison du bourg, la vue Street View la plus proche cadrée
+sur la façade (198 vues) ; `tools/prepare_facades.py` projette l'emprise BD TOPO de la maison dans l'image
+(position, cap, inclinaison et champ de la caméra connus) et mesure la couleur de l'enduit (médiane du mur
+au-dessus des haies, sans ciel ni végétation) et la teinte dominante des volets (bois, blanc, gris, bleu,
+vert, bordeaux). Les vues floues, masquées par la végétation ou en gros plan sont écartées : ~100 maisons
+reprennent ainsi leur vraie couleur. Les images restent hors du dépôt ; la clé d'API se passe par la
+variable d'environnement `GOOGLE_MAPS_API_KEY` et n'est jamais écrite dans les fichiers.
+
 ## Rendu graphique
 
 ![Avant / après](docs/apercus/graphismes_avant_apres.jpg)
@@ -158,6 +168,8 @@ pip install shapely mapbox-earcut pillow
 python3 fetch_decor.py       # BD TOPO + RPG (WFS Géoplateforme) -> tools/data/wfs_*.json
 python3 fetch_ortho.py       # orthophoto IGN du village -> tools/data/ortho_village.jpg
 python3 fetch_cadastre.py    # parcelles autour de la rue du Balcon -> tools/data/cadastre_balcon.json
+GOOGLE_MAPS_API_KEY=... python3 fetch_streetview.py   # vues des façades -> tools/data/streetview/ (facultatif)
+python3 prepare_facades.py   # couleurs enduit / volets -> tools/data/facades.json (facultatif)
 python3 prepare_data.py      # -> app/src/main/assets/{terrain.bin, far.bin, roads.bin, map.json}
 python3 prepare_decor.py     # -> landcover.png, landfar.png, props.bin, trees.bin, collide.bin, pano.bin
 python3 prepare_street.py    # -> street.bin, decals.bin, surf.bin, street.json (+ collide.bin complété)
