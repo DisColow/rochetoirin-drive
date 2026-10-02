@@ -210,8 +210,11 @@ def triangulate(ring):
     return list(earcut.triangulate_float64(a, np.array([len(a)], dtype=np.uint32)))
 
 
-def building_mesh(poly, ground_min, wall_top, roof_h, style, wcol, rcol, wallmat, seed, floors):
+def building_mesh(poly, ground_min, wall_top, roof_h, style, wcol, rcol, wallmat, seed, floors, gable=False):
     m = Mesh()
+    if gable:
+        # maison rectangulaire à deux pans : on part du rectangle englobant minimal
+        poly = poly.minimum_rotated_rectangle
     poly = poly.simplify(0.25)
     if poly.is_empty or not isinstance(poly, Polygon) or poly.area < 4:
         return None
@@ -242,6 +245,9 @@ def building_mesh(poly, ground_min, wall_top, roof_h, style, wcol, rcol, wallmat
         m.quad(i0, i1, i2, i3)
     # --- toit
     rmat = {"tiles": M_TILES, "slate": M_TILES, "metal": M_METAL, "flat": M_FLAT}[style]
+    if gable and n == 4 and roof_h >= 0.2:
+        gable_roof(m, ring, wall_top, roof_h, wcol, rcol, rmat + seed, wallmat + seed, floors)
+        return m
     if style == "flat" or roof_h < 0.2:
         top = wall_top + 0.05
         # acrotère simple + toit plat
@@ -297,6 +303,69 @@ def building_mesh(poly, ground_min, wall_top, roof_h, style, wcol, rcol, wallmat
     return m
 
 
+def gable_roof(m, ring, wall_top, roof_h, wcol, rcol, rmat, wmat, floors):
+    """Toit à deux pans débordant (lotissements du Bas-Dauphiné) : faîtage dans le grand axe,
+    pignons enduits, large avant-toit sur consoles en bois."""
+    P = [np.array(p, float) for p in ring]
+    e = [np.linalg.norm(P[(k + 1) % 4] - P[k]) for k in range(4)]
+    k0 = 0 if e[0] >= e[1] else 1                      # P[k0] -> P[k0+1] : grand côté
+    A, B, C, D = P[k0], P[(k0 + 1) % 4], P[(k0 + 2) % 4], P[(k0 + 3) % 4]
+    ax = (B - A) / np.linalg.norm(B - A); across = (D - A) / np.linalg.norm(D - A)
+    W = np.linalg.norm(D - A)
+    roof_h = min(roof_h, W * 0.45)
+    ohs, ohg = 0.75, 0.6                                # débords en bas de pente et en pignon
+    slope = roof_h / (W / 2)
+    ridge_y = wall_top + roof_h
+    eave_y = wall_top - ohs * slope
+    M1, M2 = (A + D) / 2, (B + C) / 2                   # extrémités du faîtage
+    E = lambda p, s: np.array([p[0], s, p[1]])
+    under = (0.36, 0.27, 0.20)
+    for side, (p0, p1) in enumerate(((A, B), (D, C))):
+        out = -across if side == 0 else across
+        q0 = p0 + out * ohs - ax * ohg; q1 = p1 + out * ohs + ax * ohg
+        r0 = M1 - ax * ohg; r1 = M2 + ax * ohg
+        pts = [E(q0, eave_y), E(q1, eave_y), E(r1, ridge_y), E(r0, ridge_y)]
+        nn = norm(np.cross(pts[1] - pts[0], pts[3] - pts[0]))
+        if nn[1] < 0:
+            nn = -nn
+        edge = norm(pts[1] - pts[0])
+        up = nn * 0.16
+        ids = []
+        for p in pts:
+            dd = p - pts[0]
+            ids.append(m.vert(p + up, nn, rcol, (float(np.dot(dd, edge)), float(np.linalg.norm(dd - edge * np.dot(dd, edge)))), rmat))
+        m.quad(*ids)
+        ids = [m.vert(p, -nn, under, (0, 0), M_PLAIN) for p in pts]
+        m.quad(*ids)
+        # rives (planches) : bas de pente et pignons
+        for a_, b_ in ((pts[0], pts[1]), (pts[1], pts[2]), (pts[3], pts[0])):
+            ids = [m.vert(p, (0, 1, 0), under, (0, 0), M_PLAIN) for p in (a_, b_, b_ + up, a_ + up)]
+            m.quad(*ids)
+    # pignons enduits (triangles au-dessus des murs)
+    for p0, p1 in ((A, D), (B, C)):
+        mid = (p0 + p1) / 2
+        v = mid - (A + C) / 2
+        v = v / max(np.linalg.norm(v), 1e-6)
+        nn = (float(v[0]), 0.0, float(v[1]))
+        # uv.v élevé : pas de soubassement ni de fenêtres dans le triangle du pignon
+        ids = [m.vert(E(p0, wall_top), nn, wcol, (0, 10.0), wmat, floors * 1000.0), m.vert(E(p1, wall_top), nn, wcol, (0, 10.0), wmat, floors * 1000.0),
+               m.vert(E(mid, ridge_y), nn, wcol, (0, 10.0 + roof_h), wmat, floors * 1000.0)]
+        m.tri(*ids)
+        # consoles en bois sous l'avant-toit du pignon
+        for t in (0.15, 0.5, 0.85):
+            p = p0 + (p1 - p0) * t
+            h = wall_top + roof_h * (1 - abs(t - 0.5) * 2) - 0.35
+            dirv = ax if np.dot(mid - (A + C) / 2, ax) > 0 else -ax
+            c = p + dirv * ohg / 2
+            box_mesh(m, c[0], h, c[1], ohg, 0.14, 0.12, under, M_PLAIN, -math.atan2(dirv[1], dirv[0]))
+    # chevrons apparents le long des bas de pente
+    for p0, p1, out in ((A, B, -across), (D, C, across)):
+        L = np.linalg.norm(p1 - p0)
+        for k in range(1, int(L / 1.2)):
+            p = p0 + (p1 - p0) * k / int(L / 1.2) + out * ohs / 2
+            box_mesh(m, p[0], wall_top - ohs * slope / 2 - 0.05, p[1], ohs, 0.12, 0.08, under, M_PLAIN, -math.atan2(out[1], out[0]))
+
+
 def box_mesh(m, cx, cy, cz, sx, sy, sz, col, mat, yaw=0.0, extra=0.0):
     c, s = math.cos(yaw), math.sin(yaw)
     def P(x, y, z):
@@ -348,6 +417,48 @@ def church_extra(m, poly, ground, wall_top, top_alt, col):
     # croix
     box_mesh(m, tip[0], tip[1] + 0.8, tip[2], 0.12, 1.6, 0.12, (0.2, 0.2, 0.2), M_STEEL)
     box_mesh(m, tip[0], tip[1] + 1.1, tip[2], 0.7, 0.1, 0.1, (0.2, 0.2, 0.2), M_STEEL, -yaw)
+
+
+def pool_mesh(poly, round_):
+    """Piscine : bassin enterré à margelle blanche, ou piscine hors-sol ronde."""
+    m = Mesh()
+    ring = list(poly.exterior.coords)[:-1]
+    xs, zs = np.array(ring).T
+    hs = terrain.height(xs, zs)
+    y = float(hs.max()) if not round_ else float(hs.min())
+    water = (0.26, 0.66, 0.80)
+    if round_:
+        c = poly.centroid
+        r = math.sqrt(poly.area / math.pi)
+        n = 16
+        pts = [(c.x + r * math.cos(2 * math.pi * k / n), c.y + r * math.sin(2 * math.pi * k / n)) for k in range(n)]
+        for k in range(n):
+            a, b = pts[k], pts[(k + 1) % n]
+            nn = norm(((a[0] + b[0]) / 2 - c.x, 0, (a[1] + b[1]) / 2 - c.y))
+            ids = [m.vert((p[0], yy, p[1]), nn, (0.55, 0.62, 0.66), (0, 0), M_STEEL) for p, yy in ((a, y - 0.2), (b, y - 0.2), (b, y + 1.15), (a, y + 1.15))]
+            m.quad(*ids)
+        ids = [m.vert((p[0], y + 1.05, p[1]), (0, 1, 0), water, (0, 0), M_GLASS) for p in pts]
+        for k in range(1, n - 1):
+            m.tri(ids[0], ids[k], ids[k + 1])
+        return m
+    from shapely.geometry.polygon import orient
+    outer = orient(poly.buffer(0.5, join_style=2), 1.0)
+    inner = orient(poly, 1.0)
+    oc = list(outer.exterior.coords)[:-1]; ic = list(inner.exterior.coords)[:-1]
+    top = y + 0.12
+    ids = [m.vert((p[0], top, p[1]), (0, 1, 0), water, (0, 0), M_GLASS) for p in ic]
+    for k in range(1, len(ids) - 1):
+        m.tri(ids[0], ids[k], ids[k + 1])
+    # margelle (plage blanche)
+    for k in range(len(oc)):
+        a, b = oc[k], oc[(k + 1) % len(oc)]
+        pa = min(ic, key=lambda q: math.dist(q, a)); pb = min(ic, key=lambda q: math.dist(q, b))
+        q = [m.vert((p[0], top + 0.03, p[1]), (0, 1, 0), (0.88, 0.86, 0.80), (0, 0), M_PLAIN) for p in (a, b, pb, pa)]
+        m.quad(*q)
+        nn = norm((b[1] - a[1], 0, -(b[0] - a[0])))
+        q = [m.vert((p[0], yy, p[1]), nn, (0.80, 0.78, 0.72), (0, 0), M_PLAIN) for p, yy in ((a, float(hs.min()) - 0.3), (b, float(hs.min()) - 0.3), (b, top + 0.03), (a, top + 0.03))]
+        m.quad(*q)
+    return m
 
 
 # ----------------------------------------------------------------------------------- pylônes
@@ -405,6 +516,8 @@ def main():
     terrain = Grid(H, tx0, tz0, tst)
     meta = json.load(open(os.path.join(ASSETS, "map.json")))
     nodes = meta["nodes"]
+    import center
+    center.setup(terrain, Mesh)
 
     W = int(round((X1 - X0) / LC_RES)); Hh = int(round((Z1 - Z0) / LC_RES))
     cls = Image.new("L", (W, Hh), MEADOW)
@@ -443,8 +556,9 @@ def main():
     if os.path.exists(rr):
         import pickle
         for r in pickle.load(open(rr, "rb")):
-            if r["cls"] == "rail":
-                db.line([(x - X0, z - Z0) for x, z in r["P"]], fill=255, width=int(r["width"] + 8))
+            # tracé réellement affiché (lissé), pas le tracé simplifié du graphe
+            extra = 8 if r["cls"] == "rail" else 6
+            db.line([(x - X0, z - Z0) for x, z in r["P"]], fill=255, width=int(r["width"] + extra))
     road_mask = np.array(block) > 0
 
     # --- parcelles agricoles (RPG 2025)
@@ -504,6 +618,13 @@ def main():
     cl = np.array(cls)
     cl[(np.array(garden) > 0) & (cl == MEADOW)] = GARDEN
     cl[(np.array(yard) > 0) & ((cl == MEADOW) | (cl == GARDEN))] = YARD
+    # village de Rochetoirin : sol réel autour des maisons d'après l'orthophoto IGN
+    village = None
+    if os.path.exists(os.path.join(DATA, "ortho_village.jpg")):
+        from prepare_village import Village
+        village = Village()
+        vr = village.rect()
+        zone = unary_union([p.buffer(22) for p, pr in buildings if vr.contains(p.centroid)]).intersection(vr.buffer(-2))
     cls = Image.fromarray(cl); dc = ImageDraw.Draw(cls)
 
     # --- végétation
@@ -529,6 +650,12 @@ def main():
         g = loc(f["geometry"]).intersection(CLIP)
         nd = (f["properties"].get("nature_detaillee") or "") + (f["properties"].get("nature") or "")
         fill(g, TURF if ("foot" in nd.lower() or "rugby" in nd.lower() or "Grand" in nd) else GRAVEL)
+    # centre du village : place en gravier, parkings en enrobé, square
+    center.landcover(fill, YARD, GRAVEL, GARDEN)
+    if village is not None:
+        cl = np.array(cls)
+        print(village.landcover(cl, X0, Z0, LC_RES, zone, GARDEN, YARD, MEADOW, FOREST), "cellules de sol d'après l'orthophoto")
+        cls = Image.fromarray(cl); dc = ImageDraw.Draw(cls)
 
     # --- eau
     props = Chunks()
@@ -566,7 +693,18 @@ def main():
 
     # --- maillages des bâtiments
     nb = 0
+    nroof = 0
+    quartier_zone = None
+    if os.path.exists(os.path.join(DATA, "cadastre_balcon.json")):
+        from prepare_quartier import in_zone as quartier_zone
+    custom, roads_union = center.buildings(meta)
+    for x, z, m, big in custom:
+        props.add(x, z, m, big)
+    print(len(custom), "modèles dédiés au centre du village")
     for p, pr in buildings:
+        ov = center.override(p, pr)
+        if ov == "skip":
+            continue
         xs, zs = np.array(p.exterior.coords).T
         g = terrain.height(xs, zs)
         gmin, gmax = float(g.min()), float(g.max())
@@ -599,21 +737,57 @@ def main():
             wallmat = M_CHURCH; wcol = jitter(STONE[0], 0.02); style = "tiles"
         if nature == "Serre":
             wallmat = M_GLASS; style = "metal"; wcol = (0.75, 0.82, 0.85); rcol = (0.80, 0.86, 0.88)
-        floors = max(1, int(round((wall_top - gmin) / 2.9)))
         seed = rng.random() * 0.98
+        if ov:
+            if "h" in ov:
+                wall_top = max(gmin + ov["h"], gmax + 2.2)
+            roof_h = ov.get("roof_h", roof_h)
+            wcol = ov.get("wcol", wcol); rcol = ov.get("rcol", rcol); seed = ov.get("seed", seed)
+            style = "tiles"
+        if village is not None and not (ov and "rcol" in ov) and nature != "Eglise":
+            rc = village.roof_color(p)
+            if rc is not None:
+                rcol = rc
+                nroof += 1
+        floors = max(1, int(round((wall_top - gmin) / 2.9)))
+        gable = False
+        if quartier_zone is not None and quartier_zone(p.centroid.x, p.centroid.y) and style == "tiles" \
+                and usage in ("Résidentiel", "Indifférencié") and p.area > 40 and nature != "Eglise":
+            mrr = p.minimum_rotated_rectangle
+            if p.area / mrr.area > 0.85:
+                # lotissement de la rue du Balcon (d'après Street View) : deux pans, enduit crème, volets bois
+                gable = True
+                roof_h = max(roof_h, 2.4)
+                wcol = jitter(rng.choice([(0.90, 0.84, 0.70), (0.88, 0.80, 0.64), (0.91, 0.86, 0.74), (0.86, 0.78, 0.62)]), 0.02)
+                seed = rng.choice([rng.uniform(0.0, 0.16), rng.uniform(0.84, 0.97)])     # volets bruns ou bordeaux
+                if pr.get("hauteur") and pr["hauteur"] > 4.5:
+                    wall_top = max(wall_top, gmin + 5.6)
+                floors = max(1, int(round((wall_top - gmin) / 2.9)))
         # léger retrait : évite que deux murs mitoyens soient confondus (scintillement)
         pm = p.buffer(-0.12, join_style=2)
         if pm.is_empty or not isinstance(pm, Polygon):
             pm = p
-        m = building_mesh(pm, gmin, wall_top, roof_h, style, wcol, rcol, wallmat, seed, floors)
+        m = building_mesh(pm if not gable else p, gmin, wall_top, roof_h, style, wcol, rcol, wallmat, seed, floors, gable)
         if m is None:
             continue
         if nature == "Eglise":
             church_extra(m, p, gmin, wall_top, (pr.get("altitude_maximale_toit") or (gmin + 20)), wcol)
+        if ov:
+            center.dressed_extras(m, p, ov, gmin, wall_top, roads_union)
         c = p.centroid
         props.add(c.x, c.y, m, big=p.area > 60 or wall_top - gmin > 7)
         nb += 1
-    print(nb, "bâtiments maillés")
+    print(nb, "bâtiments maillés,", nroof, "toits colorés d'après l'orthophoto")
+    if village is not None:
+        npool = 0
+        for poly, round_ in village.pools():
+            if any(p.intersects(poly) for p, _ in buildings if p.distance(poly) < 1):
+                continue
+            if center.in_area(poly.centroid.x, poly.centroid.y):
+                continue      # centre : toits et bâches bleutés pris pour des piscines
+            props.add(poly.centroid.x, poly.centroid.y, pool_mesh(poly, round_), big=False)
+            npool += 1
+        print(npool, "piscines")
 
     # --- pylônes et lignes électriques
     pylons = []
@@ -662,7 +836,7 @@ def main():
 
     # --- arbres
     blockm = np.array(block) > 0
-    trees(forests, hedges_poly, poplars, orchards, landes, buildings, blockm, np.array(cls))
+    trees(forests, hedges_poly, poplars, orchards, landes, buildings, blockm, np.array(cls), center.tree_instances(), village)
     # --- collisions
     write_collisions(buildings)
     # --- lointain
@@ -749,7 +923,8 @@ def stream_mesh(line, width, road_mask, props):
 T_OAK, T_BUSH, T_POPLAR, T_CONIFER, T_FRUIT, T_SHRUB = range(6)
 
 
-def trees(forests, hedges_poly, poplars, orchards, landes, buildings, block, cls):
+def trees(forests, hedges_poly, poplars, orchards, landes, buildings, block, cls, extra=(), village=None):
+    import center
     inst = []
 
     def free(x, z):
@@ -757,6 +932,11 @@ def trees(forests, hedges_poly, poplars, orchards, landes, buildings, block, cls
         return 0 <= iz < block.shape[0] and 0 <= ix < block.shape[1] and not block[iz, ix]
 
     def add(x, z, t, h):
+        if village is not None and village.contains(x, z):
+            return          # zone couverte par l'orthophoto : arbres réels ajoutés plus bas
+        ci, cj = int((x - X0) / LC_RES), int((z - Z0) / LC_RES)
+        if 0 <= cj < cls.shape[0] and 0 <= ci < cls.shape[1] and cls[cj, ci] in (YARD, GRAVEL) and center.in_area(x, z):
+            return          # pas d'arbre au milieu d'un parking ou d'une place
         if free(x, z):
             inst.append((x, float(terrain.height(x, z)), z, h, t, rng.random()))
 
@@ -775,6 +955,28 @@ def trees(forests, hedges_poly, poplars, orchards, landes, buildings, block, cls
                     z += spacing
                 x += spacing
 
+    if village is not None:
+        hedge_near = lambda x, z, r: False
+        if os.path.exists(os.path.join(DATA, "cadastre_balcon.json")):
+            # quartier de la rue du Balcon : les haies sont modélisées en continu (prepare_street)
+            from prepare_quartier import Quartier
+            from shapely.strtree import STRtree
+            hl = Quartier(village, terrain, [p for p, _ in buildings]).hedge_lines()
+            if hl:
+                ht = STRtree(hl)
+                # les petits houppiers le long d'une limite font partie de la haie (déjà modélisée)
+                from prepare_quartier import in_zone
+
+                def hedge_near(x, z, r):
+                    # dans le quartier, la végétation étroite est tracée en haies : seuls les houppiers larges restent des arbres
+                    return in_zone(x, z) and r < 1.6
+        real = village.trees(lambda x, z, r: not free(x, z) or hedge_near(x, z, r) or center.in_square(x, z))
+        for x, z, t, h in real:
+            inst.append((x, float(terrain.height(x, z)), z, h, t, rng.random()))
+        print(len(real), "arbres, arbustes et haies d'après l'orthophoto")
+    for x, z, t, h in extra:      # arbres placés à la main (centre du village), hors chaussée
+        if free(x, z):
+            inst.append((x, float(terrain.height(x, z)), z, h, t, rng.random()))
     for g, open_ in forests:
         scatter(g, 13.0 if open_ else 8.5,
                 lambda x, z: add(x, z, T_CONIFER if rng.random() < 0.08 else T_OAK, rng.uniform(13, 23)))

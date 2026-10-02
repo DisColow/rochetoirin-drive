@@ -51,6 +51,11 @@ class MainActivity : Activity(), SensorEventListener, HudView.Settings {
         get() = prefs.getBoolean("sound", true)
         set(v) { prefs.edit().putBoolean("sound", v).apply(); engine.enabled = v }
 
+    override var highGraphics: Boolean
+        get() = prefs.getBoolean("hiGfx", true)
+        set(v) { prefs.edit().putBoolean("hiGfx", v).apply(); renderer?.highQuality = v }
+    private var renderer: Renderer? = null
+
     override fun tiltValue() = tilt
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,7 +92,10 @@ class MainActivity : Activity(), SensorEventListener, HudView.Settings {
         gl.setEGLContextClientVersion(3)
         gl.setEGLConfigChooser(MsaaChooser())
         gl.preserveEGLContextOnPause = true
-        gl.setRenderer(Renderer(g, { assets.open(it) }) { handler.post { loading.visibility = View.GONE } })
+        val r = Renderer(g, { assets.open(it) }) { handler.post { loading.visibility = View.GONE } }
+        r.highQuality = highGraphics
+        renderer = r
+        gl.setRenderer(r)
         glView = gl
         root.addView(gl, 0, FrameLayout.LayoutParams(-1, -1))
         root.addView(HudView(this, g, this), 1, FrameLayout.LayoutParams(-1, -1))

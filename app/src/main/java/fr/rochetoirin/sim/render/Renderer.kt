@@ -37,12 +37,20 @@ class Renderer(
     private var pTerrain = 0; private var pRoad = 0; private var pSky = 0; private var pCar = 0
     private var pShadow = 0; private var pMarker = 0
     private var pProps = 0; private var pTree = 0; private var pBillboard = 0
+    private var pPropsDepth = 0; private var pTreeDepth = 0; private var pCarDepth = 0
+    private var shadows: ShadowMaps? = null
+    private var shadowsOn = true
     private var texGrass = 0; private var texNoise = 0; private var texPlates = 0
     private var texLand = 0; private var texLandFar = 0
     private var propChunks = ArrayList<Chunk>()
     private var streetChunks = ArrayList<Chunk>()
     private var decalChunks = ArrayList<Chunk>()
     private var texSigns = 0
+    private var texLeaf = 0
+    private var texMask = 0
+    private var texAO = 0
+    private var pGrass = 0
+    private var grass: GrassRenderer? = null
     private var trees: TreeRenderer? = null
     private lateinit var body: Mesh
     private lateinit var glass: Mesh
@@ -74,6 +82,8 @@ class Renderer(
     private var smoothEye: FloatArray? = null
     private var camInit = false
     @Volatile var fps = 0f
+    /** Ombres portées et herbe 3D (option « Graphismes : élevés »). */
+    @Volatile var highQuality = true
 
     override fun onSurfaceCreated(unused: GL10?, config: EGLConfig?) {
         pTerrain = Gl.program(Shaders.TERRAIN_VS, Shaders.TERRAIN_FS)
@@ -88,6 +98,12 @@ class Renderer(
         pProps = Gl.program(Shaders.PROPS_VS, Shaders.PROPS_FS)
         pTree = Gl.program(Shaders.TREE_VS, Shaders.TREE_FS)
         pBillboard = Gl.program(Shaders.BILLBOARD_VS, Shaders.BILLBOARD_FS)
+        pPropsDepth = Gl.program(Shaders.PROPS_VS, Shaders.PROPS_DEPTH_FS)
+        pTreeDepth = Gl.program(Shaders.TREE_VS, Shaders.TREE_DEPTH_FS)
+        texLeaf = Textures.upload(Textures.leaves(), repeat = false)
+        pGrass = Gl.program(Shaders.GRASS_VS, Shaders.GRASS_FS)
+        pCarDepth = Gl.program(Shaders.CAR_VS, Shaders.DEPTH_FS)
+        shadows = ShadowMaps(2048)
         texLand = loadNearest("landcover.png")
         texLandFar = loadNearest("landfar.png")
 
@@ -116,6 +132,9 @@ class Renderer(
             propChunks.add(Chunk(Mesh(Gl.floats(v), Gl.ints(pc.indices), intArrayOf(3, 3, 3, 2, 2)), b, 0, pc.bigIndices))
         }
         trees = TreeRenderer(world.decor.trees)
+        texMask = loadNearest("grassmask.png")
+        texAO = loadNearest("groundao.png", linear = true)
+        grass = GrassRenderer(world.terrain)
         roadChunks = ArrayList()
         for (rc in world.roadChunks) {
             val b = Bounds(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)
@@ -162,16 +181,18 @@ class Renderer(
         return b
     }
 
-    private fun loadNearest(name: String): Int {
-        val opts = android.graphics.BitmapFactory.Options().apply { inScaled = false; inPremultiplied = false }
+    private fun loadNearest(name: String, linear: Boolean = false): Int {
+        // ARGB forcé : un PNG en niveaux de gris serait sinon décodé en ALPHA_8 (canal rouge vide)
+        val opts = android.graphics.BitmapFactory.Options().apply { inScaled = false; inPremultiplied = false; inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888 }
         val bmp = open(name).use { android.graphics.BitmapFactory.decodeStream(it, null, opts) } ?: return 0
         val t = IntArray(1)
         glGenTextures(1, t, 0)
         glBindTexture(GL_TEXTURE_2D, t[0])
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
         android.opengl.GLUtils.texImage2D(GL_TEXTURE_2D, 0, bmp, 0)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        val f = if (linear) GL_LINEAR else GL_NEAREST
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, f)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, f)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
         bmp.recycle()
@@ -246,6 +267,9 @@ class Renderer(
         repeat(steps) { game.update(dt / steps) }
 
         updateCamera(dt)
+        val hq = highQuality
+        if (hq) renderShadows()
+        shadowsOn = hq
 
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         val aspect = width.toFloat() / height
@@ -259,6 +283,8 @@ class Renderer(
         glUseProgram(pSky)
         common(pSky)
         glUniformMatrix4fv(glGetUniformLocation(pSky, "uInvVP"), 1, false, inv, 0)
+        glUniform1f(glGetUniformLocation(pSky, "uTime"), time)
+        bindTex(pSky, "uNoise", texNoise, 1)
         glBindVertexArray(emptyVao)
         glDrawArrays(GL_TRIANGLES, 0, 3)
 
@@ -278,6 +304,52 @@ class Renderer(
     private fun common(p: Int) {
         glUniform3f(glGetUniformLocation(p, "uCamPos"), eye[0], eye[1], eye[2])
         glUniform3f(glGetUniformLocation(p, "uSunDir"), sun[0], sun[1], sun[2])
+        // ombres : unités 6 et 7 (toujours affectées, deux types d'échantillonneurs ne peuvent partager une unité)
+        glUniform1i(glGetUniformLocation(p, "uShadow0"), 6)
+        glUniform1i(glGetUniformLocation(p, "uShadow1"), 7)
+        val sm = shadows
+        if (sm != null && shadowsOn) {
+            glUniformMatrix4fv(glGetUniformLocation(p, "uShadowM0"), 1, false, sm.texM[0], 0)
+            glUniformMatrix4fv(glGetUniformLocation(p, "uShadowM1"), 1, false, sm.texM[1], 0)
+            glUniform3f(glGetUniformLocation(p, "uShadowP"), sm.texel(0), sm.texel(1), 1f)
+        } else glUniform3f(glGetUniformLocation(p, "uShadowP"), 0f, 0f, 0f)
+    }
+
+    /** Cartes d'ombre du soleil : décor, équipements, arbres et véhicule vus depuis le soleil. */
+    private fun renderShadows() {
+        val sm = shadows ?: return
+        // direction horizontale du regard (3e ligne de la matrice de vue)
+        var fx = -view[2]; var fz = -view[10]
+        val l = sqrt(fx * fx + fz * fz)
+        if (l < 1e-3f) { fx = 0f; fz = -1f } else { fx /= l; fz /= l }
+        sm.update(eye, fx, fz, sun)
+        for (k in 0..1) {
+            sm.begin(k)
+            val lvp = sm.lightVP[k]
+            glUseProgram(pPropsDepth)
+            glUniformMatrix4fv(glGetUniformLocation(pPropsDepth, "uVP"), 1, false, lvp, 0)
+            for (c in propChunks) {
+                val b = c.bounds
+                if (!sm.touches(k, b.minX, b.minZ, b.maxX, b.maxZ, b.maxY - b.minY)) continue
+                if (k == 0 || minDist(b) < 600f) c.mesh.draw() else if (c.big > 0) c.mesh.draw(0, c.big)
+            }
+            for (c in streetChunks) {
+                val b = c.bounds
+                if (!sm.touches(k, b.minX, b.minZ, b.maxX, b.maxZ, 12f)) continue
+                if (k == 0) c.mesh.draw() else if (c.big > 0) c.mesh.draw(0, c.big)
+            }
+            glUseProgram(pTreeDepth)
+            glUniformMatrix4fv(glGetUniformLocation(pTreeDepth, "uVP"), 1, false, lvp, 0)
+            bindTex(pTreeDepth, "uLeaf", texLeaf, 3)
+            trees?.drawDepth(k == 0) { b -> sm.touches(k, b.minX, b.minZ, b.maxX, b.maxZ, 25f) }
+            glUseProgram(pCarDepth)
+            glUniformMatrix4fv(glGetUniformLocation(pCarDepth, "uVP"), 1, false, lvp, 0)
+            drawCarParts(pCarDepth, withSteer = false)
+            sm.end(width, height)
+        }
+        glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, sm.tex[0])
+        glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, sm.tex[1])
+        glActiveTexture(GL_TEXTURE0)
     }
 
     private fun inRange(b: Bounds, near: Float, far: Float): Boolean {
@@ -311,6 +383,7 @@ class Renderer(
         bindTex(pTerrain, "uNoise", texNoise, 1)
         bindTex(pTerrain, "uLand", texLand, 2)
         bindTex(pTerrain, "uLandFar", texLandFar, 3)
+        bindTex(pTerrain, "uAO", texAO, 8)
         val t = world.terrain
         glUniform4f(glGetUniformLocation(pTerrain, "uLandRect"), t.x0, t.z0, t.x1 - t.x0, t.z1 - t.z0)
         glUniform4f(glGetUniformLocation(pTerrain, "uFarRect"), world.far.x0, world.far.z0, 16600f, 18200f)
@@ -333,6 +406,8 @@ class Renderer(
         glUniformMatrix4fv(glGetUniformLocation(pRoad, "uVP"), 1, false, vp, 0)
         bindTex(pRoad, "uGrass", texGrass, 0)
         bindTex(pRoad, "uNoise", texNoise, 1)
+        bindTex(pRoad, "uAO", texAO, 8)
+        glUniform4f(glGetUniformLocation(pRoad, "uAORect"), world.terrain.x0, world.terrain.z0, world.terrain.x1 - world.terrain.x0, world.terrain.z1 - world.terrain.z0)
         glDepthMask(false)
         glEnable(GL_POLYGON_OFFSET_FILL)
         glPolygonOffset(-1f, -2f)
@@ -351,6 +426,21 @@ class Renderer(
         // ombre douce sous le véhicule
         if (carVisible) drawShadow()
         glDepthMask(true)
+
+        // herbe 3D (30 m autour de la caméra)
+        val gr = grass
+        if (gr != null && shadowsOn && near < gr.radius) {
+            glUseProgram(pGrass)
+            common(pGrass)
+            glUniformMatrix4fv(glGetUniformLocation(pGrass, "uVP"), 1, false, vp, 0)
+            bindTex(pGrass, "uGrass", texGrass, 0)
+            bindTex(pGrass, "uNoise", texNoise, 1)
+            bindTex(pGrass, "uLand", texLand, 2)
+            bindTex(pGrass, "uMask", texMask, 3)
+            bindTex(pGrass, "uAO", texAO, 8)
+            glUniform4f(glGetUniformLocation(pGrass, "uLandRect"), t.x0, t.z0, t.x1 - t.x0, t.z1 - t.z0)
+            gr.draw(pGrass, eye, time) { p, name, tex, unit -> bindTex(p, name, tex, unit) }
+        }
 
         // bâtiments, eau, pylônes
         glUseProgram(pProps)
@@ -376,6 +466,7 @@ class Renderer(
             common(p)
             glUniformMatrix4fv(glGetUniformLocation(p, "uVP"), 1, false, vp, 0)
             bindTex(p, "uNoise", texNoise, 1)
+            bindTex(p, "uLeaf", texLeaf, 3)
         }
 
         if (carVisible) drawCar(opaque = true)
@@ -405,7 +496,8 @@ class Renderer(
         glUseProgram(pShadow)
         glUniformMatrix4fv(glGetUniformLocation(pShadow, "uVP"), 1, false, vp, 0)
         glUniform3fv(glGetUniformLocation(pShadow, "uCorners"), 4, corners, 0)
-        glUniform1f(glGetUniformLocation(pShadow, "uAlpha"), 0.62f * max(0f, 1f - lift / 3f))
+        // les vraies ombres portées existent : ne reste qu'un assombrissement de contact sous la caisse
+        glUniform1f(glGetUniformLocation(pShadow, "uAlpha"), 0.38f * max(0f, 1f - lift / 3f))
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glEnable(GL_POLYGON_OFFSET_FILL)
@@ -435,8 +527,17 @@ class Renderer(
             glDisable(GL_BLEND)
             return
         }
+        drawCarParts(pCar, withSteer = true)
+    }
+
+    /** Caisse, volant et roues (avec le programme [p] : rendu normal ou carte d'ombre). */
+    private fun drawCarParts(p: Int, withSteer: Boolean) {
+        val v = game.vehicle
+        val uModel = glGetUniformLocation(p, "uModel")
+        v.modelMatrix(model)
         glUniformMatrix4fv(uModel, 1, false, model, 0)
         body.draw()
+        if (!withSteer) { drawWheels(uModel); return }
 
         // volant
         Matrix.translateM(tmp, 0, model, 0, CarModel.STEERING_POS[0], CarModel.STEERING_POS[1], CarModel.STEERING_POS[2])
@@ -444,7 +545,11 @@ class Renderer(
         Matrix.rotateM(tmp, 0, -game.input.steer * 220f, 0f, 0f, 1f)
         glUniformMatrix4fv(uModel, 1, false, tmp, 0)
         steer.draw()
+        drawWheels(uModel)
+    }
 
+    private fun drawWheels(uModel: Int) {
+        val v = game.vehicle
         // roues (sans le pompage de caisse)
         v.modelMatrix(tmp2, withHeave = false)
         val spinDeg = Math.toDegrees(v.wheelSpin.toDouble()).toFloat()

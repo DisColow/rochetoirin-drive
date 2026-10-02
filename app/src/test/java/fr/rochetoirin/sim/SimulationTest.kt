@@ -128,7 +128,8 @@ class SimulationTest {
         val g = Game(world, 1000, 0, object : Persistence { override fun save(money: Int, deliveries: Int) {} })
         val v = g.vehicle
         // maison au sud-ouest du carrefour Rue de Ravette / Rue du Vieux Chêne (centre ≈ 74, 343)
-        v.place(74f, 380f, 0f)   // plein nord, la maison est 32 m devant
+        // x = 78 : un chêne relevé sur l'orthophoto se trouve en (73.8, 360.8), sur l'ancienne trajectoire
+        v.place(78f, 380f, 0f)   // plein nord, la maison est 32 m devant
         g.input.throttle = 1f
         var t = 0f
         var maxKmh = 0f

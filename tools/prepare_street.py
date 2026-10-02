@@ -34,7 +34,7 @@ M_PAVE, M_CURB, M_GRASS, M_SIGN, M_LIGHT = 12, 13, 14, 15, 16
 # décalcomanies (styles du shader de route)
 D_ZEBRA, D_STOP, D_GIVEWAY, D_RAMP, D_TABLE = 30.0, 31.0, 32.0, 33.0, 34.0
 
-# atlas des panneaux : (colonne, ligne, largeur en cases) sur une grille 8 × 4
+# atlas des panneaux : (colonne, ligne, largeur en cases) sur une grille 8 × 8 (lignes 4-5 : centre du village)
 SIGN_STOP, SIGN_GIVEWAY, SIGN_PED, SIGN_BUMP, SIGN_LC, SIGN_CROSS, SIGN_BACK, SIGN_STRIPES = [(c, 0, 1) for c in range(8)]
 SPEEDS = [30, 50, 70, 80, 90, 110, 130]
 SIGN_LIGHT = (7, 1, 1)
@@ -42,7 +42,7 @@ SIGN_LIGHT = (7, 1, 1)
 
 def sign_uv(cell):
     c, r, w = cell
-    return c / 8.0, r / 4.0, (c + w) / 8.0, (r + 1) / 4.0
+    return c / 8.0, r / 8.0, (c + w) / 8.0, (r + 1) / 8.0
 
 
 def entry_cell(i, exit_):
@@ -86,6 +86,9 @@ def main():
     global terrain
     H, tx0, tz0, tst = read_grid(os.path.join(ASSETS, "terrain.bin"))
     terrain = Grid(H, tx0, tz0, tst)
+    import center
+    center.setup(terrain, Mesh)
+    import prepare_quartier as quartier_mod
     roads = [Road(d) for d in pickle.load(open(os.path.join(DATA, "road_rows.pkl"), "rb"))]
     by_node = {}
     for i, r in enumerate(roads):
@@ -223,6 +226,8 @@ def main():
         if r.cls not in SIDEWALK_CLS or r.bridge or r.tags.get("junction") == "roundabout":
             continue
         tag = r.tags.get("sidewalk") or r.tags.get("sidewalk:both")
+        if tag is None and quartier_mod.in_zone(*r.P[len(r.P) // 2]):
+            continue        # rue du Balcon et alentours : pas de trottoir (chaussée, caniveau, entrées privées)
         sides = {}
         for sg, name in ((1, "right"), (-1, "left")):
             forced = tag in ("both", name) or r.tags.get("sidewalk:" + name) == "yes"
@@ -259,9 +264,6 @@ def main():
                 count("trottoirs (tronçons)")
 
     # ---------------------------------------------------------------- lampadaires
-    center = None
-    pp = json.load(open(os.path.join(ASSETS, "map.json")))["start"]
-    center = (pp["x"], pp["z"])
     lamps = []
 
     def lamp_ok(x, z):
@@ -280,8 +282,13 @@ def main():
                 off = r.hw + ((sw[k] - 0.35) if sw is not None and sw[k] > 0 else 0.9)
                 x, z = q[0] + N[0] * side * off, q[2] + N[1] * side * off
                 if bd(x, z) > 0.6 and not other_road(x, z, i) and lamp_ok(x, z):
-                    classic = math.hypot(x - center[0], z - center[1]) < 320
-                    lamp_mesh(x, float(terrain.height(x, z)), z, -N[0] * side, -N[1] * side, classic, props)
+                    style = center.lamp_style(x, z)
+                    if quartier_mod.in_zone(x, z):
+                        props.add(x, z, quartier_lamp(x, float(terrain.height(x, z)), z, -N[0] * side, -N[1] * side), False)
+                    elif style:
+                        props.add(x, z, center.champignon(x, z, style == "double"), False)
+                    else:
+                        lamp_mesh(x, float(terrain.height(x, z)), z, -N[0] * side, -N[1] * side, False, props)
                     pole_coll(x, z)
                     lamps.append((x, z))
                     count("lampadaires")
@@ -292,7 +299,10 @@ def main():
         if t.get("highway") == "street_lamp" and nid in node_pos:
             x, z = node_pos[nid]
             if X0 + 50 < x < X1 - 50 and Z0 + 50 < z < Z1 - 50 and lamp_ok(x, z):
-                lamp_mesh(x, float(terrain.height(x, z)), z, 1, 0, False, props)
+                if center.lamp_style(x, z):
+                    props.add(x, z, center.champignon(x, z, center.lamp_style(x, z) == "double"), False)
+                else:
+                    lamp_mesh(x, float(terrain.height(x, z)), z, 1, 0, False, props)
                 pole_coll(x, z)
                 count("lampadaires")
 
@@ -538,7 +548,9 @@ def main():
                 if j == i:
                     continue
                 kk, dd = roads[j].row_near(*mid)
-                if 4 < dd < 32 and np.dot(roads[j].T[kk], r.T[k0]) < -0.7:
+                # vrai terre-plein seulement : il faut un espace entre les deux chaussées
+                gap_ok = (4 < dd < 32) if r.cls == "motorway" else (dd - r.hw - roads[j].hw > 1.5 and dd < 40)
+                if gap_ok and np.dot(roads[j].T[kk], r.T[k0]) < -0.7:
                     # la chaussée opposée doit être à gauche
                     if np.dot(roads[j].P[kk] - mid, -r.N[k0]) > 0:
                         opp = True
@@ -583,6 +595,42 @@ def main():
             s += 55.0
         count("caténaires")
 
+    # ---------------------------------------------------------------- centre du village (d'après Street View)
+    meta = json.load(open(os.path.join(ASSETS, "map.json")))
+    for k, v in center.furniture(props.add, extra_coll.append, center.roads_union_from(meta)).items():
+        stats["centre : " + k] = v
+
+    # ---------------------------------------------------------------- quartier de la rue du Balcon
+    if os.path.exists(os.path.join(DATA, "cadastre_balcon.json")) and os.path.exists(os.path.join(DATA, "ortho_village.jpg")):
+        from prepare_village import Village
+        q = quartier_mod.Quartier(Village(), terrain)
+        for k, v in quartier_mod.build(q, Mesh, center.obox, center.quad3, props.add, extra_coll.append, center.parked_car).items():
+            stats["rue du Balcon : " + k] = v
+
+    paved_rects = []
+    if os.path.exists(os.path.join(DATA, "cadastre_balcon.json")) and os.path.exists(os.path.join(DATA, "ortho_village.jpg")):
+        paved_rects = getattr(q, "paved_rects", [])
+    # ---------------------------------------------------------------- masque de l'herbe 3D (2 m / pixel)
+    # 255 = pas d'herbe : chaussées (+ marge), trottoirs, voies ferrées, bâtiments, obstacles, surfaces du quartier
+    GM = 2.0
+    gm = Image.new("L", (int((X1 - X0) / GM), int((Z1 - Z0) / GM)), 0)
+    dg = ImageDraw.Draw(gm)
+    gpx = lambda x, z: ((x - X0) / GM, (z - Z0) / GM)
+    for i, r in enumerate(roads):
+        extra = 3.0 if r.cls == "rail" else 1.2
+        sw = max([float(np.max(sidewalk_side[(i, sg)])) for sg in (1, -1) if (i, sg) in sidewalk_side] or [0.0])
+        dg.line([gpx(x, z) for x, z in r.P], fill=255, width=max(1, int(round((r.width + 2 * (extra + sw)) / GM))))
+    for ring in rings + extra_coll:
+        if len(ring) >= 3:
+            dg.polygon([gpx(x, z) for x, z in ring], fill=255, outline=255)
+    for xa, za, xb, zb in paved_rects:
+        dg.rectangle([gpx(xa, za), gpx(xb, zb)], fill=255)
+    gm.save(os.path.join(ASSETS, "grassmask.png"), optimize=True)
+
+    # ---------------------------------------------------------------- occlusion ambiante du sol (2 m / pixel)
+    # assombrit le sol au pied des murs et sous les houppiers (les objets « reposent » sur le terrain)
+    write_ground_ao(rings, extra_coll)
+
     # ---------------------------------------------------------------- écriture
     nv, size = props.write(os.path.join(ASSETS, "street.bin"), b"PRP1")
     out = bytearray(struct.pack("<4sfffii", b"RDS1", X0, Z0, CHUNK, props.nCx, props.nCz))
@@ -606,6 +654,45 @@ def main():
         print("%5d %s" % (v, k))
     print("équipements : %d sommets (%.1f Mo), %d tuiles de marquage, %d tuiles physiques, %d obstacles ajoutés"
           % (nv, size / 1e6, len(decals), len(surf), len(extra_coll)))
+
+
+# ------------------------------------------------------------------------------------ occlusion du sol
+def write_ground_ao(rings, extra_coll):
+    from scipy.ndimage import gaussian_filter
+    R = 1.0
+    W, Hh = int((X1 - X0) / R), int((Z1 - Z0) / R)
+    occ = Image.new("L", (W, Hh), 0)
+    do = ImageDraw.Draw(occ)
+    for ring in rings:
+        if len(ring) >= 3:
+            do.polygon([((x - X0) / R, (z - Z0) / R) for x, z in ring], fill=255)
+    d = distance_transform_edt(np.array(occ) == 0) * R
+    ao = 1.0 - 0.42 * np.exp(-d / 1.6)
+    ao[np.array(occ) > 0] = 0.6
+    # houppiers : ombre douce sous l'arbre (rayon relatif à la hauteur, cf. TREE_PARAMS du shader)
+    crown = np.zeros((Hh, W), np.float32)
+    TPR = [0.36, 0.52, 0.12, 0.24, 0.44, 0.60]
+    b = open(os.path.join(ASSETS, "trees.bin"), "rb").read()
+    nb = struct.unpack("<i", b[24:28])[0]; p = 28
+    for _ in range(nb):
+        cx, cz, n = struct.unpack("<iii", b[p:p + 12]); p += 12
+        a = np.frombuffer(b[p:p + n * 24], "<f4").reshape(n, 6); p += n * 24
+        for x, y, z, h, t, r in a:
+            rad = max(0.8, TPR[int(t + 0.5) % 6] * h)
+            i0, j0 = int((x - X0) / R), int((z - Z0) / R)
+            k = int(rad / R) + 1
+            if i0 - k < 0 or j0 - k < 0 or i0 + k >= W or j0 + k >= Hh:
+                continue
+            yy, xx = np.mgrid[-k:k + 1, -k:k + 1]
+            f = np.clip(1.0 - np.sqrt(xx * xx + yy * yy) * R / rad, 0, 1) * min(1.0, h / 8.0)
+            sub = crown[j0 - k:j0 + k + 1, i0 - k:i0 + k + 1]
+            np.maximum(sub, f, out=sub)
+    ao *= 1.0 - 0.38 * gaussian_filter(crown, 1.0)
+    ao = gaussian_filter(ao, 0.8)
+    # 2 m / pixel
+    ao2 = ao[:Hh // 2 * 2, :W // 2 * 2].reshape(Hh // 2, 2, W // 2, 2).mean(axis=(1, 3))
+    Image.fromarray(np.clip(ao2 * 255, 0, 255).astype(np.uint8)).save(os.path.join(ASSETS, "groundao.png"), optimize=True)
+    print("occlusion du sol :", ao2.shape, "%.0f%% assombri" % (100 * (ao2 < 0.9).mean()))
 
 
 # ------------------------------------------------------------------------------------ maillages
@@ -664,6 +751,21 @@ def pole(m, x, y0, y1, z, w, col, mat):
         ids = [m.vert((cx - ax * h, y0, cz - az * h), (nx, 0, nz), col, (0, 0), mat), m.vert((cx + ax * h, y0, cz + az * h), (nx, 0, nz), col, (0, 0), mat),
                m.vert((cx + ax * h, y1, cz + az * h), (nx, 0, nz), col, (0, 0), mat), m.vert((cx - ax * h, y1, cz - az * h), (nx, 0, nz), col, (0, 0), mat)]
         m.quad(*ids)
+
+
+def quartier_lamp(x, y, z, dx, dz):
+    """Lampadaire de lotissement (rue du Balcon) : mât gris de 6 m, petite tête inclinée vers la rue."""
+    m = Mesh()
+    col = (0.62, 0.63, 0.64)
+    pole(m, x, y - 0.2, y + 6.0, z, 0.1, col, M_STEEL)
+    ax = math.atan2(dz, dx)
+    box_mesh(m, x + dx * 0.25, y + 6.05, z + dz * 0.25, 0.65, 0.14, 0.24, (0.35, 0.36, 0.38), M_STEEL, -ax)
+    c, s_ = math.cos(ax), math.sin(ax)
+    lx, lz, ly = x + dx * 0.3, z + dz * 0.3, y + 5.97
+    ids = [m.vert((lx + a * c - b * s_, ly, lz + a * s_ + b * c), (0, -1, 0), (0.92, 0.90, 0.80), (0, 0), M_LIGHT)
+           for a, b in ((-0.22, -0.09), (0.22, -0.09), (0.22, 0.09), (-0.22, 0.09))]
+    m.quad(*ids)
+    return m
 
 
 def lamp_mesh(x, y, z, dx, dz, classic, props):

@@ -26,6 +26,7 @@ class HudSnapshotTest {
         val settings = object : HudView.Settings {
             override var tiltSteering = false
             override var sound = true
+            override var highGraphics = true
             override fun tiltValue() = 0f
         }
         val hud = HudView(ApplicationProvider.getApplicationContext(), game, settings)

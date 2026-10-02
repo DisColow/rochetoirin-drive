@@ -3,14 +3,9 @@
 Un jeu de conduite Android inspiré d'*Euro Truck Simulator*, dans le village de
 **Rochetoirin (Isère, 38110)**, au volant d'un **Renault Espace IV rouge** (2002-2006).
 
-![Vue en jeu](docs/apercus/apercu_jeu.png)
-
-Autres aperçus dans [`docs/apercus/`](docs/apercus/) : bocage et Alpes, village et église,
-trottoirs et lanternes, rond-point, passage à niveau, entrée de Rochetoirin…
-
 ## Télécharger
 
-**[RochetoirinSimulator-v0.3.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.3.apk)** (16 Mo, Android 7.0+, OpenGL ES 3.0)
+**[RochetoirinSimulator-v0.4.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.4.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
 
 Ouvrir le lien depuis le téléphone, puis ouvrir le fichier et autoriser l'installation depuis
 cette source (« Installer quand même » si Play Protect avertit : l'APK est signé avec une clé
@@ -25,6 +20,10 @@ de debug, il n'est pas publié sur le Play Store).
 | Limitations | OSM `maxspeed` sinon valeur par défaut française | 50 en agglomération, 80 hors agglo, 130 sur l'A43 |
 | Noms de rues | OSM | affichés en haut de l'écran |
 | Lieux de livraison | OSM (mairie, église Saint-Étienne, école, salle des fêtes, boulangerie, lieux-dits Pévrin, Vernavant, Falizan, L'Yris…) | |
+
+Les chaussées séparées rapprochées (route de Lyon, D16, boulevards de La Tour-du-Pin…) sont
+simplifiées en une seule route à double sens (sauf l'autoroute), et les raccords entre tronçons sont
+mis à la même hauteur : plus de routes « coupées », ni de terre-plein ou de trottoir au milieu.
 
 Le terrain est « terrassé » sous les routes (comme dans ETS) pour qu'elles soient
 roulables, puis raccordé en douceur au relief réel.
@@ -56,11 +55,61 @@ roulables, puis raccordé en douceur au relief réel.
 | Voie ferrée Lyon – Grenoble : ballast, traverses, rails, caténaires ; passages à niveau avec croix de Saint-André, feux, demi-barrières, rails noyés dans l'enrobé, panneau A7 | OSM (`railway`) |
 | Panneaux d'entrée / sortie d'agglomération (Rochetoirin…), limitations de vitesse | OSM (`traffic_sign`) |
 | Trottoirs (bordure de 14 cm, largeur adaptée aux façades, interrompus aux carrefours) | OSM `sidewalk` sinon déduits des zones bâties |
-| ~1 500 lampadaires : lanternes de style ancien au centre du village, crosses modernes ailleurs | OSM + déduits (tous les 38 m en zone bâtie) |
+| ~1 500 lampadaires : « champignons » crème à vasque verte au centre du village, crosses modernes ailleurs | OSM + déduits (tous les 38 m en zone bâtie) |
 | Terre-pleins : îlots engazonnés des ronds-points, glissières sur l'A43, bordures entre chaussées séparées | OSM (`junction=roundabout`, chaussées à sens unique opposées) |
 
 Les bâtiments, arbres, haies, poteaux, îlots et glissières sont **solides** : un choc arrête le
 véhicule et coûte une petite facture de carrosserie. Les trottoirs et ralentisseurs se montent.
+
+### Village de Rochetoirin d'après la photo aérienne IGN (BD ORTHO 20 cm)
+
+`tools/prepare_village.py` analyse l'orthophotographie du bourg et de la rue du Balcon :
+couleur réelle de chaque toit (tuile ou gris), ~9 000 arbres, arbustes et haies à leur vraie place
+(houppiers détectés, conifères/feuillus, taille), ~60 piscines, cours et allées vs pelouses.
+
+### Quartier de la rue du Balcon
+
+`tools/prepare_quartier.py` croise le cadastre IGN (Parcellaire Express) et l'orthophoto :
+haies taillées continues (thuyas sombres, lauriers) à leur position réelle, muret blanc et clôture à
+lisses ou muret + grillage rigide côté rue (d'après Street View), grillage entre jardins, portails avec
+piliers et boîte aux lettres aux entrées, gravier / béton / enrobé au sol (allées, parkings, terrasses),
+pas de trottoir. Seuls les houppiers larges restent des arbres.
+D'après la vidéo Street View de la rue (2014 / 2022) : muret enduit surmonté d'une haie de thuyas ou de lauriers
+côté rue, clôtures PVC blanches, lisses bois, murets en pierre sèche à grille en fer forgé, portail plein blanc
+du n° 12, caniveaux en béton clair, accotements en enrobé jusqu'aux portails, lampadaires à mât fin,
+maisons rectangulaires à toit à deux pans débordant sur consoles, enduit crème et volets bois.
+
+### Centre du village (d'après Google Street View, avril 2023)
+
+Le cœur du village est modélisé à la main (`tools/center.py`) au lieu d'être généré :
+
+| Élément | Détail |
+|---|---|
+| Église Saint-Étienne | moellons bruns et dorés, encadrements en pierre de taille, contreforts, baies en arc brisé, rose, transept, chevet polygonal, clocher latéral avec horloge et baies géminées, flèche octogonale en ardoise à lucarnes et clochetons |
+| Place de l'église | gravier, platanes taillés en têtard, monument aux morts (obélisque), bornes, voitures garées le long de l'église |
+| Mairie et médiathèque | crépi saumon / crème, encadrements blancs, chaînages d'angle, drapeaux, marquise, porte cintrée, oculus, enseignes, boîte aux lettres jaune, boîte à livres, muret et grille |
+| Salle des fêtes | pignons à redents |
+| Route du Village | boulangerie-pâtisserie (devanture bordeaux), restaurant « Le Rochetoirin » (façade rouge, stores, logo), local technique en béton |
+| Parking de la rue de Ravette | enrobé, îlots plantés avec bordures, voitures garées, logements à volets bleu-gris |
+| Cimetière | murs gris à chaperon, portail, ~200 tombes en granit, cyprès ; conteneurs de tri |
+
+## Rendu graphique
+
+![Avant / après](docs/apercus/graphismes_avant_apres.jpg)
+
+
+| Élément | Technique |
+|---|---|
+| Ombres portées du soleil | 2 cartes d'ombre en cascade (45 m nettes, 300 m), PCF matériel ; bâtiments, mobilier, haies, arbres (feuillage ajouré) et véhicule |
+| Ciel | dégradé, halo de Mie, cumulus de beau temps générés par bruit (éclairés côté soleil, liseré argenté) |
+| Étalonnage | courbe filmique ACES, perspective aérienne, brume de vallée |
+| Arbres | houppiers en grappe de touffes + plaques de feuilles détourées, éclairage enveloppant, contre-jour |
+| Herbe 3D | touffes instanciées sur 30 m autour de la caméra (prés, pâtures, jardins, épis de blé et d'orge), vent, masque routes / bâtiments |
+| Occlusion ambiante | sol assombri au pied des murs et sous les houppiers (carte précalculée à 2 m) |
+| Enrobé | granulats, rapiéçages, fissures, lustre au soleil rasant |
+
+Option **Graphismes : élevés / standard** (menu Options) : en standard, ombres portées et herbe 3D
+sont désactivées pour les téléphones modestes.
 
 ## Gameplay
 
@@ -107,9 +156,12 @@ pip install numpy scipy
 python3 fetch_elevation.py   # relief IGN -> tools/data/elev_*.npy
 pip install shapely mapbox-earcut pillow
 python3 fetch_decor.py       # BD TOPO + RPG (WFS Géoplateforme) -> tools/data/wfs_*.json
+python3 fetch_ortho.py       # orthophoto IGN du village -> tools/data/ortho_village.jpg
+python3 fetch_cadastre.py    # parcelles autour de la rue du Balcon -> tools/data/cadastre_balcon.json
 python3 prepare_data.py      # -> app/src/main/assets/{terrain.bin, far.bin, roads.bin, map.json}
 python3 prepare_decor.py     # -> landcover.png, landfar.png, props.bin, trees.bin, collide.bin, pano.bin
 python3 prepare_street.py    # -> street.bin, decals.bin, surf.bin, street.json (+ collide.bin complété)
+# center.py (centre du village) est appelé par prepare_decor.py et prepare_street.py ; il lit tools/data/center_osm.json
 ```
 
 Requêtes Overpass utilisées (bbox `45.552,5.383,45.618,5.445`) :
@@ -134,7 +186,7 @@ app/src/main/java/fr/rochetoirin/sim/
 tools/                   préparation des données (Python)
 ```
 
-Données : © contributeurs OpenStreetMap (ODbL) ; IGN RGE ALTI, BD TOPO et RPG (Licence Ouverte Etalab).
+Données : © contributeurs OpenStreetMap (ODbL) ; IGN RGE ALTI, BD TOPO, BD ORTHO, Parcellaire Express et RPG (Licence Ouverte Etalab).
 
 ## Tests
 

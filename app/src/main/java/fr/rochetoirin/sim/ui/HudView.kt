@@ -33,6 +33,8 @@ class HudView(context: Context, private val game: Game, private val settings: Se
     interface Settings {
         var tiltSteering: Boolean
         var sound: Boolean
+        /** Graphismes élevés : ombres portées du soleil et herbe 3D (standard : désactivées). */
+        var highGraphics: Boolean
         fun tiltValue(): Float
     }
 
@@ -504,6 +506,10 @@ class HudView(context: Context, private val game: Game, private val settings: Se
         y += 58 * dp
         button(c, RectF(x0, y, x0 + bw, y + 46 * dp), "Son moteur : " + if (settings.sound) "activé" else "coupé", false) {
             settings.sound = !settings.sound
+        }
+        y += 58 * dp
+        button(c, RectF(x0, y, x0 + bw, y + 46 * dp), "Graphismes : " + if (settings.highGraphics) "élevés (ombres, herbe 3D)" else "standard", false) {
+            settings.highGraphics = !settings.highGraphics
         }
         y += 58 * dp
         button(c, RectF(x0, y, x0 + bw, y + 46 * dp), "Replacer le véhicule sur la route", false) {

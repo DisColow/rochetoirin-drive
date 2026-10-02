@@ -163,7 +163,154 @@ def parse_osm():
             ways.append(dict(id=e["id"], cls="rail", width=3.4 + (tracks - 1) * 4.0, speed=0, style=7, prio=10,
                              oneway=False, name="Voie ferrée", bridge=t.get("bridge") not in (None, "no"),
                              nodes=[n for n in e["nodes"] if n in nodes], tags=t))
+    ways = merge_dual_carriageways(nodes, ways)
     return nodes, ways
+
+
+# ---------------------------------------------------------------------------------
+# Simplification : chaussées séparées rapprochées -> une seule route à double sens
+# ---------------------------------------------------------------------------------
+# (pas les rues résidentielles : en ville, deux sens uniques voisins forment souvent une boucle autour
+#  d'un îlot, qu'il ne faut pas fusionner)
+DUAL_CLASSES = {"trunk", "primary", "secondary", "tertiary", "unclassified",
+                "trunk_link", "primary_link", "secondary_link", "tertiary_link"}
+DUAL_DIST = 16.0       # écart maximal entre les axes des deux chaussées (m)
+
+
+def merge_dual_carriageways(nodes, ways):
+    """Hors autoroute, deux voies à sens unique parallèles et de sens opposés (route de Lyon, D16,
+    boulevards de La Tour-du-Pin…) se chevauchaient, avec bordure de terre-plein et trottoirs au milieu.
+    On garde une des deux, ramenée sur l'axe médian et passée à double sens ; les rues qui se
+    raccordaient à la chaussée supprimée sont rebranchées sur la route conservée."""
+    from shapely.geometry import LineString, Point
+    from shapely.strtree import STRtree
+    rb_nodes = {n for w in ways if w["tags"].get("junction") in ("roundabout", "circular") for n in w["nodes"]}
+    cand = [w for w in ways if w["oneway"] and w["cls"] in DUAL_CLASSES and not w["bridge"]
+            and w["tags"].get("junction") not in ("roundabout", "circular") and len(w["nodes"]) >= 2]
+    if not cand:
+        return ways
+    lines = [LineString([nodes[n] for n in w["nodes"]]) for w in cand]
+    tree = STRtree(lines)
+
+    def tangent(line, d):
+        a = line.interpolate(max(0.0, d - 1.0)); b = line.interpolate(min(line.length, d + 1.0))
+        v = np.array([b.x - a.x, b.y - a.y]); l = np.linalg.norm(v)
+        return v / l if l > 1e-9 else v
+
+    def samples(line):
+        n = max(2, int(line.length / 3.0) + 1)
+        return [line.length * k / (n - 1) for k in range(n)]
+
+    def opposite(i, d, allowed=None):
+        """Chaussée opposée la plus proche au point d de la voie i : (indice, distance) ou None."""
+        p = lines[i].interpolate(d); t = tangent(lines[i], d)
+        best = None
+        for j in tree.query(p.buffer(DUAL_DIST)):
+            if j == i or (allowed is not None and j not in allowed):
+                continue
+            na, nb = cand[i]["name"], cand[j]["name"]
+            if na and nb and na != nb:          # deux rues différentes
+                continue
+            dd = lines[j].distance(p)
+            if dd > DUAL_DIST or dd < 0.5:
+                continue
+            if np.dot(tangent(lines[j], lines[j].project(p)), t) > -0.6:
+                continue
+            if best is None or dd < best[1]:
+                best = (j, dd)
+        return best
+
+    cover = []
+    for i, L in enumerate(lines):
+        ss = samples(L)
+        cover.append(sum(1 for d in ss if opposite(i, d)) / len(ss))
+    paired = [i for i in range(len(cand)) if cover[i] >= 0.5]
+    keep, drop = set(), set()
+    for i in sorted(paired, key=lambda i: -lines[i].length):
+        if i in keep or i in drop:
+            continue
+        keep.add(i)
+        for d in samples(lines[i]):
+            o = opposite(i, d)
+            if o and o[0] not in keep:
+                drop.add(o[0])
+    # une chaussée n'est supprimée que si la route conservée la couvre presque entièrement
+    changed = True
+    while changed:
+        changed = False
+        for j in list(drop):
+            ss = samples(lines[j])
+            c = sum(1 for d in ss if opposite(j, d, keep)) / len(ss)
+            if c < 0.75:
+                drop.discard(j); changed = True
+    keep = {i for i in keep if any(opposite(i, d, drop) for d in samples(lines[i]))}
+    if not drop:
+        return ways
+    # routes conservées : nœuds ramenés au milieu des deux chaussées
+    moved = {}
+    for i in keep:
+        w = cand[i]
+        for n in w["nodes"]:
+            if n in rb_nodes or n in moved:
+                continue
+            p = Point(nodes[n])
+            best = None
+            for j in drop:
+                dd = lines[j].distance(p)
+                if dd <= DUAL_DIST and (best is None or dd < best[1]):
+                    best = (j, dd)
+            if best:
+                q = lines[best[0]].interpolate(lines[best[0]].project(p))
+                moved[n] = ((p.x + q.x) / 2, (p.y + q.y) / 2)
+        w_opp = np.mean([cand[j]["width"] for j in drop if lines[j].distance(lines[i]) < DUAL_DIST] or [w["width"]])
+        w["width"] = float(min(14.0, w["width"] + w_opp))
+        w["oneway"] = False
+        w["tags"] = dict(w["tags"], oneway="no", dual_merged="yes")
+    nodes.update(moved)
+    kept_ways = [cand[i] for i in keep]
+    drop_ids = {id(cand[j]) for j in drop}
+    dropped_nodes = {n for j in drop for n in cand[j]["nodes"]}
+    others = [w for w in ways if id(w) not in drop_ids]
+    used_elsewhere = {n for w in others for n in w["nodes"]}
+    # rues raccordées à une chaussée supprimée : le nœud est inséré sur la route conservée
+    reattached = 0
+    for n in sorted(dropped_nodes & used_elsewhere):
+        if n in rb_nodes or any(n in w["nodes"] for w in kept_ways):
+            continue
+        p = Point(nodes[n])
+        best = None
+        for w in kept_ways:
+            L = LineString([nodes[m] for m in w["nodes"]])
+            dd = L.distance(p)
+            if dd <= DUAL_DIST + 4 and (best is None or dd < best[1]):
+                best = (w, dd, L)
+        if not best:
+            continue
+        w, _, L = best
+        q = L.interpolate(L.project(p))
+        # segment où insérer
+        k_best, e_best = 0, 1e9
+        for k in range(len(w["nodes"]) - 1):
+            e = LineString([nodes[w["nodes"][k]], nodes[w["nodes"][k + 1]]]).distance(q)
+            if e < e_best:
+                k_best, e_best = k, e
+        nodes[n] = (q.x, q.y)
+        a, b = nodes[w["nodes"][k_best]], nodes[w["nodes"][k_best + 1]]
+        if math.dist(a, nodes[n]) < 0.5:
+            alias = w["nodes"][k_best]
+        elif math.dist(b, nodes[n]) < 0.5:
+            alias = w["nodes"][k_best + 1]
+        else:
+            w["nodes"].insert(k_best + 1, n); alias = None
+        if alias is not None:
+            for o in others:
+                o["nodes"] = [alias if m == n else m for m in o["nodes"]]
+        reattached += 1
+    for o in others:   # pas de doublons consécutifs après rebranchement
+        o["nodes"] = [m for k, m in enumerate(o["nodes"]) if k == 0 or m != o["nodes"][k - 1]]
+    print("chaussées séparées fusionnées : %d conservées à double sens, %d supprimées, %d raccords rebranchés"
+          % (len(keep), len(drop), reattached))
+    return [w for w in others if len(w["nodes"]) >= 2]
 
 
 def inside(x, z, m=0.0):
@@ -363,6 +510,40 @@ def main():
                         VY[:-1] += add; VY[1:] += add
                 if not bad:
                     break
+        r["_geo"] = (n, T, N, miter, lat, VX, VZ, VY)
+
+    # raccords : aux nœuds partagés, toutes les extrémités prennent la hauteur la plus haute,
+    # avec un fondu sur ~16 m (évite les marches entre deux tronçons rehaussés différemment)
+    ends = {}
+    for r in roads:
+        if r["cls"] == "rail" or r["bridge"]:
+            continue
+        n_ = r["_geo"][0]
+        for node, kk in ((r["part"][0], 0), (r["part"][-1], n_ - 1)):
+            ends.setdefault(node, []).append((r, kk))
+        # nœuds intermédiaires partagés (carrefours en T)
+        for node in r["part"][1:-1]:
+            if junction_count.get(node, 0) > 2:
+                kk = int(np.argmin(np.hypot(r["P"][:, 0] - nodes[node][0], r["P"][:, 1] - nodes[node][1])))
+                ends.setdefault(node, []).append((r, kk))
+    for node, lst in ends.items():
+        if len(lst) < 2:
+            continue
+        target = max(float(r["_geo"][7][kk, 1]) for r, kk in lst)
+        for r, kk in lst:
+            VY = r["_geo"][7]
+            delta = target - float(VY[kk, 1])
+            if delta <= 0.005:
+                continue
+            s_ = r["s"]
+            dist = np.abs(s_ - s_[kk])
+            f = np.clip(1.0 - dist / 16.0, 0.0, 1.0)
+            f = f * f * (3 - 2 * f)
+            VY += (delta * f)[:, None]
+
+    for r in roads:
+        P, h, hw = r["P"], r["h"], r["width"] / 2
+        n, T, N, miter, lat, VX, VZ, VY = r.pop("_geo")
         r["deck"] = VY[:, 1]
         nrm = terrain.normal(P[:, 0], P[:, 1]) if not r["bridge"] else np.tile([0.0, 1.0, 0.0], (n, 1))
         style = float(r["style"])

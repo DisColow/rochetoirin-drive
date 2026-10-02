@@ -8,30 +8,66 @@ object Shaders {
     private const val COMMON = """
 uniform vec3 uCamPos;
 uniform vec3 uSunDir;
-const vec3 SUN = vec3(1.05, 0.98, 0.88);
+const vec3 SUN = vec3(1.12, 1.03, 0.90);
+const vec3 HAZE = vec3(0.68, 0.78, 0.89);
 vec3 skyColor(vec3 d) {
-    vec3 zen = vec3(0.20, 0.40, 0.78);
-    vec3 hor = vec3(0.70, 0.80, 0.90);
     float t = clamp(d.y, 0.0, 1.0);
-    vec3 c = mix(hor, zen, pow(t, 0.5));
+    vec3 zen = vec3(0.12, 0.32, 0.74);
+    vec3 c = mix(HAZE, zen, pow(t, 0.42));
     float s = max(dot(d, uSunDir), 0.0);
-    c += vec3(1.0, 0.85, 0.6) * (pow(s, 6.0) * 0.18);
-    if (d.y < 0.0) c = mix(hor, vec3(0.58, 0.66, 0.66), clamp(-d.y * 6.0, 0.0, 1.0));
+    c += vec3(1.0, 0.86, 0.62) * (pow(s, 8.0) * 0.20 + pow(s, 90.0) * 0.30);   // halo de Mie autour du soleil
+    c = mix(c, vec3(0.82, 0.86, 0.90), (1.0 - smoothstep(0.0, 0.10, t)) * 0.30);  // horizon laiteux
+    if (d.y < 0.0) c = mix(HAZE, vec3(0.52, 0.58, 0.54), clamp(-d.y * 6.0, 0.0, 1.0));
     return c;
+}
+// étalonnage final : exposition, courbe filmique (ACES), légère saturation
+vec3 grade(vec3 c) {
+    c *= 0.86;
+    c = (c * (2.51 * c + 0.03)) / (c * (2.43 * c + 0.59) + 0.14);
+    float l = dot(c, vec3(0.299, 0.587, 0.114));
+    return clamp(mix(vec3(l), c, 0.97), 0.0, 1.0);
 }
 vec3 fogged(vec3 col, vec3 wpos) {
     vec3 v = wpos - uCamPos;
     float d = length(v);
     // voile atmosphérique (portée ~30 km) + brume de vallée qui épargne les sommets
-    float haze = 1.0 - exp(-d / 30000.0);
+    float haze = 1.0 - exp(-d / 26000.0);
     float mist = smoothstep(1500.0, 8000.0, d) * 0.42 * clamp(exp(-(wpos.y - 450.0) / 550.0), 0.0, 1.0);
     float f = clamp(haze + mist, 0.0, 1.0);
     vec3 dir = v / max(d, 0.001);
-    vec3 fc = vec3(0.70, 0.80, 0.90);
+    vec3 fc = HAZE;
     fc += vec3(1.0, 0.85, 0.6) * pow(max(dot(dir, uSunDir), 0.0), 6.0) * 0.18;
-    return mix(col, fc, f);
+    return grade(mix(col, fc, f));
 }
 float hash12(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+// ombres portées du soleil (ShadowMaps) : deux cascades, PCF matériel
+uniform highp sampler2DShadow uShadow0;
+uniform highp sampler2DShadow uShadow1;
+uniform mat4 uShadowM0;
+uniform mat4 uShadowM1;
+uniform vec3 uShadowP;            // taille de texel cascade 0 (m), cascade 1 (m), activé
+float pcf(highp sampler2DShadow s, vec3 c, float t) {
+    float r = texture(s, c + vec3(-0.6, -0.6, 0.0) * t);
+    r += texture(s, c + vec3(0.6, -0.6, 0.0) * t);
+    r += texture(s, c + vec3(-0.6, 0.6, 0.0) * t);
+    r += texture(s, c + vec3(0.6, 0.6, 0.0) * t);
+    return r * 0.25;
+}
+float sunShadow(vec3 p, vec3 n) {
+    if (uShadowP.z < 0.5) return 1.0;
+    float ndl = clamp(dot(n, uSunDir), 0.0, 1.0);
+    float off = 1.5 + 2.5 * (1.0 - ndl);
+    vec4 c0 = uShadowM0 * vec4(p + n * uShadowP.x * off, 1.0);
+    vec2 e0 = abs(c0.xy - 0.5) * 2.0;
+    float s1 = 1.0;
+    vec4 c1 = uShadowM1 * vec4(p + n * uShadowP.y * off, 1.0);
+    vec2 e1 = abs(c1.xy - 0.5) * 2.0;
+    float m1 = max(e1.x, e1.y);
+    if (m1 < 1.0 && c1.z < 1.0) s1 = mix(pcf(uShadow1, c1.xyz, 1.0 / 2048.0), 1.0, smoothstep(0.8, 1.0, m1));
+    float m0 = max(e0.x, e0.y);
+    if (m0 < 1.0 && c0.z < 1.0) return mix(pcf(uShadow0, c0.xyz, 1.0 / 2048.0), s1, smoothstep(0.85, 1.0, m0));
+    return s1;
+}
 vec3 lit(vec3 albedo, vec3 n, float shadow) {
     float diff = max(dot(n, uSunDir), 0.0) * shadow;
     vec3 amb = mix(vec3(0.30, 0.30, 0.24), vec3(0.42, 0.50, 0.62), n.y * 0.5 + 0.5);
@@ -61,6 +97,7 @@ uniform sampler2D uLandFar;   // forêts / eau / bâti de l'anneau lointain — 
 uniform vec4 uLandRect;       // x0, z0, largeur, hauteur (m)
 uniform vec4 uFarRect;
 uniform int uMode;            // 0 zone jouable, 1 anneau lointain, 2 panorama
+uniform sampler2D uAO;        // occlusion ambiante du sol (pied des murs, sous les arbres), 2 m/px
 out vec4 o;
 
 vec3 grassCol(vec2 p, float dist) {
@@ -71,6 +108,9 @@ vec3 grassCol(vec2 p, float dist) {
     vec4 m2 = texture(uNoise, p / 170.0);
     g *= mix(vec3(0.78, 0.90, 0.74), vec3(1.20, 1.08, 0.80), smoothstep(0.25, 0.75, m1.g));
     g *= 0.92 * (0.86 + 0.28 * m2.b);
+    // herbe des photos de Rochetoirin : vert olive, un peu jaune en été (moins saturée)
+    float lum = dot(g, vec3(0.3, 0.55, 0.15));
+    g = mix(vec3(lum), g, 0.72) * vec3(1.02, 0.97, 0.80);
     return g;
 }
 
@@ -118,7 +158,7 @@ vec3 landColor(int c, vec2 p, float ang, float rnd, float dist, vec3 grass) {
     } else if (c == 10) {                           // sous-bois
         col = vec3(0.17, 0.21, 0.10) * (0.8 + 0.4 * n2);
     } else if (c == 11) {                           // pelouse de jardin
-        col = vec3(0.30, 0.47, 0.17) * (0.9 + 0.15 * n2);
+        col = vec3(0.32, 0.45, 0.19) * (0.9 + 0.15 * n2);
     } else if (c == 12) {                           // cour, parking, zone d'activité
         col = vec3(0.40, 0.40, 0.38) * (0.8 + 0.3 * n2);
     } else if (c == 13) {                           // gravier (cimetière, terrain)
@@ -183,7 +223,9 @@ void main() {
     }
     float slope = 1.0 - n.y;
     g = mix(g, g * vec3(1.08, 0.96, 0.78), clamp(slope * 2.5, 0.0, 0.5) * (uMode == 2 ? 0.0 : 1.0));
-    o = vec4(fogged(lit(g, n, 1.0), vPos), 1.0);
+    float sh = uMode == 0 ? sunShadow(vPos, n) : 1.0;
+    float ao = uMode == 0 ? texture(uAO, (p - uLandRect.xy) / uLandRect.zw).r : 1.0;
+    o = vec4(fogged(lit(g, n, sh) * mix(1.0, ao, 0.9), vPos), 1.0);
 }
 """
 
@@ -207,6 +249,8 @@ in vec3 vN;
 in vec4 vR;
 uniform sampler2D uGrass;
 uniform sampler2D uNoise;
+uniform sampler2D uAO;
+uniform vec4 uAORect;
 out vec4 o;
 
 float line(float x, float center, float w, float aa) {
@@ -248,7 +292,26 @@ vec3 asphalt(float base, vec2 p) {
     float n1 = texture(uNoise, p * 0.45).a;
     float n2 = texture(uNoise, p * 0.06).b;
     float n3 = texture(uNoise, p / 50.0).g;
-    return vec3(base, base, base * 1.04) * (0.80 + 0.32 * n1) * (0.85 + 0.25 * n2) * (0.9 + 0.18 * n3);
+    vec3 c = vec3(base, base, base * 1.04) * (0.80 + 0.32 * n1) * (0.85 + 0.25 * n2) * (0.9 + 0.18 * n3);
+    float near = 1.0 - smoothstep(10.0, 45.0, length(uCamPos.xz - p));
+    // granulats : grains clairs et sombres visibles de près
+    float g = hash12(floor(p / 0.025));
+    float gfade = 1.0 - smoothstep(0.25, 0.7, length(fwidth(p)) / 0.025);    // pas de moiré : grains plus petits qu'un pixel effacés
+    c *= 1.0 + gfade * ((g > 0.93 ? 0.30 : 0.0) - (g < 0.06 ? 0.22 : 0.0));
+    // rapiéçages : plaques d'enrobé plus récent (plus sombre)
+    vec2 cell = floor(p / 11.0);
+    if (hash12(cell) > 0.80) {
+        vec2 f = fract(p / 11.0) - 0.5;
+        vec2 sz = vec2(0.18 + 0.45 * hash12(cell + 3.1), 0.15 + 0.45 * hash12(cell + 5.7)) * 0.5;
+        float inside = (1.0 - step(sz.x, abs(f.x))) * (1.0 - step(sz.y, abs(f.y)));
+        c *= 1.0 - 0.2 * inside;
+    }
+    // fissures : lignes sinueuses (isoligne du bruit) dans les zones fatiguées
+    float cr = texture(uNoise, p * 0.09).r;
+    float w = fwidth(cr) * 1.2 + 1e-4;
+    float crack = (1.0 - smoothstep(w * 0.5, w * 1.6, abs(cr - 0.5))) * smoothstep(0.55, 0.7, texture(uNoise, p * 0.013).g);
+    c *= 1.0 - 0.45 * crack * (0.4 + 0.6 * near);
+    return c;
 }
 // voie ferrée : rails (écartement 1,435 m) espacés de 4 m entre voies
 float railMask(float lat, float hw, out float onTrack) {
@@ -335,7 +398,12 @@ void main() {
             col = mix(col, vec3(0.90, 0.90, 0.88) * (0.9 + 0.1 * n1), markings(style, vR) * 0.92);
         }
     }
-    o = vec4(fogged(lit(col, n, 1.0), vPos), 1.0);
+    float sh = sunShadow(vPos, n);
+    vec3 V = normalize(uCamPos - vPos);
+    // léger lustre de l'enrobé au soleil rasant
+    float sheen = pow(max(dot(n, normalize(uSunDir + V)), 0.0), 30.0) * 0.07 * sh * (style < 7.5 ? 1.0 : 0.3);
+    float ao = texture(uAO, (vPos.xz - uAORect.xy) / uAORect.zw).r;
+    o = vec4(fogged((lit(col, n, sh) + SUN * sheen) * mix(1.0, ao, 0.8), vPos), 1.0);
 }
 """
 
@@ -351,21 +419,34 @@ void main() {
     const val SKY_FS = HEADER + COMMON + """
 in vec2 vNdc;
 uniform mat4 uInvVP;
+uniform sampler2D uNoise;
+uniform float uTime;
 out vec4 o;
+float cloudDensity(vec2 q) {
+    float n = texture(uNoise, q * 0.16).r * 0.66 + texture(uNoise, q * 0.37 + 0.31).g * 0.26 + texture(uNoise, q * 0.9 + 0.7).b * 0.08;
+    return (n - 0.5) * 2.8 + 0.5;      // le bruit fBm varie peu : on étire son contraste
+}
 void main() {
     vec4 w = uInvVP * vec4(vNdc, 1.0, 1.0);
     vec3 d = normalize(w.xyz / w.w - uCamPos);
     vec3 c = skyColor(d);
     float s = max(dot(d, uSunDir), 0.0);
     c += vec3(1.0, 0.95, 0.85) * smoothstep(0.9993, 0.9996, s) * 2.0;
-    // quelques nuages d'altitude très légers
+    // cumulus de beau temps : couche plane projetée, éclairée côté soleil, base grise
     if (d.y > 0.0) {
-        vec2 q = d.xz / (d.y + 0.15);
-        float cl = sin(q.x * 2.1 + sin(q.y * 1.3)) * sin(q.y * 1.7 + q.x * 0.4);
-        cl = smoothstep(0.35, 0.95, cl) * smoothstep(0.0, 0.25, d.y) * 0.35;
-        c = mix(c, vec3(0.97, 0.97, 0.98), cl);
+        vec2 q = d.xz / (d.y + 0.06) + vec2(uTime * 0.004, uTime * 0.0016);
+        float n = cloudDensity(q);
+        float cov = smoothstep(0.52, 0.80, n);
+        vec2 ts = normalize(uSunDir.xz + 1e-4) * 0.25;
+        float n2 = cloudDensity(q + ts);
+        float light = clamp(0.62 + (n - n2) * 5.0, 0.30, 1.0);
+        vec3 cc = mix(vec3(0.60, 0.64, 0.72), vec3(1.02, 1.0, 0.96), light);
+        cc += vec3(1.0, 0.9, 0.7) * pow(s, 10.0) * (1.0 - smoothstep(0.5, 0.9, n)) * 0.5;   // liseré argenté
+        float fade = smoothstep(0.015, 0.20, d.y);
+        cc = mix(cc, HAZE, 1.0 - smoothstep(0.0, 0.35, d.y));                                // perspective aérienne
+        c = mix(c, cc, cov * fade * 0.92);
     }
-    o = vec4(c, 1.0);
+    o = vec4(grade(c), 1.0);
 }
 """
 
@@ -428,8 +509,9 @@ void main() {
     vec3 env = skyColor(R);
     if (R.y < 0.0) env = mix(env, vec3(0.20, 0.26, 0.14), clamp(-R.y * 4.0, 0.0, 1.0));
     float fres = refl + (1.0 - refl) * pow(1.0 - max(dot(n, V), 0.0), 5.0) * (refl > 0.0 ? 0.6 : 0.0);
-    vec3 c = lit(base, n, 1.0);
-    c = mix(c, env, clamp(fres, 0.0, 1.0)) + SUN * sp + emis;
+    float sh = sunShadow(vPos, n);
+    vec3 c = lit(base, n, sh);
+    c = mix(c, env, clamp(fres, 0.0, 1.0)) + SUN * sp * sh + emis;
     o = vec4(fogged(c, vPos), alpha);
 }
 """
@@ -610,14 +692,182 @@ void main() {
     } else if (m == 16) {                                  // lampe / feu allumé
         o = vec4(fogged(vCol * 1.3, vPos), 1.0);
         return;
+    } else if (m == 17) {                                  // moellons de l'église : pierres irrégulières brunes et dorées
+        float u = vUV.x, v = vUV.y;
+        float row = floor(v / 0.28);
+        float rh = hash12(vec2(row, 3.1));
+        float su = u / (0.38 + 0.3 * rh) + rh * 5.0;
+        vec2 id = vec2(floor(su), row);
+        float h = hash12(id + seed * 11.0);
+        vec2 f = vec2(fract(su), fract(v / 0.28));
+        float mortar = max(1.0 - smoothstep(0.0, 0.07, min(f.x, 1.0 - f.x)), 1.0 - smoothstep(0.0, 0.12, min(f.y, 1.0 - f.y)));
+        vec3 st = mix(vec3(0.40, 0.32, 0.24), vec3(0.66, 0.53, 0.34), h);
+        st = mix(st, vec3(0.50, 0.48, 0.44), step(0.85, hash12(id * 1.7 + 0.3)));
+        st *= 0.88 + 0.24 * texture(uNoise, vec2(u, v) * 0.8).a;
+        c = mix(vec3(0.50, 0.42, 0.31), mix(st, vec3(0.62, 0.58, 0.50), mortar * 0.85), fade) * (vCol / 0.5);
+        spec = 0.03;
+    } else if (m == 18) {                                  // crépi taloché
+        float n1 = texture(uNoise, vUV * 1.7 + seed * 5.0).a;
+        float n2 = texture(uNoise, vUV * 0.09 + seed).g;
+        c *= (0.93 + 0.1 * n1 * fade) * (0.95 + 0.08 * n2);
+        c *= 1.0 - 0.12 * (1.0 - smoothstep(0.0, 0.6, vUV.y));   // salissures en pied de mur
+    } else if (m == 19) {                                  // haie taillée (thuyas, lauriers) : feuillage dense
+        vec3 q = vPos * 2.2 + seed * 17.0;
+        float n1 = texture(uNoise, q.xz * 0.5 + q.y * 0.37).a;
+        float n2 = texture(uNoise, vec2(q.x + q.z, q.y) * 0.9).g;
+        float holes = smoothstep(0.30, 0.10, n1 * n2 * 2.0);
+        c *= mix(1.0, (0.62 + 0.62 * n1) * (1.0 - 0.45 * holes), fade * 0.8 + 0.2);
+        spec = 0.04;
+    } else if (m == 20) {                                  // gravier / gravillons
+        float g1 = hash12(floor(vPos.xz / 0.035));
+        float g2 = texture(uNoise, vPos.xz * 0.35).a;
+        c *= (0.80 + 0.30 * mix(0.5, g1, fade)) * (0.90 + 0.18 * g2);
+        spec = 0.02;
+    } else if (m == 21) {                                  // clôtures ajourées : grillage (0), barreaudage (1), lames (2)
+        vec2 q = vUV;
+        float k = vMat.y;
+        float keep;
+        if (k < 0.5) {
+            vec2 f = abs(fract(q / vec2(0.2, 0.05 + 0.15 * step(0.15, fract(q.y / 0.6)))) - 0.5);
+            keep = step(0.465, max(f.x, f.y)) + step(q.y, 0.03) + step(fract(q.x / 2.5), 0.015);
+        } else if (k < 1.5) {
+            keep = step(0.62, fract(q.x / 0.12)) + step(q.y, 0.08);
+        } else {
+            keep = step(fract(q.y / 0.25), 0.62);
+        }
+        float cov = k < 0.5 ? 0.16 : (k < 1.5 ? 0.45 : 0.62);
+        float blur = clamp(max(fwidth(q.x), fwidth(q.y)) * 12.0 - 0.6, 0.0, 1.0);   // au loin : tramage
+        float a = mix(min(keep, 1.0), cov, blur);
+        if (a < hash12(gl_FragCoord.xy * 0.73) * 0.98 + 0.01) discard;
+        spec = 0.3; shin = 40.0;
     } else if (m == 8) { spec = 0.5; shin = 50.0; refl = 0.15; }
     else if (m == 9) { c = vec3(0.12); }
     else if (m == 10) { refl = 0.5; spec = 0.9; shin = 150.0; }
     vec3 H = normalize(uSunDir + V);
-    vec3 col = lit(c, n, 1.0);
+    float sh = sunShadow(vPos, n);
+    vec3 col = lit(c, n, sh);
     if (refl > 0.0) col = mix(col, skyColor(reflect(-V, n)), refl);
-    col += SUN * pow(max(dot(n, H), 0.0), shin) * spec * step(0.0, dot(n, uSunDir));
+    col += SUN * pow(max(dot(n, H), 0.0), shin) * spec * step(0.0, dot(n, uSunDir)) * sh;
     o = vec4(fogged(col, vPos), 1.0);
+}
+"""
+
+    // --------------------------------------------------------------------------- herbe 3D
+    /** Touffes instanciées sur une grille qui suit la caméra (positions stables, aléa par cellule). */
+    const val GRASS_VS = HEADER + """
+layout(location = 0) in vec3 aPos;           // carte : x -0,5..0,5, y 0..1, z = n° de carte (0, 1)
+uniform mat4 uVP;
+uniform vec3 uCamPos;
+uniform float uTime;
+uniform vec4 uGrid;                          // origine x, z (alignée), pas, n
+uniform highp sampler2D uHeight;             // relief de la zone jouable (R32F)
+uniform vec3 uHRect;                         // x0, z0, pas
+uniform sampler2D uLand;                     // classes d'occupation du sol
+uniform sampler2D uMask;                     // routes, trottoirs, bâtiments (blanc = pas d'herbe)
+uniform vec4 uLandRect;
+uniform sampler2D uGrass;
+uniform sampler2D uNoise;
+uniform float uRadius;
+uniform sampler2D uAO;
+out vec3 vPos; out vec3 vCol; out vec2 vUV;
+float hashg(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float terrainH(vec2 p) {
+    vec2 g = (p - uHRect.xy) / uHRect.z;
+    ivec2 i = ivec2(floor(g)); vec2 f = g - vec2(i);
+    float h00 = texelFetch(uHeight, i, 0).r, h10 = texelFetch(uHeight, i + ivec2(1, 0), 0).r;
+    float h01 = texelFetch(uHeight, i + ivec2(0, 1), 0).r, h11 = texelFetch(uHeight, i + ivec2(1, 1), 0).r;
+    return f.y >= f.x ? h00 + (h11 - h01) * f.x + (h01 - h00) * f.y : h00 + (h10 - h00) * f.x + (h11 - h10) * f.y;
+}
+void main() {
+    int n = int(uGrid.w);
+    vec2 cell = vec2(float(gl_InstanceID % n), float(gl_InstanceID / n));
+    vec2 wc = uGrid.xy + cell * uGrid.z;
+    float r1 = hashg(wc), r2 = hashg(wc + 17.31), r3 = hashg(wc + 41.73);
+    vec2 p = wc + vec2(r1, r2) * uGrid.z;
+    float d = length(p - uCamPos.xz);
+    vec2 luv = (p - uLandRect.xy) / uLandRect.zw;
+    vec2 wob = (texture(uNoise, p * 0.07).rg - 0.5) * 6.0;           // mêmes limites ondulées que le terrain
+    int cls = int(texture(uLand, (p + wob - uLandRect.xy) / uLandRect.zw).r * 255.0 + 0.5);
+    float mask = texture(uMask, luv).r;
+    // classes de prepare_decor.py : 0 pré, 1 pâture, 2 fauché, 3 blé, 4 orge, 8 jachère, 11 jardin, 14 gazon, 16 pied de haie
+    float hgt = 0.0;
+    bool crop = cls == 3 || cls == 4;
+    if (cls == 0) hgt = 0.42; else if (cls == 1) hgt = 0.26; else if (cls == 2) hgt = 0.15; else if (crop) hgt = 0.85;
+    else if (cls == 8) hgt = 0.55; else if (cls == 11) hgt = 0.11; else if (cls == 14) hgt = 0.07; else if (cls == 16) hgt = 0.45;
+    float fade = 1.0 - smoothstep(uRadius * 0.55, uRadius, d);
+    float s = hgt * fade * (0.65 + 0.7 * r3) * (1.0 - step(0.5, mask));
+    if (s < 0.025 || luv.x < 0.0 || luv.y < 0.0 || luv.x > 1.0 || luv.y > 1.0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vPos = vec3(0.0); vCol = vec3(0.0); vUV = vec2(0.0); return; }
+    float a = r3 * 6.2832 + aPos.z * 1.5708;
+    float w = crop ? 0.5 : s * 1.4 + 0.15;
+    vec3 base = vec3(p.x, terrainH(p) - 0.03, p.y);
+    vec3 q = base + vec3(cos(a) * aPos.x * w, aPos.y * s, sin(a) * aPos.x * w);
+    // vent : les pointes oscillent, par rafales
+    float gust = 0.6 + 0.4 * sin(uTime * 0.35 + p.x * 0.02);
+    q.xz += vec2(0.8, 0.5) * aPos.y * aPos.y * s * 0.22 * gust * sin(uTime * 1.9 + p.x * 0.45 + p.y * 0.31);
+    // couleur : celle du sol sous la touffe (même texture que le terrain), un peu plus claire en pointe
+    vec3 g = texture(uGrass, p * 0.21).rgb;
+    vec4 m1 = texture(uNoise, p / 900.0);
+    g *= mix(vec3(0.78, 0.90, 0.74), vec3(1.20, 1.08, 0.80), smoothstep(0.25, 0.75, m1.g));
+    float lum = dot(g, vec3(0.3, 0.55, 0.15));
+    g = mix(vec3(lum), g, 0.72) * vec3(1.02, 0.97, 0.80);
+    if (cls == 2) g *= vec3(1.12, 1.07, 0.80);
+    if (cls == 11) g = vec3(0.32, 0.45, 0.19) * 1.05;        // mêmes teintes que le sol (landColor)
+    if (cls == 14) g = vec3(0.24, 0.50, 0.16);
+    if (crop) g = (cls == 3 ? vec3(0.76, 0.64, 0.34) : vec3(0.83, 0.74, 0.46)) * (0.85 + 0.3 * r1);
+    if (cls == 8) g = mix(g, vec3(0.62, 0.56, 0.36), 0.4);
+    vCol = g * (0.9 + 0.2 * r2) * mix(1.0, texture(uAO, luv).r, 0.9);
+    vUV = vec2((aPos.x + 0.5) * 0.5 + (crop ? 0.5 : 0.0), aPos.y);
+    vPos = q;
+    gl_Position = uVP * vec4(q, 1.0);
+}
+"""
+    const val GRASS_FS = HEADER + COMMON + """
+in vec3 vPos; in vec3 vCol; in vec2 vUV;
+uniform sampler2D uTuft;
+out vec4 o;
+void main() {
+    vec4 t = texture(uTuft, vUV);
+    if (t.a < 0.5) discard;
+    vec3 n = vec3(0.0, 1.0, 0.0);
+    float sh = sunShadow(vPos, n);
+    vec3 c = vCol * (t.rgb / max(t.a, 0.01)) * (0.62 + 0.55 * vUV.y);    // pied des brins plus sombre
+    float diff = clamp(dot(n, uSunDir) * 0.8 + 0.2, 0.0, 1.0) * sh;
+    vec3 amb = vec3(0.36, 0.42, 0.46);
+    vec3 col = c * (SUN * diff + amb);
+    vec3 V = normalize(uCamPos - vPos);
+    col += c * SUN * pow(max(dot(-V, uSunDir), 0.0), 3.0) * 0.35 * sh * vUV.y;   // brins à contre-jour
+    o = vec4(fogged(col, vPos), 1.0);
+}
+"""
+
+    // --------------------------------------------------------------------------- cartes d'ombre
+    /** Occulteurs simples (arbres, voiture) : seule la profondeur compte. */
+    const val DEPTH_FS = HEADER + """
+out vec4 o;
+void main() { o = vec4(1.0); }
+"""
+    /** Décor : pas d'ombre pour l'eau, les lampes et les clôtures ajourées (grillage). */
+    const val PROPS_DEPTH_FS = HEADER + """
+flat in vec2 vMat;
+in vec2 vUV;
+out vec4 o;
+void main() {
+    int m = int(floor(vMat.x));
+    if (m == 6 || m == 11 || m == 16) discard;
+    if (m == 21 && vMat.y < 0.5) discard;
+    if (m == 21 && fract(vUV.x / 0.12) < 0.5 && vMat.y < 1.5) discard;
+    o = vec4(1.0);
+}
+"""
+
+    /** Arbres dans la carte d'ombre : les plaques de feuillage sont découpées (ombre ajourée). */
+    const val TREE_DEPTH_FS = HEADER + """
+in vec2 vUV; in float vCard;
+uniform sampler2D uLeaf;
+out vec4 o;
+void main() {
+    if (vCard > 0.5 && texture(uLeaf, vUV).a < 0.5) discard;
+    o = vec4(1.0);
 }
 """
 
@@ -636,9 +886,12 @@ layout(location = 2) in float aPart;   // 0 houppier, 1 tronc
 layout(location = 3) in vec4 aI0;      // x, y, z, hauteur
 layout(location = 4) in vec2 aI1;      // type, aléa
 uniform mat4 uVP;
-out vec3 vPos; out vec3 vN; out vec3 vCol; out float vAO; out float vTrunk;
+out vec3 vPos; out vec3 vN; out vec3 vCol; out float vAO; out float vTrunk; out vec2 vUV; out float vCard;
 void main() {
     int t = int(aI1.x + 0.5);
+    int corner = gl_VertexID & 3;
+    vUV = vec2((corner == 1 || corner == 2) ? 1.0 : 0.0, corner >= 2 ? 1.0 : 0.0);
+    vCard = (aPart > 0.45 && aPart < 0.75) ? 1.0 : 0.0;
     float rnd = aI1.y;
     float h = aI0.w;
     vec4 tp = TP[t];
@@ -647,15 +900,16 @@ void main() {
     mat2 rot = mat2(cos(a), sin(a), -sin(a), cos(a));
     vec3 p;
     vec3 nn;
-    if (aPart < 0.5) {
+    if (aPart < 0.75) {
         vec3 q = aPos;
-        float lump = 1.0 + 0.17 * sin(q.x * 4.1 + rnd * 31.0) * sin(q.y * 3.3 + rnd * 17.0) * sin(q.z * 3.9 + rnd * 7.0);
+        float lump = 1.0 + 0.10 * sin(q.x * 5.1 + rnd * 31.0) * sin(q.y * 4.3 + rnd * 17.0) * sin(q.z * 4.9 + rnd * 7.0);
         float rs = 1.0;
         if (tp.w > 0.5) rs = (1.0 - (q.y + 1.0) * 0.5) * 1.35 + 0.04;   // cône (résineux)
         p = vec3(q.x * R * rs * lump, q.y * R * tp.z * lump + C, q.z * R * rs * lump);
         nn = normalize(vec3(aN.x / max(rs, 0.2), aN.y / tp.z, aN.z / max(rs, 0.2)));
-        vCol = TC[t] * (0.78 + 0.44 * rnd);
-        vAO = clamp((q.y + 1.0) * 0.5 + 0.25, 0.0, 1.0);
+        float lr = fract(aPart * 13.7 + rnd * 3.1);                 // nuance par touffe
+        vCol = TC[t] * (0.78 + 0.44 * rnd) * vec3(0.94 + 0.12 * lr, 0.96 + 0.08 * lr, 0.92);
+        vAO = clamp((q.y + 1.0) * 0.5 + 0.2, 0.0, 1.0) * clamp(0.45 + 0.6 * length(q), 0.0, 1.0);   // cœur du houppier plus sombre
         vTrunk = 0.0;
     } else {
         float tr = 0.03 * h + 0.06;
@@ -673,16 +927,35 @@ void main() {
 }
 """
     const val TREE_FS = HEADER + COMMON + """
-in vec3 vPos; in vec3 vN; in vec3 vCol; in float vAO; in float vTrunk;
+in vec3 vPos; in vec3 vN; in vec3 vCol; in float vAO; in float vTrunk; in vec2 vUV; in float vCard;
 uniform sampler2D uNoise;
+uniform sampler2D uLeaf;
 out vec4 o;
 void main() {
     vec3 n = normalize(vN);
-    float leaf = texture(uNoise, vPos.xz * 0.9 + vPos.y * 0.6).a;
-    vec3 c = vCol * (vTrunk > 0.5 ? 1.0 : (0.72 + 0.5 * leaf));
-    float diff = max(dot(n, uSunDir), 0.0) * 0.75 + 0.25;
-    vec3 amb = mix(vec3(0.30, 0.30, 0.24), vec3(0.42, 0.50, 0.62), n.y * 0.5 + 0.5);
-    vec3 col = c * (SUN * diff * 0.9 + amb) * (0.55 + 0.45 * vAO);
+    vec3 V = normalize(uCamPos - vPos);
+    float leaf = texture(uNoise, vPos.xz * 1.9 + vPos.y * 1.3).a;
+    float leaf2 = texture(uNoise, vPos.xy * 0.8 + vPos.z * 0.6).b;
+    float dist = length(uCamPos - vPos);
+    vec3 lt = vec3(1.0);
+    if (vCard > 0.5) {
+        vec4 lf = texture(uLeaf, vUV);
+        if (lf.a < 0.5) discard;
+        lt = lf.rgb / max(lf.a, 0.01) * 1.05;
+        leaf = 0.55; leaf2 = 0.5;
+    } else if (vTrunk < 0.5 && dist < 90.0) {
+        // silhouette feuillue : les bords rasants des touffes sont découpés selon un motif de feuilles
+        float rim = 1.0 - abs(dot(n, V));
+        if (rim > 0.55 && leaf * leaf2 * 4.0 < (rim - 0.55) * 3.2) discard;
+    }
+    vec3 c = vTrunk > 0.5 ? vCol : vCol * lt * (0.55 + 0.75 * leaf) * (0.85 + 0.3 * leaf2);
+    float sh = sunShadow(vPos, n);
+    float ndl = dot(n, uSunDir);
+    float diff = (vTrunk > 0.5 ? max(ndl, 0.0) : clamp((ndl + 0.35) / 1.35, 0.0, 1.0)) * sh;   // éclairage enveloppant du feuillage
+    vec3 amb = mix(vec3(0.28, 0.29, 0.22), vec3(0.40, 0.48, 0.60), n.y * 0.5 + 0.5);
+    vec3 col = c * (SUN * diff * 0.85 + amb) * (0.42 + 0.58 * vAO);
+    // contre-jour : la lumière traverse les feuilles
+    if (vTrunk < 0.5) col += c * SUN * pow(max(dot(-V, uSunDir), 0.0), 4.0) * 0.5 * (0.35 + 0.65 * sh);
     o = vec4(fogged(col, vPos), 1.0);
 }
 """

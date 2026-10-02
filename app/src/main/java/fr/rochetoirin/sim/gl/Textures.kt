@@ -68,6 +68,62 @@ object Textures {
         return t[0]
     }
 
+    /** Feuillage : grappe de feuilles détourées (alpha), pour les plaques des houppiers. */
+    fun leaves(size: Int = 256): Bitmap {
+        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val cv = Canvas(bmp)
+        val p = Paint(Paint.ANTI_ALIAS_FLAG)
+        val r = Random(17)
+        val c = size / 2f
+        for (k in 0 until 170) {
+            // répartition dans un disque, plus dense au centre
+            val a = r.nextFloat() * 6.2832f
+            val d = kotlin.math.sqrt(r.nextFloat()) * size * 0.44f
+            val x = c + kotlin.math.cos(a) * d; val y = c + kotlin.math.sin(a) * d
+            val g = 0.75f + r.nextFloat() * 0.5f
+            val yellow = r.nextFloat() * 0.25f
+            p.color = Color.rgb((150 * g * (0.75f + yellow)).toInt().coerceAtMost(255), (190 * g).toInt().coerceAtMost(255), (95 * g * 0.8f).toInt())
+            cv.save(); cv.rotate(r.nextFloat() * 360f, x, y)
+            val L = size * (0.035f + r.nextFloat() * 0.03f)
+            cv.drawOval(RectF(x - L, y - L * 0.45f, x + L, y + L * 0.45f), p)
+            cv.restore()
+        }
+        return bmp
+    }
+
+    /** Touffes de l'herbe 3D : moitié gauche brins d'herbe, moitié droite tiges et épis de céréales. */
+    fun tufts(): Bitmap {
+        val w = 256; val h = 128
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val cv = Canvas(bmp)
+        val p = Paint(Paint.ANTI_ALIAS_FLAG)
+        val r = Random(23)
+        for (k in 0 until 46) {
+            val x0 = 8f + r.nextFloat() * 112f
+            val tall = 0.45f + r.nextFloat() * 0.55f
+            val lean = (r.nextFloat() - 0.5f) * 40f
+            val bw = 2.2f + r.nextFloat() * 2.5f
+            val g = 0.7f + r.nextFloat() * 0.6f
+            p.color = Color.rgb((175 * g).toInt().coerceAtMost(255), (215 * g).toInt().coerceAtMost(255), (150 * g).toInt().coerceAtMost(255))
+            val path = android.graphics.Path()
+            path.moveTo(x0 - bw, h.toFloat()); path.quadTo(x0 + lean * 0.3f, h - tall * h * 0.6f, x0 + lean, h - tall * h)
+            path.quadTo(x0 + lean * 0.3f + bw * 0.4f, h - tall * h * 0.6f, x0 + bw, h.toFloat()); path.close()
+            cv.drawPath(path, p)
+        }
+        for (k in 0 until 16) {
+            val x0 = 136f + r.nextFloat() * 112f
+            val tall = 0.75f + r.nextFloat() * 0.25f
+            val lean = (r.nextFloat() - 0.5f) * 14f
+            val g = 0.85f + r.nextFloat() * 0.3f
+            p.color = Color.rgb((230 * g).toInt().coerceAtMost(255), (215 * g).toInt().coerceAtMost(255), (160 * g).toInt().coerceAtMost(255))
+            p.strokeWidth = 2.2f; p.style = Paint.Style.STROKE
+            cv.drawLine(x0, h.toFloat(), x0 + lean, h - tall * h + 14f, p)
+            p.style = Paint.Style.FILL
+            cv.drawOval(RectF(x0 + lean - 3.5f, h - tall * h, x0 + lean + 3.5f, h - tall * h + 20f), p)
+        }
+        return bmp
+    }
+
     /** Herbe : variations de vert + brins clairs/sombres. Tuilable. */
     fun grass(size: Int = 256): Bitmap {
         val px = IntArray(size * size)
@@ -152,7 +208,7 @@ object Textures {
      * lignes 2-3 : entrées / sorties d'agglomération (256 × 128) pour 4 communes.
      */
     fun signs(names: List<String>): Bitmap {
-        val bmp = Bitmap.createBitmap(1024, 512, Bitmap.Config.ARGB_8888)
+        val bmp = Bitmap.createBitmap(1024, 1024, Bitmap.Config.ARGB_8888)
         val cv = Canvas(bmp)
         val p = Paint(Paint.ANTI_ALIAS_FLAG)
         val red = Color.rgb(200, 20, 30); val white = Color.rgb(245, 245, 240); val black = Color.rgb(20, 20, 20)
@@ -263,6 +319,61 @@ object Textures {
                 p.style = Paint.Style.STROKE; p.color = red; p.strokeWidth = 12f
                 cv.drawLine(x0 + 18f, y0 + 100f, x0 + 238f, y0 + 28f, p)
             }
+        }
+        // centre du village (lignes 4 et 5) : enseignes posées sur des quadrilatères 4:1, d'où le texte compressé ×0,5
+        fun shopSign(c: Int, bg: Int, border: Int, lines: List<Pair<String, Float>>, fg: Int, serif: Boolean) {
+            val x0 = c * 128f; val y0 = 4 * 128f
+            p.style = Paint.Style.FILL; p.color = border; cv.drawRect(x0, y0, x0 + 256f, y0 + 128f, p)
+            p.color = bg; cv.drawRect(x0 + 5f, y0 + 9f, x0 + 251f, y0 + 119f, p)
+            p.textAlign = Paint.Align.CENTER; p.color = fg
+            p.typeface = Typeface.create(if (serif) Typeface.SERIF else Typeface.SANS_SERIF, Typeface.BOLD)
+            val total = lines.sumOf { it.second.toDouble() }.toFloat() * 1.1f
+            var y = y0 + 64f - total / 2
+            for ((t, size) in lines) {
+                p.textSize = size; p.textScaleX = 0.5f
+                y += size * 1.1f
+                cv.drawText(t, x0 + 128f, y - size * 0.22f, p)
+            }
+            p.textScaleX = 1f
+        }
+        shopSign(0, Color.rgb(104, 20, 34), Color.rgb(205, 170, 95), listOf("BOULANGERIE" to 46f, "PÂTISSERIE" to 40f), Color.rgb(236, 210, 140), true)
+        shopSign(2, Color.rgb(150, 28, 30), Color.rgb(235, 225, 205), listOf("Le Rochetoirin" to 64f), Color.rgb(250, 242, 225), true)
+        shopSign(4, Color.rgb(238, 233, 220), Color.rgb(238, 233, 220), listOf("MAIRIE" to 84f), Color.rgb(30, 45, 90), true)
+        shopSign(6, Color.rgb(245, 243, 240), Color.rgb(245, 243, 240), listOf("Médiathèque" to 72f), Color.rgb(118, 48, 140), false)
+        // horloge du clocher
+        cell(0, 5) { cx, cy ->
+            p.style = Paint.Style.FILL; p.color = Color.rgb(238, 234, 222); cv.drawCircle(cx, cy, 62f, p)
+            p.color = black
+            for (k in 0 until 12) {
+                val a = Math.PI * 2 * k / 12
+                val r0 = if (k % 3 == 0) 40f else 46f
+                p.strokeWidth = if (k % 3 == 0) 7f else 4f; p.style = Paint.Style.STROKE
+                cv.drawLine(cx + (r0 * Math.cos(a)).toFloat(), cy + (r0 * Math.sin(a)).toFloat(),
+                    cx + (56f * Math.cos(a)).toFloat(), cy + (56f * Math.sin(a)).toFloat(), p)
+            }
+            p.strokeWidth = 7f; cv.drawLine(cx, cy, cx - 22f, cy - 18f, p)        // 10 h 10
+            p.strokeWidth = 5f; cv.drawLine(cx, cy, cx + 34f, cy - 30f, p)
+            p.style = Paint.Style.FILL; cv.drawCircle(cx, cy, 6f, p)
+        }
+        // logo du restaurant
+        cell(1, 5) { cx, cy ->
+            p.style = Paint.Style.FILL; p.color = Color.rgb(250, 242, 225); cv.drawCircle(cx, cy, 62f, p)
+            p.color = Color.rgb(150, 28, 30); cv.drawCircle(cx, cy, 55f, p)
+            p.textScaleX = 1f; p.textAlign = Paint.Align.CENTER; p.color = Color.rgb(250, 242, 225)
+            p.typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD); p.textSize = 84f
+            cv.drawText("R", cx, cy + 30f, p)
+        }
+        // parking
+        cell(2, 5) { _, _ ->
+            p.style = Paint.Style.FILL; p.color = white; cv.drawRoundRect(RectF(4f, 4f, 124f, 124f), 10f, 10f, p)
+            p.color = blue; cv.drawRoundRect(RectF(10f, 10f, 118f, 118f), 8f, 8f, p)
+            text("P", 64f, 100f, 96f, white)
+        }
+        // sens interdit
+        cell(3, 5) { cx, cy ->
+            p.style = Paint.Style.FILL; p.color = white; cv.drawCircle(cx, cy, 62f, p)
+            p.color = red; cv.drawCircle(cx, cy, 58f, p)
+            p.color = white; cv.drawRect(cx - 42f, cy - 11f, cx + 42f, cy + 11f, p)
         }
         return bmp
     }
