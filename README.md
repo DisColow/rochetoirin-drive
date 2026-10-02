@@ -5,7 +5,7 @@ Un jeu de conduite Android inspiré d'*Euro Truck Simulator*, dans le village de
 
 ## Télécharger
 
-**[RochetoirinSimulator-v0.5.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.5.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
+**[RochetoirinSimulator-v0.6.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.6.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
 
 Ouvrir le lien depuis le téléphone, puis ouvrir le fichier et autoriser l'installation depuis
 cette source (« Installer quand même » si Play Protect avertit : l'APK est signé avec une clé
@@ -54,12 +54,21 @@ roulables, puis raccordé en douceur au relief réel.
 | Plateaux ralentisseurs et dos d'âne (12), surélevés avec dents de requin, panneau A2b 25 m avant — ressentis dans la physique | OSM (`traffic_calming`) |
 | Voie ferrée Lyon – Grenoble : ballast, traverses, rails, caténaires ; passages à niveau avec croix de Saint-André, feux, demi-barrières, rails noyés dans l'enrobé, panneau A7 | OSM (`railway`) |
 | Panneaux d'entrée / sortie d'agglomération (Rochetoirin…), limitations de vitesse | OSM (`traffic_sign`) |
-| Trottoirs (bordure de 14 cm, largeur adaptée aux façades, interrompus aux carrefours) | OSM `sidewalk` sinon déduits des zones bâties |
+| Trottoirs (bordure basse de 10 cm franchissable, 1,6 m, continus et arrondis aux carrefours, angles comblés d'enrobé) | OSM `sidewalk` sinon déduits des zones bâties |
 | ~1 500 lampadaires : « champignons » crème à vasque verte au centre du village, crosses modernes ailleurs | OSM + déduits (tous les 38 m en zone bâtie) |
 | Terre-pleins : îlots engazonnés des ronds-points, glissières sur l'A43, bordures entre chaussées séparées | OSM (`junction=roundabout`, chaussées à sens unique opposées) |
 
 Les bâtiments, arbres, haies, poteaux, îlots et glissières sont **solides** : un choc arrête le
-véhicule et coûte une petite facture de carrosserie. Les trottoirs et ralentisseurs se montent.
+véhicule et coûte une petite facture de carrosserie. Les trottoirs, îlots et ralentisseurs se montent (bordures basses, sans obstacle).
+
+### Trottoirs et carrefours (`tools/sidewalks.py`)
+
+Les trottoirs sont construits en 2D puis maillés : une bande de 1,6 m par côté de rue, fusionnée avec les
+autres, moins l'emprise exacte de l'enrobé (arrondie dans les angles de carrefour, rayon 3 m) et les bâtiments.
+Ils se rejoignent sans trou aux carrefours, la bordure suit exactement le bord de la chaussée, et les angles
+arrondis sont comblés d'enrobé. Îlots de rond-point et du parking de la rue de Ravette : bordure continue basse.
+
+![Parking de la rue de Ravette](docs/apercus/trottoirs-ravette.jpg)
 
 ### Village de Rochetoirin d'après la photo aérienne IGN (BD ORTHO 20 cm)
 
@@ -131,9 +140,12 @@ sont désactivées pour les téléphones modestes.
   (la vitesse passe en rouge en cas d'excès).
 * **3 caméras** : poursuite, cabine (conduite à gauche, planche de bord centrale de l'Espace),
   poursuite éloignée. Glisser au centre de l'écran pour tourner la caméra / regarder autour.
-* **Commandes** : volant tactile (ou inclinaison du téléphone, dans les options), pédales
-  d'accélérateur / frein analogiques (appuyer plus haut = plus fort), sélecteur D / R,
-  klaxon au centre du volant (sur le losange).
+* **Commandes** : boutons ◀ ▶ (braquage progressif tant qu'on appuie, retour au centre au relâché ;
+  ou inclinaison du téléphone, dans les options), pédales d'accélérateur / frein analogiques
+  (appuyer plus haut = plus fort), sélecteur D / R, klaxon (losange au-dessus des flèches).
+* **Manette** (Bluetooth / USB, toute manette Android) : stick gauche ou croix = direction,
+  RT = gaz, LT = frein (A / B sur les manettes sans gâchettes analogiques), Y = marche avant / arrière,
+  LB = klaxon, RB ou Select = caméra, stick droit = regarder autour.
 * **Son moteur synthétisé** (4 cylindres, admission, vent, roulement) et klaxon deux tons.
 * **Physique** : couple d'un 2.0 16V ~140 ch, convertisseur, frein moteur, résistance de
   l'air, pente, adhérence moindre dans l'herbe et sur les chemins, sous-virage, tangage /

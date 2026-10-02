@@ -15,6 +15,7 @@ import android.view.MotionEvent
 import android.view.View
 import fr.rochetoirin.sim.game.ActiveJob
 import fr.rochetoirin.sim.game.Game
+import fr.rochetoirin.sim.game.Gamepad
 import fr.rochetoirin.sim.game.JobOffer
 import kotlin.math.PI
 import kotlin.math.abs
@@ -28,7 +29,8 @@ import kotlin.math.sin
 
 /** Interface de conduite dessinée au-dessus de la vue 3D. */
 @SuppressLint("ViewConstructor")
-class HudView(context: Context, private val game: Game, private val settings: Settings) : View(context) {
+class HudView(context: Context, private val game: Game, private val settings: Settings,
+              private val pad: Gamepad? = null) : View(context) {
 
     interface Settings {
         var tiltSteering: Boolean
@@ -51,18 +53,17 @@ class HudView(context: Context, private val game: Game, private val settings: Se
     // --- zones ---
     private var W = 1f; private var H = 1f
     private val wheelC = FloatArray(2); private var wheelR = 1f
+    private val leftR = RectF(); private val rightR = RectF(); private val hornC = FloatArray(2); private var hornR = 1f
     private val throttleR = RectF(); private val brakeR = RectF(); private val gearR = RectF()
     private val gpsR = RectF()
     private val btnJobs = RectF(); private val btnCam = RectF(); private val btnMap = RectF(); private val btnOpt = RectF()
     private val panelR = RectF()
 
     // --- état des commandes ---
-    private enum class Role { NONE, STEER, HORN, THROTTLE, BRAKE, ORBIT, BUTTON, PANEL }
+    private enum class Role { NONE, LEFT, RIGHT, HORN, THROTTLE, BRAKE, ORBIT, BUTTON, PANEL }
     private val roles = HashMap<Int, Role>()
     private val lastX = HashMap<Int, Float>(); private val lastY = HashMap<Int, Float>()
-    private var steerAngleDeg = 0f        // rotation du volant affiché (tactile)
-    private var steerTouchAngle = 0f
-    private var steering = false
+    private var steerDigital = 0f         // direction par boutons ◀ ▶ (rampe progressive)
     private var throttleTarget = 0f; private var brakeTarget = 0f
     private var throttle = 0f; private var brake = 0f
     private var lastFrame = SystemClock.uptimeMillis()
@@ -72,7 +73,6 @@ class HudView(context: Context, private val game: Game, private val settings: Se
     private val panelButtons = ArrayList<Pair<RectF, () -> Unit>>()
     private var pressedButton: RectF? = null
 
-    private val maxWheelDeg = 200f
     private val pedalShaders = java.util.IdentityHashMap<RectF, Shader>()
     private val gpsClip = Path()
 
@@ -80,6 +80,12 @@ class HudView(context: Context, private val game: Game, private val settings: Se
         W = w.toFloat(); H = h.toFloat()
         wheelR = min(H * 0.21f, W * 0.12f)
         wheelC[0] = wheelR * 1.35f + 12 * dp; wheelC[1] = H - wheelR * 1.25f - 8 * dp
+        // boutons de direction : deux grands pavés côte à côte en bas à gauche, klaxon au-dessus
+        val bw = min(W * 0.115f, 120 * dp); val bh = min(H * 0.30f, 130 * dp)
+        leftR.set(16 * dp, H - bh - 16 * dp, 16 * dp + bw, H - 16 * dp)
+        rightR.set(leftR.right + 12 * dp, leftR.top, leftR.right + 12 * dp + bw, leftR.bottom)
+        hornR = 24 * dp
+        hornC[0] = (leftR.left + rightR.right) / 2; hornC[1] = leftR.top - hornR - 12 * dp
         val pw = min(W * 0.075f, 78 * dp)
         throttleR.set(W - pw - 18 * dp, H - H * 0.34f, W - 18 * dp, H - 16 * dp)
         brakeR.set(throttleR.left - pw * 1.55f - 14 * dp, H - H * 0.25f, throttleR.left - 14 * dp, H - 16 * dp)
@@ -105,7 +111,7 @@ class HudView(context: Context, private val game: Game, private val settings: Se
         drawSpeed(c)
         drawStreet(c)
         drawMessage(c)
-        if (settings.tiltSteering) drawTilt(c) else drawWheel(c)
+        if (settings.tiltSteering) drawTilt(c) else drawSteerButtons(c)
         drawPedals(c)
 
         when (overlay) {
@@ -118,23 +124,28 @@ class HudView(context: Context, private val game: Game, private val settings: Se
     }
 
     private fun updateControls(dt: Float) {
-        // volant : retour au centre quand on lâche
-        if (settings.tiltSteering) {
-            game.input.steer = settings.tiltValue()
-        } else {
-            if (!steering) {
-                val back = 520f * dt
-                steerAngleDeg = if (abs(steerAngleDeg) < back) 0f else steerAngleDeg - back * Math.signum(steerAngleDeg)
-            }
-            val s = steerAngleDeg / maxWheelDeg
-            game.input.steer = s * (0.55f + 0.45f * abs(s))   // courbe progressive
+        // boutons ◀ ▶ (écran ou croix de la manette) : on braque progressivement, retour rapide au centre
+        val l = roles.containsValue(Role.LEFT) || pad?.dpadLeft == true
+        val r = roles.containsValue(Role.RIGHT) || pad?.dpadRight == true
+        val want = (if (r) 1f else 0f) - (if (l) 1f else 0f)
+        val rate = if (want == 0f || want * steerDigital < 0f) 4.5f else 1.6f
+        steerDigital = if (abs(want - steerDigital) <= rate * dt) want else steerDigital + rate * dt * Math.signum(want - steerDigital)
+        val analog = pad?.analogSteer ?: 0f
+        game.input.steer = when {
+            analog != 0f -> analog
+            want != 0f || steerDigital != 0f -> steerDigital * (0.5f + 0.5f * abs(steerDigital))
+            settings.tiltSteering -> settings.tiltValue()
+            else -> 0f
         }
         throttle += (throttleTarget - throttle) * min(1f, dt * 6f)
         brake += (brakeTarget - brake) * min(1f, dt * 10f)
         if (throttleTarget == 0f && throttle < 0.02f) throttle = 0f
         if (brakeTarget == 0f && brake < 0.02f) brake = 0f
-        game.input.throttle = throttle
-        game.input.brake = brake
+        game.input.throttle = max(throttle, pad?.throttle ?: 0f)
+        game.input.brake = max(brake, pad?.brake ?: 0f)
+        pad?.let {
+            if (it.orbitX != 0f || it.orbitY != 0f) { game.input.orbitDX += it.orbitX * 900f * dt; game.input.orbitDY += it.orbitY * 500f * dt }
+        }
     }
 
     private fun panel(c: Canvas, r: RectF, radius: Float = 12 * dp, color: Int = panelBg) {
@@ -322,30 +333,40 @@ class HudView(context: Context, private val game: Game, private val settings: Se
         c.drawText(ellipsize(game.message, w - 30 * dp), W / 2, r.bottom - 14 * dp, text)
     }
 
-    private fun drawWheel(c: Canvas) {
-        val cx = wheelC[0]; val cy = wheelC[1]; val r = wheelR
-        c.save()
-        c.rotate(steerAngleDeg, cx, cy)
-        stroke.color = Color.argb(150, 10, 10, 12); stroke.strokeWidth = r * 0.22f
-        c.drawCircle(cx, cy, r * 0.86f, stroke)
-        stroke.color = Color.argb(200, 235, 235, 235); stroke.strokeWidth = r * 0.04f
-        c.drawCircle(cx, cy, r * 0.97f, stroke)
-        c.drawCircle(cx, cy, r * 0.75f, stroke)
-        stroke.color = Color.argb(160, 10, 10, 12); stroke.strokeWidth = r * 0.16f
-        c.drawLine(cx - r * 0.75f, cy, cx - r * 0.25f, cy, stroke)
-        c.drawLine(cx + r * 0.25f, cy, cx + r * 0.75f, cy, stroke)
-        c.drawLine(cx, cy + r * 0.25f, cx, cy + r * 0.75f, stroke)
+    private fun drawSteerButtons(c: Canvas) {
+        val l = roles.containsValue(Role.LEFT) || pad?.dpadLeft == true
+        val r = roles.containsValue(Role.RIGHT) || pad?.dpadRight == true
+        for ((rect, dir, on) in listOf(Triple(leftR, -1f, l), Triple(rightR, 1f, r))) {
+            fill.color = if (on) Color.argb(215, 200, 130, 20) else panelBg
+            c.drawRoundRect(rect, 16 * dp, 16 * dp, fill)
+            stroke.color = Color.argb(150, 235, 235, 235); stroke.strokeWidth = 2 * dp
+            c.drawRoundRect(rect, 16 * dp, 16 * dp, stroke)
+            val cx = rect.centerX(); val cy = rect.centerY(); val a = min(rect.width(), rect.height()) * 0.24f
+            val p = Path()
+            p.moveTo(cx + dir * a, cy); p.lineTo(cx - dir * a * 0.7f, cy - a); p.lineTo(cx - dir * a * 0.7f, cy + a); p.close()
+            fill.color = if (on) Color.WHITE else Color.argb(230, 235, 235, 235)
+            c.drawPath(p, fill)
+        }
+        // braquage actuel (jauge au-dessus des boutons)
+        val gy = leftR.top - 6 * dp
+        fill.color = Color.argb(120, 10, 10, 12)
+        c.drawRoundRect(leftR.left, gy - 4 * dp, rightR.right, gy, 2 * dp, 2 * dp, fill)
         fill.color = accent
-        c.drawRect(cx - r * 0.05f, cy - r * 0.97f, cx + r * 0.05f, cy - r * 0.75f, fill)
-        c.restore()
-        // moyeu = klaxon (losange Renault)
-        fill.color = if (game.input.horn) Color.argb(220, 200, 130, 20) else Color.argb(170, 15, 15, 18)
-        c.drawCircle(cx, cy, r * 0.26f, fill)
-        val p = Path()
-        val s = r * 0.13f
-        p.moveTo(cx, cy - s * 1.3f); p.lineTo(cx + s * 0.8f, cy); p.lineTo(cx, cy + s * 1.3f); p.lineTo(cx - s * 0.8f, cy); p.close()
-        stroke.color = Color.rgb(220, 220, 225); stroke.strokeWidth = r * 0.05f
-        c.drawPath(p, stroke)
+        val mid = (leftR.left + rightR.right) / 2; val half = (rightR.right - leftR.left) / 2
+        val x = mid + game.input.steer * half
+        c.drawRect(min(mid, x), gy - 4 * dp, max(mid, x), gy, fill)
+        // klaxon (losange Renault)
+        val hx = hornC[0]; val hy = hornC[1]
+        fill.color = if (game.input.horn) Color.argb(220, 200, 130, 20) else panelBg
+        c.drawCircle(hx, hy, hornR, fill)
+        val d = Path(); val s = hornR * 0.45f
+        d.moveTo(hx, hy - s * 1.3f); d.lineTo(hx + s * 0.8f, hy); d.lineTo(hx, hy + s * 1.3f); d.lineTo(hx - s * 0.8f, hy); d.close()
+        stroke.color = Color.rgb(220, 220, 225); stroke.strokeWidth = 2.5f * dp
+        c.drawPath(d, stroke)
+        if (pad?.active(SystemClock.uptimeMillis()) == true) {
+            text.textSize = 11 * dp; text.color = Color.argb(200, 255, 255, 255); text.textAlign = Paint.Align.LEFT
+            c.drawText("Manette : RT gaz · LT frein · Y marche AR · LB klaxon · RB caméra", leftR.left, hy - hornR - 8 * dp, text)
+        }
     }
 
     private fun drawTilt(c: Canvas) {
@@ -578,20 +599,18 @@ class HudView(context: Context, private val game: Game, private val settings: Se
             roles[id] = Role.PANEL
             return
         }
-        val dw = hypot(x - wheelC[0], y - wheelC[1])
         val role = when {
             btnJobs.contains(x, y) || btnCam.contains(x, y) || btnMap.contains(x, y) || btnOpt.contains(x, y) || gearR.contains(x, y) -> Role.BUTTON
             gpsR.contains(x, y) -> Role.BUTTON
             expanded(throttleR, 10 * dp).contains(x, y) -> Role.THROTTLE
             expanded(brakeR, 10 * dp).contains(x, y) -> Role.BRAKE
-            !settings.tiltSteering && dw < wheelR * 0.27f -> Role.HORN
+            !settings.tiltSteering && hypot(x - hornC[0], y - hornC[1]) < hornR * 1.3f -> Role.HORN
             settings.tiltSteering && hypot(x - wheelC[0], y - (wheelC[1] - wheelR * 0.2f)) < wheelR * 0.35f -> Role.HORN
-            !settings.tiltSteering && dw < wheelR * 1.45f -> Role.STEER
+            !settings.tiltSteering && steerRole(x, y) != Role.NONE -> steerRole(x, y)
             else -> Role.ORBIT
         }
         roles[id] = role
         when (role) {
-            Role.STEER -> { steering = true; steerTouchAngle = angle(x, y) }
             Role.HORN -> game.input.horn = true
             Role.THROTTLE -> throttleTarget = pedalValue(throttleR, y)
             Role.BRAKE -> brakeTarget = pedalValue(brakeR, y)
@@ -603,15 +622,10 @@ class HudView(context: Context, private val game: Game, private val settings: Se
         val px = lastX[id] ?: x; val py = lastY[id] ?: y
         lastX[id] = x; lastY[id] = y
         when (roles[id]) {
-            Role.STEER -> {
-                val a = angle(x, y)
-                var d = a - steerTouchAngle
-                while (d > 180f) d -= 360f
-                while (d < -180f) d += 360f
-                steerTouchAngle = a
-                // près du centre, l'angle est instable : on l'atténue
-                val dist = hypot(x - wheelC[0], y - wheelC[1])
-                if (dist > wheelR * 0.3f) steerAngleDeg = (steerAngleDeg + d).coerceIn(-maxWheelDeg, maxWheelDeg)
+            Role.LEFT, Role.RIGHT -> {
+                // le doigt glisse d'un bouton à l'autre
+                val nr = steerRole(x, y)
+                if (nr != Role.NONE) roles[id] = nr
             }
             Role.THROTTLE -> throttleTarget = pedalValue(throttleR, y)
             Role.BRAKE -> brakeTarget = pedalValue(brakeR, y)
@@ -623,7 +637,6 @@ class HudView(context: Context, private val game: Game, private val settings: Se
     private fun up(id: Int, x: Float, y: Float) {
         val role = roles.remove(id) ?: return
         when (role) {
-            Role.STEER -> steering = roles.containsValue(Role.STEER)
             Role.HORN -> game.input.horn = false
             Role.THROTTLE -> throttleTarget = 0f
             Role.BRAKE -> brakeTarget = 0f
@@ -648,5 +661,14 @@ class HudView(context: Context, private val game: Game, private val settings: Se
 
     private fun pedalValue(r: RectF, y: Float): Float = (0.35f + 0.65f * (r.bottom - y) / (r.height() * 0.75f)).coerceIn(0.35f, 1f)
 
-    private fun angle(x: Float, y: Float) = Math.toDegrees(atan2((y - wheelC[1]).toDouble(), (x - wheelC[0]).toDouble())).toFloat()
+    /** Bouton ◀ / ▶ sous le doigt (zones élargies vers le bas et entre les deux boutons). */
+    private fun steerRole(x: Float, y: Float): Role {
+        if (y < leftR.top - 14 * dp) return Role.NONE
+        val mid = (leftR.right + rightR.left) / 2
+        return when {
+            x >= leftR.left - 16 * dp && x < mid -> Role.LEFT
+            x >= mid && x <= rightR.right + 16 * dp -> Role.RIGHT
+            else -> Role.NONE
+        }
+    }
 }

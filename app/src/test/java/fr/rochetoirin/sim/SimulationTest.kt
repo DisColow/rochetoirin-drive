@@ -161,4 +161,51 @@ class SimulationTest {
         File("build/carmesh.json").writeText(json)
         println("Espace : ${m.bodyV.size / 12 + m.glassV.size / 12} sommets, ${(m.bodyI.size + m.glassI.size) / 3} triangles")
     }
+
+    /** Les trottoirs sont franchissables : bordure basse, la voiture monte dessus sans être arrêtée. */
+    @Test
+    fun climbsSidewalk() {
+        // un bord de rue résidentielle du village avec trottoir et rien derrière sur 8 m
+        var found: FloatArray? = null
+        loop@ for (w in world.ways) {
+            if (w.kind != "residential" && w.kind != "tertiary") continue
+            for (s in 0 until w.nodes.size - 1) {
+                val ax = world.nodeX[w.nodes[s]]; val az = world.nodeZ[w.nodes[s]]
+                val bx = world.nodeX[w.nodes[s + 1]]; val bz = world.nodeZ[w.nodes[s + 1]]
+                val l = hypot(bx - ax, bz - az)
+                if (l < 12f) continue
+                val mx = (ax + bx) / 2; val mz = (az + bz) / 2
+                if (hypot(mx - world.start.x, mz - world.start.z) > 3000f) continue
+                for (sg in intArrayOf(1, -1)) {
+                    val nx = -(bz - az) / l * sg; val nz = (bx - ax) / l * sg
+                    val d = w.width / 2 + 0.8f
+                    if (world.decor.surf.offset(mx + nx * d, mz + nz * d) < 0.12f) continue
+                    val yaw = atan2(nx, -nz)
+                    var clear = true
+                    for (k in 0..8) if (world.decor.collides(mx + nx * k, mz + nz * k, yaw, 2.3f, 0.92f)) clear = false
+                    if (clear) { found = floatArrayOf(mx, mz, nx, nz, w.width); break@loop }
+                }
+            }
+        }
+        assertNotNull("un trottoir dégagé", found)
+        val (mx, mz, nx, nz) = found!!
+        val g = newGame()
+        val v = g.vehicle
+        v.place(mx - nx * 3f, mz - nz * 3f, atan2(nx, -nz))
+        val y0 = v.y
+        g.input.throttle = 0.45f
+        val dt = 1f / 60f
+        var t = 0f
+        var maxRise = 0f
+        while (t < 6f) {
+            g.update(dt); t += dt
+            val dist = (v.x - mx) * nx + (v.z - mz) * nz
+            maxRise = maxOf(maxRise, world.decor.surf.offset(v.x, v.z))
+            if (dist > found[4] / 2 + 1.6f) break
+        }
+        val dist = (v.x - mx) * nx + (v.z - mz) * nz
+        println("Trottoir : montée de %.2f m, %.1f m parcourus, %.1f km/h".format(maxRise, dist + 3f, v.speedKmh))
+        assertTrue("la voiture est montée sur le trottoir", maxRise > 0.1f && dist > found[4] / 2 + 0.5f)
+        assertTrue("sans choc", v.speed > 0.5f && abs(v.y - y0) < 1.5f)
+    }
 }

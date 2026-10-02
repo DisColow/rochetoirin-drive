@@ -19,7 +19,9 @@ import json, math, os, pickle, struct
 import numpy as np
 from PIL import Image, ImageDraw
 from scipy.ndimage import distance_transform_edt
-from shapely.geometry import LineString, Polygon, Point
+from shapely.geometry import LineString, Polygon, Point, box
+import shapely
+import sidewalks as sw_mod
 from shapely.ops import polygonize, unary_union
 from geo import to_local
 from prepare_data import Grid, X0, X1, Z0, Z1, CHUNK
@@ -218,10 +220,16 @@ def main():
     def count(k):
         stats[k] = stats.get(k, 0) + 1
 
+    def count_n(k, n):
+        stats[k] = stats.get(k, 0) + n
+
     # ---------------------------------------------------------------- trottoirs
     SIDEWALK_CLS = {"residential", "living_street", "tertiary", "secondary", "primary", "unclassified",
                     "tertiary_link", "secondary_link", "primary_link"}
     sidewalk_side = {}   # (road, side) -> tableau des largeurs par rangée (0 = pas de trottoir)
+    carriage, carr_ext = sw_mod.carriageway(roads, by_node, node_pos)
+    rh = sw_mod.RoadHeight(roads)
+    strips, walk_pieces = [], []
     for i, r in enumerate(roads):
         if r.cls not in SIDEWALK_CLS or r.bridge or r.tags.get("junction") == "roundabout":
             continue
@@ -237,31 +245,117 @@ def main():
             if sides[sg] == "no":
                 continue
             col = 2 if sg > 0 else 0
-            widths = np.zeros(r.n)
+            on = np.zeros(r.n, bool)
             for k in range(r.n):
                 ex, ez = r.VX[k, col], r.VZ[k, col]
                 if sides[sg] == "auto" and not is_built(ex, ez):
                     continue
                 d = r.N[k] * sg
-                w = min(1.7, bd(ex + d[0] * 0.3, ez + d[1] * 0.3) - 0.1)
-                if w < 0.8:
+                if bd(ex + d[0] * 0.3, ez + d[1] * 0.3) < 0.9:
                     continue
-                if other_road(ex + d[0] * (w * 0.6), ez + d[1] * (w * 0.6), i) or other_road(ex + d[0] * 0.25, ez + d[1] * 0.25, i):
-                    continue
-                widths[k] = w
-            # supprimer les tronçons isolés trop courts
+                on[k] = True
+            # supprimer les tronçons isolés trop courts, combler les petits trous
             run = 0
             for k in range(r.n + 1):
-                if k < r.n and widths[k] > 0:
+                if k < r.n and not on[k]:
+                    run += 1
+                else:
+                    if 0 < run < 3 and k - run > 0 and k < r.n:
+                        on[k - run:k] = True
+                    run = 0
+            run = 0
+            for k in range(r.n + 1):
+                if k < r.n and on[k]:
                     run += 1
                 else:
                     if 0 < run < 4:
-                        widths[k - run:k] = 0
+                        on[k - run:k] = False
                     run = 0
-            if widths.any():
-                sidewalk_side[(i, sg)] = widths
-                sidewalk_mesh(r, sg, widths, props, surf_poly)
+            if not on.any():
+                continue
+            sidewalk_side[(i, sg)] = np.where(on, sw_mod.SW_W, 0.0)
+            k = 0
+            while k < r.n:
+                if not on[k]:
+                    k += 1
+                    continue
+                k1 = k
+                while k1 + 1 < r.n and on[k1 + 1]:
+                    k1 += 1
+                a0, a1 = max(0, k - 1) if k > 0 else 0, min(r.n - 1, k1 + 1)
+                inner = r.P[a0:a1 + 1] + r.N[a0:a1 + 1] * sg * (r.hw - 0.4)
+                outer = r.P[a0:a1 + 1] + r.N[a0:a1 + 1] * sg * (r.hw + sw_mod.SW_W)
+                if len(inner) >= 2:
+                    pg = Polygon(np.vstack([inner, outer[::-1]])).buffer(0)
+                    strips.append(pg)
                 count("trottoirs (tronçons)")
+                k = k1 + 1
+
+    # assemblage : bandes fusionnées, moins les chaussées (angles arrondis) et les bâtiments
+    bld_union = unary_union([Polygon(rg).buffer(0.15, join_style=2) for rg in rings if len(rg) >= 3])
+    walk = unary_union(strips).difference(carr_ext).difference(bld_union)
+    walk = walk.buffer(-0.3, join_style=2).buffer(0.3, join_style=2)        # pas de lanières < 0,6 m
+    walk = walk.buffer(0.25).buffer(-0.25).difference(carr_ext).difference(bld_union)
+    walk = unary_union([q for q in sw_mod.polys(walk) if q.area > 2.5]).simplify(0.06)
+    print("trottoirs :", shapely.get_num_coordinates(walk), "sommets de contour")
+    walk_pieces.extend(sw_mod.polys(walk))
+    walk_b = walk.boundary
+
+    def sw_top(x, z):
+        return np.maximum(rh(x, z) + sw_mod.CURB, terrain.height(np.asarray(x), np.asarray(z)) + 0.04)
+
+    def sw_kind(mids):
+        pts = shapely.points(mids)
+        on_edge = shapely.distance(walk_b, pts) < 0.03
+        near_road = shapely.distance(carr_ext, pts) < 0.08
+        return np.where(~on_edge, 0, np.where(near_road, 1, 2))
+
+    def sw_base(x, z, kind):
+        if kind == 1:
+            return float(rh(x, z)[0]) - 0.03
+        return float(min(terrain.height(x, z), sw_top(x, z)[0])) - 0.3
+
+    nsw = 0.0
+    for cx in range(props.nCx):
+        for cz in range(props.nCz):
+            cb = box(X0 + cx * CHUNK, Z0 + cz * CHUNK, X0 + (cx + 1) * CHUNK, Z0 + (cz + 1) * CHUNK)
+            if not walk.bounds or not cb.intersects(walk):
+                continue
+            part = walk.intersection(cb)
+            for q in sw_mod.polys(part):
+                m = Mesh()
+                sw_mod.raised_mesh(m, q, sw_top, sw_base, sw_kind, sw_mod.PAVE_COL, M_PAVE, M_CURB)
+                if m.i:
+                    c = q.representative_point()
+                    props.add(c.x, c.y, m, big=True)
+                    nsw += q.area
+    for q in walk_pieces:
+        sw_mod.surf_shape(surf, q, lambda x, z: sw_top(x, z) - terrain.height(x, z), X0, Z0)
+    count_n("trottoirs (m²)", int(nsw))
+
+    # tablier d'enrobé dans les angles arrondis des carrefours (au format routes, sans marquage)
+    apron = carr_ext.difference(carriage)
+    napr = 0.0
+    for q in sw_mod.polys(apron):
+        if q.area < 0.3:
+            continue
+        v, tri = sw_mod.tri_poly(q, 3.0)
+        if len(tri) == 0:
+            continue
+        c = q.representative_point()
+        style, hw_ = rh.nearest(c.x, c.y)
+        if style >= 6:
+            continue          # chemins de terre, voies ferrées
+        ys = np.maximum(rh(v[:, 0], v[:, 1]), terrain.height(v[:, 0], v[:, 1]) + 0.03) + 0.006
+        key = (min(props.nCx - 1, max(0, int((c.x - X0) // CHUNK))), min(props.nCz - 1, max(0, int((c.y - Z0) // CHUNK))))
+        verts, idx = decals.setdefault(key, ([], []))
+        base = len(verts) // 10
+        for (x, z), y in zip(v, ys):
+            verts.extend([float(x), float(y), float(z), 0, 1, 0, 0, 0, hw_, style + 10])
+        for k in range(0, len(tri), 3):
+            idx.extend([base + tri[k], base + tri[k + 2], base + tri[k + 1]])
+        napr += q.area
+    count_n("angles de carrefour en enrobé (m²)", int(napr))
 
     # ---------------------------------------------------------------- lampadaires
     lamps = []
@@ -533,8 +627,7 @@ def main():
             for q in polys(isl):
                 if q.area < 6:
                     continue
-                island_mesh(q, props)
-                extra_coll.append(np.array(q.exterior.coords)[:-1])
+                extra_coll.append(island_mesh(q, props, surf))
                 count("îlots de rond-point")
     # chaussées séparées : terre-plein (glissière sur l'autoroute, bordure ailleurs)
     oneways = [i for i, r in enumerate(roads) if r.oneway and r.cls in ("motorway", "trunk", "primary", "secondary", "tertiary")
@@ -599,6 +692,8 @@ def main():
     meta = json.load(open(os.path.join(ASSETS, "map.json")))
     for k, v in center.furniture(props.add, extra_coll.append, center.roads_union_from(meta)).items():
         stats["centre : " + k] = v
+    for q, hfun in center.RAISED:
+        sw_mod.surf_shape(surf, q, hfun, X0, Z0)
 
     # ---------------------------------------------------------------- quartier de la rue du Balcon
     if os.path.exists(os.path.join(DATA, "cadastre_balcon.json")) and os.path.exists(os.path.join(DATA, "ortho_village.jpg")):
@@ -623,6 +718,8 @@ def main():
     for ring in rings + extra_coll:
         if len(ring) >= 3:
             dg.polygon([gpx(x, z) for x, z in ring], fill=255, outline=255)
+    for q in walk_pieces:
+        dg.polygon([gpx(x, z) for x, z in q.buffer(0.5).exterior.coords], fill=255, outline=255)
     for xa, za, xb, zb in paved_rects:
         dg.rectangle([gpx(xa, za), gpx(xb, zb)], fill=255)
     gm.save(os.path.join(ASSETS, "grassmask.png"), optimize=True)
@@ -696,53 +793,6 @@ def write_ground_ao(rings, extra_coll):
 
 
 # ------------------------------------------------------------------------------------ maillages
-def sidewalk_mesh(r, sg, widths, props, surf_poly):
-    """Trottoir en bande continue : bordure (face + dessus), revêtement, retombée vers le terrain."""
-    col = 2 if sg > 0 else 0
-    up = np.array([0, 0.14, 0])
-    k = 0
-    while k < r.n - 1:
-        if widths[k] <= 0 or widths[k + 1] <= 0:
-            k += 1
-            continue
-        k1 = k
-        while k1 + 1 < r.n and widths[k1 + 1] > 0:
-            k1 += 1
-        m = Mesh()
-        rows = []
-        # on ne garde que les rangées utiles (virages, tous les 10 m en ligne droite)
-        keep = [k]
-        for kk in range(k + 1, k1):
-            ta, tb = r.T[keep[-1]], r.T[kk]
-            turn = abs(float(ta[0] * tb[1] - ta[1] * tb[0]))
-            if turn > 0.06 or r.s[kk] - r.s[keep[-1]] > 10.0 or abs(widths[kk] - widths[keep[-1]]) > 0.25:
-                keep.append(kk)
-        keep.append(k1)
-        prev = None
-        for kk in keep:
-            e = np.array([r.VX[kk, col], r.VY[kk, col], r.VZ[kk, col]])
-            d = np.array([r.N[kk][0] * sg, 0, r.N[kk][1] * sg])
-            w = widths[kk]
-            o = e + d * w
-            top = o + up + np.array([0, 0.015 * w, 0])
-            bo = np.array([o[0], min(float(terrain.height(o[0], o[2])), o[1]) - 0.25, o[2]])
-            rows.append([
-                m.vert(e, -d, (0.72, 0.71, 0.68), (0, 0), M_CURB), m.vert(e + up, -d, (0.72, 0.71, 0.68), (0, 0), M_CURB),
-                m.vert(e + up, (0, 1, 0), (0.56, 0.55, 0.53), (0, 0), M_PAVE), m.vert(top, (0, 1, 0), (0.56, 0.55, 0.53), (0, 0), M_PAVE),
-                m.vert(top, d, (0.62, 0.61, 0.58), (0, 0), M_CURB), m.vert(bo, d, (0.62, 0.61, 0.58), (0, 0), M_CURB),
-            ])
-            if prev is not None:
-                pe, po = prev
-                surf_poly([(pe[0], pe[2]), (e[0], e[2]), (o[0], o[2]), (po[0], po[2])], 14)
-            prev = (e, o)
-        for ra, rb in zip(rows[:-1], rows[1:]):
-            for j in (0, 2, 4):
-                m.quad(ra[j], rb[j], rb[j + 1], ra[j + 1])
-        mid = rows[len(rows) // 2]
-        props.add(m.v[mid[0]][0], m.v[mid[0]][2], m, big=True)
-        k = k1
-
-
 def pole(m, x, y0, y1, z, w, col, mat):
     """Poteau vertical léger (4 faces + dessus)."""
     h = w / 2
@@ -841,30 +891,22 @@ def level_crossing_post(x, z, facing, right, road_hw, props):
     props.add(x, z, m, big=False)
 
 
-def island_mesh(q, props):
-    """Îlot central engazonné avec bordure."""
+def island_mesh(q, props, surf):
+    """Îlot central engazonné avec bordure basse franchissable ; petit massif central (obstacle)."""
     m = Mesh()
-    ring = list(q.exterior.coords)[:-1]
-    ys = [float(terrain.height(x, z)) + 0.22 for x, z in ring]
-    n = len(ring)
-    for k in range(n):
-        a, b = ring[k], ring[(k + 1) % n]
-        ya, yb = ys[k], ys[(k + 1) % n]
-        dx, dz = b[0] - a[0], b[1] - a[1]
-        L = math.hypot(dx, dz) or 1
-        nrm = (dz / L, 0, -dx / L)
-        ids = [m.vert(p, nrm, (0.74, 0.73, 0.70), (0, 0), M_CURB)
-               for p in ((a[0], ya - 0.5, a[1]), (b[0], yb - 0.5, b[1]), (b[0], yb, b[1]), (a[0], ya, a[1]))]
-        m.quad(*ids)
-    tri = triangulate(ring)
-    ids = [m.vert((x, y, z), (0, 1, 0), (0.30, 0.46, 0.17), (0, 0), M_GRASS) for (x, z), y in zip(ring, ys)]
-    for t in range(0, len(tri), 3):
-        m.tri(ids[tri[t]], ids[tri[t + 2]], ids[tri[t + 1]])
+    q = q.simplify(0.05)
+    qb = q.boundary
+    top = lambda x, z: terrain.height(np.asarray(x), np.asarray(z)) + 0.07 + sw_mod.CURB + 0.02
+    kind = lambda mids: np.where(shapely.distance(qb, shapely.points(mids)) < 0.03, 1, 0)
+    base = lambda x, z, k: float(terrain.height(x, z)) - 0.05
+    sw_mod.raised_mesh(m, q, top, base, kind, (0.30, 0.46, 0.17), M_GRASS, M_CURB, step=3.0, band=0.2)
+    sw_mod.surf_shape(surf, q, lambda x, z: np.full(np.shape(x), 0.07 + sw_mod.CURB + 0.02), X0, Z0)
     c = q.centroid
     yc = float(terrain.height(c.x, c.y))
-    # petit massif central
-    box_mesh(m, c.x, yc + 0.45, c.y, min(2.5, math.sqrt(q.area) * 0.3), 0.5, min(2.5, math.sqrt(q.area) * 0.3), (0.55, 0.50, 0.42), M_CURB)
+    s = min(2.5, math.sqrt(q.area) * 0.3)
+    box_mesh(m, c.x, yc + 0.45, c.y, s, 0.5, s, (0.55, 0.50, 0.42), M_CURB)
     props.add(c.x, c.y, m, big=True)
+    return np.array([[c.x - s / 2, c.y - s / 2], [c.x + s / 2, c.y - s / 2], [c.x + s / 2, c.y + s / 2], [c.x - s / 2, c.y + s / 2]])
 
 
 def guardrail(r, s0, s1, props, coll):
@@ -902,13 +944,13 @@ def median_curb(r, s0, s1, props, surf_poly):
         cur = (a, b)
         if prev:
             (a0, b0), (a1, b1) = prev, cur
-            up = np.array([0, 0.15, 0])
+            up = np.array([0, 0.12, 0])
             ids = [m.vert(p, (0, 1, 0), (0.75, 0.74, 0.71), (0, 0), M_CURB) for p in (a0 + up, a1 + up, b1 + up, b0 + up)]
             m.quad(*ids)
             nn = (N[0], 0, N[1])
             ids = [m.vert(p, nn, (0.72, 0.71, 0.68), (0, 0), M_CURB) for p in (a0, a1, a1 + up, a0 + up)]
             m.quad(*ids)
-            surf_poly([(a0[0], a0[2]), (a1[0], a1[2]), (b1[0], b1[2]), (b0[0], b0[2])], 15)
+            surf_poly([(a0[0], a0[2]), (a1[0], a1[2]), (b1[0], b1[2]), (b0[0], b0[2])], 12)
         prev = cur
         s += 4.0
     if prev:

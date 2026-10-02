@@ -13,6 +13,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.InputDevice
+import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.Surface
 import android.view.View
 import android.view.WindowInsets
@@ -22,6 +25,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import fr.rochetoirin.sim.audio.EngineSound
 import fr.rochetoirin.sim.game.Game
+import fr.rochetoirin.sim.game.Gamepad
 import fr.rochetoirin.sim.game.Persistence
 import fr.rochetoirin.sim.render.Renderer
 import fr.rochetoirin.sim.ui.HudView
@@ -37,6 +41,7 @@ class MainActivity : Activity(), SensorEventListener, HudView.Settings {
     private lateinit var loading: TextView
     private var glView: GLSurfaceView? = null
     private var game: Game? = null
+    private var pad: Gamepad? = null
     private val engine = EngineSound()
     private val handler = Handler(Looper.getMainLooper())
     private var sensors: SensorManager? = null
@@ -98,7 +103,9 @@ class MainActivity : Activity(), SensorEventListener, HudView.Settings {
         gl.setRenderer(r)
         glView = gl
         root.addView(gl, 0, FrameLayout.LayoutParams(-1, -1))
-        root.addView(HudView(this, g, this), 1, FrameLayout.LayoutParams(-1, -1))
+        val p = Gamepad(g)
+        pad = p
+        root.addView(HudView(this, g, this, p), 1, FrameLayout.LayoutParams(-1, -1))
         engine.start()
         handler.post(soundTick)
         updateSensors()
@@ -152,6 +159,29 @@ class MainActivity : Activity(), SensorEventListener, HudView.Settings {
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_STABLE)
         }
+    }
+
+    // --- manette ---
+    override fun dispatchGenericMotionEvent(ev: MotionEvent): Boolean {
+        val p = pad
+        if (p != null && ev.action == MotionEvent.ACTION_MOVE &&
+            (ev.isFromSource(InputDevice.SOURCE_JOYSTICK) || ev.isFromSource(InputDevice.SOURCE_GAMEPAD))) {
+            val rt = maxOf(ev.getAxisValue(MotionEvent.AXIS_RTRIGGER), ev.getAxisValue(MotionEvent.AXIS_GAS))
+            val lt = maxOf(ev.getAxisValue(MotionEvent.AXIS_LTRIGGER), ev.getAxisValue(MotionEvent.AXIS_BRAKE))
+            p.onAxes(ev.getAxisValue(MotionEvent.AXIS_X), ev.getAxisValue(MotionEvent.AXIS_HAT_X), rt, lt,
+                ev.getAxisValue(MotionEvent.AXIS_Z), ev.getAxisValue(MotionEvent.AXIS_RZ), ev.eventTime)
+            return true
+        }
+        return super.dispatchGenericMotionEvent(ev)
+    }
+
+    override fun dispatchKeyEvent(ev: KeyEvent): Boolean {
+        val p = pad
+        val fromPad = ev.isFromSource(InputDevice.SOURCE_GAMEPAD) || ev.isFromSource(InputDevice.SOURCE_JOYSTICK) ||
+            ev.isFromSource(InputDevice.SOURCE_DPAD) || KeyEvent.isGamepadButton(ev.keyCode)
+        if (p != null && fromPad && ev.action != KeyEvent.ACTION_MULTIPLE &&
+            p.onKey(ev.keyCode, ev.action == KeyEvent.ACTION_DOWN, ev.repeatCount, ev.eventTime)) return true
+        return super.dispatchKeyEvent(ev)
     }
 
     // --- direction par inclinaison ---

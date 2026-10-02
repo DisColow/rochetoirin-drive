@@ -26,11 +26,13 @@ Le module est appelé par prepare_decor.py (bâtiments, sol, arbres) et prepare_
 import json, math, os, random
 import numpy as np
 import mapbox_earcut as earcut
+import shapely
 from shapely.geometry import Polygon, Point, LineString
 from shapely.ops import polygonize, unary_union
 from geo import to_local
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+RAISED = []      # surfaces surélevées franchissables (polygone, hauteur(x, z)) -> physique (surf.bin)
 DATA = os.path.join(HERE, "data")
 
 (M_PLAIN, M_WALL, M_INDUS, M_TILES, M_METAL, M_FLAT, M_WATER, M_CHURCH, M_STEEL, M_CABLE, M_GLASS,
@@ -1117,17 +1119,15 @@ def furniture(add, add_coll, roads_union=None):
             if g.is_empty or not isinstance(g, Polygon):
                 continue
             m = Mesh()
-            pts = list(g.exterior.coords)[:-1]
-            ys = [H(x, z) + 0.15 for x, z in pts]
-            # bordure + terre végétalisée
-            for k in range(len(pts)):
-                a_, b_ = pts[k], pts[(k + 1) % len(pts)]
-                d = np.subtract(b_, a_); L = np.linalg.norm(d)
-                if L < 0.05:
-                    continue
-                obox(m, ((a_[0] + b_[0]) / 2, (ys[k] + ys[(k + 1) % len(pts)]) / 2 - 0.12, (a_[1] + b_[1]) / 2), d, (L + 0.15, 0.3, 0.18),
-                     (0.74, 0.73, 0.70), M_CURB)
-            poly3(m, [(x, y + 0.02, z) for (x, z), y in zip(pts, ys)], (0, 1, 0), (0.34, 0.42, 0.20), M_GRASS)
+            import sidewalks as swm
+            g = g.simplify(0.05)
+            gb = g.boundary
+            top = lambda x, z: np.atleast_1d(np.vectorize(H)(x, z)) + swm.CURB + 0.07
+            kind = lambda mids: np.where(shapely.distance(gb, shapely.points(mids)) < 0.03, 1, 0)
+            base = lambda x, z, k: H(x, z) - 0.04
+            # bordure continue (12 cm, franchissable) + terre végétalisée
+            swm.raised_mesh(m, g, top, base, kind, (0.34, 0.42, 0.20), M_GRASS, M_CURB, step=3.0, band=0.15)
+            RAISED.append((g, lambda x, z: np.full(np.shape(x), swm.CURB + 0.07)))
             # arbustes bas
             rr = random.Random(int(f.area))
             inner = g.buffer(-0.6)
@@ -1138,7 +1138,6 @@ def furniture(add, add_coll, roads_union=None):
                     if inner.contains(Point(q)):
                         blob(m, (q[0], H(*q) + 0.4, q[1]), rr.uniform(0.35, 0.6), (0.24 + rr.uniform(-0.04, 0.04), 0.38, 0.15), M_PLAIN, 0.7)
             add(f.centroid.x, f.centroid.y, m, True)
-            add_coll(np.array(pts))
             count("îlots plantés")
     # --- cimetière : murs gris avec chaperon, portail, tombes
     cem = cemetery_parts()
