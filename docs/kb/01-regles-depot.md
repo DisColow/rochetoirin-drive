@@ -15,3 +15,4 @@ sources: [CLAUDE.md]
 6. Copie de travail habituelle : `/home/user/rochetoirin-truck` (dev) synchronisée vers `/home/user/rochetoirin-drive` (dépôt).
    Synchroniser `app/src`, `tools` (sans `tools/data`, `__pycache__`), `docs`, puis `git add -A`.
 7. Messages de commit en français, auteur assisté signalé par les lignes d'attribution demandées.
+8. Cache Street View privé : `DisColow/rochetoirin-streetview` (220 images + index). Le restaurer avant d'appeler l'API Google (quota), y pousser toute nouvelle image. Ne jamais copier ces images dans le dépôt public.

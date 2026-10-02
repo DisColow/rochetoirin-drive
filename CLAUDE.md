@@ -6,3 +6,6 @@
   le lien « Télécharger » du README. Les captures d'écran / comparatifs vont dans `docs/apercus/`.
 - Avant de livrer : `./gradlew testDebugUnitTest` puis `./gradlew assembleRelease`.
 - Les données brutes (`tools/data/`) ne sont pas versionnées : elles se régénèrent avec les scripts `tools/fetch_*`.
+- **Quota Google Street View** : avant tout appel à l'API, récupérer le cache privé
+  `DisColow/rochetoirin-streetview` (copier `streetview/` dans `tools/data/streetview/`) ; après tout nouveau
+  téléchargement, y pousser les nouvelles images. Ce dépôt reste privé (images Google non redistribuables).
