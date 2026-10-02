@@ -692,6 +692,9 @@ def main():
     meta = json.load(open(os.path.join(ASSETS, "map.json")))
     for k, v in center.furniture(props.add, extra_coll.append, center.roads_union_from(meta)).items():
         stats["centre : " + k] = v
+    import mobilier
+    for k, v in mobilier.build(props.add, extra_coll.append, roads, Mesh, lambda x, z: float(terrain.height(x, z))).items():
+        stats["bourg : " + k] = v
     for q, hfun in center.RAISED:
         sw_mod.surf_shape(surf, q, hfun, X0, Z0)
 
