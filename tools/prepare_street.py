@@ -276,7 +276,11 @@ def main():
                     run = 0
             if not on.any():
                 continue
-            sidewalk_side[(i, sg)] = np.where(on, sw_mod.SW_W, 0.0)
+            try:
+                sw_w = float(r.tags.get("sidewalk:width", sw_mod.SW_W))
+            except ValueError:
+                sw_w = sw_mod.SW_W
+            sidewalk_side[(i, sg)] = np.where(on, sw_w, 0.0)
             k = 0
             while k < r.n:
                 if not on[k]:
@@ -287,7 +291,7 @@ def main():
                     k1 += 1
                 a0, a1 = max(0, k - 1) if k > 0 else 0, min(r.n - 1, k1 + 1)
                 inner = r.P[a0:a1 + 1] + r.N[a0:a1 + 1] * sg * (r.hw - 0.4)
-                outer = r.P[a0:a1 + 1] + r.N[a0:a1 + 1] * sg * (r.hw + sw_mod.SW_W)
+                outer = r.P[a0:a1 + 1] + r.N[a0:a1 + 1] * sg * (r.hw + sw_w)
                 if len(inner) >= 2:
                     pg = Polygon(np.vstack([inner, outer[::-1]])).buffer(0)
                     strips.append(pg)
@@ -379,8 +383,14 @@ def main():
     def lamp_ok(x, z):
         return all((x - a) ** 2 + (z - b) ** 2 > 18 ** 2 for a, b in lamps[-300:])
 
+    import rue_balcon
+    for x, z, dx, dz in rue_balcon.lamps():                 # lampadaires relevés sur Street View
+        props.add(x, z, quartier_lamp(x, float(terrain.height(x, z)), z, dx, dz), False)
+        pole_coll(x, z)
+        lamps.append((x, z))
+        count("lampadaires")
     for i, r in enumerate(roads):
-        if r.cls in ("motorway", "motorway_link", "track", "rail", "service") or r.bridge:
+        if r.cls in ("motorway", "motorway_link", "track", "rail", "service") or r.bridge or r.name == rue_balcon.NAME:
             continue
         s = 12.0
         side = 1
@@ -732,10 +742,11 @@ def main():
             return True
         return (not small_ok) and _ov(walk, g) > 0.25 * g.area
 
-    def guarded_add(x, z, m, big=False):
-        # part des sommets posés sur la chaussée / le trottoir (une enveloppe convexe pénaliserait les haies en L)
+    def guarded_add(x, z, m, big=False, flat=False):
+        # part des sommets posés sur la chaussée / le trottoir (une enveloppe convexe pénaliserait les haies en L) ;
+        # flat : revêtement posé à plat sur l'enrobé (caniveau central), seul cas admis sur la chaussée
         xz = np.array([(v[0], v[2]) for v in m.v])
-        if len(xz):
+        if len(xz) and not flat:
             on_r = _sh.contains_xy(road_in, xz[:, 0], xz[:, 1]).mean()
             small = (np.ptp(xz[:, 0]) * np.ptp(xz[:, 1])) < 0.8
             on_w = 0.0 if small else _sh.contains_xy(walk, xz[:, 0], xz[:, 1]).mean()

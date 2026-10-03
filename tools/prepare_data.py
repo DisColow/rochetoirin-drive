@@ -163,6 +163,8 @@ def parse_osm():
             ways.append(dict(id=e["id"], cls="rail", width=3.4 + (tracks - 1) * 4.0, speed=0, style=7, prio=10,
                              oneway=False, name="Voie ferrée", bridge=t.get("bridge") not in (None, "no"),
                              nodes=[n for n in e["nodes"] if n in nodes], tags=t))
+    import rue_balcon
+    ways = rue_balcon.apply_osm(nodes, ways)          # rue du Balcon recalée d'après Street View + impasse nord
     ways = merge_dual_carriageways(nodes, ways)
     ways = dedupe_and_cross(nodes, ways)
     separate_overlaps(nodes, ways)

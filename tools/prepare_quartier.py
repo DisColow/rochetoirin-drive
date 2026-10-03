@@ -419,6 +419,14 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
                 pid = q.parcel_at(*bp.representative_point().coords[0])
                 if pid is not None:
                     survey[pid] = a_
+    # rue du Balcon : relevé parcelle par parcelle (rue_balcon.CLOTURES), prioritaire ; parcelles bordant la rue non
+    # relevées : style dominant du lotissement (haie de laurier sur muret blanc) plutôt qu'un tirage au hasard
+    import rue_balcon
+    for pid, p_ in q.parcels:
+        if pid in rue_balcon.CLOTURES:
+            survey[pid] = dict(rue_balcon.CLOTURES[pid])
+        elif q.res.get(pid) and rue_balcon.axis().distance(p_) < rue_balcon.WIDTH / 2 + 6.0:
+            survey[pid] = dict(rue_balcon.DEFAULT)
     count("parcelles relevées sur Street View", len(survey))
     WALLC = {"creme": CREAM, "gris": CONCRETE, "blanc": WHITE, "rose": (0.86, 0.68, 0.60), "pierre": None}
     GRILC = {"blanc": WHITE, "noir": IRON, "vert": (0.10, 0.30, 0.18), "gris": (0.30, 0.31, 0.32), "bois": WOOD,
@@ -460,11 +468,13 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
         stone = sv.get("mur") == "pierre"
         gcol = GRILC.get(sv.get("grille", ""), None)
         h_m = {"muret": 0.9, "muret_grille": 0.75, "muret_rigide": 0.6, "mur": 1.8, "occult": 0.5, "lisses": 0.6,
-               "bois": 0.6, "grillage": 0.0}.get(f, 0.6)
-        if f == "grillage" and sv.get("mur"):
+               "bois": 0.6, "grillage": 0.0, "piquets": 0.0}.get(f, 0.6)
+        if f in ("grillage", "piquets") and sv.get("mur"):
             h_m = 0.3
         if f == "lisses" and not sv.get("mur"):
             h_m = 0.0
+        if sv.get("hmur") is not None and (sv.get("mur") or h_m > 0):
+            h_m = float(sv["hmur"])
         if h_m > 0:
             if stone:
                 obox(m, (mid[0], y + h_m / 2 - 0.2, mid[1]), d, (L, h_m + 0.4, 0.3), STONE, M_RUBBLE)
@@ -488,6 +498,15 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
             for t in np.arange(0.0, L + 0.01, 2.5):
                 pp = a + d * min(t, L)
                 obox(m, (pp[0], top + 0.65, pp[1]), d, (0.05, 1.3, 0.05), gcol or GREEN_MESH, M_STEEL)
+        elif f == "piquets":
+            # grillage à moutons tendu sur piquets de bois (prés, potagers, friches)
+            panel(1.1, (0.55, 0.56, 0.54), 0.0)
+            for t in np.arange(0.0, L + 0.01, 2.5):
+                pp = a + d * min(t, L)
+                obox(m, (pp[0], top + 0.6, pp[1]), d, (0.09, 1.3, 0.09), (0.45, 0.36, 0.26), M_PLAIN)
+        elif f == "muret" and gcol is not None:
+            panel(0.9, gcol, 1.0)
+            obox(m, (mid[0], top + 0.92, mid[1]), d, (L, 0.04, 0.04), gcol, M_STEEL)
         elif f == "occult":
             # panneaux occultants pleins (PVC, composite, brande) entre poteaux
             hh = 1.5
@@ -594,8 +613,16 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
                     mcol = WALLC.get(sv_["mur"]) or CREAM
                 if not sv_ or sv_.get("mur"):
                     mm_ = M_RUBBLE if sv_ and sv_.get("mur") == "pierre" else M_CREPI
-                    obox(m, (mid[0], ym + 0.15, mid[1]), d, (L + 0.02, 0.9, 0.2), STONE if mm_ == M_RUBBLE else mcol, mm_)
-                    obox(m, (mid[0], ym + 0.62, mid[1]), d, (L + 0.04, 0.05, 0.26), (0.78, 0.76, 0.72), M_CURB)
+                    hm = float(sv_.get("hmur", 0.6)) if sv_ else 0.6
+                    obox(m, (mid[0], ym + (hm - 0.3) / 2, mid[1]), d, (L + 0.02, hm + 0.3, 0.2), STONE if mm_ == M_RUBBLE else mcol, mm_)
+                    obox(m, (mid[0], ym + hm + 0.02, mid[1]), d, (L + 0.04, 0.05, 0.26), (0.78, 0.76, 0.72), M_CURB)
+                    if sv_ and sv_.get("grille") == "bois":
+                        # lisses en bois brun posées sur le muret, devant la haie (lotissement du Balcon)
+                        for k_ in range(2):
+                            obox(m, (mid[0], ym + hm + 0.3 + k_ * 0.32, mid[1]), d, (L, 0.13, 0.04), WOOD, M_PLAIN)
+                        for t_ in np.arange(0.0, L + 0.01, 2.0):
+                            pp_ = a + d * min(t_, L)
+                            obox(m, (pp_[0], ym + hm + 0.4, pp_[1]), d, (0.09, 0.8, 0.09), WOOD, M_PLAIN)
                 if sv_ and sv_.get("grille") == "grillage":
                     p0_ = np.array([a[0], ym, a[1]]); p1_ = np.array([b[0], ym, b[1]])
                     quad3(m, p0_, p1_, p1_ + [0, 1.5, 0], p0_ + [0, 1.5, 0], GREEN_MESH, M_MESH, [(0, 0), (L, 0), (L, 1.5), (0, 1.5)], 0.0)
@@ -619,7 +646,15 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
                 thuja = sv0["front"] == "haieT"
                 mcol = WALLC.get(sv0.get("mur", ""), CREAM) or CREAM
                 if sv0.get("mur"):
-                    obox(m, (mid[0], y + 0.15, mid[1]), d, (L + 0.02, 0.9, 0.2), mcol, M_CREPI)
+                    hm = float(sv0.get("hmur", 0.6))
+                    obox(m, (mid[0], y + (hm - 0.3) / 2, mid[1]), d, (L + 0.02, hm + 0.3, 0.2), mcol, M_CREPI)
+                    obox(m, (mid[0], y + hm + 0.02, mid[1]), d, (L + 0.04, 0.05, 0.26), (0.78, 0.76, 0.72), M_CURB)
+                    if sv0.get("grille") == "bois":
+                        for k_ in range(2):
+                            obox(m, (mid[0], y + hm + 0.3 + k_ * 0.32, mid[1]), d, (L, 0.13, 0.04), WOOD, M_PLAIN)
+                        for t_ in np.arange(0.0, L + 0.01, 2.0):
+                            pp_ = a + d * min(t_, L)
+                            obox(m, (pp_[0], y + hm + 0.4, pp_[1]), d, (0.09, 0.8, 0.09), WOOD, M_PLAIN)
                 nn_ = np.array([-d[1], d[0]])
                 par = parcels_d[p["pids"][0]]
                 if not par.contains(Point(mid + nn_ * 1.0)):
@@ -768,11 +803,12 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
             c0 = mid + d * s * 0.02; c1 = mid + d * s * 1.63
             cm = (c0 + c1) / 2
             p0 = np.array([c0[0], y + 0.06, c0[1]]); p1 = np.array([c1[0], y + 0.06, c1[1]])
-            if kind == "plein_gris":
-                quad3(m, p0, p1, p1 + [0, 1.5, 0], p0 + [0, 1.5, 0], (0.28, 0.29, 0.30), M_PLAIN, n=(inw[0], 0, inw[1]))
-                quad3(m, p1, p0, p0 + [0, 1.5, 0], p1 + [0, 1.5, 0], (0.28, 0.29, 0.30), M_PLAIN, n=(-inw[0], 0, -inw[1]))
+            if kind in ("plein_gris", "plein_rouge"):
+                gc = (0.28, 0.29, 0.30) if kind == "plein_gris" else (0.55, 0.16, 0.14)
+                quad3(m, p0, p1, p1 + [0, 1.5, 0], p0 + [0, 1.5, 0], gc, M_PLAIN, n=(inw[0], 0, inw[1]))
+                quad3(m, p1, p0, p0 + [0, 1.5, 0], p1 + [0, 1.5, 0], gc, M_PLAIN, n=(-inw[0], 0, -inw[1]))
                 for k in range(1, 5):
-                    obox(m, (cm[0], y + 0.06 + k * 0.3, cm[1]), d, (1.61, 0.02, 0.07), (0.22, 0.23, 0.24), M_PLAIN)
+                    obox(m, (cm[0], y + 0.06 + k * 0.3, cm[1]), d, (1.61, 0.02, 0.07), tuple(c * 0.8 for c in gc), M_PLAIN)
             elif kind == "plein_blanc":
                 # vantail plein en PVC blanc, haut légèrement cintré (12 rue du Balcon)
                 top0, top1 = 1.45, 1.30
@@ -817,6 +853,25 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
         VX, VY, VZ = r["VX"], r["VY"], r["VZ"]
         hw = r["width"] / 2
         m = Mesh()
+        if r.get("name") == rue_balcon.NAME:
+            # rue du Balcon : caniveau central en béton (partie est), pas de caniveaux de rive (trottoir / accotements)
+            if r["width"] < rue_balcon.WIDTH - 0.1:
+                continue
+            prev = None
+            for k in range(len(VX)):
+                if r["s"][k] > rue_balcon.GUTTER_END:
+                    break
+                c_ = np.array([VX[k, 1], VY[k, 1] + 0.02, VZ[k, 1]])
+                e_ = np.array([VX[k, 2], VY[k, 2], VZ[k, 2]]) - np.array([VX[k, 0], VY[k, 0], VZ[k, 0]])
+                e_ = e_ / max(np.linalg.norm(e_), 1e-6) * 0.22
+                cur = (c_ - e_, c_ + e_)
+                if prev is not None and r["s"][k] > 6.0:
+                    ids = [m.vert(tuple(p_), (0, 1, 0), (0.52, 0.51, 0.49), (0, 0), M_PAVE) for p_ in (prev[0], cur[0], cur[1], prev[1])]
+                    m.quad(*ids)
+                prev = cur
+            add(r["P"][len(r["P"]) // 2][0], r["P"][len(r["P"]) // 2][1], m, True, flat=True)
+            count("caniveau central (m)", min(float(r["s"][-1]), rue_balcon.GUTTER_END))
+            continue
         for col_ in (0, 2):
             prev = None
             for k in range(len(VX)):
@@ -934,6 +989,15 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
                         k_ = int(np.bincount(cls[mm], minlength=4)[1:].argmax() + 1)
                         surfaces.append((pg, k_))
         verge_z = verge.intersection(zone_poly())
+        # rue du Balcon : sols relevés sur Street View (gravier / enrobé côté nord, herbe côté sud, placette, chemin)
+        bal = rue_balcon.surfaces([p_ for _, p_ in q.parcels], q.hard)
+        excl = unary_union([g for g, _ in bal] + [rue_balcon.axis().buffer(12.0)])
+        verge_z = verge_z.difference(excl)
+        for g, k_ in bal:
+            for pg in getattr(g, "geoms", [g]):
+                if pg.geom_type == "Polygon" and pg.area > 1.0:
+                    surfaces.append((pg.simplify(0.2), k_))
+                    count("rue du Balcon : " + {1: "gravier", 2: "béton", 3: "enrobé"}[k_] + " (m²)", pg.area)
         for pg in getattr(verge_z, "geoms", [verge_z]):
             if pg.geom_type == "Polygon" and pg.area > 4:
                 surfaces.append((pg.simplify(0.3), 3))

@@ -5,7 +5,7 @@ Un jeu de conduite Android inspiré d'*Euro Truck Simulator*, dans le village de
 
 ## Télécharger
 
-**[RochetoirinSimulator-v0.12.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.12.apk)** (36 Mo, Android 7.0+, OpenGL ES 3.0)
+**[RochetoirinSimulator-v0.13.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.13.apk)** (36 Mo, Android 7.0+, OpenGL ES 3.0)
 
 Ouvrir le lien depuis le téléphone, puis ouvrir le fichier et autoriser l'installation depuis
 cette source (« Installer quand même » si Play Protect avertit : l'APK est signé avec une clé
@@ -148,11 +148,25 @@ couleur réelle de chaque toit (tuile ou gris), ~9 000 arbres, arbustes et haies
 haies taillées continues (thuyas sombres, lauriers) à leur position réelle, muret blanc et clôture à
 lisses ou muret + grillage rigide côté rue (d'après Street View), grillage entre jardins, portails avec
 piliers et boîte aux lettres aux entrées, gravier / béton / enrobé au sol (allées, parkings, terrasses),
-pas de trottoir. Seuls les houppiers larges restent des arbres.
+Seuls les houppiers larges restent des arbres.
 D'après la vidéo Street View de la rue (2014 / 2022) : muret enduit surmonté d'une haie de thuyas ou de lauriers
 côté rue, clôtures PVC blanches, lisses bois, murets en pierre sèche à grille en fer forgé, portail plein blanc
 du n° 12, caniveaux en béton clair, accotements en enrobé jusqu'aux portails, lampadaires à mât fin,
 maisons rectangulaires à toit à deux pans débordant sur consoles, enduit crème et volets bois.
+
+**v0.13 : la rue refaite d'après Street View** (`tools/rue_balcon.py`). 22 panoramas le long de la rue et de l'impasse
+(4 directions chacun, `tools/fetch_sv_street.py`) ont été comparés image par image à des rendus du jeu pris aux mêmes
+positions. Corrections :
+- tracé : l'axe OpenStreetMap était 2 à 3 m trop au nord ; il suit maintenant la trace des caméras Street View (partie
+  est) et la limite cadastrale (partie ouest, où les panoramas de 2014 sont eux-mêmes décalés) ;
+- profil en travers réel : chaussée de 5 m, caniveau central en béton, trottoir à bordure côté sud, accotement en gravier
+  puis en enrobé côté nord ;
+- placette en enrobé au bout de la rue, avec sa petite impasse vers le nord, et chemin piéton vers l'impasse du Balcon ;
+- clôtures relevées parcelle par parcelle : haies de thuyas ou de lauriers sur muret blanc, lisses en bois, haut mur
+  gris et portail rouge, grillage sur piquets du potager, pré ouvert ; plus de tirage au hasard ;
+- lampadaires aux emplacements relevés ; plus de piscine dans les jardins de devant.
+
+![Rue du Balcon v0.13 (rendus du jeu aux positions des panoramas Street View)](docs/apercus/v013_rue_du_balcon.jpg)
 
 ### Centre du village (d'après Google Street View, avril 2023)
 

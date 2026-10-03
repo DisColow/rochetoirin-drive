@@ -923,6 +923,15 @@ def main():
                 continue
             if center.in_area(poly.centroid.x, poly.centroid.y):
                 continue      # centre : toits et bâches bleutés pris pour des piscines
+            # rue du Balcon : aucune piscine dans les jardins de devant (Street View) ; une piscine plus proche de la
+            # rue que la maison de sa parcelle est une bâche ou un reflet
+            import rue_balcon
+            dp = rue_balcon.axis().distance(poly)
+            if dp < 30:
+                par_ = [pp_ for pp_ in res_parcels if pp_.intersects(poly)]
+                hb = [p for p, _ in buildings if par_ and par_[0].contains(p.representative_point()) and p.area > 25]
+                if hb and dp < min(rue_balcon.axis().distance(h) for h in hb) + 2.0:
+                    continue
             props.add(poly.centroid.x, poly.centroid.y, pool_mesh(poly, round_), big=False)
             pool_log.append([list(c) for c in poly.exterior.coords])
             npool += 1
