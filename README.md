@@ -5,7 +5,7 @@ Un jeu de conduite Android inspiré d'*Euro Truck Simulator*, dans le village de
 
 ## Télécharger
 
-**[RochetoirinSimulator-v0.11.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.11.apk)** (20 Mo, Android 7.0+, OpenGL ES 3.0)
+**[RochetoirinSimulator-v0.12.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.12.apk)** (36 Mo, Android 7.0+, OpenGL ES 3.0)
 
 Ouvrir le lien depuis le téléphone, puis ouvrir le fichier et autoriser l'installation depuis
 cette source (« Installer quand même » si Play Protect avertit : l'APK est signé avec une clé
@@ -113,6 +113,14 @@ en conséquence, éléments posés sur la façade côté rue (celle que voit la 
 est mesurée sur les photos.
 
 ![Maison sur sous-sol avec escalier](docs/apercus/maison-sous-sol-escalier.jpg)
+
+Depuis la v0.12, la façade sur rue de chacune de ces maisons est percée comme sur la photo (`tools/facades_ouvertures.json`,
+relevé de gauche à droite et par niveau) : fenêtres à volets battants ouverts, volets roulants à moitié baissés, baies
+vitrées, portes-fenêtres, porte d'entrée, portes de garage, portes de grange en planches, petites fenêtres, pignons
+aveugles. Les ouvertures sont modélisées en relief (vitrage, dormant, appui, volets, coffres) ; les autres murs gardent
+les fenêtres dessinées par le shader.
+
+![Façades percées d'après Street View (rendus du jeu)](docs/apercus/v012_facades.jpg)
 
 ### Base de connaissance et agent
 

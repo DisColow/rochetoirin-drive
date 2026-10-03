@@ -39,6 +39,8 @@ mène à une scène illogique, on **corrige vers le plausible** plutôt que de l
   photo coupées hors chaussée / trottoir. Sols durs : allée droite portail -> maison + cours >= 60 m² collées à la
   maison (contours lissés) + accotements de la rue du Balcon ; plus aucune cellule pixelisée.
 - `check_coherence.py` : arbres, obstacles, piscines, routes superposées, trous de clôture (journal `data/fences.json`).
+  Exceptions logiques : croisement à niveau de deux axes sans nœud OSM (= carrefour) ; trou de clôture occupé par une
+  annexe bâtie sur la limite (la clôture s'appuie sur ses murs).
 - Surfaces plates sur terrain bombé : triangles subdivisés (`sidewalks.subdivide`, arêtes <= 2,5 m) sinon le sol perce
   au milieu (« anneau » de cour). Triangulation réparée (`make_valid`, repli Delaunay contraint).
 - Piège outillage : ne jamais `pkill -f` / `pgrep -f` un motif qui figure dans sa propre commande (le shell se tue

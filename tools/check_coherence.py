@@ -102,8 +102,10 @@ def main():
                 continue                                 # bretelle d'autoroute : biseau de sortie / d'entrée
             shared = set(r["part"]) & set(r2["part"])
             # zone de carrefour : autour des extrémités des deux voies
+            cross = LineString(r["P"]).intersection(LineString(r2["P"]))       # croisement à niveau sans nœud OSM
+            cpts = [g.coords[0] for g in getattr(cross, "geoms", [cross]) if g.geom_type == "Point"]
             jz = unary_union([Point(q).buffer(max(r["width"], r2["width"]) * 1.6 + 4.0)
-                              for q in (r["P"][0], r["P"][-1], r2["P"][0], r2["P"][-1])])
+                              for q in [r["P"][0], r["P"][-1], r2["P"][0], r2["P"][-1]] + cpts])
             rest = inter.difference(jz).area
             if rest > 15:
                 over.append(dict(a=r.get("name") or r["cls"], b=r2.get("name") or r2["cls"], m2=round(rest),
@@ -129,6 +131,10 @@ def main():
                     pt = Point(s0["b"])
                     if any(blds[k].distance(pt) < 1.5 for k in btree.query(pt.buffer(3))):
                         continue                         # mur de maison en limite : la clôture s'y appuie
+                    nxt = [x for x in by[line] if x["t0"] >= s1["t0"] - 1e-6]
+                    span = LineString([s0["b"], nxt[0]["b"]]).interpolate(0.5, normalized=True).buffer(g / 2 + 0.3)
+                    if any(blds[k].intersects(span) for k in btree.query(span)):
+                        continue                         # annexe (abri, garage) bâtie sur la limite
                     gaps.append(dict(line=line, at=s0["b"], m=round(g, 2)))
     rep["trous dans les clôtures"] = gaps
     json.dump(rep, open(os.path.join(DATA, "coherence.json"), "w"), indent=0)

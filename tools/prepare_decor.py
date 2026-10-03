@@ -19,6 +19,7 @@ from shapely.ops import transform, polylabel, unary_union
 from shapely import affinity
 import mapbox_earcut as earcut
 from geo import to_local, OUTER, PANO, grid_shape
+import archi
 from prepare_data import Grid, X0, X1, Z0, Z1, STEP, CHUNK, CHUNK_CELLS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -210,6 +211,10 @@ def triangulate(ring):
     return list(earcut.triangulate_float64(a, np.array([len(a)], dtype=np.uint32)))
 
 
+# teintes des volets (SHUT[] du shader des façades)
+SHUT6 = [(0.42, 0.28, 0.18), (0.86, 0.86, 0.83), (0.66, 0.68, 0.68), (0.42, 0.53, 0.60), (0.35, 0.47, 0.37), (0.47, 0.17, 0.15)]
+
+
 def facade_wall(rgb):
     """Enduit mesuré sur photo : on garde teinte et saturation, la luminance est ramenée à celle
     d'un mur en plein jour (les photos sont souvent à l'ombre ou sous-exposées)."""
@@ -234,7 +239,9 @@ def facade_roof(rgb):
     return tuple(float(x) for x in np.clip(c * (Lt / L), 0.0, 0.9))
 
 
-def building_mesh(poly, ground_min, wall_top, roof_h, style, wcol, rcol, wallmat, seed, floors, gable=False):
+def building_mesh(poly, ground_min, wall_top, roof_h, style, wcol, rcol, wallmat, seed, floors, gable=False, street=None):
+    """street : position de la caméra Street View d'une façade relevée ; l'arête de rue (m.street) perd ses fenêtres
+    procédurales, remplacées par les ouvertures en relief d'archi.openings."""
     m = Mesh()
     if gable:
         # maison rectangulaire à deux pans : on part du rectangle englobant minimal
@@ -249,6 +256,7 @@ def building_mesh(poly, ground_min, wall_top, roof_h, style, wcol, rcol, wallmat
     if n < 3:
         return None
     base = ground_min - 0.6
+    m.street = archi.street_edge(ring, street) if street is not None else None
     # --- murs
     for k in range(n):
         a = ring[k]; b = ring[(k + 1) % n]
@@ -261,6 +269,8 @@ def building_mesh(poly, ground_min, wall_top, roof_h, style, wcol, rcol, wallmat
         g = min(ga, gb)
         nwin = int(L // 3.3)
         half = nwin * 3.3 / 2 if (L > 2.8 and wallmat != M_PLAIN) else 0.0
+        if m.street is not None and k == m.street[4]:
+            half = 0.0
         extra = floors * 1000 + half
         i0 = m.vert((a[0], base, a[1]), nrm, wcol, (-L / 2, base - g), wallmat + seed, extra)
         i1 = m.vert((b[0], base, b[1]), nrm, wcol, (L / 2, base - g), wallmat + seed, extra)
@@ -761,7 +771,9 @@ def main():
     facades = json.load(open(fpath)) if os.path.exists(fpath) else {}
     nfac = 0
     narc = 0
-    import archi
+    nouv = 0
+    opath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "facades_ouvertures.json")
+    ouvs = json.load(open(opath)) if os.path.exists(opath) else {}
     for p, pr in buildings:
         ov = center.override(p, pr)
         if ov == "skip":
@@ -853,11 +865,17 @@ def main():
             if fc.get("shutter") is not None:
                 seed = (fc["shutter"] + 0.5) / 6.0
             nfac += 1
+        # maison relevée sans teinte mesurée : la BD TOPO dit souvent « briques » / « bois » pour des murs enduits
+        if arc and not fc and not any(arc.get(x) for x in ("pierre", "pise", "bois", "grange")) \
+                and (pr.get("materiaux_des_murs") or "")[:1] in ("4", "6"):
+            wcol = jitter(rng.choice(CREPI), 0.03)
         # léger retrait : évite que deux murs mitoyens soient confondus (scintillement)
         pm = p.buffer(-0.12, join_style=2)
         if pm.is_empty or not isinstance(pm, Polygon):
             pm = p
-        m = building_mesh(pm if not gable else p, gmin, wall_top, roof_h, style, wcol, rcol, wallmat, seed, floors, gable)
+        ouv = ouvs.get(pr.get("cleabs")) if arc else None
+        m = building_mesh(pm if not gable else p, gmin, wall_top, roof_h, style, wcol, rcol, wallmat, seed, floors, gable,
+                          street=arc.get("cam", (p.centroid.x, p.centroid.y)) if ouv else None)
         if m is None:
             continue
         if nature == "Eglise":
@@ -866,11 +884,14 @@ def main():
             center.dressed_extras(m, p, ov, gmin, wall_top, roads_union)
         if arc:
             roof_top = wall_top + (min(roof_h, width * 0.45) if gable else roof_h * 0.9)
-            archi.extras(m, p, arc, gmin, wall_top, roof_top, box_mesh, rng, gable_ring=mrr if gable else None, ground=terrain.height)
+            shut = SHUT6[min(5, int(seed * 6))]
+            archi.extras(m, p, arc, gmin, wall_top, roof_top, box_mesh, rng, gable_ring=mrr if gable else None, ground=terrain.height,
+                         ouv=ouv if m.street is not None else None, shut=shut)
+            nouv += ouv is not None and m.street is not None
         c = p.centroid
         props.add(c.x, c.y, m, big=p.area > 60 or wall_top - gmin > 7)
         nb += 1
-    print(nb, "bâtiments maillés,", nroof, "toits colorés d'après l'orthophoto,", nfac, "façades d'après Street View,", narc, "architectures relevées")
+    print(nb, "bâtiments maillés,", nroof, "toits colorés d'après l'orthophoto,", nfac, "façades d'après Street View,", narc, "architectures relevées,", nouv, "façades percées d'après Street View")
     if village is not None:
         npool = 0
         pool_log = []
