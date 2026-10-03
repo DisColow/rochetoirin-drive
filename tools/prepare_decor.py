@@ -20,6 +20,7 @@ from shapely import affinity
 import mapbox_earcut as earcut
 from geo import to_local, OUTER, PANO, grid_shape
 import archi
+import proprietes
 from prepare_data import Grid, X0, X1, Z0, Z1, STEP, CHUNK, CHUNK_CELLS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -256,7 +257,11 @@ def building_mesh(poly, ground_min, wall_top, roof_h, style, wcol, rcol, wallmat
     if n < 3:
         return None
     base = ground_min - 0.6
-    m.street = archi.street_edge(ring, street) if street is not None else None
+    cams = street if (street is not None and len(street) and not np.isscalar(street[0])) else ([street] if street is not None else [])
+    m.streets = [archi.street_edge(ring, c_) for c_ in cams]
+    m.streets = [e for e in m.streets if e is not None]
+    m.street = m.streets[0] if m.streets else None
+    no_win = {e[4] for e in m.streets}
     # --- murs
     for k in range(n):
         a = ring[k]; b = ring[(k + 1) % n]
@@ -269,7 +274,7 @@ def building_mesh(poly, ground_min, wall_top, roof_h, style, wcol, rcol, wallmat
         g = min(ga, gb)
         nwin = int(L // 3.3)
         half = nwin * 3.3 / 2 if (L > 2.8 and wallmat != M_PLAIN) else 0.0
-        if m.street is not None and k == m.street[4]:
+        if k in no_win:
             half = 0.0
         extra = floors * 1000 + half
         i0 = m.vert((a[0], base, a[1]), nrm, wcol, (-L / 2, base - g), wallmat + seed, extra)
@@ -721,6 +726,16 @@ def main():
                 # seulement les îlots entourés de l'autre classe
                 ring = _nd.binary_dilation(lab > 0) & ~(lab > 0)
                 cl[small[lab] & (lab > 0)] = b_
+        for d_ in proprietes.all_():
+            from shapely import vectorized as _vz
+            mnx, mnz, mxx, mxz = d_["poly"].bounds
+            i0, i1 = max(0, int((mnx - X0) / LC_RES) - 1), min(cl.shape[1], int((mxx - X0) / LC_RES) + 2)
+            j0, j1 = max(0, int((mnz - Z0) / LC_RES) - 1), min(cl.shape[0], int((mxz - Z0) / LC_RES) + 2)
+            gx = X0 + (np.arange(i0, i1) + 0.5) * LC_RES; gz = Z0 + (np.arange(j0, j1) + 0.5) * LC_RES
+            GX, GZ = np.meshgrid(gx, gz)
+            msk = _vz.contains(d_["poly"], GX, GZ)
+            sub = cl[j0:j1, i0:i1]
+            sub[msk] = GARDEN
         cls = Image.fromarray(cl); dc = ImageDraw.Draw(cls)
 
     # --- eau
@@ -869,20 +884,44 @@ def main():
         if arc and not fc and not any(arc.get(x) for x in ("pierre", "pise", "bois", "grange")) \
                 and (pr.get("materiaux_des_murs") or "")[:1] in ("4", "6"):
             wcol = jitter(rng.choice(CREPI), 0.03)
+        # propriété redessinée à la main (photo aérienne + Street View) : la description fait foi
+        pb = proprietes.batiment(pr.get("cleabs"))
+        if pb:
+            style, wallmat, floors = "tiles", M_WALL, 1
+            gable = pb.get("toit") == "2" and p.area / max(mrr.area, 1e-6) > 0.7
+            wall_top = (gmax if pb.get("egout_ref", "max") == "max" else gmin) + float(pb.get("egout", 3.0))
+            roof_h = (width / 2) * math.tan(math.radians(float(pb.get("pente", 30))))
+            if not gable:
+                roof_h *= 0.9
+            wcol, rcol = tuple(pb["mur"]), tuple(pb["tuile"])
+            seed = 0.05 + 0.16 * min(5, int(np.argmin([np.linalg.norm(np.subtract(c_, pb.get("volets", SHUT6[0]))) for c_ in SHUT6])))
+            arc = dict(toit=pb.get("toit", "2"), niv=1, cam=pb["facades"][0]["cam"] if pb.get("facades") else None)
+            ouv = None
         # léger retrait : évite que deux murs mitoyens soient confondus (scintillement)
         pm = p.buffer(-0.12, join_style=2)
         if pm.is_empty or not isinstance(pm, Polygon):
             pm = p
-        ouv = ouvs.get(pr.get("cleabs")) if arc else None
+        if not pb:
+            ouv = ouvs.get(pr.get("cleabs")) if arc else None
+        street_cams = [f_["cam"] for f_ in pb.get("facades", [])] if pb else \
+            (arc.get("cam", (p.centroid.x, p.centroid.y)) if ouv else None)
         m = building_mesh(pm if not gable else p, gmin, wall_top, roof_h, style, wcol, rcol, wallmat, seed, floors, gable,
-                          street=arc.get("cam", (p.centroid.x, p.centroid.y)) if ouv else None)
+                          street=street_cams if street_cams else None)
         if m is None:
             continue
         if nature == "Eglise":
             church_extra(m, p, gmin, wall_top, (pr.get("altitude_maximale_toit") or (gmin + 20)), wcol)
         if ov:
             center.dressed_extras(m, p, ov, gmin, wall_top, roads_union)
-        if arc:
+        if pb:
+            roof_top = wall_top + (min(roof_h, width * 0.45) if gable else roof_h * 0.9)
+            from shapely.geometry.polygon import orient as _orient
+            ring_ = list(_orient(mrr if gable else p, 1.0).exterior.coords)[:-1]
+            specs = [(e, f_["spec"]) for e, f_ in zip(m.streets, pb.get("facades", []))]
+            archi.facades(m, ring_, specs, gmin, wall_top, roof_top, box_mesh, rng, arc, tuple(pb.get("volets", SHUT6[0])),
+                          terrain.height, gable_ring=mrr if gable else None)
+            nouv += 1
+        elif arc:
             roof_top = wall_top + (min(roof_h, width * 0.45) if gable else roof_h * 0.9)
             shut = SHUT6[min(5, int(seed * 6))]
             archi.extras(m, p, arc, gmin, wall_top, roof_top, box_mesh, rng, gable_ring=mrr if gable else None, ground=terrain.height,
@@ -923,6 +962,8 @@ def main():
                 continue
             if center.in_area(poly.centroid.x, poly.centroid.y):
                 continue      # centre : toits et bâches bleutés pris pour des piscines
+            if proprietes.contains(poly.centroid.x, poly.centroid.y):
+                continue      # propriété redessinée : ses éléments sont décrits à la main
             # rue du Balcon : aucune piscine dans les jardins de devant (Street View) ; une piscine plus proche de la
             # rue que la maison de sa parcelle est une bâche ou un reflet
             import rue_balcon
@@ -1184,6 +1225,16 @@ def trees(forests, hedges_poly, poplars, orchards, landes, buildings, block, cls
         if c in (PASTURE, MEADOW) and rng.random() < 0.5:
             add(x, z, T_OAK, rng.uniform(10, 19))
 
+    # propriétés redessinées : leurs arbres remplacent tout ce qui a été détecté ou semé dans le contour
+    if proprietes.all_():
+        Zp = proprietes.zone(0.6)
+        import shapely as _shp
+        arr = np.array([(t[0], t[2]) for t in inst])
+        inside = _shp.contains_xy(Zp, arr[:, 0], arr[:, 1])
+        inst = [t for t, b_ in zip(inst, inside) if not b_]
+        for x, z, t, h in proprietes.arbres():
+            inst.append((x, float(terrain.height(x, z)), z, h, t, (abs(hash((round(x, 1), round(z, 1)))) % 1000) / 1000.0))
+        print(int(inside.sum()), "arbres automatiques remplacés par", len(proprietes.arbres()), "arbres relevés (propriétés)")
     # règle « la logique prime » : aucun tronc sur la chaussée ni sur un trottoir (1 m de marge)
     sp_ = os.path.join(DATA, "surfaces.pkl")
     if os.path.exists(sp_):

@@ -208,10 +208,12 @@ def solar(m, pts, nn, rcol):
 # --- ouvertures de la façade sur rue relevées sur Street View -------------------------------------------------------
 # Jetons (de gauche à droite, niveaux séparés par « | », rez-de-chaussée d'abord) :
 #   V fenêtre à volets battants, R fenêtre à volet roulant, P porte-fenêtre à volets, B baie vitrée,
-#   D porte d'entrée, G porte de garage, N porte de grange en planches, O petite fenêtre (jour), _ trumeau plein.
+#   D porte d'entrée, G porte de garage, N porte de grange en planches, O petite fenêtre (jour), _ trumeau plein,
+#   H porte de garage à deux battants en bois.
 #   (largeur de l'ouverture, hauteur, allège, emprise sur la façade)
 OPEN = {"V": (1.0, 1.25, 0.95, 2.3), "R": (1.2, 1.25, 0.95, 1.7), "P": (0.95, 2.15, 0.0, 2.2), "B": (2.4, 2.15, 0.0, 2.8),
         "D": (0.95, 2.15, 0.0, 1.6), "G": (2.5, 2.1, 0.0, 3.0), "N": (2.8, 2.6, 0.0, 3.4), "O": (0.6, 0.6, 1.45, 1.0),
+        "H": (2.4, 2.0, 0.0, 3.0),
         "_": (0.0, 0.0, 0.0, 1.5)}
 WHITE = (0.90, 0.90, 0.87)
 ALU = (0.24, 0.25, 0.27)
@@ -313,6 +315,19 @@ def openings(m, A, B, nn, L, spec, gmin, wall_top, roof_top, gable_end, shut, G,
                     put(tc, yb + h * g / 4, w * 0.96, 0.03, 0.02, tuple(x * 0.8 for x in gar_col), M_PLAIN, 0.08)
                 put(tc, yb + h, w + 0.3, 0.12, 0.1, WHITE, M_PLAIN)
                 garages.append((tc, yb))
+            elif k == "H":
+                wood = (0.40, 0.25, 0.15)
+                put(tc, yb, w, h, 0.07, wood, M_PLAIN)
+                for j in range(1, int(w / 0.14)):                                         # lames verticales
+                    put(tc - w / 2 + j * 0.14, yb, 0.02, h, 0.02, tuple(x * 0.78 for x in wood), M_PLAIN, 0.07)
+                put(tc, yb, 0.04, h, 0.03, tuple(x * 0.6 for x in wood), M_PLAIN, 0.07)          # jointure des battants
+                for yy in (0.3, h - 0.4):                                                 # pentures
+                    for sx in (-1, 1):
+                        put(tc + sx * w / 4, yb + yy, w / 2 - 0.2, 0.05, 0.02, (0.12, 0.12, 0.12), M_STEEL, 0.08)
+                for sx in (-1, 1):
+                    put(tc + sx * (w / 2 + 0.05), yb, 0.1, h + 0.1, 0.09, frame, M_PLAIN)
+                put(tc, yb + h, w + 0.3, 0.12, 0.1, frame, M_PLAIN)
+                garages.append((tc, yb))
             elif k == "N":
                 wood = (0.40, 0.31, 0.22) if rng.random() < 0.5 else (0.48, 0.42, 0.34)
                 put(tc, yb, w, h, 0.07, wood, M_PLAIN)
@@ -322,3 +337,14 @@ def openings(m, A, B, nn, L, spec, gmin, wall_top, roof_top, gable_end, shut, G,
                 put(tc, yb + h, w + 0.2, 0.18, 0.12, (0.36, 0.27, 0.20), M_PLAIN)                # linteau bois
                 garages.append((tc, yb))
     return garages, entry
+
+
+def facades(m, ring, specs, gmin, wall_top, roof_top, box_mesh, rng, a, shut, ground, gable_ring=None):
+    """Plusieurs façades percées (propriétés redessinées) : specs = [(arête de street_edge, jeton)]."""
+    G = (lambda p: max(gmin, float(ground(p[0], p[1])))) if ground else (lambda p: gmin)
+    P = [np.array(p, float) for p in ring]
+    sides = sorted(float(np.linalg.norm(P[(k + 1) % len(P)] - P[k])) for k in range(len(P)))
+    for se, spec in specs:
+        A, B, nn, L = se[:4]
+        gable_end = gable_ring is not None and L < sides[-1] - 0.3
+        openings(m, A, B, nn, L, spec, gmin, wall_top, roof_top, gable_end, shut, G, box_mesh, rng, a)

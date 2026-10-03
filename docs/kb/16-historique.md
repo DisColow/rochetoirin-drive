@@ -17,3 +17,4 @@ sources: [releases/]
 - v0.11 : passe de cohérence (« la logique prime »), vérificateur `check_coherence.py`.
 - v0.12 : façades sur rue percées d'après Street View (129 relevés : fenêtres à volets, volets roulants, baies, portes, garages, portes de grange).
 - v0.13 : rue du Balcon refaite d'après 22 panoramas Street View comparés image par image (axe recalé, profil, placette, clôtures par parcelle, lampadaires).
+- v0.14 : propriétés redessinées une par une d'après la photo aérienne IGN puis Street View (n° 2 rue du Balcon, à valider).

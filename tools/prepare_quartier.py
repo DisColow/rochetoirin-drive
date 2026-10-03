@@ -400,6 +400,16 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
     stats = {}
     q.paved_rects = []        # surfaces en dur (pour le masque de l'herbe 3D)
     q.paved_polys = []
+    # propriétés redessinées à la main (proprietes/*.json) : rien d'automatique dans leur contour
+    import proprietes
+    Zp = proprietes.zone(0.8)
+    own = set()
+    if not Zp.is_empty:
+        n0 = len(q.pieces)
+        own = proprietes.parcelles(q.parcels)       # parcelles cadastrales remplacées par une propriété redessinée
+        q.pieces = [p_ for p_ in q.pieces if not Zp.intersects(LineString([p_["a"], p_["b"]]).interpolate(0.5, normalized=True))
+                    and not any(pid in own for pid in p_["pids"])]
+        stats["propriétés : morceaux de clôture automatiques retirés"] = n0 - len(q.pieces)
 
     def count(k, n=1):
         stats[k] = stats.get(k, 0) + n
@@ -448,7 +458,7 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
         h = sum(ord(ch) * (k + 2) for k, ch in enumerate(str(pid))) % 20
         return "plein_blanc" if h < 9 else ("fer" if h < 15 else ("bois" if h < 18 else "barreaux_blanc"))
 
-    gates = q.gates()
+    gates = [g_ for g_ in q.gates() if Zp.is_empty or not (Zp.contains(Point(g_["mid"])) or g_["pid"] in own)]
     gate_zone = {}
     for g in gates:
         gate_zone.setdefault(g["pid"], []).append(g)
@@ -725,9 +735,14 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
     import shapely as _sh
     hard_b = q.hard.buffer(0.9)
     _sh.prepare(hard_b)
+    Zclip = unary_union([Zp] + [p_ for pid, p_ in q.parcels if pid in own]) if not Zp.is_empty else Zp
     for coords0, w, dark in q.hedge_polylines():
       # haie tracée d'après la photo : coupée là où elle mordrait sur la chaussée ou un trottoir
       lnc = LineString(coords0)
+      if not Zp.is_empty and Zclip.intersects(lnc):
+          lnc = lnc.difference(Zclip)
+          if lnc.is_empty or lnc.geom_type not in ("LineString", "MultiLineString"):
+              continue
       g0 = lnc.difference(_sh.clip_by_rect(hard_b, *lnc.buffer(3).bounds)) if hard_b.intersects(lnc) else lnc
       for part in (getattr(g0, "geoms", [g0]) if not g0.is_empty else []):
         if part.geom_type != "LineString" or part.length < 2.0:
@@ -1001,6 +1016,9 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
         for pg in getattr(verge_z, "geoms", [verge_z]):
             if pg.geom_type == "Polygon" and pg.area > 4:
                 surfaces.append((pg.simplify(0.3), 3))
+        if not Zp.is_empty:
+            surfaces = [(pg.difference(Zp), k) for pg, k in surfaces]
+            surfaces = [(pg, k) for pg, k in surfaces if not pg.is_empty]
         # une seule couche : les surfaces se recouvrant sont fusionnées par nature (la plus « dure » l'emporte)
         done = None
         tiles = {}
@@ -1027,4 +1045,10 @@ def build(q, Mesh, obox, quad3, add, add_coll, parked_car=None):
                 count(names[k], part.area)
         for (kx, kz), mm in tiles.items():
             add(x0 + kx * 64 + 32, z0 + kz * 64 + 32, mm, True)
+    # propriétés redessinées : clôtures, haies, portails, sols, objets, voitures
+    import center as _center
+    for k, v in proprietes.build(Mesh, obox, quad3, add, add_coll, q.H, parked_car, _center.prism).items():
+        count("propriétés : " + k, v)
+    for pg in proprietes.surfaces_dures():
+        q.paved_polys.append(list(pg.exterior.coords))
     return {k: int(v) for k, v in stats.items()}

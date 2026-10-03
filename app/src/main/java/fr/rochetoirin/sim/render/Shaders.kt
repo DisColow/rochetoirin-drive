@@ -719,14 +719,14 @@ void main() {
         vec2 hu = vUV / (thuja ? vec2(0.9, 0.7) : vec2(2.28, 1.78)) + seed * 3.7;
         vec3 lf = pow(texture(uHedge, hu).rgb, vec3(2.2)) * (thuja ? vec3(1.15, 1.45, 0.85) : vec3(0.85, 1.12, 0.80));
         float n1 = texture(uNoise, vPos.xz * 0.11 + vPos.y * 0.05).a;
-        c = lf * clamp(c / vec3(0.24, 0.34, 0.16), 0.75, 1.3) * (0.85 + 0.3 * n1);
+        c = lf * clamp(c / vec3(0.24, 0.34, 0.16), 0.55, 1.3) * (0.85 + 0.3 * n1);
         spec = thuja ? 0.03 : 0.12;
     } else if (m == 20) {                                  // gravier / gravillons
         float g1 = hash12(floor(vPos.xz / 0.035));
         float g2 = texture(uNoise, vPos.xz * 0.35).a;
         c *= (0.80 + 0.30 * mix(0.5, g1, fade)) * (0.90 + 0.18 * g2);
         spec = 0.02;
-    } else if (m == 21) {                                  // clôtures ajourées : grillage (0), barreaudage (1), lames (2)
+    } else if (m == 21) {                                  // clôtures ajourées : grillage (0), barreaudage (1), lames (2), losanges (3)
         vec2 q = vUV;
         float k = vMat.y;
         float keep;
@@ -735,10 +735,14 @@ void main() {
             keep = step(0.465, max(f.x, f.y)) + step(q.y, 0.03) + step(fract(q.x / 2.5), 0.015);
         } else if (k < 1.5) {
             keep = step(0.62, fract(q.x / 0.12)) + step(q.y, 0.08);
-        } else {
+        } else if (k < 2.5) {
             keep = step(fract(q.y / 0.25), 0.62);
+        } else {
+            // grillage simple torsion (mailles losanges de 5 cm), fils de tension en haut et en bas
+            vec2 f = abs(fract(vec2(q.x + q.y, q.x - q.y) / 0.07) - 0.5);
+            keep = step(0.43, max(f.x, f.y)) + step(q.y, 0.025);
         }
-        float cov = k < 0.5 ? 0.16 : (k < 1.5 ? 0.45 : 0.62);
+        float cov = k < 0.5 ? 0.16 : (k < 1.5 ? 0.45 : (k < 2.5 ? 0.62 : 0.22));
         float blur = clamp(max(fwidth(q.x), fwidth(q.y)) * 12.0 - 0.6, 0.0, 1.0);   // au loin : tramage
         float a = mix(min(keep, 1.0), cov, blur);
         if (a < hash12(gl_FragCoord.xy * 0.73) * 0.98 + 0.01) discard;
@@ -857,7 +861,7 @@ out vec4 o;
 void main() {
     int m = int(floor(vMat.x));
     if (m == 6 || m == 11 || m == 16) discard;
-    if (m == 21 && vMat.y < 0.5) discard;
+    if (m == 21 && (vMat.y < 0.5 || vMat.y > 2.5)) discard;
     if (m == 21 && fract(vUV.x / 0.12) < 0.5 && vMat.y < 1.5) discard;
     o = vec4(1.0);
 }

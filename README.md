@@ -5,7 +5,7 @@ Un jeu de conduite Android inspiré d'*Euro Truck Simulator*, dans le village de
 
 ## Télécharger
 
-**[RochetoirinSimulator-v0.13.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.13.apk)** (36 Mo, Android 7.0+, OpenGL ES 3.0)
+**[RochetoirinSimulator-v0.14.apk](https://github.com/DisColow/rochetoirin-drive/raw/main/releases/RochetoirinSimulator-v0.14.apk)** (36 Mo, Android 7.0+, OpenGL ES 3.0)
 
 Ouvrir le lien depuis le téléphone, puis ouvrir le fichier et autoriser l'installation depuis
 cette source (« Installer quand même » si Play Protect avertit : l'APK est signé avec une clé
@@ -167,6 +167,13 @@ positions. Corrections :
 - lampadaires aux emplacements relevés ; plus de piscine dans les jardins de devant.
 
 ![Rue du Balcon v0.13 (rendus du jeu aux positions des panoramas Street View)](docs/apercus/v013_rue_du_balcon.jpg)
+
+**v0.14 : propriétés redessinées une par une** (`tools/proprietes/`, `tools/proprietes.py`), d'après la photo aérienne IGN
+(2021 et 2024, 10 cm) puis Street View : limites réelles (pas celles du cadastre, décalé de 1,5 à 3 m), murets en
+escalier dans la pente, grillage à mailles losanges, haies, portail, allées, conifères denses à leur place et à leur
+taille. Première maison : le n° 2, en cours de validation.
+
+![n° 2 rue du Balcon : photo IGN / jeu](docs/apercus/v014_n02_vue_dessus.jpg)
 
 ### Centre du village (d'après Google Street View, avril 2023)
 
