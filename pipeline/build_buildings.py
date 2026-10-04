@@ -262,6 +262,13 @@ def decompose(poly):
 
 
 # ------------------------------------------------------------------------------------------------ toits
+def soffit(M, pts, nrm):
+    """Dessous du pan (lambris bois) 12 cm plus bas : épaisseur du toit, visible sous les débords."""
+    P = [(p[0], p[1] - 0.12, p[2]) for p in pts]
+    uv = [(p[0] / 2.5, p[2] / 2.5) for p in pts]
+    M.poly(P, uv, IDX["bardage_bois"], srgb((1.15, 1.1, 1.0)), -np.asarray(nrm, float))
+
+
 def roof_rect(M, R, others, eave, pitch, kind, back, layer, tint, wall_layer, wall_tint, ov=0.35):
     """Toit d'un rectangle (repère tourné) ; back(P) ramène au repère monde. kind : 'gable' | 'hip'."""
     x0, z0, x1, z1 = R
@@ -321,6 +328,7 @@ def roof_rect(M, R, others, eave, pitch, kind, back, layer, tint, wall_layer, wa
         uv = [(su(sa if not hipA else sA - ov), slope_len / sc), (su(sb if not hipB else sB + ov), slope_len / sc),
               (su(rb), 0.0), (su(ra), 0.0)]
         M.poly(quad, uv, layer, tint, nrm)
+        soffit(M, quad, nrm)
     for side, hip, s_e, s_r in ((0, hipA, sA, ra), (1, hipB, sB, rb)):
         sg = -1 if side == 0 else 1
         if hip:
@@ -331,6 +339,7 @@ def roof_rect(M, R, others, eave, pitch, kind, back, layer, tint, wall_layer, wa
                 nrm = -nrm
             uv = [((-hw - ov) / sc, slope_len / sc), ((hw + ov) / sc, slope_len / sc), (0.0, 0.0)]
             M.poly(tri, uv, layer, tint, nrm)
+            soffit(M, tri, nrm)
         else:
             # pignon (mur) et rive de toit
             s_w = s_e

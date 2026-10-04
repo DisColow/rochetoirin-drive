@@ -1,7 +1,7 @@
 // Bâtiments : un seul matériau, textures en tableau (couche = UV2.x), teinte par bâtiment (couleur de sommet).
 // Albédo alpha = vitrage (lisse, reflète le ciel) ; normale alpha = rugosité.
 shader_type spatial;
-render_mode cull_disabled;
+render_mode cull_back;
 
 uniform sampler2DArray albedo_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2DArray normal_tex : filter_linear_mipmap_anisotropic, repeat_enable;

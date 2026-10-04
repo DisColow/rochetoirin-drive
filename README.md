@@ -6,8 +6,9 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v2.2.apk — étape 3 : bâtiments, ralentisseurs, nom de la route](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.apk)**
-(APK de 580 Mo, Android 8+, OpenGL ES 3). Étapes précédentes :
+**[RochetoirinSimulator-v2.2.1.apk — étape 3 : bâtiments, ralentisseurs, nom de la route (correctifs)](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.1.apk)**
+(APK de 585 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+[v2.2](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.apk),
 [v2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.1.apk),
 [v2.0](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk).
 
@@ -25,6 +26,14 @@ Nouveautés de l'étape 3 :
 - **nom de la route** sous le compteur (numéro et nom), avec la commune et les coordonnées x / z : pratique pour
   signaler un défaut à un endroit précis ;
 - correctif : la téléportation depuis la carte fonctionne maintenant sur téléphone (fichier oublié dans la v2.1).
+
+Correctifs de la v2.2.1 :
+- plus de grandes plaques vertes sur la route (route de Montcarra et tous les vallons encaissés) : l'horizon simplifié
+  n'est plus dessiné à l'intérieur de la zone jouable ;
+- ombres : pleine qualité sur téléphone (4096 px, adoucies), portée 320 m avec fondu, plus de scintillement des
+  façades ;
+- rapport de plantage : si le jeu s'arrête brutalement, un bandeau au démarrage suivant permet de copier le rapport
+  (position, route, images/s, mémoire) pour le coller dans un message.
 
 Commandes : ◀ ▶ pour tourner, GAZ, FREIN (rester appuyé à l'arrêt pour reculer), CAM (poursuite / conducteur / capot),
 ↺ remet la voiture sur la route. Manette : stick gauche, gâchettes, Y caméra, X remettre sur la route.

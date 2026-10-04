@@ -20,6 +20,11 @@ func _ready() -> void:
 	car = preload("res://scripts/car.gd").new()
 	add_child(car)
 	car.place(Vector3(spawn.x, spawn.y + 0.6, spawn.z), float(spawn.heading))
+	# essai : --drive-from=x,y,z,cap (départ de l'essai de conduite ailleurs qu'au point de départ)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--drive-from="):
+			var v := a.trim_prefix("--drive-from=").split(",")
+			car.place(Vector3(float(v[0]), float(v[1]), float(v[2])), float(v[3]))
 	roads.target = car
 	roads.update_now()
 	buildings = preload("res://scripts/buildings.gd").new()
@@ -36,6 +41,9 @@ func _ready() -> void:
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS          # la carte reste utilisable jeu en pause
 	add_child(hud)
 	hud.teleport.connect(_teleport)
+	var cr = preload("res://scripts/crash_report.gd").new()
+	cr.car = car; cr.hud = hud; cr.names = hud.names
+	add_child(cr)
 
 ## Téléportation sans à-coup : routes de la destination chargées d'abord, voiture immobilisée le temps que
 ## les collisions du relief se créent autour d'elle.
@@ -95,8 +103,14 @@ func _environment() -> void:
 	sun.light_energy = 1.6
 	sun.light_color = Color(1.0, 0.96, 0.9)
 	sun.shadow_enabled = true
+	# ombres : 2 cascades (40 m nette, puis jusqu'à 320 m) fondues entre elles et au loin, pas d'apparition sèche
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
-	sun.directional_shadow_max_distance = 220.0
+	sun.directional_shadow_max_distance = 320.0
+	sun.directional_shadow_split_1 = 0.14
+	sun.directional_shadow_blend_splits = true
+	sun.directional_shadow_fade_start = 0.7
+	sun.shadow_bias = 0.08
+	sun.shadow_normal_bias = 1.6
 	sun.shadow_blur = 1.2
 	add_child(sun)
 
@@ -197,6 +211,9 @@ func _shots(path: String) -> void:
 
 # ---------------------------------------------------------------- essai de conduite (pipeline) : --drive-test
 func _physics_process(_dt: float) -> void:
+	if OS.get_cmdline_user_args().has("--mem-test"):
+		_mem_test()
+		return
 	if not OS.get_cmdline_user_args().has("--drive-test"):
 		return
 	var t := Engine.get_physics_frames()
@@ -204,8 +221,31 @@ func _physics_process(_dt: float) -> void:
 		print("départ ", car.global_position)
 	car.touch_throttle = 1.0 if t < 1200 else 0.0
 	car.touch_brake = 1.0 if t >= 1200 else 0.0
-	car.touch_steer = 0.3 if (t > 600 and t < 800) else 0.0
+	var straight: bool = Array(OS.get_cmdline_user_args()).any(func(a): return a.begins_with("--drive-from="))
+	car.touch_steer = 0.3 if (t > 600 and t < 800 and not straight) else 0.0
+	if not car.global_position.is_finite() or car.linear_velocity.length() > 80.0:
+		print("ANOMALIE t=%d pos=%s v=%s" % [t, car.global_position, car.linear_velocity])
 	if t % 120 == 0:
 		print("t=%.0fs pos=%s v=%.0f km/h avant=%.1f roues au sol=%d" % [t / 120.0, car.global_position.snapped(Vector3(0.1, 0.1, 0.1)), car.kmh(), car.forward_speed(), car.wheels.filter(func(w): return w.is_in_contact()).size()])
 	if t > 1800:
+		get_tree().quit()
+
+# ---------------------------------------------------------------- essai mémoire (pipeline) : --mem-test
+# La voiture saute de point en point le long des routes (tout le réseau) ; mémoire et objets affichés.
+var _mem_pts := PackedFloat32Array()
+func _mem_test() -> void:
+	var t := Engine.get_physics_frames()
+	if _mem_pts.is_empty():
+		_mem_pts = FileAccess.get_file_as_bytes("res://world/teleport.bin").to_float32_array()
+	if t % 30 == 0:
+		var i := (t / 30 * 997 * 4) % _mem_pts.size()
+		i -= i % 4
+		car.freeze = true
+		car.place(Vector3(_mem_pts[i], _mem_pts[i + 2], _mem_pts[i + 1]), _mem_pts[i + 3])
+	if t % 600 == 0:
+		print("t=%ds mémoire %.0f Mo objets %d nœuds %d ressources %d tuiles routes %d bâtiments %d" % [t / 120,
+			Performance.get_monitor(Performance.MEMORY_STATIC) / 1e6, Performance.get_monitor(Performance.OBJECT_COUNT),
+			Performance.get_monitor(Performance.OBJECT_NODE_COUNT), Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT),
+			roads.loaded.size(), buildings.loaded.size()])
+	if t > 120 * 240:
 		get_tree().quit()

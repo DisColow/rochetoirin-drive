@@ -70,9 +70,15 @@ def far():
     step = nm["step"] * 2
 
     def in_regions(X, Z, m=60.0):
-        r = np.zeros(X.shape, bool)
-        for (i, j) in regs:
-            r |= (X > i * 1024 + m) & (X < (i + 1) * 1024 - m) & (Z > j * 1024 + m) & (Z < (j + 1) * 1024 - m)
+        """Point à plus de m mètres du bord de l'ensemble des régions (pas de chaque région : sinon une bande de
+        120 m subsiste le long de chaque frontière entre régions et ressort dans les vallons encaissés)."""
+        def inside(x, z):
+            key = np.floor(x / 1024).astype(int) * 100000 + np.floor(z / 1024).astype(int)
+            return np.isin(key, [i * 100000 + j for i, j in regs])
+        r = np.ones(X.shape, bool)
+        for dx in (-m, 0, m):
+            for dz in (-m, 0, m):
+                r &= inside(X + dx, Z + dz)
         return r
     H, W = A.shape
     ci, cj = 4, 4
