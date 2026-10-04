@@ -18,8 +18,9 @@
 - Moteur **Godot 4.4.1** (`godot/`) + **Terrain3D 1.0.2**, rendu **Compatibility (OpenGL ES 3)** : le rendu Vulkan
   plante avec Terrain3D sur le Vulkan logiciel du conteneur, impossible à vérifier ; Compatibility est vérifiable ici.
 - Données : `pipeline/` (Python) -> `godot/world`, `godot/terrain`, `godot/assets` (générés, non versionnés).
-  Ordre : `routes_plan.py`, `fetch_dem.py`, `fetch_ortho.py`, `fetch_polyhaven.py`, `build_roads.py`,
-  `prepare_terrain.py`, `build_assets.py`, `convert_car.py`, puis `godot --headless --import` et
+  Ordre : `routes_plan.py`, `fetch_dem.py`, `fetch_ortho.py`, `fetch_polyhaven.py`, `fetch_buildings.py` (bâtiments +
+  ralentisseurs), `build_roads.py`, `prepare_terrain.py`, `build_assets.py`, `convert_car.py`, `fetch_communes.py`,
+  `build_map.py`, `fetch_building_tex.py`, `build_bld_tex.py`, `build_buildings.py`, puis `godot --headless --import` et
   `godot --headless --script res://tools/import_terrain.gd`.
 - Étapes validées une par une, **un APK à chaque étape** : 1 routes + relief + horizon, 2 signalisation et marquages,
   3 bâtiments génériques (modèles 3D réalistes, tailles réelles, variés), 4 bâtiments emblématiques, 5 végétation

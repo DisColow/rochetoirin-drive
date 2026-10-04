@@ -6,6 +6,7 @@ const SUN_ELEV := 48.0          # ciel « kloofendal_48d » : soleil à 48° ; a
 var terrain: Terrain3D
 var car: VehicleBody3D
 var roads: Node3D
+var buildings: Node3D
 var cam_rig: Node3D
 
 func _ready() -> void:
@@ -21,6 +22,10 @@ func _ready() -> void:
 	car.place(Vector3(spawn.x, spawn.y + 0.6, spawn.z), float(spawn.heading))
 	roads.target = car
 	roads.update_now()
+	buildings = preload("res://scripts/buildings.gd").new()
+	add_child(buildings)
+	buildings.target = car
+	buildings.update_now()
 	if "collision_target" in terrain:
 		terrain.set("collision_target", car)
 	cam_rig = preload("res://scripts/camera_rig.gd").new()
@@ -39,6 +44,7 @@ func _teleport(p: Vector3, heading: float) -> void:
 	car.place(p, heading)
 	cam_rig.snap()
 	roads.update_now()
+	buildings.update_now()
 	await get_tree().create_timer(0.6).timeout
 	car.freeze = false
 
@@ -153,7 +159,7 @@ func _shots(path: String) -> void:
 			hud.map.zoom = 0.5
 			hud.map._pick(hud.map.world_to_screen(Vector2(s.tp[0], s.tp[1])))
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car
 			for i in 240:
 				await get_tree().physics_frame
 			print("téléporté en ", car.global_position, " roues au sol ", car.wheels.filter(func(w): return w.is_in_contact()).size())
@@ -176,12 +182,14 @@ func _shots(path: String) -> void:
 		var p := Vector3(s.pos[0], s.pos[1], s.pos[2])
 		car.global_position = p + Vector3(0, -50, 0) if not s.get("car", false) else car.global_position
 		roads.target = c
+		buildings.target = c
 		c.global_position = p
 		c.look_at(Vector3(s.look[0], s.look[1], s.look[2]), Vector3.UP)
 		c.fov = s.get("fov", 62.0)
 		terrain.set_camera(c)
 		for i in 40:
 			roads._process(0.3)
+			buildings._process(0.3)
 			await get_tree().process_frame
 		get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % s.name)
 		print("capture ", s.name)

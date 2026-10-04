@@ -26,6 +26,8 @@ func _ready() -> void:
 	mats["dirt"] = _mat("dirt", 0.35, Color(1, 1, 1))
 	mats["sidewalk"] = _mat("sidewalk", 0.5, Color(1, 1, 1))
 	mats["concrete"] = _mat("concrete", 0.4, Color(0.92, 0.92, 0.9))
+	# coussins berlinois : caoutchouc / enrobé rouge
+	mats["cushion"] = _mat("asphalt", 0.5, Color(0.62, 0.2, 0.16))
 	# peinture routière : blanc légèrement usé, posée au-dessus de l'enrobé
 	var mk := StandardMaterial3D.new()
 	mk.albedo_color = Color(0.86, 0.86, 0.84)

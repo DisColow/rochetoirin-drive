@@ -6,6 +6,10 @@ var car: VehicleBody3D
 var speed: Label
 var buttons := []
 var map: Control
+var road: Label
+var where: Label
+var names = preload("res://scripts/road_name.gd").new()
+var _name_t := 0.0
 signal teleport(pos: Vector3, heading: float)
 
 func _ready() -> void:
@@ -15,6 +19,20 @@ func _ready() -> void:
 	speed.add_theme_constant_override("outline_size", 8)
 	speed.position = Vector2(40, 24)
 	add_child(speed)
+	# nom de la route, commune et coordonnées (pour signaler un défaut avec précision)
+	road = Label.new()
+	road.add_theme_font_size_override("font_size", 32)
+	road.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.75))
+	road.add_theme_constant_override("outline_size", 8)
+	road.position = Vector2(40, 84)
+	add_child(road)
+	where = Label.new()
+	where.add_theme_font_size_override("font_size", 22)
+	where.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.75))
+	where.add_theme_constant_override("outline_size", 6)
+	where.modulate = Color(1, 1, 1, 0.8)
+	where.position = Vector2(40, 128)
+	add_child(where)
 	get_viewport().size_changed.connect(_layout)
 	_add_button("gauche", "◀", 0)
 	_add_button("droite", "▶", 1)
@@ -73,6 +91,8 @@ func _show_drive(on: bool) -> void:
 	for b in buttons:
 		b.visible = on
 	speed.visible = on
+	road.visible = on
+	where.visible = on
 	get_tree().paused = not on
 
 func _process(_dt: float) -> void:
@@ -81,3 +101,9 @@ func _process(_dt: float) -> void:
 		map.open()
 	if car:
 		speed.text = "%d km/h" % int(round(car.kmh()))
+		_name_t -= _dt
+		if _name_t <= 0.0:
+			_name_t = 0.3
+			var p := car.global_position
+			road.text = names.road_at(p)
+			where.text = "%s  ·  x %d  z %d" % [names.commune_at(p), int(round(p.x)), int(round(p.z))]

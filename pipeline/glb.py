@@ -5,7 +5,7 @@ import numpy as np
 
 
 def write_glb(path, prims, node_name="tile"):
-    """prims : [(nom_matériau, positions N×3, normales N×3, uv N×2, indices[, couleurs])] ou
+    """prims : [(nom_matériau, positions N×3, normales N×3, uv N×2, indices[, couleurs[, uv2 N×2]])] ou
     {nom_de_nœud: [prims]} (un nœud / maillage par entrée)."""
     groups = prims if isinstance(prims, dict) else {node_name: prims}
     blob = bytearray(); views, accs, mats = [], [], []
@@ -35,6 +35,8 @@ def write_glb(path, prims, node_name="tile"):
         iu = add(UV, 34962, 5126, "VEC2")
         ii = add(I, 34963, 5125, "SCALAR")
         at = dict(POSITION=ip, NORMAL=inn, TEXCOORD_0=iu)
+        if len(pr) > 6 and pr[6] is not None:
+            at["TEXCOORD_1"] = add(np.asarray(pr[6], np.float32), 34962, 5126, "VEC2")
         if COL is not None:
             at["COLOR_0"] = add(np.c_[np.asarray(COL, np.float32), np.ones(len(COL), np.float32)], 34962, 5126, "VEC4")
         mats.append(dict(name=name))

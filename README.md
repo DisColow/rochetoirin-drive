@@ -6,23 +6,25 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v2.1.apk — étape 2 : virages arrondis, panneaux, marquages, carte et téléportation](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.1.apk)**
-(APK de 400 Mo, Android 8+, OpenGL ES 3). Étape précédente :
+**[RochetoirinSimulator-v2.2.apk — étape 3 : bâtiments, ralentisseurs, nom de la route](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.apk)**
+(APK de 580 Mo, Android 8+, OpenGL ES 3). Étapes précédentes :
+[v2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.1.apk),
 [v2.0](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk).
 
-![Étape 2](docs/apercus/v2.1_etape2.jpg)
+![Étape 3](docs/apercus/v2.2_etape3.jpg)
 
-Nouveautés de l'étape 2 :
-- virages arrondis (arcs tangents, rayon selon le type de route : 12 m en ville, 40 à 90 m sur les départementales,
-  300 m sur l'autoroute), carrefours inchangés ;
-- panneaux réels d'OpenStreetMap : STOP, cédez-le-passage, feux tricolores (animés, axes en opposition), entrées et
-  sorties d'agglomération avec le nom de la commune, limitations de vitesse, arrêts de bus, voie verte ;
-- marquages au sol : axe (tirets, ligne continue dans les courbes serrées et à l'approche des carrefours), rives,
-  voies d'autoroute, lignes d'arrêt et de cédez-le-passage, passages piétons ;
-- **carte** (bouton CARTE, touche M, bouton Select de la manette) : photo aérienne et routes, glisser pour déplacer,
-  pincer pour zoomer, toucher un endroit pour s'y téléporter.
-
-
+Nouveautés de l'étape 3 :
+- **18 000 bâtiments** aux emprises et hauteurs réelles (IGN BD TOPO) : maisons, annexes, immeubles, commerces,
+  bâtiments d'activité ; toits à 2 ou 4 pans (y compris en L / T), hauteur de faîtage réelle quand elle est connue,
+  toits-terrasses avec acrotère ; tuiles, ardoise ou bac acier selon la couleur du toit sur la photo aérienne ;
+  murs en crépi (teintes du Dauphiné), pierre, brique, bardage bois ou métal ; fenêtres en retrait avec appuis,
+  volets battants ou roulants, porte côté rue, portes de garage, vitrines, cheminées ; pas de fenêtre sur les murs
+  mitoyens ; collisions ;
+- **ralentisseurs** réels d'OpenStreetMap : 43 dos d'âne, 92 plateaux, 24 ralentisseurs courts, 22 coussins
+  berlinois, avec relief (la voiture est secouée) et triangles blancs sur les rampes ;
+- **nom de la route** sous le compteur (numéro et nom), avec la commune et les coordonnées x / z : pratique pour
+  signaler un défaut à un endroit précis ;
+- correctif : la téléportation depuis la carte fonctionne maintenant sur téléphone (fichier oublié dans la v2.1).
 
 Commandes : ◀ ▶ pour tourner, GAZ, FREIN (rester appuyé à l'arrêt pour reculer), CAM (poursuite / conducteur / capot),
 ↺ remet la voiture sur la route. Manette : stick gauche, gâchettes, Y caméra, X remettre sur la route.
@@ -31,7 +33,7 @@ Commandes : ◀ ▶ pour tourner, GAZ, FREIN (rester appuyé à l'arrêt pour re
 
 Relief et orthophotos : IGN (Licence Ouverte). Routes : © contributeurs OpenStreetMap (ODbL). Textures et ciel :
 Poly Haven et ambientCG (CC0). Voiture : « 2008 Renault Espace » par tonielpro520 (Sketchfab, CC-BY-4.0).
-Terrain : Terrain3D (MIT).
+Terrain : Terrain3D (MIT). Bâtiments : IGN BD TOPO (Licence Ouverte), textures Poly Haven / ambientCG (CC0).
 
 ---
 

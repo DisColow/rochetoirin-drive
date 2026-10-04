@@ -474,8 +474,13 @@ def main():
     city_names = signs_atlas.build(city)
     det = furniture.Out(TILE)
     ways_m = [w for w in ways if not w["bridge"]]
-    nc, ns = furniture.markings(det, ways_m, use, hroad, node_tags, {"uncontrolled", "marked", "zebra", "traffic_signals", None})
-    st = furniture.signs(det, ways, use, hroad, node_tags, city_names, towns)
+    import calming
+    calm = calming.Calming(ways, json.load(open("data/osm_calming.json")))
+    hroad_b = lambda x, z: hroad(x, z) + calm.h(x, z)
+    bumps = furniture.Out(TILE)
+    print("ralentisseurs :", calm.build(bumps, det, hroad))
+    nc, ns = furniture.markings(det, ways_m, use, hroad_b, node_tags, {"uncontrolled", "marked", "zebra", "traffic_signals", None})
+    st = furniture.signs(det, ways, use, hroad_b, node_tags, city_names, towns)
     print("marquages : %d passages piétons, %d lignes d'arrêt ; panneaux :" % (nc, ns), st)
     tiles = set()
     mnx, mnz, mxx, mxz = unary_union([paved_u, unpaved_u]).bounds
@@ -534,11 +539,21 @@ def main():
         if not mbp.empty():
             groups["concrete"] = mbp
         dprims = det.prims((tx, tz))
-        if groups or dprims:
-            prims = []
+        bprims = bumps.prims((tx, tz))
+        if groups or dprims or bprims:
+            prims = list(bprims)
             for name, mb in groups.items():
                 P, Nn, UV, I = mb.arrays()
                 prims.append((name, P, Nn, UV, I)); ntri += len(I) // 3
+            # le relief des ralentisseurs rejoint l'enrobé de même nom (une seule surface par matériau)
+            merged = {}
+            for name, P, Nn, UV, I in prims:
+                if name in merged:
+                    m = merged[name]; I = I + len(m[0])
+                    merged[name] = (np.vstack([m[0], P]), np.vstack([m[1], Nn]), np.vstack([m[2], UV]), np.concatenate([m[3], I]))
+                else:
+                    merged[name] = (P, Nn, UV, I)
+            prims = [(k,) + v for k, v in merged.items()]
             G = {}
             if prims:
                 G["tile"] = prims
