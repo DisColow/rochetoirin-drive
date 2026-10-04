@@ -19,6 +19,12 @@ func _ready() -> void:
 	eye = Vector3(-meta.eye[0], meta.eye[1], -meta.eye[2])      # modèle tourné de 180°
 	_pos = target.global_position + Vector3(0, 3, -7)
 
+func snap() -> void:
+	var t := target.global_transform
+	var flat := Vector3(t.basis.z.x, 0, t.basis.z.z).normalized()
+	_pos = t.origin - flat * 7.2 + Vector3(0, 2.6, 0)
+	_look = t.origin + Vector3(0, 1.2, 0)
+
 func cycle() -> void:
 	mode = (mode + 1) % 3
 

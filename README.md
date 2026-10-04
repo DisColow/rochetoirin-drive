@@ -6,10 +6,23 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v2.0.apk — étape 1 : routes, relief, horizon](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk)**
-(APK de 360 Mo, Android 8+, OpenGL ES 3).
+**[RochetoirinSimulator-v2.1.apk — étape 2 : virages arrondis, panneaux, marquages, carte et téléportation](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.1.apk)**
+(APK de 400 Mo, Android 8+, OpenGL ES 3). Étape précédente :
+[v2.0](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk).
 
-![Étape 1](docs/apercus/v2.0_etape1.jpg)
+![Étape 2](docs/apercus/v2.1_etape2.jpg)
+
+Nouveautés de l'étape 2 :
+- virages arrondis (arcs tangents, rayon selon le type de route : 12 m en ville, 40 à 90 m sur les départementales,
+  300 m sur l'autoroute), carrefours inchangés ;
+- panneaux réels d'OpenStreetMap : STOP, cédez-le-passage, feux tricolores (animés, axes en opposition), entrées et
+  sorties d'agglomération avec le nom de la commune, limitations de vitesse, arrêts de bus, voie verte ;
+- marquages au sol : axe (tirets, ligne continue dans les courbes serrées et à l'approche des carrefours), rives,
+  voies d'autoroute, lignes d'arrêt et de cédez-le-passage, passages piétons ;
+- **carte** (bouton CARTE, touche M, bouton Select de la manette) : photo aérienne et routes, glisser pour déplacer,
+  pincer pour zoomer, toucher un endroit pour s'y téléporter.
+
+
 
 Commandes : ◀ ▶ pour tourner, GAZ, FREIN (rester appuyé à l'arrêt pour reculer), CAM (poursuite / conducteur / capot),
 ↺ remet la voiture sur la route. Manette : stick gauche, gâchettes, Y caméra, X remettre sur la route.

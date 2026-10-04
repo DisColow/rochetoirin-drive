@@ -26,6 +26,47 @@ func _ready() -> void:
 	mats["dirt"] = _mat("dirt", 0.35, Color(1, 1, 1))
 	mats["sidewalk"] = _mat("sidewalk", 0.5, Color(1, 1, 1))
 	mats["concrete"] = _mat("concrete", 0.4, Color(0.92, 0.92, 0.9))
+	# peinture routière : blanc légèrement usé, posée au-dessus de l'enrobé
+	var mk := StandardMaterial3D.new()
+	mk.albedo_color = Color(0.86, 0.86, 0.84)
+	mk.roughness = 0.6
+	mk.albedo_texture = load("res://assets/tex/asphalt_albedo.jpg")
+	mk.uv1_scale = Vector3(0.3, 0.3, 1)
+	mk.albedo_texture_force_srgb = false
+	mk.detail_enabled = false
+	mk.render_priority = 1
+	mk.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mats["marking"] = _paint(mk)
+	var sg := StandardMaterial3D.new()
+	sg.albedo_texture = load("res://assets/tex/signs_atlas.png")
+	sg.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	sg.alpha_scissor_threshold = 0.5
+	sg.roughness = 0.45
+	sg.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	mats["sign"] = sg
+	var sc := sg.duplicate()
+	sc.albedo_texture = load("res://assets/tex/signs_city.png")
+	mats["sign_city"] = sc
+	var back := StandardMaterial3D.new()
+	back.albedo_color = Color(0.55, 0.56, 0.58); back.metallic = 0.7; back.roughness = 0.4
+	mats["sign_back"] = back
+	var metal := StandardMaterial3D.new()
+	metal.albedo_color = Color(0.62, 0.63, 0.65); metal.metallic = 0.8; metal.roughness = 0.35
+	mats["metal"] = metal
+	var dark := StandardMaterial3D.new()
+	dark.albedo_color = Color(0.08, 0.08, 0.09); dark.roughness = 0.5
+	mats["metal_dark"] = dark
+	var ls := preload("res://scripts/signal_light.gdshader")
+	for i in 3:
+		var m := ShaderMaterial.new()
+		m.shader = ls
+		m.set_shader_parameter("bulb", i)
+		mats[["light_red", "light_amber", "light_green"][i]] = m
+
+func _paint(m: StandardMaterial3D) -> StandardMaterial3D:
+	# l'albédo de l'enrobé sert de grain : on le blanchit (peinture usée, granulats visibles)
+	m.albedo_texture = null
+	return m
 
 func _mat(name: String, scale: float, tint: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
@@ -107,7 +148,13 @@ func _add(k: Vector2i, sc: PackedScene) -> void:
 			var mn := mesh.surface_get_material(s).resource_name if mesh.surface_get_material(s) else ""
 			if mats.has(mn):
 				mi.set_surface_override_material(s, mats[mn])
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if mesh.get_surface_count() == 1 else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		if mi.name.begins_with("detail"):
+			mi.visibility_range_end = 450.0              # panneaux et marquages : inutiles au loin
+			mi.visibility_range_end_margin = 30.0
+			mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		else:
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(n)
 	loaded[k] = n
 
@@ -119,6 +166,8 @@ func _update_collisions() -> void:
 		if need and not bodies.has(k):
 			var sb := StaticBody3D.new()
 			for mi in loaded[k].find_children("*", "MeshInstance3D", true, false):
+				if mi.name.begins_with("detail"):
+					continue
 				var cs := CollisionShape3D.new()
 				cs.shape = mi.mesh.create_trimesh_shape()
 				sb.add_child(cs)

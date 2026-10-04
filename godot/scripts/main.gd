@@ -28,7 +28,19 @@ func _ready() -> void:
 	add_child(cam_rig)
 	var hud = preload("res://scripts/hud.gd").new()
 	hud.car = car
+	hud.process_mode = Node.PROCESS_MODE_ALWAYS          # la carte reste utilisable jeu en pause
 	add_child(hud)
+	hud.teleport.connect(_teleport)
+
+## Téléportation sans à-coup : routes de la destination chargées d'abord, voiture immobilisée le temps que
+## les collisions du relief se créent autour d'elle.
+func _teleport(p: Vector3, heading: float) -> void:
+	car.freeze = true
+	car.place(p, heading)
+	cam_rig.snap()
+	roads.update_now()
+	await get_tree().create_timer(0.6).timeout
+	car.freeze = false
 
 func _environment() -> void:
 	var sky_tex: Texture2D = load("res://assets/sky.hdr")
@@ -134,6 +146,32 @@ func _shots(path: String) -> void:
 	car.freeze = true
 	DirAccess.make_dir_recursive_absolute("user://shots")
 	for s in list:
+		if s.get("tp", false):
+			var hud := find_children("*", "CanvasLayer", false, false)[0]
+			hud._show_drive(false)
+			hud.map.open()
+			hud.map.zoom = 0.5
+			hud.map._pick(hud.map.world_to_screen(Vector2(s.tp[0], s.tp[1])))
+			car.freeze = false
+			set_process(true); cam_rig.set_process(true); roads.target = car
+			for i in 240:
+				await get_tree().physics_frame
+			print("téléporté en ", car.global_position, " roues au sol ", car.wheels.filter(func(w): return w.is_in_contact()).size())
+			get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % s.name)
+			print("capture ", s.name)
+			continue
+		if s.get("map", false):
+			var hud := find_children("*", "CanvasLayer", false, false)[0]
+			hud._show_drive(false)
+			get_tree().paused = false
+			hud.map.open()
+			hud.map.zoom = s.get("zoom", 0.6)
+			for i in 10:
+				await get_tree().process_frame
+			get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % s.name)
+			hud.map._close()
+			print("capture ", s.name)
+			continue
 		var c: Camera3D = cam_rig.cam
 		var p := Vector3(s.pos[0], s.pos[1], s.pos[2])
 		car.global_position = p + Vector3(0, -50, 0) if not s.get("car", false) else car.global_position

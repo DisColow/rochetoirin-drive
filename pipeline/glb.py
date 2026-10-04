@@ -5,8 +5,11 @@ import numpy as np
 
 
 def write_glb(path, prims, node_name="tile"):
-    """prims : [(nom_matériau, positions N×3, normales N×3, uv N×2, indices)]"""
-    blob = bytearray(); views, accs, meshes_prims, mats = [], [], [], []
+    """prims : [(nom_matériau, positions N×3, normales N×3, uv N×2, indices[, couleurs])] ou
+    {nom_de_nœud: [prims]} (un nœud / maillage par entrée)."""
+    groups = prims if isinstance(prims, dict) else {node_name: prims}
+    blob = bytearray(); views, accs, mats = [], [], []
+    meshes, nodes = [], []
 
     def add(arr, target, comp, typ, minmax=False):
         a = np.ascontiguousarray(arr)
@@ -20,7 +23,9 @@ def write_glb(path, prims, node_name="tile"):
         accs.append(acc)
         return len(accs) - 1
 
-    for pr in prims:
+    for gname, gprims in groups.items():
+      meshes_prims = []
+      for pr in gprims:
         name, P, Nn, UV, I = pr[:5]
         COL = pr[5] if len(pr) > 5 else None
         P = np.asarray(P, np.float32); Nn = np.asarray(Nn, np.float32); UV = np.asarray(UV, np.float32)
@@ -34,8 +39,9 @@ def write_glb(path, prims, node_name="tile"):
             at["COLOR_0"] = add(np.c_[np.asarray(COL, np.float32), np.ones(len(COL), np.float32)], 34962, 5126, "VEC4")
         mats.append(dict(name=name))
         meshes_prims.append(dict(attributes=at, indices=ii, material=len(mats) - 1))
-    gl = dict(asset=dict(version="2.0", generator="rochetoirin"), scene=0, scenes=[dict(nodes=[0])],
-              nodes=[dict(name=node_name, mesh=0)], meshes=[dict(name=node_name, primitives=meshes_prims)],
+      meshes.append(dict(name=gname, primitives=meshes_prims)); nodes.append(dict(name=gname, mesh=len(meshes) - 1))
+    gl = dict(asset=dict(version="2.0", generator="rochetoirin"), scene=0, scenes=[dict(nodes=list(range(len(nodes))))],
+              nodes=nodes, meshes=meshes,
               materials=mats, accessors=accs, bufferViews=views, buffers=[dict(byteLength=len(blob))])
     js = json.dumps(gl, separators=(",", ":")).encode()
     while len(js) % 4:

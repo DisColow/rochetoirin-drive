@@ -5,6 +5,8 @@ extends CanvasLayer
 var car: VehicleBody3D
 var speed: Label
 var buttons := []
+var map: Control
+signal teleport(pos: Vector3, heading: float)
 
 func _ready() -> void:
 	speed = Label.new()
@@ -20,6 +22,13 @@ func _ready() -> void:
 	_add_button("accelerer", "GAZ", 3)
 	_add_button("camera", "CAM", 4)
 	_add_button("replacer", "↺", 5)
+	_add_button("carte", "CARTE", 6)
+	map = preload("res://scripts/map.gd").new()
+	map.car = car
+	map.visible = false
+	map.teleport.connect(func(p, h): teleport.emit(p, h))
+	map.closed.connect(func(): _show_drive(true))
+	add_child(map)
 	_layout()
 
 func _disc(r: int, col: Color, text_col: Color) -> ImageTexture:
@@ -44,7 +53,7 @@ func _add_button(action: String, label: String, idx: int) -> void:
 	b.shape = sh; b.shape_centered = true
 	var l := Label.new()
 	l.text = label
-	l.add_theme_font_size_override("font_size", 40 if big else 30)
+	l.add_theme_font_size_override("font_size", 40 if big else (30 if label.length() <= 3 else 22))
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	l.size = Vector2(r * 2, r * 2)
@@ -56,10 +65,19 @@ func _add_button(action: String, label: String, idx: int) -> void:
 func _layout() -> void:
 	var s := get_viewport().get_visible_rect().size
 	var pos := [Vector2(60, s.y - 230), Vector2(290, s.y - 230), Vector2(s.x - 470, s.y - 230), Vector2(s.x - 240, s.y - 260),
-		Vector2(s.x - 140, 30), Vector2(s.x - 260, 30)]
+		Vector2(s.x - 140, 30), Vector2(s.x - 260, 30), Vector2(s.x - 380, 30)]
 	for i in buttons.size():
 		buttons[i].position = pos[i]
 
+func _show_drive(on: bool) -> void:
+	for b in buttons:
+		b.visible = on
+	speed.visible = on
+	get_tree().paused = not on
+
 func _process(_dt: float) -> void:
+	if Input.is_action_just_pressed("carte") and not map.visible:
+		_show_drive(false)
+		map.open()
 	if car:
 		speed.text = "%d km/h" % int(round(car.kmh()))

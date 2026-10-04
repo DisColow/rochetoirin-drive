@@ -156,10 +156,64 @@ def load_network():
                          paved=paved, bridge=t.get("bridge") not in (None, "no"), layer=int(t.get("layer", "0") or 0)
                          if str(t.get("layer", "0")).lstrip("-").isdigit() else 0, sidewalk=sides,
                          oneway=t.get("oneway") in ("yes", "1") or t.get("junction") == "roundabout" or cls == "motorway"))
-    return N, ways, zone
+    node_tags = {e["id"]: e["tags"] for e in d["elements"] if e["type"] == "node" and e.get("tags")}
+    towns = {}
+    for e in d["elements"]:
+        t = e.get("tags", {})
+        if e["type"] == "node" and t.get("place") in ("town", "village", "city", "hamlet") and t.get("name"):
+            towns[t["name"]] = np.array(N[e["id"]])
+    return N, ways, zone, node_tags, towns
 
 
 # ------------------------------------------------------------------------------------------------ profils
+# rayon de courbure visé aux angles des tracés OSM (m), limité par la longueur des segments voisins
+RADIUS = {"motorway": 300.0, "motorway_link": 60.0, "trunk": 150.0, "primary": 90.0, "secondary": 60.0,
+          "tertiary": 40.0, "trunk_link": 40.0, "primary_link": 30.0, "secondary_link": 25.0, "tertiary_link": 20.0,
+          "unclassified": 25.0, "residential": 12.0, "living_street": 8.0, "pedestrian": 8.0, "service": 8.0, "track": 15.0}
+
+
+def round_polyline(P0, keep, R, step=3.0):
+    """Remplace chaque sommet intérieur (hors carrefours) par un arc de cercle tangent aux deux segments.
+    Renvoie la polyligne densifiée (pas de 3 m) et l'indice de chaque sommet OSM dans celle-ci."""
+    n = len(P0)
+    # points de contrôle : (point, est_un_sommet_osm_conservé)
+    ctrl = [(P0[0], 0)]
+    for k in range(1, n - 1):
+        a, b, c = P0[k - 1], P0[k], P0[k + 1]
+        u = b - a; v = c - b
+        lu, lv = np.linalg.norm(u), np.linalg.norm(v)
+        if keep[k] or lu < 1e-6 or lv < 1e-6:
+            ctrl.append((b, k)); continue
+        u /= lu; v /= lv
+        cosang = float(np.clip(np.dot(u, v), -1, 1))
+        th = math.acos(cosang)                       # angle de déviation
+        if th < math.radians(2):
+            ctrl.append((b, k)); continue
+        t = R * math.tan(th / 2)
+        t = min(t, 0.48 * lu, 0.48 * lv)              # le segment voisin doit garder de la place
+        r = t / math.tan(th / 2)
+        p1 = b - u * t; p2 = b + v * t
+        # centre de l'arc
+        sgn = 1.0 if (u[0] * v[1] - u[1] * v[0]) > 0 else -1.0
+        nrm = np.array([-u[1], u[0]]) * sgn
+        cen = p1 + nrm * r
+        a1 = math.atan2(p1[1] - cen[1], p1[0] - cen[0]); a2 = math.atan2(p2[1] - cen[1], p2[0] - cen[0])
+        da = (a2 - a1 + math.pi) % (2 * math.pi) - math.pi
+        m = max(2, int(math.ceil(abs(da) * r / step)))
+        for j in range(m + 1):
+            aa = a1 + da * j / m
+            ctrl.append((cen + r * np.array([math.cos(aa), math.sin(aa)]), k if j == m // 2 else -1))
+    ctrl.append((P0[-1], n - 1))
+    P, idx = [ctrl[0][0]], {0: 0}
+    for (a, _), (b, kb) in zip(ctrl[:-1], ctrl[1:]):
+        L = float(np.hypot(*(b - a))); m = max(1, int(math.ceil(L / step)))
+        for j in range(1, m + 1):
+            P.append(a + (b - a) * j / m)
+        if kb >= 0:
+            idx[kb] = len(P) - 1
+    return np.array(P), [idx.get(k, 0) for k in range(n)]
+
+
 def profiles(N, ways, dem):
     """Profil en long de chaque voie : relief moyen sous la chaussée, lissé ; altitudes communes aux nœuds partagés."""
     use = {}
@@ -168,14 +222,8 @@ def profiles(N, ways, dem):
             use[n] = use.get(n, 0) + 1
     for w in ways:
         P0 = np.array([N[n] for n in w["nodes"]])
-        # indices des nœuds OSM dans la polyligne densifiée
-        P, idx = [P0[0]], [0]
-        for a, b in zip(P0[:-1], P0[1:]):
-            L = float(np.hypot(*(b - a))); n = max(1, int(math.ceil(L / 3.0)))
-            for k in range(1, n + 1):
-                P.append(a + (b - a) * k / n)
-            idx.append(len(P) - 1)
-        P = np.array(P)
+        keep = [k == 0 or k == len(P0) - 1 or use[n] > 1 for k, n in enumerate(w["nodes"])]
+        P, idx = round_polyline(P0, keep, RADIUS.get(w["cls"], 12.0))
         s = np.r_[0, np.cumsum(np.hypot(*np.diff(P, axis=0).T))]
         T = np.gradient(P, axis=0); T /= np.maximum(np.linalg.norm(T, axis=1, keepdims=True), 1e-9)
         Nn = np.c_[-T[:, 1], T[:, 0]]
@@ -384,7 +432,7 @@ def main():
     import shutil
     shutil.rmtree(OUT_ROADS, ignore_errors=True); os.makedirs(OUT_ROADS)
     dem = DEM()
-    N, ways, zone = load_network()
+    N, ways, zone, node_tags, towns = load_network()
     print(len(ways), "voies dans la zone")
     profiles(N, ways, dem)
     S = samples(ways)
@@ -416,6 +464,19 @@ def main():
     walk_u = unary_union(walk).difference(paved_u).difference(unpaved_u.buffer(0.01)) if walk else Polygon()
     shapely.prepare(paved_u); shapely.prepare(walk_u)
     hroad = lambda x, z: rf(x, z)[0]
+    # marquages et panneaux (données OSM réelles)
+    import furniture, signs_atlas
+    use = {}
+    for w in ways:
+        for n in w["nodes"]:
+            use[n] = use.get(n, 0) + 1
+    city = [t.get("name") for t in node_tags.values() if t.get("traffic_sign") == "city_limit" and t.get("name")]
+    city_names = signs_atlas.build(city)
+    det = furniture.Out(TILE)
+    ways_m = [w for w in ways if not w["bridge"]]
+    nc, ns = furniture.markings(det, ways_m, use, hroad, node_tags, {"uncontrolled", "marked", "zebra", "traffic_signals", None})
+    st = furniture.signs(det, ways, use, hroad, node_tags, city_names, towns)
+    print("marquages : %d passages piétons, %d lignes d'arrêt ; panneaux :" % (nc, ns), st)
     tiles = set()
     mnx, mnz, mxx, mxz = unary_union([paved_u, unpaved_u]).bounds
     for tx in range(int(mnx // TILE), int(mxx // TILE) + 1):
@@ -472,12 +533,18 @@ def main():
             groups["asphalt_bridge"] = mbd
         if not mbp.empty():
             groups["concrete"] = mbp
-        if groups:
+        dprims = det.prims((tx, tz))
+        if groups or dprims:
             prims = []
             for name, mb in groups.items():
                 P, Nn, UV, I = mb.arrays()
                 prims.append((name, P, Nn, UV, I)); ntri += len(I) // 3
-            write_glb("%s/t_%d_%d.glb" % (OUT_ROADS, tx, tz), prims)
+            G = {}
+            if prims:
+                G["tile"] = prims
+            if dprims:
+                G["detail"] = dprims
+            write_glb("%s/t_%d_%d.glb" % (OUT_ROADS, tx, tz), G)
     print(len(tiles), "tuiles de routes,", ntri, "triangles")
 
 
