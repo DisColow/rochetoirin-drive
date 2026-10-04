@@ -1,0 +1,11 @@
+.godot/
+import/
+*.apk
+# données générées par ../pipeline (non versionnées, comme tools/data)
+world/
+terrain/
+assets/terrain_tex/
+assets/tex/
+assets/sky.hdr
+assets/car/
+assets/terrain_assets.tres

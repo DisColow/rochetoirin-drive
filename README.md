@@ -1,3 +1,25 @@
+# Rochetoirin Simulator — branche `godot` (refonte)
+
+Refonte complète sous **Godot 4** : relief IGN à 2 m, routes OpenStreetMap posées sur le relief réel, textures PBR,
+ciel HDRI, horizon réel (Alpes, courbure terrestre). Zone : Rochetoirin, La Tour-du-Pin, Saint-Clair-de-la-Tour,
+Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
+
+## Télécharger
+
+**[Étape 1 — routes, relief, horizon](https://github.com/DisColow/rochetoirin-drive/releases/tag/v2.0-etape1)**
+(APK de 360 Mo, Android 8+, OpenGL ES 3).
+
+Commandes : ◀ ▶ pour tourner, GAZ, FREIN (rester appuyé à l'arrêt pour reculer), CAM (poursuite / conducteur / capot),
+↺ remet la voiture sur la route. Manette : stick gauche, gâchettes, Y caméra, X remettre sur la route.
+
+## Crédits
+
+Relief et orthophotos : IGN (Licence Ouverte). Routes : © contributeurs OpenStreetMap (ODbL). Textures et ciel :
+Poly Haven et ambientCG (CC0). Voiture : « 2008 Renault Espace » par tonielpro520 (Sketchfab, CC-BY-4.0).
+Terrain : Terrain3D (MIT).
+
+---
+
 # Rochetoirin Simulator
 
 Un jeu de conduite Android inspiré d'*Euro Truck Simulator*, dans le village de
