@@ -24,7 +24,8 @@
   `godot --headless --script res://tools/import_terrain.gd`.
 - Étapes validées une par une, **un APK à chaque étape** : 1 routes + relief + horizon, 2 signalisation et marquages,
   3 bâtiments génériques (modèles 3D réalistes, tailles réelles, variés), 4 bâtiments emblématiques, 5 végétation
-  (densité réglable), 6 textures et finitions.
+  (densité réglable), 6 textures et finitions. **Étape ajoutée (à placer quand on veut, à ne pas oublier)** : clôtures,
+  haies, murets et portails qui délimitent les propriétés.
 - L'APK (> 100 Mo) va dans `releases/` via **Git LFS** (`.gitattributes`) ; les GitHub Releases sont interdites à cette
   session. Lien : `https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/<apk>`.
 - Captures de contrôle : `xvfb-run godot --path godot -- --shots=<json>` ; essai de conduite : `-- --drive-test`.
