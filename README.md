@@ -6,8 +6,10 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[Étape 1 — routes, relief, horizon](https://github.com/DisColow/rochetoirin-drive/releases/tag/v2.0-etape1)**
+**[RochetoirinSimulator-v2.0.apk — étape 1 : routes, relief, horizon](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk)**
 (APK de 360 Mo, Android 8+, OpenGL ES 3).
+
+![Étape 1](docs/apercus/v2.0_etape1.jpg)
 
 Commandes : ◀ ▶ pour tourner, GAZ, FREIN (rester appuyé à l'arrêt pour reculer), CAM (poursuite / conducteur / capot),
 ↺ remet la voiture sur la route. Manette : stick gauche, gâchettes, Y caméra, X remettre sur la route.
