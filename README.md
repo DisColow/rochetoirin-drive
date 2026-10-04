@@ -6,13 +6,28 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v2.2.1.apk — étape 3 : bâtiments, ralentisseurs, nom de la route (correctifs)](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.1.apk)**
-(APK de 585 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+**[RochetoirinSimulator-v2.3.apk — étape 4 : bâtiments emblématiques, nouvelle physique](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.3.apk)**
+(APK de 595 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+[v2.2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.1.apk),
 [v2.2](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.apk),
 [v2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.1.apk),
 [v2.0](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk).
 
-![Étape 3](docs/apercus/v2.2_etape3.jpg)
+![Étape 4](docs/apercus/v2.3_etape4.jpg)
+
+Nouveautés de l'étape 4 (d'après des photos de référence de chaque monument) :
+- **églises** de Rochetoirin, La Tour-du-Pin, Saint-Clair, Saint-Jean-de-Soudain, Cessieu, Montcarra, L'Isle-d'Abeau
+  et **abbatiale de Saint-Chef** : nef, bas-côtés, abside, clocher à sa place réelle (façade, chevet ou côté), flèche
+  de pierre ou d'ardoise, pinacles, abat-son, horloge, portail, rosace, vitraux en plein cintre ou en ogive, croix ;
+- **chapelles** à clocheton, **tour du Pollet** en ruine, **châteaux** du Marchil (tours rondes) et de Thézieux ;
+- **mairies** aux couleurs réelles, plaque « MAIRIE », drapeaux français et européen (mâts à Montcarra) ;
+- 10 **monuments aux morts** et 13 **croix de chemin**.
+
+Physique et confort (retours de la v2.2.1) :
+- moteur physique Jolt (plus robuste) ; plus de basculement sur le côté (centre de gravité bas, anti-roulis) ;
+- vitesse : 130 km/h en 10 s, pointe vers 180 km/h ;
+- voiture retournée ou sur le flanc : remise automatique sur la **route la plus proche**, dans le bon sens ;
+- rapport de plantage plus fiable (aussi en cas de blocage, état noté au décollage des sauts).
 
 Nouveautés de l'étape 3 :
 - **18 000 bâtiments** aux emprises et hauteurs réelles (IGN BD TOPO) : maisons, annexes, immeubles, commerces,

@@ -18,6 +18,7 @@ func _ready() -> void:
 	add_child(roads)
 	var spawn: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://world/spawn.json"))
 	car = preload("res://scripts/car.gd").new()
+	car.road_pts = FileAccess.get_file_as_bytes("res://world/teleport.bin").to_float32_array()
 	add_child(car)
 	car.place(Vector3(spawn.x, spawn.y + 0.6, spawn.z), float(spawn.heading))
 	# essai : --drive-from=x,y,z,cap (départ de l'essai de conduite ailleurs qu'au point de départ)
@@ -219,15 +220,29 @@ func _physics_process(_dt: float) -> void:
 	var t := Engine.get_physics_frames()
 	if t == 1:
 		print("départ ", car.global_position)
-	car.touch_throttle = 1.0 if t < 1200 else 0.0
-	car.touch_brake = 1.0 if t >= 1200 else 0.0
+	var dur := 3000 if OS.get_cmdline_user_args().has("--long") else 1200
+	car.touch_throttle = 1.0 if t < dur else 0.0
+	car.touch_brake = 1.0 if t >= dur else 0.0
 	var straight: bool = Array(OS.get_cmdline_user_args()).any(func(a): return a.begins_with("--drive-from="))
 	car.touch_steer = 0.3 if (t > 600 and t < 800 and not straight) else 0.0
+	if OS.get_cmdline_user_args().has("--flip-test"):
+		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
+		if t == 240:
+			var tr := car.global_transform
+			car.global_transform = Transform3D(tr.basis.rotated(tr.basis.z, PI), tr.origin + tr.basis.x * 14.0 + Vector3(0, 1.5, 0))
+			print("retournée en ", car.global_position)
+		if t % 120 == 0 and t > 240:
+			print("  t=%ds pos=%s haut=%.2f route=%s" % [t / 120, car.global_position.snapped(Vector3(0.1, 0.1, 0.1)), car.global_transform.basis.y.y, find_children("*", "CanvasLayer", false, false)[0].names.road_at(car.global_position)])
+		return
+	if OS.get_cmdline_user_args().has("--hard-steer"):
+		car.touch_steer = (1.0 if t < 1000 else -1.0) if t > 840 and t < 1150 else 0.0
+		if t % 30 == 0 and t > 800:
+			print("  braquage t=%.2f v=%d km/h haut=%.2f roues=%d" % [t / 120.0, car.kmh(), car.global_transform.basis.y.y, car.wheels.filter(func(w): return w.is_in_contact()).size()])
 	if not car.global_position.is_finite() or car.linear_velocity.length() > 80.0:
 		print("ANOMALIE t=%d pos=%s v=%s" % [t, car.global_position, car.linear_velocity])
 	if t % 120 == 0:
 		print("t=%.0fs pos=%s v=%.0f km/h avant=%.1f roues au sol=%d" % [t / 120.0, car.global_position.snapped(Vector3(0.1, 0.1, 0.1)), car.kmh(), car.forward_speed(), car.wheels.filter(func(w): return w.is_in_contact()).size()])
-	if t > 1800:
+	if t > dur + 600:
 		get_tree().quit()
 
 # ---------------------------------------------------------------- essai mémoire (pipeline) : --mem-test

@@ -3,8 +3,9 @@
 ## chute, retournement, blocage), aides à la stabilité.
 extends VehicleBody3D
 
-const MAX_KMH := 175.0
-const ENGINE := 4200.0          # force max (N) à bas régime
+const MAX_KMH := 185.0
+const POWER := 72000.0         # puissance aux roues (W) : 130 km/h atteints franchement, pointe vers 185
+const ENGINE := 4800.0          # force max (N) au démarrage (limitée par l'adhérence)
 const BRAKE := 60.0
 const STEER_LOW := 0.55         # braquage max à l'arrêt (rad)
 const STEER_HIGH := 0.08        # à 130 km/h
@@ -19,12 +20,15 @@ var _safe_t := 0.0
 var _stuck_t := 0.0
 var _flip_t := 0.0
 var wheels := []
+var road_pts := PackedFloat32Array()   # points de route (x, z, y, cap) pour la remise sur la route
 
 func _ready() -> void:
 	mass = 1650.0
 	center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
-	center_of_mass = Vector3(0, 0.45, 0)
-	linear_damp = 0.02
+	center_of_mass = Vector3(0, 0.22, 0)        # bas (moteur, plancher) : pas de basculement en virage
+	# pas d'amortissement générique (0,1 par défaut dans le projet = 7 kN à 130 km/h) : traînée aérodynamique réelle
+	linear_damp_mode = RigidBody3D.DAMP_MODE_REPLACE
+	linear_damp = 0.0
 	angular_damp = 0.6
 	continuous_cd = true
 	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/car/meta.json"))
@@ -52,7 +56,7 @@ func _ready() -> void:
 		w.damping_compression = 0.9
 		w.damping_relaxation = 1.4
 		w.wheel_friction_slip = 2.6
-		w.wheel_roll_influence = 0.12
+		w.wheel_roll_influence = 0.03
 		w.use_as_steering = front
 		w.use_as_traction = front
 		var v: Node3D = wheel_scene.instantiate()
@@ -129,8 +133,8 @@ func _physics_process(dt: float) -> void:
 		engine_force = -ENGINE * 0.5 * brk if spd < 25.0 else 0.0
 		brake = 0.0
 	else:
-		# boîte auto : force décroissante avec la vitesse, coupée à la vitesse max
-		var f := ENGINE * thr * clampf(1.15 - spd / 210.0, 0.25, 1.0)
+		# boîte auto : force limitée par la puissance (F = P / v), coupée à la vitesse max
+		var f := thr * minf(ENGINE, POWER / maxf(absf(v), 1.0))
 		if spd > MAX_KMH:
 			f = 0.0
 		engine_force = f
@@ -143,7 +147,25 @@ func _physics_process(dt: float) -> void:
 	var side := global_transform.basis.x
 	var lat := linear_velocity.dot(side)
 	apply_central_force(-side * lat * mass * 0.6 * dt * 60.0 * 0.05)
+	_anti_roll()
 	_recovery(dt)
+
+## Aide à la stabilité : ramène doucement la caisse à plat autour de son axe longitudinal (roulis), sans toucher au
+## tangage (montées, descentes) ; plus ferme en l'air pour retomber sur les roues après un saut.
+func _anti_roll() -> void:
+	var fwd := global_transform.basis.z
+	var up := global_transform.basis.y
+	var on_ground := wheels.any(func(w): return w.is_in_contact())
+	# angle de roulis : inclinaison de l'axe vertical de la caisse dans le plan perpendiculaire à l'avant
+	var ref := (Vector3.UP - fwd * Vector3.UP.dot(fwd)).normalized()
+	var roll := up.signed_angle_to(ref, fwd)
+	var k := 9000.0 if on_ground else 14000.0
+	var d := 2500.0
+	apply_torque(fwd * (roll * k - angular_velocity.dot(fwd) * d))
+	if not on_ground:
+		# en l'air : le tangage est aussi amorti pour atterrir à plat
+		var right := global_transform.basis.x
+		apply_torque(-right * angular_velocity.dot(right) * 1500.0)
 
 func _recovery(dt: float) -> void:
 	var p := global_position
@@ -158,17 +180,45 @@ func _recovery(dt: float) -> void:
 		safe.append(global_transform)
 		if safe.size() > 12:
 			safe.pop_front()
-	# retourné ou sur le flanc plus de 2 s
-	_flip_t = _flip_t + dt if up < 0.4 else 0.0
+	# état aberrant (moteur physique) : remise immédiate
+	if not global_transform.origin.is_finite() or not linear_velocity.is_finite() or linear_velocity.length() > 110.0:
+		reset_to_road()
+		return
+	# retourné ou sur le flanc plus de 1,2 s (presque à l'arrêt)
+	_flip_t = _flip_t + dt if (up < 0.5 and kmh() < 25.0) else 0.0
 	# bloqué (accélère sans avancer) plus de 4 s
 	var thr := Input.get_action_strength("accelerer") + touch_throttle
 	_stuck_t = _stuck_t + dt if (thr > 0.3 and kmh() < 1.5) else 0.0
-	if p.y < -50.0 or _flip_t > 2.0 or _stuck_t > 4.0 or Input.is_action_just_pressed("replacer"):
+	if p.y < -50.0 or _flip_t > 1.2 or _stuck_t > 4.0 or Input.is_action_just_pressed("replacer"):
 		reset_to_road()
 
+## Remise sur la route la plus proche, dans le sens de la voie le plus proche de celui de la voiture.
 func reset_to_road() -> void:
-	var t: Transform3D = safe[max(0, safe.size() - 3)] if safe.size() > 0 else global_transform
-	global_transform = Transform3D(Basis(Vector3.UP, t.basis.get_euler().y), t.origin + Vector3(0, 0.8, 0))
-	linear_velocity = Vector3.ZERO
-	angular_velocity = Vector3.ZERO
+	var p := global_position
+	if not p.is_finite():
+		p = safe[-1].origin if safe.size() > 0 else Vector3.ZERO
+	var fwd := global_transform.basis.z
+	var yaw_ok := fwd.is_finite() and Vector2(fwd.x, fwd.z).length() > 0.2
+	var best := -1
+	var bd := 1e18
+	for i in range(0, road_pts.size(), 4):
+		var dx := road_pts[i] - p.x
+		var dz := road_pts[i + 1] - p.z
+		var d := dx * dx + dz * dz
+		if d > bd:
+			continue
+		if yaw_ok:
+			# cap du point (0 = Nord = -Z, sens horaire) -> direction ; sens opposé pénalisé de 15 m
+			var h := deg_to_rad(road_pts[i + 3])
+			if Vector2(sin(h), -cos(h)).dot(Vector2(fwd.x, fwd.z).normalized()) < 0.0:
+				d += 225.0
+		if d < bd:
+			bd = d; best = i
+	if best >= 0:
+		place(Vector3(road_pts[best], road_pts[best + 2] + 0.3, road_pts[best + 1]), road_pts[best + 3])
+	else:
+		var t: Transform3D = safe[max(0, safe.size() - 3)] if safe.size() > 0 else global_transform
+		global_transform = Transform3D(Basis(Vector3.UP, t.basis.get_euler().y), t.origin + Vector3(0, 0.8, 0))
+		linear_velocity = Vector3.ZERO
+		angular_velocity = Vector3.ZERO
 	_flip_t = 0.0; _stuck_t = 0.0

@@ -515,9 +515,12 @@ def roof_material(ortho_rgb, kind, wall, key):
     return tex, t
 
 
-def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, others, my_i):
+def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, others, my_i, ov=None):
+    """Construit un bâtiment ; ov : réglages imposés (bâtiments emblématiques : mairies, châteaux) — wall, wtint, roof,
+    roof_tint, hip, modern, shutters. Retourne un résumé (forme, hauteurs, côté rue) pour les ajouts éventuels."""
+    ov = ov or {}
     key = p.get("cleabs") or str(my_i)
-    kind = classify(p, poly)
+    kind = ov.get("kind") or classify(p, poly)
     poly = shapely.simplify(poly, 0.3)
     if poly.area < 6 or not poly.is_valid:
         return None
@@ -526,7 +529,7 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
     if not H or H <= 0:
         f = p.get("nombre_d_etages")
         H = (f * 2.8 + 0.6) if f else {"annexe": 2.6, "maison": 5.5, "collectif": 12.0, "commerce": 5.0, "activite": 6.5}[kind]
-    H = float(np.clip(H, 2.2, 45.0))
+    H = float(np.clip(max(H, ov.get("min_h", 0.0)), 2.2, 45.0))
     rise_data = None
     if p.get("altitude_maximale_toit") and p.get("altitude_minimale_sol"):
         rise_data = float(p["altitude_maximale_toit"]) - float(p["altitude_minimale_sol"]) - H
@@ -543,21 +546,27 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
         wtint = srgb(pick(key, "wt", [((0.85, 0.86, 0.85), 4), ((0.62, 0.70, 0.66), 2), ((0.80, 0.74, 0.62), 2), ((0.55, 0.6, 0.68), 1)]))
     if wall == "bardage_bois":
         wtint = srgb(pick(key, "wt", [((1, 1, 1), 3), ((1.25, 1.2, 1.1), 2)]))
+    if "wall" in ov:
+        wall = ov["wall"]; wl = IDX[wall]
+    if "wtint" in ov:
+        wtint = srgb(ov["wtint"])
     rgb = ortho.mean(poly)
     rtex, rtint = roof_material(rgb, kind, wall, key)
+    if "roof" in ov:
+        rtex = ov["roof"]; rtint = np.array(ov.get("roof_tint", (1, 1, 1)))
     rl = IDX[rtex]; rtint = srgb(np.clip(rtint, 0.2, 1.5))
     # forme du toit
     dec = decompose(poly)
     flat = False
     A = poly.area
-    if rtex == "toit_plat" or (rise_data is not None and rise_data < 0.4 and A > 60 and kind != "annexe"):
+    if rtex == "toit_plat" or (rise_data is not None and rise_data < 0.4 and A > 60 and kind != "annexe" and "roof" not in ov):
         flat = True
-    if dec is None and kind in ("activite", "collectif", "commerce"):
+    if dec is None and kind in ("activite", "collectif", "commerce") and "hip" not in ov:
         flat = True
     if dec is None and not flat:
         # forme quelconque : rectangle orienté si l'emprise le remplit à peu près, sinon terrasse
         a, c, r = obb_frame(poly)
-        if A / r.area > 0.72:
+        if A / r.area > (0.5 if "hip" in ov else 0.72):
             rr = Polygon(rot(np.asarray(r.exterior.coords), -a, c))
             x0, z0, x1, z1 = rr.bounds
             dec = (Polygon([(x0, z0), (x1, z0), (x1, z1), (x0, z1)]), [(x0, z0, x1, z1)], a, c)
@@ -574,8 +583,8 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
     ringw = np.asarray(foot.exterior.coords)
     gw = dem.h(ringw[:, 0], ringw[:, 1])
     top = eave + (0.6 if flat else 0.0)
-    modern = wall in ("crepi", "brique", "beton") and rnd(key, "roll") < 0.6
-    sh_tint = None if modern else srgb(pick(key, "st", SHUTTER_TINTS))
+    modern = ov.get("modern", wall in ("crepi", "brique", "beton") and rnd(key, "roll") < 0.6)
+    sh_tint = None if modern else srgb(ov.get("shutters") or pick(key, "st", SHUTTER_TINTS))
     win_layer = IDX["fenetre_volet_roulant"] if modern else IDX["fenetre"]
     # côté rue : arête dont le milieu est le plus proche d'une route
     mids = (ringw[:-1] + ringw[1:]) / 2
@@ -682,6 +691,10 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
         if wall in ("pierre", "pierre_taillee", "crepi_ancien"):
             hip_p *= 0.5
         rk = "hip" if (rnd(key, "hip") < hip_p and long_ratio < 2.6) else "gable"
+        if "hip" in ov:
+            rk = "hip" if ov["hip"] else "gable"
+        if "pitch" in ov:
+            pitch = math.radians(ov["pitch"])
         ytop = eave
         for R in rects:
             ytop = max(ytop, roof_rect(M, R, rects, eave, pitch, rk, lambda P: rot(P, ang, cen), rl, rtint, wl, wtint))
@@ -698,7 +711,8 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
         b = np.argmin(np.hypot(V[:, 0] - ringw[k + 1, 0], V[:, 1] - ringw[k + 1, 1]))
         It += [a, b, b + n, a, b + n, a + n]
     C.append((Pc, np.array(It, np.uint32)))
-    return kind
+    return dict(kind=kind, foot=foot, eave=eave, ytop=ytop, base=base, gmin=gmin, gmax=gmax, street=street,
+                ring=ringw, ground=gw, flat=flat, wall=wl, wtint=wtint)
 
 
 def main():
@@ -718,12 +732,23 @@ def main():
     tree = STRtree(polys)
     tiles = {}
     stats = {}
+    # bâtiments emblématiques : modèles dédiés (remplacent les bâtiments BD TOPO recouverts) et habillages
+    import landmarks
+    LM = landmarks.Landmarks(polys, blds, road_tree, dem)
+    for kind, n in LM.build(tiles, TILE, Mesh).items():
+        stats["monument:" + kind] = n
     for i, (p, g) in enumerate(blds):
         c = g.centroid
         key = (int(c.x // TILE), int(c.y // TILE))
         M, C = tiles.setdefault(key, (Mesh(), []))
+        if i in LM.replaced:
+            continue
         try:
-            k = build_one(M, C, p, g, dem, ortho, road_tree, rp, tree, polys, i)
+            info = build_one(M, C, p, g, dem, ortho, road_tree, rp, tree, polys, i, LM.override.get(i))
+            k = info["kind"] if info else None
+            if info and i in LM.override:
+                LM.extras(M, C, i, info)
+                k = "habillé:" + LM.override[i].get("label", "?")
         except Exception as e:
             k = "erreur"
             if stats.get("erreur", 0) < 3:

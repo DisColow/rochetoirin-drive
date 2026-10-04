@@ -30,6 +30,20 @@ LAYERS = [
     ("porte", None, 1.0),
     ("porte_garage", None, 1.0),
     ("vitrine", None, 1.0),
+    # bâtiments emblématiques (étape 4)
+    ("ardoise", "ph/roof_slates_02", 2.0),
+    ("pierre_claire", "ph/old_stone_wall", 2.5),
+    ("vitrail_cintre", None, 1.0),
+    ("vitrail_ogive", None, 1.0),
+    ("abat_son", None, 1.0),
+    ("portail_cintre", None, 1.0),
+    ("portail_ogive", None, 1.0),
+    ("rosace", None, 1.0),
+    ("horloge", None, 1.0),
+    ("drapeau_fr", None, 1.0),
+    ("drapeau_eu", None, 1.0),
+    ("plaque_mairie", None, 1.0),
+    ("plaque_hdv", None, 1.0),
 ]
 IDX = {n: i for i, (n, _, _) in enumerate(LAYERS)}
 
@@ -151,6 +165,152 @@ def shop():
     return col, _normal_from_height(h, 3.0), rough, glass
 
 
+# ------------------------------------------------------------------------------------------------ monuments
+def _stone_frame():
+    """Encadrement en pierre de taille claire (fond des baies d'église), non teinté par le bâtiment."""
+    st = _load("data/ph/rustic_stone_wall/diff.jpg")
+    lum = st.mean(2, keepdims=True)
+    col = np.clip(0.72 + (lum - lum.mean()) * 0.6, 0, 1) * np.array([1.0, 0.95, 0.86])
+    h = (lum[..., 0] - lum.mean()) * 1.5 + 1.0
+    return col, h
+
+
+def _arch_mask(x0, x1, y_top, y_bot, pointed):
+    """Masque d'une baie en plein cintre ou en ogive (coordonnées 0-1, y vers le bas)."""
+    yy, xx = np.mgrid[0:S, 0:S] / S
+    w = (x1 - x0) / 2; cx = (x0 + x1) / 2
+    if pointed:
+        r = w * 1.6
+        spring = y_top + r * 0.95
+        left = (xx - (cx + w - r)) ** 2 + (yy - spring) ** 2 <= r * r
+        right = (xx - (cx - w + r)) ** 2 + (yy - spring) ** 2 <= r * r
+        arch = left & right & (yy < spring)
+    else:
+        spring = y_top + w
+        arch = ((xx - cx) ** 2 + (yy - spring) ** 2 <= w * w) & (yy < spring)
+    rect = (yy >= spring) & (yy <= y_bot) & (xx >= x0) & (xx <= x1)
+    return (arch | rect) & (xx >= x0) & (xx <= x1)
+
+
+def _stained(seed):
+    rng = np.random.default_rng(seed)
+    yy, xx = np.mgrid[0:S, 0:S] / S
+    # losanges sertis de plomb, couleurs profondes (vues de l'extérieur : sombres et réfléchissantes)
+    u = (xx + yy) * 14; v = (xx - yy) * 14
+    cell = (np.floor(u).astype(int) * 31 + np.floor(v).astype(int) * 17) % 7
+    pal = np.array([[0.10, 0.14, 0.32], [0.30, 0.08, 0.08], [0.32, 0.26, 0.10], [0.12, 0.22, 0.16], [0.16, 0.16, 0.26],
+                    [0.24, 0.12, 0.22], [0.18, 0.20, 0.30]])
+    col = pal[cell] * (0.8 + 0.4 * rng.random((S, S, 1)))
+    lead = (np.abs(u - np.round(u)) < 0.06) | (np.abs(v - np.round(v)) < 0.06)
+    col[lead] = 0.05
+    return col, lead
+
+
+def church_window(pointed):
+    col, h = _stone_frame()
+    m = _arch_mask(0.16, 0.84, 0.04, 0.97, pointed)
+    inner = _arch_mask(0.22, 0.78, 0.10, 0.97, pointed)
+    gl, lead = _stained(2 if pointed else 3)
+    col[m] = col[m] * 0.85
+    col[inner] = gl[inner]
+    h[m] = 0.6; h[inner] = 0.0 + lead[inner] * 0.15
+    glass = inner.astype(np.float32)
+    return col, _normal_from_height(h, 5.0), np.where(inner, 0.06, 0.75).astype(np.float32), glass
+
+
+def louvre():
+    col, h = _stone_frame()
+    inner = _arch_mask(0.2, 0.8, 0.06, 0.98, False)
+    yy = np.mgrid[0:S, 0:S][0] / S
+    slat = (yy * 22) % 1.0
+    wood = np.dstack([0.30 + 0.25 * slat, 0.27 + 0.22 * slat, 0.24 + 0.18 * slat])
+    col[inner] = (wood * 0.9)[inner]
+    h[inner] = slat[inner] * 0.5
+    return col, _normal_from_height(h, 8.0), np.full((S, S), 0.7, np.float32), np.zeros((S, S), np.float32)
+
+
+def portal(pointed):
+    col, h = _stone_frame()
+    m = _arch_mask(0.08, 0.92, 0.02, 1.0, pointed)
+    door = _arch_mask(0.16, 0.84, 0.10, 1.0, pointed)
+    wood = _load("data/ph/rough_pine_door/diff.jpg")
+    yy, xx = np.mgrid[0:S, 0:S] / S
+    col[m] *= 0.88
+    # tympan en pierre au-dessus des vantaux, vantaux en bois sombre
+    leaf = door & (yy > 0.42)
+    col[door] = col[door] * 0.92
+    col[leaf] = (wood * np.array([0.75, 0.62, 0.5]))[leaf]
+    seam = leaf & (np.abs(xx - 0.5) < 0.006)
+    col[seam] = 0.08
+    h[m] = 0.7; h[door] = 0.4; h[leaf] = 0.2 + wood.mean(2)[leaf] * 0.2
+    return col, _normal_from_height(h, 5.0), np.full((S, S), 0.7, np.float32), np.zeros((S, S), np.float32)
+
+
+def rose():
+    col, h = _stone_frame()
+    yy, xx = np.mgrid[0:S, 0:S] / S
+    r = np.hypot(xx - 0.5, yy - 0.5); a = np.arctan2(yy - 0.5, xx - 0.5)
+    gl, lead = _stained(4)
+    disk = r < 0.40
+    petals = (np.cos(a * 12) * 0.5 + 0.5) > 0.25
+    glass = disk & ((r < 0.10) | ((r > 0.13) & (r < 0.37) & petals))
+    col[r < 0.46] *= 0.85
+    col[glass] = gl[glass]
+    h[r < 0.46] = 0.6; h[glass] = 0.0
+    return col, _normal_from_height(h, 5.0), np.where(glass, 0.06, 0.75).astype(np.float32), glass.astype(np.float32)
+
+
+def clock():
+    from PIL import ImageDraw
+    col, h = _stone_frame()
+    im = Image.new("RGB", (S, S), (0, 0, 0)); d = ImageDraw.Draw(im)
+    d.ellipse((90, 90, S - 90, S - 90), fill=(235, 232, 222), outline=(40, 40, 40), width=18)
+    import math as m
+    for k in range(60):
+        a = k / 60 * 2 * m.pi; L = 60 if k % 5 == 0 else 22; w = 14 if k % 5 == 0 else 5
+        c = S / 2; R = S / 2 - 120
+        d.line((c + m.sin(a) * R, c - m.cos(a) * R, c + m.sin(a) * (R - L), c - m.cos(a) * (R - L)), fill=(25, 25, 25), width=w)
+    c = S / 2
+    d.line((c, c, c + 150, c - 160), fill=(20, 20, 20), width=26)       # 10 h 10 : aiguilles
+    d.line((c, c, c - 260, c - 120), fill=(20, 20, 20), width=16)
+    a = np.asarray(im).astype(np.float32) / 255
+    face = a.sum(2) > 0.05
+    col[face] = a[face]
+    h[face] = 0.9
+    return col, _normal_from_height(h, 3.0), np.full((S, S), 0.5, np.float32), np.zeros((S, S), np.float32)
+
+
+def flag(kind):
+    yy, xx = np.mgrid[0:S, 0:S] / S
+    if kind == "fr":
+        col = np.where(xx[..., None] < 1 / 3, np.array([0.0, 0.2, 0.58]),
+                       np.where(xx[..., None] < 2 / 3, np.array([0.96, 0.96, 0.96]), np.array([0.88, 0.16, 0.18])))
+    else:
+        col = np.zeros((S, S, 3)) + np.array([0.0, 0.2, 0.6])
+        import math as m
+        for k in range(12):
+            a = k / 12 * 2 * m.pi
+            cx, cy = 0.5 + 0.30 * m.sin(a), 0.5 - 0.30 * m.cos(a)
+            col[np.hypot(xx - cx, (yy - cy)) < 0.035] = np.array([1.0, 0.82, 0.0])
+    # plis du tissu
+    shade = 0.82 + 0.18 * np.sin(xx * 14 + np.sin(yy * 5) * 1.5)
+    col = col * shade[..., None]
+    h = np.sin(xx * 14 + np.sin(yy * 5) * 1.5) * 0.5
+    return col, _normal_from_height(h, 6.0), np.full((S, S), 0.8, np.float32), np.zeros((S, S), np.float32)
+
+
+def plaque(text):
+    from PIL import ImageDraw, ImageFont
+    im = Image.new("RGB", (1024, 240), (24, 38, 78)); d = ImageDraw.Draw(im)
+    d.rectangle((8, 8, 1015, 231), outline=(214, 182, 96), width=8)
+    f = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf", 150 if len(text) < 8 else 104)
+    w = d.textlength(text, font=f)
+    d.text(((1024 - w) / 2, 120), text, font=f, fill=(236, 214, 140), anchor="lm")
+    col = np.asarray(im.resize((S, S), Image.LANCZOS)).astype(np.float32) / 255
+    h = col.mean(2)
+    return col, _normal_from_height(h, 2.0), np.full((S, S), 0.35, np.float32), np.zeros((S, S), np.float32)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     A, Nm = [], []
@@ -161,12 +321,21 @@ def main():
             glass = np.zeros((S, S), np.float32)
         else:
             col, nor, rough, glass = {"fenetre": lambda: window(False), "fenetre_volet_roulant": lambda: window(True),
-                                      "volet": shutter, "porte": door, "porte_garage": garage, "vitrine": shop}[name]()
+                                      "volet": shutter, "porte": door, "porte_garage": garage, "vitrine": shop,
+                                      "vitrail_cintre": lambda: church_window(False), "vitrail_ogive": lambda: church_window(True),
+                                      "abat_son": louvre, "portail_cintre": lambda: portal(False),
+                                      "portail_ogive": lambda: portal(True), "rosace": rose, "horloge": clock,
+                                      "drapeau_fr": lambda: flag("fr"), "drapeau_eu": lambda: flag("eu"),
+                                      "plaque_mairie": lambda: plaque("MAIRIE"),
+                                      "plaque_hdv": lambda: plaque("HÔTEL DE VILLE")}[name]()
         if name == "toit_plat":                                         # gravillons gris d'étanchéité
             col = np.clip(col.mean(2, keepdims=True) / col.mean() * np.array([0.52, 0.52, 0.50]), 0, 1)
         if name == "crepi_ancien":                                      # taches moins orangées
             lum = col.mean(2, keepdims=True)
             col = np.clip(lum + (col - lum) * 0.45, 0, 1) / lum.mean() * 0.8
+        if name == "pierre_claire":                                     # moellons calcaires clairs (églises)
+            lum = col.mean(2, keepdims=True)
+            col = np.clip(lum + (col - lum) * 0.35, 0, 1) / lum.mean() * np.array([0.74, 0.69, 0.6])
         if name in ("crepi",):
             col = np.clip(col / col.mean() * 0.86, 0, 1)                 # crépi blanc neutre, teinté par bâtiment
         A.append(np.dstack([col, glass])); Nm.append(np.dstack([nor, rough]))
