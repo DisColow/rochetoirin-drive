@@ -6,13 +6,29 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v2.4.apk — étape 5 : végétation, champs, nouvelle carte](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.4.apk)**
-(APK de 625 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+**[RochetoirinSimulator-v2.5.apk — clôtures, haies, murets et portails](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.5.apk)**
+(APK de 633 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+[v2.4](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.4.apk),
 [v2.3](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.3.apk),
 [v2.2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.1.apk),
 [v2.2](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.apk),
 [v2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.1.apk),
 [v2.0](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk).
+
+![Clôtures](docs/apercus/v2.5_clotures.jpg)
+
+Nouveautés de la v2.5 (étape ajoutée : ce qui délimite les propriétés) :
+- **8 700 propriétés clôturées** d'après le cadastre (IGN Parcellaire Express) : 670 km de haies (thuyas, lauriers,
+  photinias), grillages rigides et à mailles losanges, murets avec grille ou panneaux, murs, panneaux occultants,
+  lisses, clôtures en bois ;
+- **2 300 portails** entre deux piliers (fer, barreaux, pleins, bois), face à la maison et toujours devant un passage
+  libre ; pas de portail là où une allée entre déjà dans la propriété ;
+- **Rochetoirin d'après Street View** : les 171 façades relevées à la main (type de clôture, couleur du mur, de la
+  grille, du portail) ; ailleurs, haies et murs OSM / BD TOPO, sinon la même répartition que dans le bourg ;
+- **haies du bocage** le long des champs (BD TOPO, OSM), à la hauteur mesurée par le LiDAR ;
+- un seul style par limite, d'un bout à l'autre ; pas de clôture dans un bâtiment ; **rien sur la route** : les
+  limites côté rue sont reculées hors de la chaussée et du trottoir (contrôle automatique : 0 point sur 210 000) ;
+- maillages construits en jeu dans un fil de calcul (18 Mo de données au lieu de 900 Mo), sans à-coup.
 
 ![Étape 5](docs/apercus/v2.4_etape5.jpg)
 

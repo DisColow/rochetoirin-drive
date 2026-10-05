@@ -22,7 +22,8 @@
   ralentisseurs), `fetch_vegetation.py` (LiDAR HD MNH, zones de végétation, haies, RPG), `build_roads.py`,
   `prepare_terrain.py`, `build_assets.py`, `convert_car.py`, `fetch_communes.py`, `build_map.py`, `fetch_landmarks.py`,
   `fetch_sv_landmarks.py` (cache Street View privé d'abord), `fetch_building_tex.py`, `build_bld_tex.py`,
-  `build_buildings.py`, `build_gps.py`, `fetch_trees.py` (Sketchfab, SKETCHFAB_TOKEN) ; puis
+  `build_buildings.py`, `build_gps.py`, `fetch_trees.py` (Sketchfab, SKETCHFAB_TOKEN), `fetch_cadastre.py`, `build_fence_tex.py`,
+  `build_fences.py` (clôtures : relevé `clotures_bourg.json` ; contrôle « rien sur la route » doit donner 0) ; puis
   `godot --headless --import`, `godot --headless --script res://tools/prepare_trees.gd`, `godot --headless --import`,
   `xvfb-run godot --path godot res://tools/bake_impostors.tscn`, `impostor_bleed.py`, `build_crop_tex.py`,
   `build_vegetation.py`, `build_crops.py`, `godot --headless --import` et
@@ -32,8 +33,7 @@
   `--shots=` (types : caméra, `map`, `tp`, `tap` = vrai toucher sur la carte, `cam` = vue de jeu + charge de rendu).
 - Étapes validées une par une, **un APK à chaque étape** : 1 routes + relief + horizon, 2 signalisation et marquages,
   3 bâtiments génériques (modèles 3D réalistes, tailles réelles, variés), 4 bâtiments emblématiques, 5 végétation
-  (densité réglable), 6 textures et finitions. **Étape ajoutée (à placer quand on veut, à ne pas oublier)** : clôtures,
-  haies, murets et portails qui délimitent les propriétés.
+  (densité réglable), 6 textures et finitions. Étape ajoutée, faite en v2.5 : clôtures, haies, murets et portails.
 - L'APK (> 100 Mo) va dans `releases/` via **Git LFS** (`.gitattributes`) ; les GitHub Releases sont interdites à cette
   session. Lien : `https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/<apk>`.
 - Captures de contrôle : `xvfb-run godot --path godot -- --shots=<json>` ; essai de conduite : `-- --drive-test`.

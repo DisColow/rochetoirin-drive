@@ -504,10 +504,27 @@ def main():
                     p = Point(osm_gates[gi])
                     if ln.distance(p) < 2.5:
                         t = ln.project(p); break
-            if t is None:
-                t = ln.project(g.centroid)
             wdt = 3.2 + 0.8 * (rnd(k, "pw") < 0.3)
-            t = float(np.clip(t, wdt / 2 + 1.0, ln.length - wdt / 2 - 1.0))
+            if t is None:
+                # face à la maison, mais avec un passage libre derrière (5 m sans bâtiment, dans la parcelle)
+                t0 = ln.project(g.centroid)
+                best = None
+                for tc in np.arange(wdt / 2 + 1.0, ln.length - wdt / 2 - 1.0 + 1e-6, 0.5):
+                    p0 = np.asarray(ln.interpolate(tc).coords[0])
+                    p1 = np.asarray(ln.interpolate(min(ln.length, tc + 0.3)).coords[0]) - np.asarray(ln.interpolate(max(0, tc - 0.3)).coords[0])
+                    nn = np.array([-p1[1], p1[0]]) / max(np.linalg.norm(p1), 1e-6)
+                    if clipped[k].distance(Point(p0 + nn * 1.0)) > clipped[k].distance(Point(p0 - nn * 1.0)):
+                        nn = -nn
+                    corridor = LineString([p0, p0 + nn * 5.0]).buffer(wdt / 2)
+                    if any(bpolys[i].intersects(corridor) for i in btree.query(corridor)):
+                        continue
+                    sc_ = abs(tc - t0)
+                    if best is None or sc_ < best[0]:
+                        best = (sc_, tc)
+                t = best[1] if best else None
+            if t is not None:
+                t = float(np.clip(t, wdt / 2 + 1.0, ln.length - wdt / 2 - 1.0))
+        if style != "rien" and not has_drive and lines[0].length >= 6.0 and t is not None:
             gate_kind = (sv or {}).get("portail") or pick(k, "portail", [("fer", 3), ("barreaux_blanc", 2), ("plein_gris", 2), ("plein_blanc", 2), ("bois", 1), (None, 2)])
             A = np.asarray(ln.interpolate(t - wdt / 2).coords[0]); B = np.asarray(ln.interpolate(t + wdt / 2).coords[0])
             ya, yb = dem.h(np.array([A[0], B[0]]), np.array([A[1], B[1]]))
