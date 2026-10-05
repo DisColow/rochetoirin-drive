@@ -9,6 +9,7 @@ var roads: Node3D
 var buildings: Node3D
 var vegetation: Node3D
 var crops: Node3D
+var fences: Node3D
 var cam_rig: Node3D
 
 func _ready() -> void:
@@ -34,6 +35,10 @@ func _ready() -> void:
 	add_child(buildings)
 	buildings.target = car
 	buildings.update_now()
+	fences = preload("res://scripts/fences.gd").new()
+	add_child(fences)
+	fences.target = car
+	fences.update_now()
 	vegetation = preload("res://scripts/vegetation.gd").new()
 	var cfg := ConfigFile.new()
 	cfg.load("user://reglages.cfg")
@@ -70,6 +75,7 @@ func _teleport(p: Vector3, heading: float) -> void:
 	cam_rig.snap()
 	roads.update_now()
 	buildings.update_now()
+	fences.update_now()
 	vegetation.update_now()
 
 func _environment() -> void:
@@ -185,7 +191,7 @@ func _shots(path: String) -> void:
 		if s.has("cam"):
 			# vue de la caméra du jeu (0 poursuite, 1 conducteur, 2 capot) après un court trajet
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; vegetation.target = car; crops.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; vegetation.target = car; crops.target = car
 			cam_rig.mode = int(s.cam)
 			car.touch_throttle = 0.5
 			for i in 240:
@@ -195,7 +201,7 @@ func _shots(path: String) -> void:
 			print("capture ", s.name, " : objets ", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
 				", appels de dessin ", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
 				", primitives ", Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
-			for n in [roads, buildings, vegetation, crops, terrain]:
+			for n in [roads, buildings, fences, vegetation, crops, terrain]:
 				if n == null:
 					continue
 				n.visible = false
@@ -209,7 +215,7 @@ func _shots(path: String) -> void:
 		if s.get("tap", false):
 			# téléportation par un vrai toucher : bouton CARTE puis toucher sur la carte (chemin complet des entrées)
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; vegetation.target = car; crops.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; vegetation.target = car; crops.target = car
 			var hud := find_children("*", "CanvasLayer", false, false)[0]
 			var before := car.global_position
 			Input.action_press("carte")
@@ -240,7 +246,7 @@ func _shots(path: String) -> void:
 			hud.map.zoom = 0.5
 			hud.map._pick(hud.map.world_to_screen(Vector2(s.tp[0], s.tp[1])))
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; vegetation.target = car; crops.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; vegetation.target = car; crops.target = car
 			for i in 240:
 				await get_tree().physics_frame
 			print("téléporté en ", car.global_position, " roues au sol ", car.wheels.filter(func(w): return w.is_in_contact()).size())
@@ -264,6 +270,7 @@ func _shots(path: String) -> void:
 		car.global_position = p + Vector3(0, -50, 0) if not s.get("car", false) else car.global_position
 		roads.target = c
 		buildings.target = c
+		fences.target = c
 		vegetation.target = c
 		crops.target = c
 		c.global_position = p
@@ -273,6 +280,7 @@ func _shots(path: String) -> void:
 		for i in 40:
 			roads._process(0.3)
 			buildings._process(0.3)
+			fences._process(0.3)
 			vegetation._process(0.3)
 			crops._process(0.3)
 			await get_tree().process_frame
