@@ -7,6 +7,7 @@ var starts: PackedInt32Array
 var pts: PackedFloat32Array
 var communes: PackedByteArray
 var current := -1
+var speed_limit := 0             # vitesse max OSM de la route actuelle (0 : inconnue)
 
 func _init() -> void:
 	meta = JSON.parse_string(FileAccess.get_file_as_string("res://world/roadnames.json"))
@@ -23,6 +24,8 @@ func _cell(x: float, z: float) -> Vector2i:
 func road_at(p: Vector3) -> String:
 	var c := _cell(p.x, p.z)
 	var best := -1
+	var best_i := -1
+	var cur_i := -1
 	var bd := 25.0 * 25.0
 	var cur_d := 1e18
 	for dz in range(-1, 2):
@@ -33,17 +36,18 @@ func road_at(p: Vector3) -> String:
 				continue
 			var k := cz * int(meta.nx) + cx
 			for i in range(starts[k], starts[k + 1]):
-				var ddx := pts[i * 3] - p.x
-				var ddz := pts[i * 3 + 1] - p.z
+				var ddx := pts[i * 4] - p.x
+				var ddz := pts[i * 4 + 1] - p.z
 				var d := ddx * ddx + ddz * ddz
-				var id := int(pts[i * 3 + 2])
+				var id := int(pts[i * 4 + 2])
 				if id == current and d < cur_d:
-					cur_d = d
+					cur_d = d; cur_i = i
 				if d < bd:
-					bd = d; best = id
+					bd = d; best = id; best_i = i
 	if current >= 0 and cur_d < 36.0 and cur_d <= bd + 30.0:
-		best = current
+		best = current; best_i = cur_i
 	current = best
+	speed_limit = int(pts[best_i * 4 + 3]) if best_i >= 0 else 0
 	return meta.names[best] if best >= 0 else "Hors route"
 
 func commune_at(p: Vector3) -> String:

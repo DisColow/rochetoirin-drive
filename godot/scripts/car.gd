@@ -20,7 +20,9 @@ var _safe_t := 0.0
 var _stuck_t := 0.0
 var _flip_t := 0.0
 var wheels := []
-var road_pts := PackedFloat32Array()   # points de route (x, z, y, cap) pour la remise sur la route
+var road_pts := PackedFloat32Array()
+var _hold_t := 0.0
+var _hold_xf := Transform3D()   # points de route (x, z, y, cap) pour la remise sur la route
 
 func _ready() -> void:
 	mass = 1650.0
@@ -66,6 +68,40 @@ func _ready() -> void:
 		wheels.append(w)
 	for n in body.find_children("*", "MeshInstance3D", true, false):
 		n.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	_steering_wheel(meta)
+
+var _wheel_node: Node3D
+var _wheel_rim: Node3D
+
+## Volant (à la place mesurée sur le modèle), incliné de 62° et tourné avec la direction.
+func _steering_wheel(meta: Dictionary) -> void:
+	var p := Vector3(-float(meta.steer[0]), float(meta.steer[1]), -float(meta.steer[2]))
+	_wheel_node = Node3D.new()
+	add_child(_wheel_node)
+	_wheel_node.position = p
+	# colonne de direction : vers le conducteur (arrière, -Z) et vers le haut, à 28° de l'horizontale
+	_wheel_node.basis = Basis(Vector3.RIGHT, deg_to_rad(28.0))
+	_wheel_rim = Node3D.new()
+	_wheel_node.add_child(_wheel_rim)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.06, 0.06, 0.065); mat.roughness = 0.55
+	var ring := TorusMesh.new()
+	ring.inner_radius = 0.165; ring.outer_radius = 0.2; ring.rings = 28; ring.ring_segments = 8
+	var rim := MeshInstance3D.new(); rim.mesh = ring; rim.material_override = mat
+	rim.rotation.x = PI / 2                         # anneau dans le plan xy (axe de rotation = z)
+	_wheel_rim.add_child(rim)
+	for a in [0.0, 2.2, -2.2]:
+		var sp := BoxMesh.new(); sp.size = Vector3(0.17, 0.028, 0.02)
+		var s := MeshInstance3D.new(); s.mesh = sp; s.material_override = mat
+		s.rotation.z = a + PI / 2 if a != 0.0 else -PI / 2
+		s.position = Vector3(cos(s.rotation.z), sin(s.rotation.z), 0) * 0.09
+		_wheel_rim.add_child(s)
+	var hub := CylinderMesh.new(); hub.top_radius = 0.06; hub.bottom_radius = 0.065; hub.height = 0.05
+	var h := MeshInstance3D.new(); h.mesh = hub; h.material_override = mat; h.rotation.x = PI / 2
+	_wheel_rim.add_child(h)
+	var col := CylinderMesh.new(); col.top_radius = 0.035; col.bottom_radius = 0.045; col.height = 0.35
+	var c := MeshInstance3D.new(); c.mesh = col; c.material_override = mat; c.rotation.x = PI / 2; c.position.z = 0.19
+	_wheel_node.add_child(c)
 
 func _materials(root: Node) -> void:
 	var paint := StandardMaterial3D.new()
@@ -88,6 +124,12 @@ func _materials(root: Node) -> void:
 	lamp.albedo_color = Color(0.85, 0.88, 0.9); lamp.metallic = 0.5; lamp.roughness = 0.1
 	var tail := StandardMaterial3D.new()
 	tail.albedo_color = Color(0.7, 0.03, 0.03); tail.roughness = 0.2
+	# faces intérieures (vue conducteur) : garnitures sombres au lieu de faces invisibles
+	var inner := StandardMaterial3D.new()
+	inner.albedo_color = Color(0.09, 0.09, 0.1); inner.roughness = 0.85
+	inner.cull_mode = BaseMaterial3D.CULL_FRONT
+	for m in [paint, plastic, chrome, rubber, lamp, tail, vcol]:
+		m.next_pass = inner
 	var by_name := {"paint": paint, "glass": glass, "chrome": chrome, "rubber": rubber, "plastic": plastic,
 		"lamp": lamp, "tail": tail, "interior": vcol, "plate_front": vcol, "plate_rear": vcol}
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
@@ -105,6 +147,11 @@ func place(p: Vector3, heading_deg: float) -> void:
 	angular_velocity = Vector3.ZERO
 	safe = [global_transform]
 
+## Maintient la voiture immobile à sa place (téléportation : le temps que le décor et les collisions se chargent).
+func hold(t: float) -> void:
+	_hold_t = t
+	_hold_xf = global_transform
+
 func kmh() -> float:
 	return linear_velocity.length() * 3.6
 
@@ -112,6 +159,12 @@ func forward_speed() -> float:
 	return linear_velocity.dot(global_transform.basis.z)
 
 func _physics_process(dt: float) -> void:
+	if _hold_t > 0.0:
+		_hold_t -= dt
+		global_transform = _hold_xf
+		linear_velocity = Vector3.ZERO
+		angular_velocity = Vector3.ZERO
+		return
 	var thr := clampf(Input.get_action_strength("accelerer") + touch_throttle, 0.0, 1.0)
 	var brk := clampf(Input.get_action_strength("freiner") + touch_brake, 0.0, 1.0)
 	var st := clampf(Input.get_action_strength("gauche") - Input.get_action_strength("droite") + touch_steer, -1.0, 1.0)
@@ -128,6 +181,8 @@ func _physics_process(dt: float) -> void:
 	var rate := 2.2 if absf(target) > absf(steer_value) else 3.5
 	steer_value = move_toward(steer_value, target, rate * dt)
 	steering = steer_value
+	if _wheel_rim:
+		_wheel_rim.rotation.z = -steer_value * 8.0          # démultiplication : ~ 1 tour de volant pour 0,55 rad
 	var spd := absf(v) * 3.6
 	if reversing:
 		engine_force = -ENGINE * 0.5 * brk if spd < 25.0 else 0.0

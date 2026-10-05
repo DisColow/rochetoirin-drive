@@ -3,7 +3,7 @@
 extends Node3D
 
 const TILE := 256.0
-const VIEW := 2200.0          # tuiles affichées jusqu'à cette distance
+const VIEW := 1400.0          # tuiles affichées jusqu'à cette distance (au-delà : sol coloré)
 const COLL := 320.0           # collisions jusqu'à cette distance
 
 var target: Node3D

@@ -2,7 +2,7 @@
 extends Node3D
 
 const TILE := 256.0
-const VIEW := 1700.0
+const VIEW := 1300.0
 const COLL := 220.0
 
 var target: Node3D

@@ -728,6 +728,27 @@ def main():
     ways = pickle.load(open("data/roads.pkl", "rb"))["ways"]
     rp = np.vstack([w["P"] for w in ways if w["cls"] not in ("track",)])
     road_tree = cKDTree(rp)
+    # rien sur la chaussée : emprise découpée au bord de la route (décalage OSM / BD TOPO), supprimée si trop rognée
+    from shapely.geometry import LineString
+    from shapely.ops import unary_union
+    rbuf = [LineString(w["P"]).buffer(w["w"] / 2 + 0.3, cap_style="flat") for w in ways if len(w["P"]) > 1 and not w["bridge"]]
+    rtr = STRtree(rbuf)
+    kept, cut, dropped = [], 0, 0
+    for p, g in blds:
+        hits = [rbuf[k] for k in rtr.query(g) if rbuf[k].intersects(g)]
+        if hits:
+            inter = g.intersection(unary_union(hits))
+            if inter.area > 0.3:
+                g2 = g.difference(unary_union(hits))
+                parts = [q for q in getattr(g2, "geoms", [g2]) if q.geom_type == "Polygon"]
+                g2 = max(parts, key=lambda q: q.area) if parts else None
+                if g2 is None or g2.area < 0.6 * g.area or g2.area < 12:
+                    dropped += 1
+                    continue
+                g = g2; cut += 1
+        kept.append((p, g))
+    blds = kept
+    print("chaussées : %d bâtiments découpés, %d supprimés" % (cut, dropped))
     polys = [g for _, g in blds]
     tree = STRtree(polys)
     tiles = {}

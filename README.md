@@ -6,14 +6,33 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v2.3.apk — étape 4 : bâtiments emblématiques, nouvelle physique](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.3.apk)**
-(APK de 595 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+**[RochetoirinSimulator-v2.4.apk — étape 5 : végétation, champs, nouvelle carte](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.4.apk)**
+(APK de 625 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+[v2.3](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.3.apk),
 [v2.2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.1.apk),
 [v2.2](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.apk),
 [v2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.1.apk),
 [v2.0](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk).
 
-![Étape 4](docs/apercus/v2.3_etape4.jpg)
+![Étape 5](docs/apercus/v2.4_etape5.jpg)
+
+Nouveautés de l'étape 5 :
+- **245 000 arbres réels**, à leur place et à leur hauteur (LiDAR HD de l'IGN, jusqu'à 32 m) : chênes, feuillus,
+  bouleaux, peupliers, épicéas, pins (modèles 3D Sketchfab) ; vrais modèles près de la voiture (ombres, troncs avec
+  collision), imposteurs à 8 vues au loin ;
+- **champs en 3D** d'après le Registre parcellaire 2024 : maïs, blé et autres céréales, colza / soja, tournesol ;
+- **densité de végétation réglable** (bouton ⚙ : Faible, Moyenne, Élevée, Maximale) ;
+- **rien ne déborde sur la route** : arbres, champs et bâtiments s'arrêtent au bord de la chaussée.
+
+Retours de la v2.3 :
+- **carte et GPS de la première version** : mini-GPS en haut à droite (tourne avec la voiture, zoom selon la vitesse),
+  fond sombre d'occupation du sol et relief, routes nettes à tous les zooms, bâtiments ; nom de la rue dans une
+  pastille en haut au centre ; panneau de limitation de vitesse à côté du compteur ;
+- **téléportation réparée** (la voiture était replacée à son point de départ) ;
+- **vue cockpit réparée** : habitacle complet (toit, montants), volant qui tourne avec la direction ;
+- **sol plus propre** : plus de petites taches de terre ou de roche ; la texture dominante de chaque zone l'emporte,
+  les champs cultivés réels sont en terre ;
+- rendu allégé (carte : un millier d'appels de dessin en moins par image).
 
 Nouveautés de l'étape 4 (d'après des photos de référence de chaque monument) :
 - **églises** de Rochetoirin, La Tour-du-Pin, Saint-Clair, Saint-Jean-de-Soudain, Cessieu, Montcarra, L'Isle-d'Abeau
@@ -57,7 +76,7 @@ Commandes : ◀ ▶ pour tourner, GAZ, FREIN (rester appuyé à l'arrêt pour re
 
 Relief et orthophotos : IGN (Licence Ouverte). Routes : © contributeurs OpenStreetMap (ODbL). Textures et ciel :
 Poly Haven et ambientCG (CC0). Voiture : « 2008 Renault Espace » par tonielpro520 (Sketchfab, CC-BY-4.0).
-Terrain : Terrain3D (MIT). Bâtiments : IGN BD TOPO (Licence Ouverte), textures Poly Haven / ambientCG (CC0).
+Terrain : Terrain3D (MIT). Bâtiments : IGN BD TOPO (Licence Ouverte), textures Poly Haven / ambientCG (CC0). Végétation : IGN LiDAR HD, BD TOPO, RPG (Licence Ouverte) ; arbres et maïs (Sketchfab, CC-BY-4.0) : « Oak tree » par massive-graphisme, « Realistic Tree » par danielpetrov, « Oak tree », « Birch tree » et « Pine Tree » par evolveduk, « Poplar tree » par evseevdaniil0011, « Spruce tree » et « Fir tree » par intice184, « Maize Corn Plant » par gilles.schaeck.
 
 ---
 

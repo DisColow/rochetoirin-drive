@@ -65,7 +65,7 @@ print("carte %dx%d, %d points de téléportation" % (W, H, len(pts)))
 
 # ---------------------------------------------------------------------------------------- noms des routes et communes
 # world/roadnames.json : grille de 64 m (x0, z0, n), noms, communes ; roadnames.bin : int32 début de chaque cellule
-# (n cellules + 1) puis float32 (x, z, nom) des points d'axe tous les 4 m triés par cellule ; communes.bin : u8 par cellule.
+# (n cellules + 1) puis float32 (x, z, nom, vitesse max OSM ou 0) des points d'axe tous les 4 m triés par cellule ; communes.bin : u8 par cellule.
 from shapely.geometry import shape
 import shapely
 from shapely import points as sh_points, contains as sh_contains
@@ -77,13 +77,19 @@ def label(w):
     if ref and nm:
         return "%s · %s" % (ref, nm)
     return nm or ref or GEN.get(w["cls"], "Route sans nom")
+def maxspeed(w):
+    v = str(w["tags"].get("maxspeed", ""))
+    if v.isdigit():
+        return int(v)
+    return {"FR:urban": 50, "FR:rural": 80, "FR:motorway": 130, "FR:zone30": 30, "FR:walk": 20}.get(v, 0)
 names, nidx, rp = [], {}, []
 for w in ways:
     lb = label(w)
     if lb not in nidx:
         nidx[lb] = len(names); names.append(lb)
+    ms = maxspeed(w)
     for s in np.arange(0, w["s"][-1] + 0.01, 4.0):
-        rp.append((np.interp(s, w["s"], w["P"][:, 0]), np.interp(s, w["s"], w["P"][:, 1]), nidx[lb]))
+        rp.append((np.interp(s, w["s"], w["P"][:, 0]), np.interp(s, w["s"], w["P"][:, 1]), nidx[lb], ms))
 rp = np.array(rp)
 C = 64.0
 gx0, gz0 = math.floor(rp[:, 0].min() / C) * C - C, math.floor(rp[:, 1].min() / C) * C - C

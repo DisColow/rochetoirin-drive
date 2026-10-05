@@ -57,12 +57,47 @@ def enc(base, over, blend, angle):
            ((blend.astype(np.uint32) & 0xFF) << 14) | ((angle.astype(np.uint32) & 0xF) << 10)
 
 
+GREEN_CODES = {"LUZ", "MLG", "JAC", "TRE", "SPH", "SPL", "BOP", "PRL", "MLC", "J5M", "J6P", "J6S", "FAG", "VRC", "NOX", "VRG",
+               "PFR", "CTG", "PEP", "SNE", "BFS", "BOR"}
+
+
+def arable_fields():
+    """Parcelles cultivées (RPG 2024, hors prairies, luzerne, jachères, vergers) : terre / chaume."""
+    from shapely.geometry import shape
+    from shapely.ops import transform, unary_union
+    import geo
+    out = []
+    for f in json.load(open("data/rpg.json"))["features"]:
+        c = f["properties"].get("code_cultu") or ""
+        if c.startswith("P") or c in GREEN_CODES:
+            continue
+        g = transform(lambda x, y, z=None: geo.to_local(x, y), shape(f["geometry"])).buffer(0)
+        if not g.is_empty:
+            out.append(g)
+    return unary_union(out)
+
+
+def clean(mask, min_px):
+    """Supprime les taches (composantes < min_px) et rebouche les trous de même taille : la texture dominante gagne."""
+    lab, n = ndi.label(mask)
+    if n:
+        sizes = ndi.sum(mask, lab, np.arange(1, n + 1))
+        mask = np.r_[False, sizes >= min_px][lab]
+    inv = ~mask
+    lab, n = ndi.label(inv)
+    if n:
+        sizes = ndi.sum(inv, lab, np.arange(1, n + 1))
+        mask = mask | (np.r_[False, sizes < min_px][lab] & inv)
+    return mask
+
+
 def main():
     plan = json.load(open("data/routes_plan.json"))
     ways = pickle.load(open("data/roads.pkl", "rb"))["ways"]
     rf = road_height_fn(samples(ways))
     forest, farm, grass, resid = landuse()
-    for g in (forest, farm, grass, resid):
+    fields = arable_fields()
+    for g in (forest, farm, grass, resid, fields):
         shapely.prepare(g)
     rng = np.random.default_rng(3)
     for (i, j) in [tuple(r) for r in plan["regions"]]:
@@ -81,18 +116,20 @@ def main():
         isf = shapely.contains_xy(forest, X, Z)
         isfarm = shapely.contains_xy(farm, X, Z)
         isres = shapely.contains_xy(resid, X, Z)
-        noise = ndi.gaussian_filter(rng.random(H.shape), 6)
-        noise = (noise - noise.min()) / max(np.ptp(noise), 1e-6)
-        base = np.where(noise > 0.5, 1, 0).astype(np.uint32)                 # gazon / prairie
-        base[isres] = 0
-        base[isf] = 2
-        # champs (chaume, terre) en surcouche fondue : probabilité lissée, pas de bords en escalier
-        soilp = ndi.gaussian_filter(((exg < 8) & (lum > 70)).astype(np.float32), 2.0)
-        soilp[isf] = 0.0
+        isfield = shapely.contains_xy(fields, X, Z)
+        # une seule herbe par type de zone (pas de plaques aléatoires) : pelouse en zone habitée, prairie ailleurs
+        base = np.ones(H.shape, np.uint32)
+        base[clean(isres, 500)] = 0
+        base[clean(isf, 500)] = 2
+        # terre / chaume : champs cultivés réels (RPG) + grandes zones de sol nu sur la photo ; pas de taches
+        # (< 2 000 m²) : elles prennent la texture dominante autour
+        bare = ndi.gaussian_filter(((exg < 8) & (lum > 70)).astype(np.float32), 2.0) > 0.5
+        soil = clean((isfield | clean(bare, 1500)) & ~isf, 500)
         over = np.full(H.shape, 4, np.uint32)
-        blend = np.clip((soilp - 0.25) / 0.5, 0, 1) * 255
-        # roche sur les pentes fortes (prioritaire)
-        rock = np.clip((slope - 28) / 14, 0, 1) * 255
+        blend = np.clip(ndi.gaussian_filter(soil.astype(np.float32), 1.2) * 1.4 - 0.2, 0, 1) * 255
+        # roche sur les pentes fortes (prioritaire), en masses d'au moins 1 200 m²
+        rockm = clean(slope > 30, 300)
+        rock = np.where(rockm, np.clip((ndi.gaussian_filter(slope, 1.5) - 26) / 12, 0.35, 1), 0) * 255
         r_ = rock > blend
         over[r_] = 3; blend[r_] = rock[r_]
         # accotements gravillonnés le long des routes (0,8 m fondu)
@@ -107,7 +144,8 @@ def main():
         C.astype("<u4").tofile("%s/r_%d_%d.c.raw" % (OUT, i, j))
         # teinte : couleur de la photo ramenée autour de 0,8 (garde la nuance : vert tendre, blond, sombre en forêt)
         med = np.median(O.reshape(-1, 3), axis=0)
-        tint = np.clip(Ob / np.maximum(med, 1) * 0.78, 0.35, 1.0)
+        Os = ndi.gaussian_filter(O, (6, 6, 0))                               # teinte lissée (12 m) : pas de taches
+        tint = np.clip(Os / np.maximum(med, 1) * 0.78, 0.35, 1.0)
         tint = 0.65 * tint + 0.35 * 0.82                                       # atténuée : la texture fait le détail
         img = np.dstack([tint, np.full(H.shape, 0.5)])
         Image.fromarray((img * 255).astype(np.uint8), "RGBA").save("%s/r_%d_%d.color.png" % (OUT, i, j))

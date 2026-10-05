@@ -1,11 +1,14 @@
-## Carte : photo aérienne + routes ; glisser pour déplacer, pincer (ou molette, boutons + −) pour zoomer,
-## toucher un endroit pour s'y téléporter (point de route le plus proche, dans le sens de la voie).
+## Grande carte (style GPS de la première version : occupation du sol, relief, routes en vecteurs, bâtiments au zoom) ;
+## glisser pour déplacer, pincer (ou molette, boutons + −) pour zoomer, toucher un endroit pour s'y téléporter (point de
+## route le plus proche, dans le sens de la voie).
 extends Control
 
 signal teleport(pos: Vector3, heading: float)
 signal closed
 
-var tex: Texture2D
+var data
+var layers := []
+var overlay: Control
 var meta: Dictionary
 var pts: PackedFloat32Array
 var car: Node3D
@@ -16,10 +19,17 @@ var moved := 0.0
 var pinch_d := 0.0
 
 func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	tex = load("res://assets/tex/map.jpg")
-	meta = JSON.parse_string(FileAccess.get_file_as_string("res://world/map.json"))
+	data = load("res://scripts/map_data.gd").get_inst()
+	meta = data.meta
+	layers = data.make_layers(self)
+	overlay = Control.new()
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.draw.connect(_draw_overlay)
+	add_child(overlay)
 	var b := FileAccess.get_file_as_bytes("res://world/teleport.bin")
 	pts = b.to_float32_array()
 	for spec in [["✕", Vector2(-110, 24), _close], ["+", Vector2(-110, 140), func(): _zoom_at(1.5, size / 2)],
@@ -80,22 +90,24 @@ func _zoom_at(f: float, at: Vector2) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(0.05, 0.06, 0.07))
-	var tl := world_to_screen(Vector2(meta.x0, meta.z0))
-	var sz := Vector2(meta.w, meta.h) * float(meta.res) / _mpp()
-	draw_texture_rect(tex, Rect2(tl, sz), false)
+	# fond, routes et bâtiments : calques (maillages) ; ici seulement la mise à jour de leur transformation
+	var m := _mpp()
+	var ppm := 1.0 / m
+	var xf := Transform2D.IDENTITY.translated(-center).scaled(Vector2(ppm, ppm)).translated(size / 2)
+	data.draw_layers(layers, xf, ppm, Rect2(center - size / 2 * m, size * m), 1.15)
+	overlay.queue_redraw()
+
+func _draw_overlay() -> void:
 	var f := get_theme_default_font()
 	for name in meta.towns:
 		var p := world_to_screen(Vector2(meta.towns[name][0], meta.towns[name][1]))
-		draw_string_outline(f, p + Vector2(-60, 0), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, 8, Color.BLACK)
-		draw_string(f, p + Vector2(-60, 0), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, Color.WHITE)
-	# voiture : flèche rouge dans le sens de marche
+		overlay.draw_string_outline(f, p + Vector2(-80, 0), name, HORIZONTAL_ALIGNMENT_CENTER, 160, 28, 8, Color.BLACK)
+		overlay.draw_string(f, p + Vector2(-80, 0), name, HORIZONTAL_ALIGNMENT_CENTER, 160, 28, Color.WHITE)
 	var c := world_to_screen(Vector2(car.global_position.x, car.global_position.z))
 	var fwd: Vector3 = car.global_transform.basis.z
-	var d := Vector2(fwd.x, fwd.z).normalized()
-	var n := Vector2(-d.y, d.x)
-	draw_colored_polygon(PackedVector2Array([c + d * 26, c - d * 16 + n * 15, c - d * 8, c - d * 16 - n * 15]), Color(0.9, 0.1, 0.1))
-	draw_polyline(PackedVector2Array([c + d * 26, c - d * 16 + n * 15, c - d * 8, c - d * 16 - n * 15, c + d * 26]), Color.WHITE, 3)
+	data.arrow(overlay, c, Vector2(fwd.x, fwd.z), 22.0)
+	overlay.draw_string(f, Vector2(size.x - 24, size.y - 18), "Données : © contributeurs OpenStreetMap, IGN (RGE ALTI, BD TOPO, RPG, LiDAR HD)",
+		HORIZONTAL_ALIGNMENT_RIGHT, -1, 18, Color(0.7, 0.72, 0.75))
 
 func _gui_input(e: InputEvent) -> void:
 	if e is InputEventScreenTouch:
@@ -150,5 +162,4 @@ func _pick(s: Vector2) -> void:
 	closed.emit()
 
 func _process(_dt: float) -> void:
-	if visible:
-		queue_redraw()
+	pass

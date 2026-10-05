@@ -49,7 +49,7 @@ func _banner(text: String) -> void:
 	var b := Button.new()
 	b.text = "La partie précédente s'est arrêtée brutalement. Toucher ici pour copier le rapport."
 	b.add_theme_font_size_override("font_size", 24)
-	b.position = Vector2(400, 24)
+	b.position = Vector2(530, 128)
 	b.size = Vector2(860, 64)
 	b.pressed.connect(func():
 		DisplayServer.clipboard_set("Rapport Rochetoirin Simulator v%s\n%s" % [ProjectSettings.get_setting("application/config/version", "?"), text])
