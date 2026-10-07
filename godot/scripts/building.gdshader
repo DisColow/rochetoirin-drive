@@ -2,6 +2,7 @@
 // Albédo alpha = vitrage (lisse, reflète le ciel) ; normale alpha = rugosité.
 shader_type spatial;
 render_mode cull_back;
+#include "res://scripts/env.gdshaderinc"
 
 uniform sampler2DArray albedo_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2DArray normal_tex : filter_linear_mipmap_anisotropic, repeat_enable;
@@ -50,7 +51,7 @@ void fragment() {
 		float moss = north * smoothstep(0.35, 0.8, vnoise(wpos.xz * 0.7 + 3.0)) * 0.55;
 		col = mix(col, vec3(0.20, 0.24, 0.11), moss);
 	}
-	ALBEDO = col;
+	ALBEDO = col * env_cloud(wpos.xz);
 	// le soir et la nuit : une partie des fenêtres éclairées (lumière chaude), au hasard par fenêtre
 	if (night > 0.0 && a.a > 0.5) {
 		float lit = step(0.5, hash(floor(wpos.xz * 0.9) + floor(wpos.y / 2.7) * 7.31));

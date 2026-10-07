@@ -34,16 +34,13 @@ func _ready() -> void:
 	# coussins berlinois : caoutchouc / enrobé rouge
 	mats["cushion"] = _mat("asphalt", 0.5, Color(0.62, 0.2, 0.16))
 	# peinture routière : blanc légèrement usé, posée au-dessus de l'enrobé
-	var mk := StandardMaterial3D.new()
-	mk.albedo_color = Color(0.86, 0.86, 0.84)
-	mk.roughness = 0.6
-	mk.albedo_texture = load("res://assets/tex/asphalt_albedo.jpg")
-	mk.uv1_scale = Vector3(0.3, 0.3, 1)
-	mk.albedo_texture_force_srgb = false
-	mk.detail_enabled = false
+	var mk := ShaderMaterial.new()
+	mk.shader = preload("res://scripts/ground.gdshader")
+	mk.set_shader_parameter("textured", false)
+	mk.set_shader_parameter("tint", Color(0.86, 0.86, 0.84))
+	mk.set_shader_parameter("rough", 0.6)
 	mk.render_priority = 1
-	mk.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mats["marking"] = _paint(mk)
+	mats["marking"] = mk
 	var sg := StandardMaterial3D.new()
 	sg.albedo_texture = load("res://assets/tex/signs_atlas.png")
 	sg.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
@@ -70,22 +67,14 @@ func _ready() -> void:
 		m.set_shader_parameter("bulb", i)
 		mats[["light_red", "light_amber", "light_green"][i]] = m
 
-func _paint(m: StandardMaterial3D) -> StandardMaterial3D:
-	# l'albédo de l'enrobé sert de grain : on le blanchit (peinture usée, granulats visibles)
-	m.albedo_texture = null
-	return m
-
-func _mat(name: String, scale: float, tint: Color) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_texture = load("res://assets/tex/%s_albedo.jpg" % name)
-	m.albedo_color = tint
-	m.normal_enabled = true
-	m.normal_texture = load("res://assets/tex/%s_normal.jpg" % name)
-	m.normal_scale = 1.0
-	m.roughness_texture = load("res://assets/tex/%s_rough.jpg" % name)
-	m.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
-	m.uv1_scale = Vector3(scale, scale, 1.0)
-	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+func _mat(name: String, scale: float, tint: Color) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = preload("res://scripts/ground.gdshader")
+	m.set_shader_parameter("albedo_tex", load("res://assets/tex/%s_albedo.jpg" % name))
+	m.set_shader_parameter("normal_tex", load("res://assets/tex/%s_normal.jpg" % name))
+	m.set_shader_parameter("rough_tex", load("res://assets/tex/%s_rough.jpg" % name))
+	m.set_shader_parameter("tint", tint)
+	m.set_shader_parameter("uv_scale", scale)
 	return m
 
 func _key(p: Vector3) -> Vector2i:

@@ -2,6 +2,7 @@
 // plus claires (reprises, usure), légère brillance d'usure ; coordonnées monde.
 shader_type spatial;
 render_mode cull_back;
+#include "res://scripts/env.gdshaderinc"
 
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D normal_tex : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
@@ -34,7 +35,7 @@ void fragment() {
 	float patch = smoothstep(0.62, 0.68, vnoise(p * 0.035 + 7.0));
 	vec3 c = a * tint * (0.86 + 0.28 * big);
 	c *= mix(1.0, 0.72, patch);
-	ALBEDO = c;
+	ALBEDO = c * env_cloud(wpos.xz);
 	NORMAL_MAP = n;
 	ROUGHNESS = clamp(r * 0.95 + 0.05 - patch * 0.08, 0.3, 1.0);
 }

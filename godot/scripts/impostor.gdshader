@@ -3,6 +3,7 @@
 // Données d'instance (custom) : x = essence / 8 (ligne de l'atlas), y = rotation / 2π, z = teinte.
 shader_type spatial;
 render_mode skip_vertex_transform, cull_disabled;
+#include "res://scripts/env.gdshaderinc"
 
 uniform sampler2D albedo_atlas : source_color, filter_linear_mipmap, repeat_disable;
 uniform sampler2D normal_atlas : filter_linear_mipmap, repeat_disable;
@@ -14,6 +15,7 @@ varying vec3 v_up;
 varying vec3 v_to;
 varying float v_dist;
 varying float v_tint;
+varying vec3 v_wp;
 
 void vertex() {
 	vec3 origin = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -25,6 +27,9 @@ void vertex() {
 	to = to / max(v_dist, 0.001);
 	vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), to));
 	vec3 wp = origin + right * VERTEX.x * scale + vec3(0.0, 1.0, 0.0) * (VERTEX.y + 0.5) * scale;
+	float hh = VERTEX.y + 0.5;
+	wp += vec3(wind.x, 0.0, wind.y) * wind.z * (0.25 + 0.75 * env_gust(origin.xz)) * hh * hh * 0.018 * scale;
+	v_wp = wp;
 	// angle de la caméra dans le repère de l'arbre -> vue cuite la plus proche
 	float ang = atan(to.x, to.z) - INSTANCE_CUSTOM.y * TAU;
 	float v = mod(round(ang / (TAU / 8.0)), 8.0);
@@ -46,7 +51,7 @@ void fragment() {
 	}
 	vec3 n = texture(normal_atlas, UV).rgb * 2.0 - 1.0;
 	NORMAL = normalize(v_right * n.x + v_up * n.y + v_to * n.z);
-	ALBEDO = c.rgb * v_tint;
+	ALBEDO = c.rgb * v_tint * env_cloud(v_wp.xz);
 	ROUGHNESS = 0.9;
 	SPECULAR = 0.2;
 }

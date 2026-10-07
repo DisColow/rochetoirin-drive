@@ -2,6 +2,7 @@
 // Matériau « cut » : alpha de l'albédo = découpe (grillages, grilles, bord feuillu des haies), deux faces.
 shader_type spatial;
 render_mode cull_disabled;
+#include "res://scripts/env.gdshaderinc"
 
 uniform sampler2DArray albedo_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2DArray normal_tex : filter_linear_mipmap_anisotropic, repeat_enable;
@@ -34,7 +35,7 @@ void fragment() {
 	}
 	// variation douce de couleur (haies moins uniformes, salissures)
 	float v = 0.86 + 0.24 * vnoise(wpos.xz * 0.45 + wpos.y * 0.3);
-	ALBEDO = a.rgb * tint * tint * v;
+	ALBEDO = a.rgb * tint * tint * v * env_cloud(wpos.xz);
 	ROUGHNESS = n.a;
 	NORMAL_MAP = n.rgb;
 	NORMAL_MAP_DEPTH = 1.0;

@@ -6,8 +6,20 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v3.0.apk — vue cockpit en pixel art, image plus nette](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.0.apk)**
+**[RochetoirinSimulator-v3.1.apk — vent, nuages qui passent, oiseaux, poussière](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.1.apk)**
 (APK d'environ 660 Mo, Android 8+, OpenGL ES 3).
+![Nuages](docs/apercus/v3.1_nuages.jpg)
+
+Nouveautés de la v3.1 (le paysage bouge) :
+- **vent** : les arbres ploient dans les rafales et leur feuillage frémit (vrais modèles et arbres lointains), les
+  cultures se couchent et des vagues plus claires traversent les champs de blé, l'herbe et les fleurs suivent les
+  mêmes rafales ;
+- **ombres des nuages** qui glissent sur le relief, les champs, les villages et les routes (à midi et en fin
+  d'après-midi) ;
+- **vols d'oiseaux** de temps en temps devant la voiture (battements d'ailes et vol plané), le jour ;
+- **poussière** derrière les roues arrière dès qu'on roule hors du bitume (chemins, champs, bas-côtés).
+
+[v3.0 — vue cockpit en pixel art, image plus nette](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.0.apk)
 ![Cockpit](docs/apercus/v3.0_cockpit.jpg)
 
 Nouveautés de la v3.0 :

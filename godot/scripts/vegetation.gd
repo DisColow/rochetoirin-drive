@@ -39,6 +39,7 @@ func _ready() -> void:
 	for n in SPECIES:
 		var sc: PackedScene = load("res://assets/veg/%s.glb" % n)
 		var mi: MeshInstance3D = sc.instantiate().find_children("*", "MeshInstance3D", true, false)[0]
+		_wind_materials(mi.mesh)
 		meshes.append(mi.mesh)
 		sizes.append(float(info["size"][n]))
 	imp_mat = ShaderMaterial.new()
@@ -51,6 +52,22 @@ func _ready() -> void:
 	trunks = StaticBody3D.new()
 	add_child(trunks)
 	set_level(level)
+
+## Matériaux des modèles 3D repris dans le shader « arbre » (vent, frémissement des feuilles, ombre des nuages).
+func _wind_materials(mesh: Mesh) -> void:
+	for i in mesh.get_surface_count():
+		var m := mesh.surface_get_material(i) as StandardMaterial3D
+		if m == null:
+			continue
+		var sm := ShaderMaterial.new()
+		sm.shader = preload("res://scripts/tree.gdshader")
+		sm.set_shader_parameter("albedo_tex", m.albedo_texture)
+		if m.normal_enabled and m.normal_texture:
+			sm.set_shader_parameter("normal_tex", m.normal_texture)
+			sm.set_shader_parameter("use_normal", true)
+		sm.set_shader_parameter("leaf", m.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR or m.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_HASH)
+		sm.set_shader_parameter("scissor", m.alpha_scissor_threshold)
+		mesh.surface_set_material(i, sm)
 
 func set_level(l: int) -> void:
 	level = clampi(l, 0, LEVELS.size() - 1)

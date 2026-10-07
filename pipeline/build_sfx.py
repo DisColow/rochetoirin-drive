@@ -1,7 +1,8 @@
 """Sons de synthèse (aucun enregistrement repris) -> ../godot/assets/sfx/*.wav (mono 22 kHz, 16 bits)
  - charge.wav : bourdonnement d'énergie qui monte, en boucle (gardien qui charge son attaque)
  - vague.wav  : souffle de la vague d'énergie (grondement + sifflement descendant)
- - boum.wav   : explosion (choc grave + souffle bruité qui décroît)"""
+ - boum.wav   : explosion (choc grave + souffle bruité qui décroît)
+ - pluie.wav  : pluie sur la carrosserie, en boucle (bruissement + gouttes)"""
 import os, wave
 import numpy as np
 
@@ -44,6 +45,21 @@ def main():
     blast = lowpass(rng.normal(0, 1, len(t)), 0.12) * np.exp(-t * 2.2) * 5
     crackle = lowpass(rng.normal(0, 1, len(t)) * (rng.random(len(t)) < 0.01) * 6, 0.4) * np.exp(-t * 1.2)
     save("boum", thump * 1.4 + blast + crackle)
+    # pluie : 6 s bouclables (fondu enchaîné des bords) : bruissement filtré + gouttes qui claquent sur la tôle
+    T = 6.0; n = int(SR * T); f = int(SR * 0.5)
+    hiss = rng.normal(0, 1, n + f)
+    hiss = hiss - lowpass(hiss, 0.02)                    # retire le grave : bruissement
+    hiss = lowpass(hiss, 0.5) * 0.5
+    ticks = np.zeros(n + f)
+    for k in rng.integers(0, n + f - 400, 900):
+        a = rng.uniform(0.2, 1.0)
+        fr = rng.uniform(1800, 4200)
+        tt = np.arange(300) / SR
+        ticks[k:k + 300] += np.sin(2 * np.pi * fr * tt) * np.exp(-tt * 260) * a
+    x = hiss + ticks * 0.6
+    w = np.linspace(0, 1, f)
+    x[:f] = x[:f] * w + x[n:n + f] * (1 - w)
+    save("pluie", x[:n])
     print("sons :", os.listdir(OUT))
 
 

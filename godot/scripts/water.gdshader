@@ -2,6 +2,7 @@
 // cours d'eau : vaguelettes entraînées dans le sens du courant (UV2 = direction), plans d'eau : brise lente.
 shader_type spatial;
 render_mode cull_disabled;
+#include "res://scripts/env.gdshaderinc"
 
 uniform vec3 deep : source_color = vec3(0.035, 0.07, 0.065);
 uniform vec3 shallow : source_color = vec3(0.10, 0.15, 0.11);
@@ -36,7 +37,7 @@ void fragment() {
 	vec3 n_world = normalize(vec3(-(hx - h0) / e * amp, 1.0, -(hz - h0) / e * amp));
 	NORMAL = normalize((VIEW_MATRIX * vec4(n_world, 0.0)).xyz);
 	float fres = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 4.0);
-	ALBEDO = mix(deep, shallow, 0.4 + 0.3 * h0) * (1.0 - fres * 0.6);
+	ALBEDO = mix(deep, shallow, 0.4 + 0.3 * h0) * (1.0 - fres * 0.6) * env_cloud(wpos.xz);
 	ROUGHNESS = 0.05;
 	METALLIC = 0.0;
 	SPECULAR = 0.6;

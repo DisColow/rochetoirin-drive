@@ -16,6 +16,8 @@ var post: ColorRect
 var fences: Node3D
 var water: Node3D
 var cam_rig: Node3D
+var birds: Node3D
+var dust: Node3D
 
 func _ready() -> void:
 	var skip := OS.get_environment("RS_SKIP")
@@ -78,6 +80,16 @@ func _ready() -> void:
 	add_child(guardian)
 	if "collision_target" in terrain:
 		terrain.set("collision_target", car)
+	# vie : oiseaux qui passent, poussière derrière les roues hors du bitume
+	birds = preload("res://scripts/birds.gd").new()
+	birds.target = car
+	birds.terrain = terrain
+	add_child(birds)
+	dust = preload("res://scripts/dust.gd").new()
+	dust.car = car
+	dust.roads = roads
+	add_child(dust)
+	_apply_ambience()
 	cam_rig = preload("res://scripts/camera_rig.gd").new()
 	cam_rig.target = car
 	add_child(cam_rig)
@@ -263,12 +275,26 @@ func set_time(i: int) -> void:
 		_env.ambient_light_color = Color(0.62, 0.50, 0.45) if time_of_day == 2 else Color(0.20, 0.25, 0.40)
 		_env.ambient_light_energy = 0.9 if time_of_day == 2 else 0.75
 	var night: float = P[7]
+	_apply_ambience()
 	if buildings and buildings.mat:
 		buildings.mat.set_shader_parameter("night", night)
 	if poles:
 		poles.set_night(night)
 	if car and car.has_method("set_lights"):
 		car.set_lights(night > 0.2)
+
+## Vent (direction fixe, force modérée) et ombres des nuages : le jour seulement (ciel à cumulus à midi, plus léger
+## en fin d'après-midi ; pas de nuages découpés au coucher ni la nuit).
+var wind_strength := 0.55
+func _apply_ambience() -> void:
+	RenderingServer.global_shader_parameter_set("wind", Vector4(0.8, 0.6, wind_strength, 0.0))
+	var cl := Vector4([0.45, 0.32, 0.0, 0.0][time_of_day], 0.0, 0.0, 0.0)
+	if OS.get_environment("RS_CLOUDS") != "":                # essai : « force,seuil »
+		var v := OS.get_environment("RS_CLOUDS").split(",")
+		cl = Vector4(float(v[0]), float(v[1]), 0.0, 0.0)
+	RenderingServer.global_shader_parameter_set("clouds", cl)
+	if birds:
+		birds.day = time_of_day < 3
 
 func _terrain() -> void:
 	terrain = Terrain3D.new()
@@ -289,6 +315,9 @@ func _terrain() -> void:
 	m.set_shader_param("macro_variation_slope", 0.4)
 	m.set_shader_param("noise1_scale", 0.03)
 	m.set_shader_param("noise2_scale", 0.09)
+	# shader du relief remplacé (même code + ombres des nuages et sol mouillé)
+	m.set("shader_override", preload("res://scripts/terrain.gdshader"))
+	m.set("shader_override_enabled", true)
 	add_child(terrain)
 	terrain.set_camera(get_viewport().get_camera_3d())
 
