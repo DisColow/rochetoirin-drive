@@ -8,21 +8,6 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 **[RochetoirinSimulator-v2.9.apk — gardien des limites, lignes électriques, lampadaires, étalonnage](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.9.apk)**
 (APK de 691 Mo, Android 8+, OpenGL ES 3).
-**Essai (v2.8)** : [rendu « Mobile » (Vulkan)](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.8-rendu-mobile.apk)
-— application séparée (« Rochetoirin (Mobile) »), s'installe à côté de la version normale ; non vérifiable ici (le
-conteneur n'a pas de Vulkan matériel) : à essayer, et à désinstaller si elle plante.
-Versions précédentes :
-[v2.8](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.8.apk),
-[v2.7](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.7.apk),
-[v2.6](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.6.apk),
-[v2.5](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.5.apk),
-[v2.4](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.4.apk),
-[v2.3](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.3.apk),
-[v2.2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.1.apk),
-[v2.2](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.apk),
-[v2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.1.apk),
-[v2.0](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk).
-
 ![Gardien](docs/apercus/v2.9_gardien.jpg)
 
 Nouveautés de la v2.9 :

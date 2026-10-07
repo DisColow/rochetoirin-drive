@@ -42,8 +42,7 @@
   (densité réglable), 6 textures et finitions. Étape ajoutée, faite en v2.5 : clôtures, haies, murets et portails.
 - L'APK (> 100 Mo) va dans `releases/` via **Git LFS** (`.gitattributes`) ; les GitHub Releases sont interdites à cette
   session. Lien : `https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/<apk>`.
-- APK d'essai en rendu Mobile (Vulkan) : même projet, paquet `fr.rochetoirin.sim2.mobile` (script : passer
-  `rendering_method` à `mobile` et le nom de paquet le temps de l'export, puis restaurer).
+- Rendu Mobile (Vulkan) essayé en v2.8 : moins joli que Compatibility sur le téléphone de l'utilisateur, abandonné.
 - Captures de contrôle : `xvfb-run godot --path godot -- --shots=<json>` ; essai de conduite : `-- --drive-test`.
 - Gardien des limites : modèle `godot/models/goku.glb` fourni par l'utilisateur (« Goku (Rigged & Animated) » de Kari,
   CC BY 4.0) ; **crédits à ajouter dans le jeu plus tard : le rappeler à l'utilisateur.**
