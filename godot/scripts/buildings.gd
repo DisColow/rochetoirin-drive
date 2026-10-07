@@ -103,7 +103,9 @@ func _collisions() -> void:
 			var sb := StaticBody3D.new()
 			for mi in loaded[k].find_children("col*", "MeshInstance3D", true, false):
 				var cs := CollisionShape3D.new()
-				cs.shape = mi.mesh.create_trimesh_shape()
+				var sh: ConcavePolygonShape3D = mi.mesh.create_trimesh_shape()
+				sh.backface_collision = true            # murs sans épaisseur : on bute dessus des deux côtés
+				cs.shape = sh
 				sb.add_child(cs)
 			loaded[k].add_child(sb)
 			bodies[k] = sb

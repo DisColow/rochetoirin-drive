@@ -1,5 +1,5 @@
-## Renault Espace IV : physique de véhicule à roues sur rayons, boîte automatique, direction adaptée à la vitesse.
-## Sans friction : marche arrière en restant sur le frein à l'arrêt, remise sur la route automatique (sortie de zone,
+## Renault Espace I (1984-1988, rouge foncé et bas beige doré, la voiture du père de l'utilisateur) : physique de véhicule à roues sur rayons, boîte automatique, direction adaptée à la vitesse.
+## Sans friction : marche arrière comme dans les jeux (FREIN freine puis recule, GAZ en reculant freine puis avance), remise sur la route automatique (sortie de zone,
 ## chute, retournement, blocage), aides à la stabilité.
 extends VehicleBody3D
 
@@ -40,7 +40,7 @@ func _ready() -> void:
 	_materials(body)
 	var cs := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(1.84, 1.05, 4.62)
+	box.size = Vector3(1.76, 1.15, 4.24)
 	cs.shape = box
 	cs.position = Vector3(0, 0.95, 0)
 	add_child(cs)
@@ -62,6 +62,7 @@ func _ready() -> void:
 		w.use_as_steering = front
 		w.use_as_traction = front
 		var v: Node3D = wheel_scene.instantiate()
+		_materials(v)
 		v.rotation.y = 0.0 if right else PI
 		w.add_child(v)
 		add_child(w)
@@ -105,8 +106,8 @@ func _steering_wheel(meta: Dictionary) -> void:
 
 func _materials(root: Node) -> void:
 	var paint := StandardMaterial3D.new()
-	paint.albedo_color = Color(0.55, 0.03, 0.04)
-	paint.metallic = 0.6; paint.roughness = 0.28
+	paint.albedo_color = Color(0.40, 0.025, 0.03)            # rouge foncé, peinture opaque des années 80
+	paint.metallic = 0.0; paint.roughness = 0.32
 	paint.clearcoat_enabled = true; paint.clearcoat = 0.8; paint.clearcoat_roughness = 0.1
 	var glass := StandardMaterial3D.new()
 	glass.albedo_color = Color(0.04, 0.05, 0.06, 0.55)
@@ -130,7 +131,17 @@ func _materials(root: Node) -> void:
 	inner.cull_mode = BaseMaterial3D.CULL_FRONT
 	for m in [paint, plastic, chrome, rubber, lamp, tail, vcol]:
 		m.next_pass = inner
-	var by_name := {"paint": paint, "glass": glass, "chrome": chrome, "rubber": rubber, "plastic": plastic,
+	var beige := StandardMaterial3D.new()                    # boucliers et bas de caisse beige doré
+	beige.albedo_color = Color(0.58, 0.50, 0.35); beige.metallic = 0.3; beige.roughness = 0.42
+	var orange := StandardMaterial3D.new()
+	orange.albedo_color = Color(0.95, 0.42, 0.04); orange.roughness = 0.2
+	var fog := StandardMaterial3D.new()
+	fog.albedo_color = Color(0.95, 0.78, 0.1); fog.roughness = 0.15
+	for m in [beige, orange, fog]:
+		m.next_pass = inner
+	var hub := StandardMaterial3D.new()                      # enjoliveurs argentés
+	hub.albedo_color = Color(0.72, 0.73, 0.75); hub.metallic = 0.45; hub.roughness = 0.35
+	var by_name := {"hubcap": hub, "paint": paint, "beige": beige, "orange": orange, "fog": fog, "glass": glass, "chrome": chrome, "rubber": rubber, "plastic": plastic,
 		"lamp": lamp, "tail": tail, "interior": vcol, "plate_front": vcol, "plate_rear": vcol}
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
 		for s in mi.mesh.get_surface_count():
@@ -169,10 +180,11 @@ func _physics_process(dt: float) -> void:
 	var brk := clampf(Input.get_action_strength("freiner") + touch_brake, 0.0, 1.0)
 	var st := clampf(Input.get_action_strength("gauche") - Input.get_action_strength("droite") + touch_steer, -1.0, 1.0)
 	var v := forward_speed()
-	# marche arrière : frein maintenu à l'arrêt
-	if brk > 0.2 and v < 0.6 and thr < 0.1:
+	# sens de marche « jeu » : la pédale opposée au mouvement freine, puis la voiture repart dans l'autre sens dès
+	# qu'elle est presque arrêtée (pas besoin d'attendre l'arrêt complet)
+	if brk > 0.1 and thr < 0.1 and v < 0.6:
 		reversing = true
-	elif thr > 0.1 and v > -0.6:
+	elif thr > 0.1 and brk < 0.1 and v > -0.6:
 		reversing = false
 	var k := clampf(absf(v) * 3.6 / 130.0, 0.0, 1.0)
 	var max_steer := lerpf(STEER_LOW, STEER_HIGH, sqrt(k))
@@ -185,14 +197,19 @@ func _physics_process(dt: float) -> void:
 		_wheel_rim.rotation.z = -steer_value * 8.0          # démultiplication : ~ 1 tour de volant pour 0,55 rad
 	var spd := absf(v) * 3.6
 	if reversing:
-		engine_force = -ENGINE * 0.5 * brk if spd < 25.0 else 0.0
-		brake = 0.0
+		if thr > 0.1:
+			# en reculant, GAZ freine (puis repart en avant, voir plus haut)
+			engine_force = 0.0
+			brake = BRAKE * thr
+		else:
+			engine_force = -ENGINE * 0.5 * brk if spd < 25.0 else 0.0
+			brake = 0.0
 	else:
 		# boîte auto : force limitée par la puissance (F = P / v), coupée à la vitesse max
 		var f := thr * minf(ENGINE, POWER / maxf(absf(v), 1.0))
 		if spd > MAX_KMH:
 			f = 0.0
-		engine_force = f
+		engine_force = f if brk < 0.1 or thr > brk else 0.0
 		brake = BRAKE * brk + (2.0 if thr < 0.05 and spd < 3.0 and brk < 0.1 else 0.0)
 	# frein moteur léger et aide à la stabilité en virage (anti-dérive latérale)
 	if thr < 0.05 and not reversing:

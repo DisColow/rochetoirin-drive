@@ -715,6 +715,26 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
                 ring=ringw, ground=gw, flat=flat, wall=wl, wtint=wtint)
 
 
+def _col_prism(C, p, g, dem):
+    """Collision de secours : prisme de l'emprise, du sol à la hauteur BD TOPO (8 m à défaut)."""
+    try:
+        foot = shapely.geometry.polygon.orient(shapely.simplify(g, 0.3), 1.0)
+        V, T = tri_polygon(foot)
+    except Exception:
+        return
+    ring = np.asarray(foot.exterior.coords)
+    base = float(dem.h(ring[:, 0], ring[:, 1]).min()) - 0.5
+    top = base + 0.5 + float(p.get("hauteur") or 8.0)
+    n = len(V)
+    Pc = np.r_[np.c_[V[:, 0], np.full(n, base), V[:, 1]], np.c_[V[:, 0], np.full(n, top), V[:, 1]]]
+    It = list(np.asarray(T) + n)
+    for k in range(len(ring) - 1):
+        a = int(np.argmin(np.hypot(V[:, 0] - ring[k, 0], V[:, 1] - ring[k, 1])))
+        b = int(np.argmin(np.hypot(V[:, 0] - ring[k + 1, 0], V[:, 1] - ring[k + 1, 1])))
+        It += [a, b, b + n, a, b + n, a + n]
+    C.append((Pc, np.array(It, np.uint32)))
+
+
 def main():
     shutil.rmtree(OUT, ignore_errors=True); os.makedirs(OUT)
     dem = CarvedDEM()
@@ -762,7 +782,9 @@ def main():
         c = g.centroid
         key = (int(c.x // TILE), int(c.y // TILE))
         M, C = tiles.setdefault(key, (Mesh(), []))
+        nc = len(C)
         if i in LM.replaced:
+            _col_prism(C, p, g, dem)
             continue
         try:
             info = build_one(M, C, p, g, dem, ortho, road_tree, rp, tree, polys, i, LM.override.get(i))
@@ -774,6 +796,9 @@ def main():
             k = "erreur"
             if stats.get("erreur", 0) < 3:
                 import traceback; traceback.print_exc()
+        if len(C) == nc:
+            _col_prism(C, p, g, dem)                 # aucun bâtiment sans collision
+            stats["collision ajoutée"] = stats.get("collision ajoutée", 0) + 1
         stats[k] = stats.get(k, 0) + 1
         if i % 2000 == 0:
             print(i, stats)

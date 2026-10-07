@@ -23,7 +23,7 @@ for n, (lo, la) in N.items():
         pts[n] = tuple(float(v) for v in to_local(lo, la))
 def nearest(x, z):
     return min(pts, key=lambda n: (pts[n][0] - x) ** 2 + (pts[n][1] - z) ** 2)
-T = {"Rochetoirin": (0, 0), "Saint-Chef": (-4387, -5876), "L'Isle-d'Abeau": (-14569, -3778), "Saint-Clair-de-la-Tour": (5482, 1639), "La Tour-du-Pin": (2354, 1318)}
+T = {"Rochetoirin": (0, 0), "Saint-Chef": (-4387, -5876), "L'Isle-d'Abeau": (-14569, -3778), "Saint-Clair-de-la-Tour": (5482, 1639), "La Tour-du-Pin": (2354, 1318), "Chamont": (-5900, -7680)}
 src = nearest(*T["Rochetoirin"])
 out = {}
 for k, p in T.items():

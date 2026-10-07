@@ -317,6 +317,16 @@ func _physics_process(_dt: float) -> void:
 	car.touch_brake = 1.0 if t >= dur else 0.0
 	var straight: bool = Array(OS.get_cmdline_user_args()).any(func(a): return a.begins_with("--drive-from="))
 	car.touch_steer = 0.3 if (t > 600 and t < 800 and not straight) else 0.0
+	if OS.get_cmdline_user_args().has("--reverse-test"):
+		# marche arrière depuis le départ (FREIN), puis GAZ en reculant : doit freiner puis repartir en avant
+		car.touch_steer = 0.0
+		car.touch_brake = 1.0 if t < 840 else 0.0
+		car.touch_throttle = 1.0 if t >= 840 else 0.0
+		if t % 30 == 0:
+			print("  t=%.2f v=%.1f km/h (avant=%.2f) arrière=%s pos=%s" % [t / 120.0, car.kmh(), car.forward_speed(), car.reversing, car.global_position.snapped(Vector3(0.1, 0.1, 0.1))])
+		if t > 1500:
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--flip-test"):
 		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
 		if t == 240:

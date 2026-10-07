@@ -6,8 +6,9 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v2.6.apk — étape 6 : textures et finitions, rivières et étangs](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.6.apk)**
-(APK de 638 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+**[RochetoirinSimulator-v2.7.apk — Espace I, Chamont, marche arrière, collisions](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.7.apk)**
+(APK de 653 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+[v2.6](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.6.apk),
 [v2.5](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.5.apk),
 [v2.4](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.4.apk),
 [v2.3](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.3.apk),
@@ -15,6 +16,19 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 [v2.2](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.apk),
 [v2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.1.apk),
 [v2.0](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk).
+
+![Espace I et Chamont](docs/apercus/v2.7_espace_chamont.jpg)
+
+Nouveautés de la v2.7 :
+- **la voiture est un Renault Espace I** (1984-1988), comme celui du père de l'utilisateur : rouge foncé, tout le bas
+  beige doré, calandre rouge à lamelles, phares carrés et clignotants orange, antibrouillards jaunes, jantes tôle à
+  enjoliveurs argentés, grand pare-brise très incliné ; 7 places à l'intérieur (modèle fait sur mesure d'après une
+  photo et les cotes réelles) ;
+- **Chamont** : la carte s'agrandit au nord de Saint-Chef (7 km² de plus) : le hameau et la D 54 (route de Chamont),
+  avec relief, maisons, arbres, champs, clôtures ; Chamont figure dans la liste des communes de la carte ;
+- **marche arrière comme dans les jeux** : en reculant, GAZ freine puis repart en avant (plus besoin de s'arrêter
+  complètement) ; FREIN en avançant freine puis recule ;
+- **collisions des maisons** : on ne traverse plus les murs (collisions des deux côtés, et tous les bâtiments en ont).
 
 ![Finitions](docs/apercus/v2.6_finitions.jpg)
 
