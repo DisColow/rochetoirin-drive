@@ -1,5 +1,8 @@
 # Consignes du projet
 
+- **Issues GitHub** : quand l'utilisateur demande de faire des choses, lire les issues ouvertes de
+  `DisColow/rochetoirin-drive` (`curl -s https://api.github.com/repos/DisColow/rochetoirin-drive/issues?state=open`)
+  et les ajouter à la liste des tâches ; poser des questions si une issue n'est pas claire.
 - **Notification à la fin de chaque tour** : quand le travail est fini et que c'est à l'utilisateur d'écrire, lui
   envoyer une notification (outil PushNotification, message court en français : ce qui est prêt / ce qu'on attend de lui).
 - Après chaque livraison (modification du jeu, nouvel APK), **mettre à jour ce dépôt systématiquement** :
