@@ -41,12 +41,17 @@ class Atlas:
         y = 18
         if num:
             # cartouche du numéro de sortie (blanc, chiffres bleus), à gauche
-            f = ImageFont.truetype(FONT, 40)
-            d.rounded_rectangle([22, y, 150, y + 58], 10, fill=(255, 255, 255))
-            t = "SORTIE" if len(num) > 3 else "SORTIE " + num
-            ft = ImageFont.truetype(FONT, 22 if len(t) > 8 else 28)
-            b = ft.getbbox(t)
-            d.text((86 - (b[2] - b[0]) // 2, y + 29 - (b[3] - b[1]) // 2 - b[1]), t, font=ft, fill=BLUE)
+            t = "SORTIE " + num
+            sz = 34
+            while sz > 14:
+                ft = ImageFont.truetype(FONT, sz)
+                b = ft.getbbox(t)
+                if b[2] - b[0] <= 200:
+                    break
+                sz -= 2
+            wbox = (b[2] - b[0]) + 30
+            d.rounded_rectangle([22, y, 22 + wbox, y + 58], 10, fill=(255, 255, 255))
+            d.text((22 + 15 - b[0], y + 29 - (b[3] - b[1]) // 2 - b[1]), t, font=ft, fill=BLUE)
         if dist:
             fd = ImageFont.truetype(FONT, 34)
             b = fd.getbbox(dist)
@@ -131,9 +136,16 @@ def main():
                 num = jref.get(n) or ""
                 hw = w["w"] / 2
                 for dist in (1000.0, 500.0):
-                    if s - dist < 5:
+                    # remonte les chaussées précédentes si la sortie est proche du début de celle-ci
+                    ww, ss, hops = w, s - dist, 0
+                    while ss < 5 and hops < 4:
+                        prev = [v for v in mw if v["nodes"][-1] == ww["nodes"][0]]
+                        if not prev:
+                            break
+                        ww = prev[0]; ss = ww["s"][-1] + ss; hops += 1
+                    if ss < 5:
                         continue
-                    p, T, R, y = pos(w, s - dist, hw + 2.5)
+                    p, T, R, y = pos(ww, ss, ww["w"] / 2 + 2.5)
                     cell = atlas.panel(num, dests, "%d m" % dist)
                     face = -T                                     # face vers les voitures qui arrivent
                     inst.append((MID["panneau_bleu"],) + basis_facing(face, 4.6, 2.3) + (p[0], y + 2.5, p[1]) + cell)

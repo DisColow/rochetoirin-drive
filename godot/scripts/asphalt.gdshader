@@ -35,6 +35,16 @@ void fragment() {
 	float patch = smoothstep(0.62, 0.68, vnoise(p * 0.035 + 7.0));
 	vec3 c = a * tint * (0.86 + 0.28 * big);
 	c *= mix(1.0, 0.72, patch);
+	// plaques d'égout en fonte (une case de 26 m sur cinq), anneau et motif de grille, posées dans l'enrobé
+	vec2 mc = floor(p / 26.0);
+	vec2 mp = (mc + vec2(0.3) + 0.4 * vec2(hash(mc), hash(mc + 7.3))) * 26.0;
+	float md = length(p - mp);
+	if (hash(mc + 3.1) < 0.2 && md < 0.36) {
+		float grid = step(0.5, fract((p.x - mp.x) * 7.0)) * 0.12 + step(0.5, fract((p.y - mp.y) * 7.0)) * 0.12;
+		vec3 iron = vec3(0.16, 0.15, 0.14) * (0.8 + grid) * (md > 0.31 ? 0.75 : 1.0);
+		c = mix(c, iron, smoothstep(0.36, 0.34, md));
+		r = 0.45;
+	}
 	// pluie : enrobé assombri et brillant (reflets du ciel et des phares), flaques dans les creux avec ronds de gouttes
 	float puddle = smoothstep(0.56, 0.63, vnoise(p * 0.11 + 3.0) * 0.7 + vnoise(p * 0.45) * 0.3) * smoothstep(0.4, 0.9, wet);
 	c *= mix(1.0, 0.6, wet);

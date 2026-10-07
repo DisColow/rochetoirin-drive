@@ -6,8 +6,16 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v3.5.apk — commerces, stades, animaux, autoroutes, nouveau cockpit, kaméhaméha](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.5.apk)**
+**[RochetoirinSimulator-v3.6.apk — panneaux de sortie complets, plaques d'égout](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.6.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
+
+Nouveautés de la v3.6 :
+- présignalisation de **toutes les sorties d'autoroute** (1 000 m et 500 m, 44 panneaux), cartouche « SORTIE n »
+  lisible ;
+- **plaques d'égout** en fonte dans l'enrobé des rues ;
+- essai automatique du gardien (`--void-test`) : il ne tire que lorsque la voiture tombe dans le vide hors de la carte.
+
+[v3.5 — commerces, stades, animaux, autoroutes, nouveau cockpit, kaméhaméha](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.5.apk)
 
 Nouveautés de la v3.5 :
 - **commerces** (modèles faits avec Blender) : 233 devantures sur la vraie façade des commerces OSM (vitrines,

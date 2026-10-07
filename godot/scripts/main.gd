@@ -634,6 +634,20 @@ func _physics_process(_dt: float) -> void:
 		if t > 1500:
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--void-test"):
+		# essai du gardien : voiture lâchée dans le vide, loin au-delà de la limite (il doit dire « HA ! » et tirer)
+		car.touch_throttle = 0.0
+		if t == 240:
+			var cp := Vector2(car.global_position.x, car.global_position.z)
+			var nr: Array = guardian._nearest(cp)
+			var q: Vector2 = nr[0]
+			var out := (q - cp).normalized()
+			var p := q + out * 420.0
+			car.place(Vector3(p.x, car.global_position.y + 60.0, p.y), 0.0)
+			print("lâchée hors carte en ", car.global_position, " distance à la limite ", guardian._nearest(p)[1])
+		if t > 240 and t % 30 == 0:
+			print("  t=%.2f état=%s y=%.1f soufflée=%s" % [t / 120.0, guardian.state, car.global_position.y, car.blown])
+		return
 	if OS.get_cmdline_user_args().has("--flip-test"):
 		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
 		if t == 240:
