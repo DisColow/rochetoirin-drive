@@ -18,6 +18,10 @@ var water: Node3D
 var cam_rig: Node3D
 var birds: Node3D
 var props: Node3D
+var shops: Node3D
+var sport: Node3D
+var animaux: Node3D
+var autoroute: Node3D
 var dust: Node3D
 var rain: Node3D
 var cockpit: CanvasLayer
@@ -94,6 +98,23 @@ func _ready() -> void:
 	add_child(props)
 	props.target = car
 	props.update_now()
+	shops = preload("res://scripts/shops.gd").new()
+	add_child(shops)
+	shops.target = car
+	shops.update_now()
+	sport = preload("res://scripts/sport.gd").new()
+	sport.terrain = terrain
+	add_child(sport)
+	sport.target = car
+	sport.update_now()
+	animaux = preload("res://scripts/animaux.gd").new()
+	add_child(animaux)
+	animaux.target = car
+	animaux.update_now()
+	autoroute = preload("res://scripts/autoroute.gd").new()
+	add_child(autoroute)
+	autoroute.target = car
+	autoroute.update_now()
 	poles.set_night(1.0 if time_of_day == 3 else (0.35 if time_of_day == 2 else 0.0))
 	# gardien des limites de la carte
 	guardian = preload("res://scripts/guardian.gd").new()
@@ -146,6 +167,7 @@ func _ready() -> void:
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS          # la carte reste utilisable jeu en pause
 	add_child(hud)
 	hud.teleport.connect(_teleport)
+	cam_rig.hud = hud
 	var cr = preload("res://scripts/crash_report.gd").new()
 	cr.car = car; cr.hud = hud; cr.names = hud.names
 	add_child(cr)
@@ -164,6 +186,10 @@ func _teleport(p: Vector3, heading: float) -> void:
 	water.update_now()
 	poles.update_now()
 	props.update_now()
+	shops.update_now()
+	sport.update_now()
+	animaux.update_now()
+	autoroute.update_now()
 	vegetation.update_now()
 	grass.update_now()
 
@@ -304,6 +330,7 @@ func set_time(i: int) -> void:
 		_env.ambient_light_color = Color(0.62, 0.50, 0.45) if time_of_day == 2 else Color(0.20, 0.25, 0.40)
 		_env.ambient_light_energy = 0.9 if time_of_day == 2 else 0.75
 	var night: float = P[7]
+	preload("res://scripts/env.gd").set_value("night", night)
 	_apply_ambience()
 	if buildings and buildings.mat:
 		buildings.mat.set_shader_parameter("night", night)
@@ -468,7 +495,7 @@ func _shots(path: String) -> void:
 		if s.has("cam"):
 			# vue de la caméra du jeu (0 poursuite, 1 conducteur, 2 capot) après un court trajet
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; vegetation.target = car; crops.target = car; grass.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; shops.target = car; sport.target = car; animaux.target = car; autoroute.target = car; vegetation.target = car; crops.target = car; grass.target = car
 			cam_rig.set_mode(int(s.cam))
 			car.touch_throttle = 0.5
 			car.touch_steer = float(s.get("steer", 0.0))
@@ -493,7 +520,7 @@ func _shots(path: String) -> void:
 		if s.get("tap", false):
 			# téléportation par un vrai toucher : bouton CARTE puis toucher sur la carte (chemin complet des entrées)
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; vegetation.target = car; crops.target = car; grass.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; shops.target = car; sport.target = car; animaux.target = car; autoroute.target = car; vegetation.target = car; crops.target = car; grass.target = car
 			var hud := get_node("HUD")
 			var before := car.global_position
 			Input.action_press("carte")
@@ -524,7 +551,7 @@ func _shots(path: String) -> void:
 			hud.map.zoom = 0.5
 			hud.map._pick(hud.map.world_to_screen(Vector2(s.tp[0], s.tp[1])))
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; vegetation.target = car; crops.target = car; grass.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; shops.target = car; sport.target = car; animaux.target = car; autoroute.target = car; vegetation.target = car; crops.target = car; grass.target = car
 			for i in 240:
 				await get_tree().physics_frame
 			print("téléporté en ", car.global_position, " roues au sol ", car.wheels.filter(func(w): return w.is_in_contact()).size())
@@ -552,6 +579,10 @@ func _shots(path: String) -> void:
 		water.target = c
 		poles.target = c
 		props.target = c
+		shops.target = c
+		sport.target = c
+		animaux.target = c
+		autoroute.target = c
 		vegetation.target = c
 		crops.target = c
 		grass.target = c
@@ -566,6 +597,10 @@ func _shots(path: String) -> void:
 			water._process(0.3)
 			poles._process(0.3)
 			props._process(0.3)
+			shops._process(0.3)
+			sport._process(0.3)
+			animaux._process(0.3)
+			autoroute._process(0.3)
 			vegetation._process(0.3)
 			crops._process(0.3)
 			grass._process(0.3)

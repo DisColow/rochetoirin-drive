@@ -6,6 +6,32 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
+**[RochetoirinSimulator-v3.5.apk — commerces, stades, animaux, autoroutes, nouveau cockpit, kaméhaméha](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.5.apk)**
+(construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
+
+Nouveautés de la v3.5 :
+- **commerces** (modèles faits avec Blender) : 233 devantures sur la vraie façade des commerces OSM (vitrines,
+  porte vitrée, enseigne avec lampes col-de-cygne, stores rayés, croix de pharmacie, carotte de tabac, terrasses de
+  café), 14 supermarchés (grande enseigne, auvent d'entrée, totem, abri à chariots) et des stations-service ;
+  **toutes les marques sont parodiées** (Carrefou, Entremarché, Lidol, E.Leplerc, La Pausse, Crédit Agricolo,
+  McDonuts, Totale…) et les commerces indépendants ont des noms inventés ; enseignes et vitrines éclairées la nuit ;
+- **terrains de sport** : foot, rugby, tennis (terre battue ou résine, grillage), basket, multisport, pétanque, avec
+  leurs tracés, buts et filets, paniers, mâts d'éclairage et bancs de touche ;
+- **animaux dans les prés** : vaches (Montbéliardes, Charolaises), moutons, chevaux, qui broutent et chassent les
+  mouches de la queue, dans les prairies où c'est logique ; **prés clos** de piquets et de barbelés ;
+- **champs de blé refaits** : vrais épis en rangs serrés, plus de nappes qui flottaient (les « bugs graphiques ») ;
+- **vue cockpit** : pixel art retravaillé (similicuir grainé, haut-parleurs, baguettes alu, interrupteurs, feux de
+  détresse, reflets sur le verre des compteurs, bande teintée en haut du pare-brise, ciel de toit perforé, volant en
+  cuir surpiqué) ; **plus de bras** : le volant tourne tout seul ;
+- **caméra au doigt** : glisser sur l'écran (hors boutons) pour regarder autour ; elle revient en place toute seule ;
+- **autoroutes** : glissières de sécurité le long des chaussées et du terre-plein central (ouvertes aux bretelles),
+  bornes d'appel d'urgence orange à leurs vraies places, panneaux bleus de présignalisation des sorties (numéro,
+  destinations, 1 000 m / 500 m), balises à chevrons au nez des bretelles, gares de péage (auvent et cabines hors des
+  voies) ;
+- **gardien** : il dit « Ka… mé… ha… mé… » en chargeant (mains jointes à la hanche, boule bleue) et ne tire,
+  « HAAA ! » bras tendus, que si l'on tombe vraiment dans le vide hors de la carte ; rayon plus épais et animé,
+  secousse à l'impact.
+
 **[RochetoirinSimulator-v3.4.apk — correctif : plantage au démarrage depuis la v3.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.4.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 

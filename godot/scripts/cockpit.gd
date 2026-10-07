@@ -1,6 +1,6 @@
 ## Vue cockpit en pixel art (à la manière des vieux jeux de voitures) : l'habitacle de l'Espace I est dessiné dans une
 ## petite image de 480 pixels de large (build_cockpit.py) affichée en gros pixels par-dessus la route en 3D.
-## Animé : aiguilles des compteurs, volant tourné avec la direction et mains dessus, heure sur l'autoradio, voyant des
+## Animé : aiguilles des compteurs, volant qui tourne tout seul avec la direction, heure sur l'autoradio, voyant des
 ## phares, lettre de la boîte, rétroviseur (vraie vue arrière en basse résolution), sapin désodorisant qui se balance,
 ## habitacle qui suit les secousses ; éclairé selon l'heure de la journée (compteurs rétroéclairés la nuit).
 extends CanvasLayer
@@ -50,7 +50,7 @@ const FONT := {
 func _ready() -> void:
 	layer = 0
 	meta = JSON.parse_string(FileAccess.get_file_as_string(DIR + "meta.json"))
-	for n in ["dash", "glow", "top", "wheel", "hand_l", "hand_r", "pillar", "sleeve", "pine"]:
+	for n in ["dash", "glow", "glass", "top", "wheel", "pillar", "pine"]:
 		tex[n] = load(DIR + n + ".png")
 	vp = SubViewport.new()
 	vp.disable_3d = true
@@ -93,6 +93,34 @@ func _ready() -> void:
 	_resize()
 	set_active(false)
 
+## Regard au doigt : l'habitacle glisse avec la tête ; sur les côtés découverts, bas de portière.
+var _doors := []
+func look_offset(yaw: float, pitch: float) -> void:
+	if not active:
+		return
+	var s := get_viewport().get_visible_rect().size
+	var px := yaw * s.x * 0.62
+	var py := -pitch * s.y * 0.9
+	view.position = Vector2(px, py)
+	if _doors.is_empty():
+		for i in 2:
+			var r := ColorRect.new()
+			r.color = Color(0.11, 0.11, 0.12)
+			r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			add_child(r)
+			move_child(r, 0)
+			_doors.append(r)
+	var amb: Color = lit.modulate
+	for i in 2:
+		var r: ColorRect = _doors[i]
+		r.color = Color(0.13, 0.13, 0.14) * amb
+		r.color.a = 1.0
+		r.visible = absf(px) > 1.0
+		var w := absf(px) + 4.0
+		r.size = Vector2(w, s.y * 0.5)
+		r.position = Vector2(-w + px + 2.0 if i == 0 else s.x + px - 2.0, s.y * 0.52 + py)
+		r.visible = r.visible and ((i == 0 and px > 0) or (i == 1 and px < 0))
+
 func _resize() -> void:
 	var s := get_viewport().get_visible_rect().size
 	vh = clampi(int(round(VW * s.y / maxf(s.x, 1.0))), 160, 400)
@@ -101,6 +129,9 @@ func _resize() -> void:
 func set_active(on: bool) -> void:
 	active = on
 	view.visible = on
+	view.position = Vector2.ZERO
+	for r in _doors:
+		r.visible = false
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
 	mirror_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	if car and car.has_method("set_cockpit"):
@@ -284,6 +315,7 @@ func _draw_glow() -> void:
 	_needle(Vector2(r[0], float(r[1]) + dy) + Vector2(0.5, 0.5), float(r[2]) - 2.5, -125.0 + 250.0 * clampf(_rpm / 7000.0, 0.0, 1.0), nd)
 	_needle(Vector2(f[0], float(f[1]) + dy) + Vector2(0.5, 0.5), float(f[2]) - 2.0, 32.0, nd)
 	_needle(Vector2(tp[0], float(tp[1]) + dy) + Vector2(0.5, 0.5), float(tp[2]) - 2.0, -6.0 + sin(_clock * 0.05) * 3.0, nd)
+	glow.draw_texture(tex.glass, Vector2(0, dy))
 	# voyant vert des feux
 	var L: Array = meta.lamps
 	if car.get("_beams") and not car._beams.is_empty() and car._beams[0].visible:
@@ -310,27 +342,9 @@ func _draw_front() -> void:
 	var dy := float(vh - 100)
 	var c := Vector2(240, dy + 80)
 	var rot := -clampf(car.steer_value / 0.55, -1.0, 1.0) * deg_to_rad(125.0)
-	var rr := float(meta.wheel_r) - float(meta.wheel_t) / 2.0
-	var hands := []
-	# les mains suivent la jante sur ±35°, puis la jante glisse dedans (pas de bras croisés devant les compteurs)
-	var hr := clampf(rot, -deg_to_rad(35.0), deg_to_rad(35.0))
-	for k in [[-58.0, Vector2(40, vh + 60), "hand_l"], [58.0, Vector2(440, vh + 60), "hand_r"]]:
-		var a := deg_to_rad(float(k[0])) + hr
-		hands.append([c + Vector2(sin(a), -cos(a)) * rr, k[1], k[2]])
-	# avant-bras (manches du pull) : du bas de l'écran jusqu'aux mains
-	for h in hands:
-		var hp: Vector2 = h[0]; var sh: Vector2 = h[1]
-		var d := (hp - sh).normalized()
-		var n := Vector2(-d.y, d.x)
-		var pts := PackedVector2Array([sh - n * 26.0, sh + n * 26.0, hp + d * 2.0 + n * 7.0, hp + d * 2.0 - n * 7.0])
-		var uv := PackedVector2Array([Vector2(0, 0), Vector2(1, 0), Vector2(1, 6), Vector2(0, 6)])
-		front.draw_polygon(pts, PackedColorArray(), uv, tex.sleeve)
 	front.draw_set_transform(c, rot, Vector2.ONE)
 	front.draw_texture(tex.wheel, Vector2(-80, -80))
 	front.draw_set_transform(Vector2.ZERO)
-	for h in hands:
-		var hp: Vector2 = h[0]
-		front.draw_texture(tex[h[2]], (hp - Vector2(11, 10)).round())
 	# sapin désodorisant pendu au rétroviseur
 	var m: Array = meta.mirror
 	var piv := Vector2(float(m[0]) + float(m[2]) * 0.5 + 8.0, float(m[1]) + float(m[3]) + 3.0)

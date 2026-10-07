@@ -132,6 +132,18 @@ func _open_settings() -> void:
 	add_child(settings)
 	settings.position = (get_viewport().get_visible_rect().size - settings.get_combined_minimum_size()) / 2
 
+## Point de l'écran occupé par l'interface (boutons, GPS, compteur, carte, réglages) : pas de rotation de caméra.
+func is_ui_point(p: Vector2) -> bool:
+	if map.visible or (settings and is_instance_valid(settings)):
+		return true
+	for b in buttons:
+		if not b.visible:
+			continue
+		var r: float = b.shape.radius
+		if p.distance_to(b.position + Vector2(r, r)) < r + 28.0:
+			return true
+	return Rect2(gps.position, gps.size).has_point(p) or Rect2(speed_panel.position, speed_panel.size).has_point(p)
+
 func _open_map() -> void:
 	if not map.visible:
 		_show_drive(false)

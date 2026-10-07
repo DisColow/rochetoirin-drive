@@ -10,17 +10,41 @@ rng = np.random.default_rng(4)
 
 
 def cereal():
+    """Blé mûr vu de côté : tiges serrées (plus sombres en bas), épis de grains alignés avec leurs barbes, couleurs
+    variées du jaune paille au doré ; le haut reste dentelé (vu de loin, la rangée forme une masse dorée)."""
     im = Image.new("RGBA", (S, S), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
     top = S - int(0.95 / 3 * S)
-    for k in range(1400):
-        x = rng.uniform(0, S); h = rng.uniform(0.75, 1.0) * (S - top)
-        lean = rng.normal(0, 10)
-        c = tuple(int(v) for v in np.array([196, 160, 82]) * rng.uniform(0.75, 1.1))
-        d.line((x, S, x + lean, S - h), fill=c + (255,), width=3)
-        # épi
+    H = S - top
+    # fond de tiges serrées (masse), de plus en plus sombre vers le sol
+    for k in range(2600):
+        x = rng.uniform(0, S); h = rng.uniform(0.55, 0.92) * H
+        lean = rng.normal(0, 7)
+        g = rng.uniform(0.62, 0.9)
+        c = tuple(int(v) for v in np.array([178, 146, 74]) * g)
+        d.line((x, S, x + lean, S - h), fill=c + (255,), width=2)
+    for k in range(1500):
+        x = rng.uniform(0, S); h = rng.uniform(0.8, 1.0) * H
+        lean = rng.normal(0, 9)
+        g = rng.uniform(0.85, 1.12)
+        stem = tuple(int(min(255, v)) for v in np.array([196, 168, 92]) * g)
+        d.line((x, S, x + lean, S - h + 30), fill=stem + (255,), width=2)
+        # épi : grains en chevrons de part et d'autre de l'axe, barbes fines au-dessus
         ex, ey = x + lean, S - h
-        d.ellipse((ex - 5, ey - 22, ex + 5, ey + 4), fill=tuple(int(v * 1.05) for v in c) + (255,))
-    return im
+        ear = np.array([214, 178, 92]) * g
+        L = rng.uniform(34, 52)
+        for j in range(9):
+            yy = ey + j * L / 9
+            for sx in (-1, 1):
+                cc = tuple(int(min(255, v)) for v in ear * rng.uniform(0.85, 1.1))
+                d.ellipse((ex + sx * 4 - 3.5, yy - 3, ex + sx * 4 + 3.5, yy + 4), fill=cc + (255,))
+            d.line((ex, yy, ex + rng.normal(0, 3), yy - rng.uniform(16, 30)), fill=tuple(int(min(255, v * 1.1)) for v in ear) + (255,), width=1)
+        d.line((ex, ey, ex, ey + L), fill=tuple(int(v * 0.8) for v in ear) + (255,), width=2)
+    # sol sombre entre les pieds (bas de la bande)
+    a = np.asarray(im).astype(np.float32)
+    yy = np.arange(S)[:, None]
+    shade = np.clip(0.55 + 0.45 * (S - yy) / H, 0.55, 1.0)
+    a[..., :3] *= shade[..., None]
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
 
 
 def leafy(flowers=False):

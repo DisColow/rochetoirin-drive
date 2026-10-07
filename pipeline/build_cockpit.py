@@ -27,16 +27,18 @@ def hexes(*h):
 
 
 RAMP = {
-    "dash": hexes("#0e0e10", "#18181b", "#222326", "#2d2e32", "#3a3b40", "#4b4c52", "#62636a"),
-    "liner": hexes("#3e382f", "#564e42", "#6f6656", "#887e6b", "#a1967f", "#b8ae95", "#cfc6ad"),
-    "pillar": hexes("#2e2b27", "#413d37", "#575249", "#6e685d", "#878071", "#9d9684"),
-    "rubber": hexes("#08080a", "#111113", "#1b1b1e", "#26272a", "#35363a", "#4a4b50", "#66676d"),
-    "chrome": hexes("#26282c", "#44474d", "#666a72", "#8d929b", "#b6bbc3", "#dde1e7", "#ffffff"),
+    # ombres tirant sur le bleu-violet, lumières sur le chaud (pixel art « à l'ancienne »)
+    "dash": hexes("#07070c", "#0f0f16", "#17171f", "#1f2029", "#292a33", "#34353e", "#41414a", "#504f57", "#625f66", "#78736f"),
+    "liner": hexes("#2a2532", "#3c3540", "#514851", "#675c61", "#7e7270", "#968a80", "#ada192", "#c4b9a5", "#d9cfba", "#ebe3cf"),
+    "pillar": hexes("#1e1b24", "#2d2930", "#3e393e", "#504a4c", "#645c5b", "#79706c", "#8d847c", "#a2988c"),
+    "rubber": hexes("#040407", "#0a0a10", "#111118", "#191a22", "#22232c", "#2d2e37", "#3a3a44", "#4a4a53", "#605f67", "#7c7a80"),
+    "chrome": hexes("#1a1b25", "#2e3040", "#47495a", "#636676", "#828593", "#a3a6b1", "#c3c6ce", "#dfe2e7", "#f3f4f6", "#ffffff"),
     "skin": hexes("#3d2218", "#5c3423", "#7c4a32", "#9c6346", "#b97f5d", "#d39c79", "#e8bb98"),
     "sleeve": hexes("#0d1220", "#151d33", "#1f2a47", "#2b3a5e", "#3a4c75", "#4d618c"),
-    "door": hexes("#161618", "#202023", "#2b2b2f", "#38383d", "#47474d", "#58585f"),
-    "face": hexes("#050506", "#0b0b0d", "#131316"),
-    "pine": hexes("#0b2a12", "#124019", "#1a5a22", "#25752c", "#349239", "#4cae4a"),
+    "door": hexes("#0a0a10", "#121219", "#1b1b23", "#25252e", "#30303a", "#3d3c46", "#4c4a53", "#5e5b61"),
+    "face": hexes("#030305", "#08080c", "#0e0e14", "#15151c"),
+    "pine": hexes("#06200f", "#0b3417", "#124a1f", "#1b6227", "#277b30", "#3a963c", "#58b04c", "#80c862"),
+    "red": hexes("#2a0608", "#4a0a0d", "#701114", "#97191a", "#bd2a22", "#de4a33"),
 }
 LIGHT = np.array([-0.35, -0.75, 0.56])
 LIGHT /= np.linalg.norm(LIGHT)
@@ -88,7 +90,9 @@ class Canvas:
         if spec:
             v += spec * np.clip(d - 0.85, 0, 1) * 6
         if grain:
-            v += rng.normal(0, grain, v.shape)
+            # grain de similicuir : motif régulier de 2 × 2 pixels + un peu de bruit
+            pat = (((self.xx.astype(int) // 2) + (self.yy.astype(int) // 2) * 3) % 5 == 0) * 1.0
+            v += (pat - 0.2) * grain * 1.6 + rng.normal(0, grain * 0.4, v.shape)
         self.fill(mask, v, ramp)
 
     def fill(self, mask, v, ramp):
@@ -98,6 +102,19 @@ class Canvas:
         cols = np.array(R, np.uint8)[idx]
         self.px[mask, :3] = cols[mask] if cols.ndim == 3 else cols
         self.px[mask, 3] = 255
+
+    def ao(self, mask, occ, reach=4.0, strength=0.45):
+        """Ombre portée douce sur mask par les pixels occ (occlusion près des arêtes), assombrit les couleurs déjà posées."""
+        d = ndimage.distance_transform_edt(~occ)
+        k = np.clip(1.0 - d / reach, 0, 1) * strength * mask * ~occ
+        b = BAYER[(self.yy.astype(int) % 4), (self.xx.astype(int) % 4)]
+        k = np.where(k > b * 0.9, k, k * 0.4)
+        self.px[..., :3] = (self.px[..., :3] * (1.0 - k[..., None])).astype(np.uint8)
+
+    def glint(self, x, y, col=(255, 255, 255), size=1):
+        """Éclat de lumière en croix (reflet spéculaire)."""
+        for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)) if size > 1 else ((0, 0),):
+            self.put(x + dx, y + dy, col)
 
     def flat(self, mask, col, a=255):
         self.px[mask, :3] = col
@@ -177,6 +194,8 @@ def dash():
     hood = c.rrect(162, 0, 318, 40, 9)
     c.shade(hood, c.bevel(hood, 7), "dash", amb=0.28, bias=0.02, grain=0.03, scale=1.2)
     c.outline(hood, RAMP["dash"][0])
+    seam = c.rrect(165, 3, 315, 40, 7) & ~c.rrect(166, 4, 314, 40, 6) & (((c.xx + c.yy).astype(int) % 3) == 0) & (c.yy < 30)
+    c.flat(seam, RAMP["dash"][6])
     recess = c.rrect(172, 12, 308, 66, 6)
     # creux : ombre portée par la visière en haut, plus clair vers le bas
     v = 0.05 + 0.22 * np.clip((c.yy - 12) / 50.0, 0, 1)
@@ -190,6 +209,9 @@ def dash():
         c.shade(ring, hgt, "chrome", amb=0.35, bias=-0.05, scale=2.0)
         fc = c.disc(cx, cy, r - 0.5)
         c.fill(fc, 0.35 + 0.4 * np.clip((cy - c.yy) / r, 0, 1) * 0.5, "face")
+        # éclat de lumière sur la lunette (en haut à gauche) et ombre de la visière sur le haut du cadran
+        c.glint(cx - r * 0.62, cy - r * 0.72, RAMP["chrome"][9], 2 if r > 10 else 1)
+        c.ao(fc, ~c.rect(0, int(cy - r * 0.35), W, 100), reach=r * 0.6, strength=0.5)
     def ticks(cx, cy, r, a0, a1, n, major, labels):
         for k in range(n + 1):
             a = math.radians(a0 + (a1 - a0) * k / n)
@@ -261,6 +283,35 @@ def dash():
     c.flat(c.rect(gx0 - 2, gy0 - 2, gx0 + 31, gy0 + 7), RAMP["dash"][0])
     for i, ch in enumerate("PRND"):
         c.text(gx0 + i * 8, gy0, ch, (130, 130, 125))
+    # haut-parleurs sur le dessus de la planche (grilles percées)
+    for (x0, x1) in ((66, 122), (358, 414)):
+        hp = c.rrect(x0, 17, x1, 26, 3)
+        c.shade(hp, c.bevel(hp, 2), "dash", amb=0.3, bias=-0.06, scale=1.2)
+        dots = hp & (c.xx.astype(int) % 2 == 0) & (c.yy.astype(int) % 2 == 1) & ndimage.binary_erosion(hp, iterations=2)
+        c.flat(dots, RAMP["dash"][0])
+        c.outline(hp, RAMP["dash"][1])
+    # baguette alu brossé le long de la face de la planche
+    for (x0, x1) in ((34, 160), (320, 396)):
+        bg_ = c.rect(x0, 0, x1, 100) & (c.yy >= edge_y + 9) & (c.yy < edge_y + 11)
+        c.fill(bg_, 0.55 + 0.25 * (c.yy < edge_y + 10) + 0.08 * np.sin(c.xx * 0.9), "chrome")
+    # interrupteurs à bascule (antibrouillards, dégivrage, plafonnier) avec pictos
+    for i, col in enumerate(((240, 200, 40), (240, 140, 30), (120, 200, 255))):
+        x0 = 138 + i * 8
+        sw = c.rrect(x0, 46, x0 + 6, 58, 1)
+        c.shade(sw, c.bevel(sw, 1.5) + (c.yy < 52) * 1.0, "dash", amb=0.35, bias=0.06, scale=1.3)
+        c.outline(sw, RAMP["dash"][0])
+        c.put(x0 + 3, 49, col); c.put(x0 + 2, 49, tuple(int(v * 0.6) for v in col))
+        g.put(x0 + 3, 49, col)
+    # bouton des feux de détresse (triangle rouge) au-dessus des aérateurs centraux
+    hz = c.rrect(348, 29, 360, 35, 1)
+    c.shade(hz, c.bevel(hz, 1.5), "red", amb=0.35, scale=1.3)
+    c.outline(hz, RAMP["red"][0])
+    for k in range(4):
+        c.put(354 - k * 0.5, 30.5 + k, (255, 220, 200)); c.put(354 + k * 0.5, 30.5 + k, (255, 220, 200))
+    # allume-cigare (bague chromée) sur la console
+    lg = c.disc(339.5, 94.5, 3.2) & ~c.disc(339.5, 94.5, 1.8)
+    c.shade(lg, c.bevel(lg, 1.5), "chrome", amb=0.3, scale=1.4)
+    c.flat(c.disc(339.5, 94.5, 1.8), RAMP["dash"][0])
     # ---------------------------------------------------------------- côté passager : boîte à gants, inscription
     gb = c.rrect(398, 58, 474, 92, 3)
     c.shade(gb, c.bevel(gb, 3) * 0.6 - ((c.yy - 58) / 34.0) ** 2 * 6, "dash", amb=0.2, bias=-0.02, grain=0.04, scale=1.3)
@@ -280,7 +331,20 @@ def dash():
         c.flat(c.rect(x0 + 3, 47, x1 - 3, 49), RAMP["dash"][0])
     # bouton de verrouillage
     k = c.rect(18, 22, 21, 26); c.shade(k, c.bevel(k, 1), "chrome", amb=0.4)
+    # ombres douces : la planche s'assombrit autour des éléments en relief
+    raised = (c.rrect(162, 0, 318, 40, 9) | c.rect(326, 55, 384, 75) | c.rect(326, 77, 384, 89) | c.rrect(398, 58, 474, 92, 3))
+    c.ao(face & ~raised, raised, reach=3.5, strength=0.35)
     c.save("dash.png"); g.save("glow.png")
+    # verre des compteurs : reflets en diagonale, posés par-dessus les aiguilles
+    gl = Canvas(W, 100)
+    for name, (cx, cy, r) in GAUGES.items():
+        fc = gl.disc(cx, cy, r - 0.5)
+        u = (gl.xx - cx) + (gl.yy - cy) * 0.7
+        streak = fc & (((u > -r * 0.55) & (u < -r * 0.35)) | ((u > -r * 0.2) & (u < -r * 0.12)))
+        streak &= (gl.yy < cy)
+        gl.flat(streak, (200, 215, 235), 46)
+        gl.put(cx - r * 0.45, cy - r * 0.55, (255, 255, 255), 150)
+    gl.save("glass.png")
     return {"gauges": GAUGES, "lcd": LCD, "lamps": LAMPS, "gear": GEAR}
 
 
@@ -293,13 +357,22 @@ def top():
     ly = 9 + 6 * ((c.xx - 240) / 240) ** 2
     lin = c.yy < ly
     c.shade(lin, -(c.yy) * 0.8 + 1.5 * np.sin(c.xx / 9.0) * 0, "liner", amb=0.25, bias=-0.1, grain=0.03)
+    perf = lin & (c.xx.astype(int) % 3 == 1) & (c.yy.astype(int) % 3 == 1) & (c.yy < ly - 2)
+    c.px[perf, :3] = (c.px[perf, :3] * 0.82).astype(np.uint8)
     c.flat((c.yy >= ly - 1) & (c.yy < ly), RAMP["liner"][0])
+    # bande teintée bleu-vert en haut du pare-brise (années 80), tramée vers le bas
+    band = (c.yy >= ly + 1.5) & (c.yy < ly + 16)
+    tt = np.clip((c.yy - ly - 1.5) / 14.5, 0, 1)
+    keep = band & (tt < 1.0 - BAYER[(c.yy.astype(int) % 4), (c.xx.astype(int) % 4)] * 0.9)
+    c.px[keep, 0] = 40; c.px[keep, 1] = 110; c.px[keep, 2] = 120
+    c.px[keep, 3] = (np.clip(110 - tt[keep] * 70, 30, 255)).astype(np.uint8)
     # baguette noire en haut du pare-brise
     c.flat((c.yy >= ly) & (c.yy < ly + 1.5), RAMP["dash"][1])
     # plafonnier
     dl = c.rrect(230, 1, 250, 7, 2)
     c.shade(dl, c.bevel(dl, 2), "liner", amb=0.6, bias=0.2)
     c.outline(dl, RAMP["liner"][1])
+    c.flat(c.rect(233, 3, 247, 5), RAMP["liner"][8]); c.glint(236, 3, (255, 255, 245))
     # pare-soleil relevés (conducteur plus près, donc plus grand)
     for (x0, y0, x1, y1, r) in ((36, 6, 196, 27, 5), (292, 7, 440, 23, 4)):
         v = c.rrect(x0, y0, x1, y1, r)
@@ -347,8 +420,21 @@ def wheel():
     hb = c.bevel(body, 5)
     c.shade(body & ~rim, hb, "rubber", amb=0.25, bias=0.05, grain=0.02, scale=1.1)
     c.outline(body & ~rim, RAMP["rubber"][0])
-    c.shade(rim, hr, "rubber", amb=0.22, bias=0.08, spec=0.6, scale=1.0)
-    c.outline(rim, RAMP["rubber"][0])
+    ang = np.degrees(np.arctan2(c.yy + 0.5 - cy, c.xx + 0.5 - cx))
+    grips = rim | (((np.abs(ang) < 14) | (np.abs(ang) > 166)) & (d <= WR + 1) & (d >= WR - WT - 1))
+    t2 = np.clip((d - (WR - WT / 2)) / (WT / 2 + 1), -1, 1)
+    hr2 = np.sqrt(1 - t2 ** 2) * WT / 2
+    c.shade(grips, hr2, "rubber", amb=0.22, bias=0.06, spec=0.9, grain=0.03, scale=1.0)
+    c.outline(grips, RAMP["rubber"][0])
+    # couture intérieure du cuir et reflet du ciel sur le haut de la jante
+    stitch = (np.abs(d - (WR - WT + 1.5)) < 0.5) & ((np.round(ang).astype(int) % 4) == 0)
+    c.flat(stitch, RAMP["rubber"][6])
+    shine = (np.abs(d - (WR - 2.5)) < 0.7) & (ang < -110) & (ang > -160)
+    c.flat(shine, RAMP["rubber"][9])
+    # rembourrage du moyeu : deux nervures horizontales
+    for yy in (cy - 12, cy + 15):
+        c.flat(c.rect(cx - 22, yy, cx + 22, yy + 1) & hub, RAMP["rubber"][1])
+        c.flat(c.rect(cx - 22, yy + 1, cx + 22, yy + 2) & hub, RAMP["rubber"][5])
     # losange Renault chromé
     lz = c.poly([(cx, cy - 9), (cx + 6, cy), (cx, cy + 9), (cx - 6, cy)]) & ~c.poly([(cx, cy - 5), (cx + 3, cy), (cx, cy + 5), (cx - 3, cy)])
     c.shade(lz, c.bevel(lz, 1.5), "chrome", amb=0.4, scale=1.5)
@@ -409,9 +495,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     meta = {}
     meta.update(dash()); meta.update(top()); meta.update(wheel())
-    hand(False); hand(True)
     strip("pillar.png", "pillar", 16, 8, amb=0.2)
-    strip("sleeve.png", "sleeve", 16, 8, amb=0.3)
     pine()
     json.dump(meta, open(os.path.join(OUT, "meta.json"), "w"))
     if len(sys.argv) > 1:

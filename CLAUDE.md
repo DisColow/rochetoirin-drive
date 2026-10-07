@@ -34,7 +34,11 @@
   `build_ground.py` (carte de l'herbe, après `prepare_terrain.py` ; les ombres douces du terrain viennent de son
   `ao_region`), `build_grass_tex.py`, `build_zone.py` (limite de la carte pour le gardien), `build_sfx.py` (sons de
   synthèse), `fetch_power.py`, `build_poles.py` (pylônes, poteaux, fils, lampadaires), `build_cockpit.py` (vue cockpit en pixel art), `build_props.py`
-  (voitures garées, poubelles, tracteurs ; après `build_fences.py`, qui fournit les portails) ; puis
+  (voitures garées, poubelles, tracteurs ; après `build_fences.py`, qui fournit les portails), `fetch_shops.py`,
+  `build_shops.py` (commerces, marques parodiées), `fetch_sport.py`, `build_sport.py`, `build_animaux.py` (prés pâturés
+  et clôtures), `fetch_autoroute.py`, `build_autoroute.py`, `build_voix.py` (voix du gardien, Piper) ;
+  modèles Blender (module bpy dans un venv) : `blender_commerces.py`, `blender_sport.py`, `blender_animaux.py`,
+  `blender_autoroute.py` ; puis
   `godot --headless --import`, `godot --headless --script res://tools/prepare_trees.gd`, `godot --headless --import`,
   `xvfb-run godot --path godot res://tools/bake_impostors.tscn`, `impostor_bleed.py`, `build_crop_tex.py`,
   `build_vegetation.py`, `build_crops.py`, `godot --headless --import` et
@@ -42,7 +46,8 @@
 - Relief : shader Terrain3D remplacé par `godot/scripts/terrain.gdshader` (code généré par Terrain3D, récupéré avec
   `xvfb-run godot --path godot --script res://tools/dump_terrain_shader.gd`, + ombres des nuages et sol mouillé) ; à
   régénérer si on change les réglages du matériau du relief. Ambiance commune des shaders : `scripts/env.gdshaderinc`
-  (paramètres globaux `wind`, `clouds`, `wet` déclarés dans `project.godot`).
+  (paramètres `wind`, `clouds`, `wet` de chaque matériau, tenus à jour par `scripts/env.gd` : **jamais de paramètres
+  globaux de shader**, ils faisaient planter le jeu au démarrage sur le téléphone, v3.1 à v3.3).
 - **Rien ne déborde sur la route** (arbres : couronne hors chaussée, champs arrêtés avant, bâtiments découpés).
 - Essais : `-- --drive-test [--long] [--drive-from=x,y,z,cap] [--hard-steer] [--flip-test] [--reverse-test]`, `-- --mem-test`, captures
   `--shots=` (types : caméra, `map`, `tp`, `tap` = vrai toucher sur la carte, `cam` = vue de jeu + charge de rendu).

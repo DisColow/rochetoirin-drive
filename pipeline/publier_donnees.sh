@@ -5,13 +5,17 @@
 set -e
 cd "$(dirname "$0")/../godot"
 export GIT_INDEX_FILE=$(mktemp -u)
-git --work-tree=. add -f world terrain assets/terrain_tex assets/tex assets/sky.hdr* assets/car \
-  assets/terrain_assets.tres* assets/bld assets/veg assets/fence assets/sfx assets/cockpit assets/props \
-  models/goku_*.png*
+L=""
+for d in world terrain assets/terrain_tex assets/tex assets/sky.hdr assets/sky.hdr.import assets/car \
+  assets/terrain_assets.tres assets/bld assets/veg assets/fence assets/sfx assets/cockpit assets/props \
+  assets/shops assets/sport assets/animaux assets/autoroute models/goku_*.png models/goku_*.png.import; do
+  [ -e "$d" ] && L="$L $d"
+done
+git --work-tree=. add -f $L
 T=$(git write-tree)
 rm -f "$GIT_INDEX_FILE"
-git fetch -q origin donnees || true
-P=$(git rev-parse -q --verify origin/donnees || true)
+P=""
+if git fetch -q origin donnees; then P=$(git rev-parse FETCH_HEAD); fi
 if [ -n "$P" ] && [ "$(git rev-parse "$P^{tree}")" = "$T" ]; then
   echo "données inchangées"; exit 0
 fi

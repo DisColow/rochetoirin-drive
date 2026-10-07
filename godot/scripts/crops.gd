@@ -5,7 +5,7 @@ extends Node3D
 const TILE := 256.0
 const CELL := 32.0
 const STRIP := 3.0
-const SPACING := [0.85, 0.55, 0.6, 0.75]        # écartement des rangs (m) : maïs, céréales, feuillage, tournesol
+const SPACING := [0.85, 0.7, 0.6, 0.75]         # écartement des rangs (m) : maïs, céréales, feuillage, tournesol
 const HEIGHT := [3.0, 1.0, 1.0, 1.9]           # hauteur des bandes (m)
 const RANGE := [80.0, 110.0, 140.0, 170.0]     # selon la densité de végétation
 
@@ -106,7 +106,7 @@ func _build(k: Vector2i) -> void:
 		if not f[3].intersects(rect):
 			continue
 		var t: int = f[0]
-		var part := _rows(f, t, f[1], SPACING[t] if t == 0 or t == 3 else 3.0, cellpoly)
+		var part := _rows(f, t, f[1], SPACING[t] if t != 2 else 3.0, cellpoly)
 		buf.append_array(part)
 		count += part.size() / 16
 	if count == 0:
@@ -173,8 +173,13 @@ func _rows(f: Array, t: int, d: Vector2, sp: float, cellpoly: PackedVector2Array
 						var y: float = terrain.data.get_height(Vector3(m.x, 0, m.y))
 						if is_nan(y):
 							continue
+						# bande inclinée comme le terrain (pas de marches ni de trous sur les pentes)
+						var dn := (b - a).normalized()
+						var ya: float = terrain.data.get_height(Vector3(m.x - dn.x * w * 0.5, 0, m.y - dn.y * w * 0.5))
+						var yb: float = terrain.data.get_height(Vector3(m.x + dn.x * w * 0.5, 0, m.y + dn.y * w * 0.5))
+						var slope := 0.0 if is_nan(ya) or is_nan(yb) else (yb - ya) * signf(dn.dot(d))
 						var h: float = HEIGHT[t] * _rng.randf_range(0.92, 1.06)
-						if t == 1 or t == 2:
+						if t == 2:
 							# nappe horizontale (bande de 3 m × sp) à hauteur des épis / du feuillage
 							var hh: float = (0.85 if t == 1 else 0.75) * _rng.randf_range(0.95, 1.05)
 							# axes (rang, -travers, haut) : repère direct, la face visible regarde vers le haut
@@ -185,6 +190,6 @@ func _rows(f: Array, t: int, d: Vector2, sp: float, cellpoly: PackedVector2Array
 						# transformation : x = rang (largeur w), y = hauteur, z = travers (1 m)
 						var bx := Vector3(d.x, 0, d.y) * w
 						var bz := Vector3(nrm.x, 0, nrm.y)
-						buf.append_array([bx.x, h * 0.0, bz.x, m.x, bx.y, h, bz.y, y - 0.05, bx.z, 0.0, bz.z, m.y,
+						buf.append_array([bx.x, h * 0.0, bz.x, m.x, slope, h, bz.y, y - 0.05, bx.z, 0.0, bz.z, m.y,
 							t / 6.0, _rng.randf() + (j * STRIP) / 3.0, _rng.randf_range(0.88, 1.08), h])
 		return buf

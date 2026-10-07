@@ -2,6 +2,8 @@
 ## et bleu, aura dorée) plane toujours au-delà de la limite de la carte la plus proche de la voiture. Quand la voiture
 ## s'approche de la limite, il charge son attaque (on l'entend, la boule d'énergie grossit) ; si elle sort, il tire une
 ## vague d'énergie : la voiture explose puis réapparaît sur la route la plus proche, dans le sens inverse.
+## Il dit « Ka… mé… ha… mé… » en chargeant (mains ramenées à la hanche, boule bleue qui grossit) mais ne tire
+## (« HAAA ! », bras tendus) que si la voiture tombe vraiment dans le vide hors de la carte.
 ## Pas de cinématique : le jeu continue, la caméra ne bouge pas.
 extends Node3D
 
@@ -29,6 +31,14 @@ var debris: CPUParticles3D
 var snd_charge: AudioStreamPlayer3D
 var snd_wave: AudioStreamPlayer3D
 var snd_boom: AudioStreamPlayer3D
+var snd_kame: AudioStreamPlayer3D
+var snd_ha: AudioStreamPlayer3D
+var _said := false
+var iks := []
+var anim: AnimationPlayer
+var glow: MeshInstance3D
+var ball_light: OmniLight3D
+var head: MeshInstance3D
 var state := "veille"
 var _t := 0.0
 var _out_t := 0.0
@@ -45,6 +55,10 @@ func _ready() -> void:
 	snd_charge = _sound("charge", true, 70.0)
 	snd_wave = _sound("vague", false, 120.0)
 	snd_boom = _sound("boum", false, 150.0)
+	snd_kame = _sound("kame", false, 260.0)
+	snd_ha = _sound("ha", false, 320.0)
+	snd_kame.volume_db = 4.0
+	snd_ha.volume_db = 6.0
 
 # ---------------------------------------------------------------- personnage (formes simples, original)
 func _mat(c: Color, emit := 0.0) -> StandardMaterial3D:
@@ -88,6 +102,16 @@ func _build_character() -> void:
 		skel = sks[0]
 		hand_l = skel.find_bone("mixamorig_LeftHand_011")
 		hand_r = skel.find_bone("mixamorig_RightHand_035")
+		# bras guidés par cinématique inverse à deux os (calculée ici : épaule -> coude -> main)
+		for side in [["mixamorig_LeftArm_09", "mixamorig_LeftForeArm_010", "mixamorig_LeftHand_011"],
+				["mixamorig_RightArm_033", "mixamorig_RightForeArm_034", "mixamorig_RightHand_035"]]:
+			var ids := [skel.find_bone(side[0]), skel.find_bone(side[1]), skel.find_bone(side[2])]
+			if -1 in ids:
+				continue
+			iks.append(ids)
+		var aps2 := model.find_children("*", "AnimationPlayer", true, false)
+		if aps2.size() > 0:
+			anim = aps2[0]
 	# aura dorée (panneau lumineux additif) et boule d'énergie bleue
 	aura = MeshInstance3D.new()
 	var q := QuadMesh.new(); q.size = Vector2(2.6, 3.4)
@@ -124,6 +148,38 @@ void fragment() {
 	ball.position = Vector3(-0.42, 1.0, 0.12)
 	ball.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	body.add_child(ball)
+	# halo bleu autour de la boule (panneau additif face à la caméra) et lumière bleue sur le personnage
+	glow = MeshInstance3D.new()
+	var gq := QuadMesh.new(); gq.size = Vector2(1.0, 1.0)
+	glow.mesh = gq
+	var gm := ShaderMaterial.new()
+	gm.shader = Shader.new()
+	gm.shader.code = """
+shader_type spatial;
+render_mode unshaded, blend_add, cull_disabled, depth_draw_never;
+uniform float strength = 1.0;
+void vertex() {
+	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(INV_VIEW_MATRIX[0], INV_VIEW_MATRIX[1], INV_VIEW_MATRIX[2], MODEL_MATRIX[3]);
+	MODELVIEW_MATRIX = MODELVIEW_MATRIX * mat4(vec4(length(MODEL_MATRIX[0].xyz), 0, 0, 0), vec4(0, length(MODEL_MATRIX[1].xyz), 0, 0), vec4(0, 0, length(MODEL_MATRIX[2].xyz), 0), vec4(0, 0, 0, 1));
+}
+void fragment() {
+	vec2 p = (UV - 0.5) * 2.0;
+	float r = length(p);
+	float a = atan(p.y, p.x);
+	float rays = 0.6 + 0.4 * sin(a * 9.0 + TIME * 6.0) * sin(a * 5.0 - TIME * 9.0);
+	float core = smoothstep(0.35, 0.0, r);
+	float halo = smoothstep(1.0, 0.2, r) * rays;
+	ALBEDO = (vec3(0.35, 0.65, 1.0) * halo * 1.4 + vec3(0.9, 0.97, 1.0) * core * 2.0) * strength;
+}
+"""
+	glow.material_override = gm
+	glow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	body.add_child(glow)
+	ball_light = OmniLight3D.new()
+	ball_light.light_color = Color(0.45, 0.7, 1.0)
+	ball_light.omni_range = 4.0
+	ball_light.light_energy = 0.0
+	body.add_child(ball_light)
 
 func _build_effects() -> void:
 	beam = MeshInstance3D.new()
@@ -135,18 +191,31 @@ func _build_effects() -> void:
 	var shell := MeshInstance3D.new()
 	shell.mesh = c
 	shell.scale = Vector3(2.2, 1.0, 2.2)
-	var sm2 := StandardMaterial3D.new()
-	sm2.albedo_color = Color(0.3, 0.6, 1.0, 0.35)
-	sm2.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	sm2.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	sm2.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	sm2.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var sm2 := ShaderMaterial.new()
+	sm2.shader = Shader.new()
+	sm2.shader.code = """
+shader_type spatial;
+render_mode unshaded, blend_add, cull_disabled, depth_draw_never;
+void fragment() {
+	float f = abs(dot(NORMAL, VIEW));
+	float edge = pow(1.0 - f, 1.3);
+	float flow = 0.55 + 0.45 * sin(UV.y * 70.0 - TIME * 55.0 + UV.x * 18.0) * sin(UV.y * 23.0 - TIME * 31.0);
+	ALBEDO = vec3(0.3, 0.62, 1.0) * (0.35 + edge * 1.8) * flow;
+}
+"""
 	shell.material_override = sm2
 	shell.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	beam.add_child(shell)
 	beam.visible = false
 	beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(beam)
+	head = MeshInstance3D.new()
+	var hs := SphereMesh.new(); hs.radius = 1.0; hs.height = 2.0
+	head.mesh = hs
+	head.material_override = bm
+	head.visible = false
+	head.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(head)
 	flash = OmniLight3D.new()
 	flash.light_color = Color(1.0, 0.7, 0.35)
 	flash.omni_range = 60.0
@@ -280,6 +349,12 @@ func _process(dt: float) -> void:
 			_charge = move_toward(_charge, want, dt * 0.8)
 			state = "charge" if _charge > 0.02 else "veille"
 			_pose(_charge, 0.0)
+			if _charge > 0.12 and not _said:
+				_said = true
+				snd_kame.global_position = global_position
+				snd_kame.play()
+			elif _charge < 0.03:
+				_said = false
 			if state == "charge":
 				if not snd_charge.playing:
 					snd_charge.play()
@@ -287,18 +362,22 @@ func _process(dt: float) -> void:
 				snd_charge.pitch_scale = 0.8 + 0.6 * _charge
 			elif snd_charge.playing:
 				snd_charge.stop()
-			if _out_t > 0.15 and car.visible:
+			if not inside and not car.blown and _in_void(cp, d):
 				_fire()
 		"tir":
 			var k := clampf((_t - _fire_t) / 0.35, 0.0, 1.0)
 			var a: Vector3 = ball.global_position
 			var b := a.lerp(_hit_pos, k)
-			_place_beam(a, b, 1.6 + 0.4 * sin(_t * 40.0))
+			_place_beam(a, b, 2.2 + 0.5 * sin(_t * 40.0))
+			head.visible = beam.visible
+			head.global_position = b
+			head.scale = Vector3.ONE * (3.0 + 0.6 * sin(_t * 30.0))
 			_pose(1.0, 1.0)
 			if k >= 1.0 and not _exploded:
 				_explode()
 			if _t - _fire_t > 1.4:
 				beam.visible = false
+				head.visible = false
 			if _t - _fire_t > 2.2:
 				_respawn()
 				state = "repos"
@@ -313,6 +392,24 @@ func _process(dt: float) -> void:
 var _fire_t := 0.0
 var _exploded := false
 
+## La voiture tombe dans le vide hors de la carte : plus de relief dessous, ou nettement sous le sol, ou en chute
+## libre. (Rouler hors de la zone sur du relief ne déclenche pas le tir ; très loin, si.)
+func _in_void(cp: Vector3, d: float) -> bool:
+	if d > 350.0:
+		return true
+	var h := NAN
+	if terrain and terrain.data:
+		h = terrain.data.get_height(cp)
+	if is_nan(h) or absf(h) > 5000.0:
+		return true
+	if cp.y < h - 2.5:
+		return true
+	var touching := false
+	for w in car.wheels:
+		if w.is_in_contact():
+			touching = true
+	return not touching and car.linear_velocity.y < -9.0
+
 func _pose(charge: float, fire_k: float) -> void:
 	# boule d'énergie entre les poings (garde du modèle), qui grossit avec la charge ; projetée vers l'avant au tir
 	var at := Vector3(0, 1.3, 0.35)
@@ -323,6 +420,62 @@ func _pose(charge: float, fire_k: float) -> void:
 	ball.position = at.lerp(at + Vector3(0, 0, 0.5), fire_k)
 	ball.scale = Vector3.ONE * (0.2 + charge * 1.6 + fire_k * 0.8)
 	ball.visible = charge > 0.03
+	glow.position = ball.position
+	glow.scale = Vector3.ONE * (0.25 + charge * 0.9 + fire_k * 0.8)
+	glow.visible = ball.visible
+	(glow.material_override as ShaderMaterial).set_shader_parameter("strength", 0.4 + 0.8 * charge + fire_k)
+	ball_light.position = ball.position
+	ball_light.light_energy = charge * 3.0 + fire_k * 6.0
+	# bras : mains jointes ramenées à la hanche droite pendant la charge, projetées vers l'avant au tir
+	var k := clampf(charge * 1.6, 0.0, 1.0)
+	var w := maxf(k, fire_k)
+	if anim:
+		if w > 0.01 and anim.is_playing():
+			anim.pause()
+		elif w <= 0.01 and not anim.is_playing():
+			anim.play()
+	if w > 0.01 and skel:
+		var hip := Vector3(-0.30, 0.95, -0.05)
+		var front := Vector3(0.0, 1.30, 0.75)
+		for i in iks.size():
+			var sgn := 1.0 if i == 0 else -1.0
+			var tp := hip.lerp(front, fire_k) + Vector3(0.07 * sgn, 0.0, 0.0)
+			var tw := body.to_global(tp)
+			_arm_ik(iks[i], skel.global_transform.affine_inverse() * tw, w, sgn)
+
+## Cinématique inverse à deux os : oriente bras et avant-bras pour amener la main vers la cible (repère du squelette),
+## coude vers l'extérieur et vers le bas ; w : part de la correction (fondu depuis la pose de garde).
+func _arm_ik(ids: Array, target: Vector3, w: float, sgn: float) -> void:
+	var gA := skel.get_bone_global_pose(ids[0])
+	var gB := skel.get_bone_global_pose(ids[1])
+	var gC := skel.get_bone_global_pose(ids[2])
+	var S := gA.origin; var E := gB.origin; var H := gC.origin
+	var a := S.distance_to(E); var b := E.distance_to(H)
+	var to := target - S
+	var d := clampf(to.length(), absf(a - b) + 0.001, a + b - 0.001)
+	var dir := to.normalized()
+	var pole := (Vector3(sgn * 1.0, -0.6, -0.4)).normalized()
+	pole = (pole - dir * pole.dot(dir)).normalized()
+	var x := (a * a - b * b + d * d) / (2.0 * d)
+	var h := sqrt(maxf(a * a - x * x, 0.0))
+	var E2 := S + dir * x + pole * h
+	var T2 := S + dir * d
+	# bras
+	var q1 := Quaternion((E - S).normalized(), (E2 - S).normalized())
+	q1 = Quaternion.IDENTITY.slerp(q1, w)
+	var nA := Transform3D(Basis(q1) * gA.basis, S)
+	_set_global(ids[0], nA)
+	gB = skel.get_bone_global_pose(ids[1])
+	gC = skel.get_bone_global_pose(ids[2])
+	var q2 := Quaternion((gC.origin - gB.origin).normalized(), (T2 - gB.origin).normalized())
+	q2 = Quaternion.IDENTITY.slerp(q2, w)
+	_set_global(ids[1], Transform3D(Basis(q2) * gB.basis, gB.origin))
+
+func _set_global(i: int, g: Transform3D) -> void:
+	var par := skel.get_bone_parent(i)
+	var pg := skel.get_bone_global_pose(par) if par >= 0 else Transform3D.IDENTITY
+	var loc := pg.affine_inverse() * g
+	skel.set_bone_pose_rotation(i, loc.basis.get_rotation_quaternion())
 
 func _place_beam(a: Vector3, b: Vector3, r: float) -> void:
 	var L := a.distance_to(b)
@@ -343,6 +496,8 @@ func _fire() -> void:
 	snd_charge.stop()
 	snd_wave.global_position = global_position
 	snd_wave.play()
+	snd_ha.global_position = global_position
+	snd_ha.play()
 
 func _explode() -> void:
 	_exploded = true
@@ -357,6 +512,9 @@ func _explode() -> void:
 	snd_boom.play()
 	if car.has_method("blow_up"):
 		car.blow_up()
+	var rig = get_parent().get("cam_rig")
+	if rig and "shake" in rig:
+		rig.shake = 1.0
 
 ## Réapparition sur la route la plus proche, dans le sens inverse de la marche, à bonne distance de la limite.
 func _respawn() -> void:
