@@ -141,6 +141,8 @@ func _materials(root: Node) -> void:
 		m.next_pass = inner
 	var hub := StandardMaterial3D.new()                      # enjoliveurs argentés
 	hub.albedo_color = Color(0.72, 0.73, 0.75); hub.metallic = 0.45; hub.roughness = 0.35
+	if _lamp_mat == null:
+		_lamp_mat = lamp; _tail_mat = tail
 	var by_name := {"hubcap": hub, "paint": paint, "beige": beige, "orange": orange, "fog": fog, "glass": glass, "chrome": chrome, "rubber": rubber, "plastic": plastic,
 		"lamp": lamp, "tail": tail, "interior": vcol, "plate_front": vcol, "plate_rear": vcol}
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
@@ -149,6 +151,36 @@ func _materials(root: Node) -> void:
 			var nm := m.resource_name if m else ""
 			if by_name.has(nm):
 				mi.set_surface_override_material(s, by_name[nm])
+
+var _lamp_mat: StandardMaterial3D
+var _tail_mat: StandardMaterial3D
+var _beams := []
+
+## Phares (soir, nuit) : deux faisceaux, optiques et feux arrière lumineux.
+func set_lights(on: bool) -> void:
+	if _beams.is_empty() and on:
+		for sx in [-0.585, 0.585]:
+			var s := SpotLight3D.new()
+			s.position = Vector3(sx, 0.69, 2.2)
+			s.rotation = Vector3(deg_to_rad(-4.0), PI, 0)        # vers l'avant (+Z) et un peu vers le bas
+			s.spot_range = 45.0
+			s.spot_angle = 28.0
+			s.spot_attenuation = 0.8
+			s.light_energy = 6.0
+			s.light_color = Color(1.0, 0.93, 0.78)
+			s.shadow_enabled = false
+			add_child(s)
+			_beams.append(s)
+	for s in _beams:
+		s.visible = on
+	if _lamp_mat:
+		_lamp_mat.emission_enabled = on
+		_lamp_mat.emission = Color(1.0, 0.95, 0.85)
+		_lamp_mat.emission_energy_multiplier = 3.0
+	if _tail_mat:
+		_tail_mat.emission_enabled = on
+		_tail_mat.emission = Color(0.9, 0.05, 0.03)
+		_tail_mat.emission_energy_multiplier = 2.0
 
 func place(p: Vector3, heading_deg: float) -> void:
 	# cap : 0 = Nord (-Z), sens horaire ; l'avant du véhicule est +Z

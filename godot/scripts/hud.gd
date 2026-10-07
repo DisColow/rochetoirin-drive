@@ -79,11 +79,30 @@ func _open_settings() -> void:
 			veg.set_level(i)
 			veg.update_now()
 			get_parent().crops.set_level(i)
+			get_parent().grass.set_level(i)
 			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
 			cfg.set_value("affichage", "vegetation", i); cfg.save("user://reglages.cfg")
 			for c in h.get_children():
 				c.button_pressed = c == b)
 		h.add_child(b)
+	# heure de la journée (lumière, ciel, phares et fenêtres éclairées le soir)
+	var lt := Label.new(); lt.text = "Heure de la journée"; lt.add_theme_font_size_override("font_size", 30); v.add_child(lt)
+	var ht := HBoxContainer.new(); ht.add_theme_constant_override("separation", 16); v.add_child(ht)
+	var main_node = get_parent()
+	for i in main_node.TIMES.size():
+		var b := Button.new()
+		b.text = main_node.TIMES[i]
+		b.toggle_mode = true
+		b.button_pressed = i == main_node.time_of_day
+		b.custom_minimum_size = Vector2(220, 90)
+		b.add_theme_font_size_override("font_size", 30)
+		b.pressed.connect(func():
+			main_node.set_time(i)
+			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+			cfg.set_value("affichage", "heure", i); cfg.save("user://reglages.cfg")
+			for c in ht.get_children():
+				c.button_pressed = c == b)
+		ht.add_child(b)
 	var note := Label.new(); note.text = "Moins de végétation = jeu plus fluide sur les téléphones modestes."
 	note.add_theme_font_size_override("font_size", 22); note.modulate = Color(1, 1, 1, 0.7); v.add_child(note)
 	var close := Button.new(); close.text = "Fermer"; close.custom_minimum_size = Vector2(0, 90)

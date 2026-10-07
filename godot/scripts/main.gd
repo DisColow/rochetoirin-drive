@@ -9,6 +9,7 @@ var roads: Node3D
 var buildings: Node3D
 var vegetation: Node3D
 var crops: Node3D
+var grass: Node3D
 var fences: Node3D
 var water: Node3D
 var cam_rig: Node3D
@@ -56,6 +57,12 @@ func _ready() -> void:
 	crops.terrain = terrain
 	add_child(crops)
 	crops.target = car
+	grass = preload("res://scripts/grass.gd").new()
+	grass.level = vegetation.level
+	grass.terrain = terrain
+	add_child(grass)
+	grass.target = car
+	set_time(int(cfg.get_value("affichage", "heure", 0)))
 	if "collision_target" in terrain:
 		terrain.set("collision_target", car)
 	cam_rig = preload("res://scripts/camera_rig.gd").new()
@@ -83,6 +90,7 @@ func _teleport(p: Vector3, heading: float) -> void:
 	fences.update_now()
 	water.update_now()
 	vegetation.update_now()
+	grass.update_now()
 
 func _environment() -> void:
 	var sky_tex: Texture2D = load("res://assets/sky.hdr")
@@ -110,9 +118,12 @@ func _environment() -> void:
 	env.fog_sky_affect = 0.0
 	env.adjustment_enabled = true
 	env.adjustment_saturation = 1.08
+	env.adjustment_contrast = 1.06
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
+	_env = env
+	_sky_day = mat
 	# soleil : direction du point le plus lumineux de l'HDRI
 	var img := sky_tex.get_image()
 	var az := 0.0
@@ -141,6 +152,80 @@ func _environment() -> void:
 	sun.shadow_normal_bias = 1.6
 	sun.shadow_blur = 1.2
 	add_child(sun)
+	_sun = sun
+	_sun_az = sun.rotation.y
+
+# ---------------------------------------------------------------- heure de la journée (Réglages)
+const TIMES := ["Midi", "Après-midi", "Coucher", "Nuit"]
+var time_of_day := 0
+var _env: Environment
+var _sun: DirectionalLight3D
+var _sun_az := 0.0
+var _sky_day: Material
+var _sky_phys: ProceduralSkyMaterial
+var _sky_night: ProceduralSkyMaterial
+
+## Lumière selon l'heure : midi (ciel photo à cumulus), fin d'après-midi dorée, coucher de soleil orangé, nuit bleutée
+## (phares allumés, fenêtres éclairées). Le soleil garde son azimut ; seuls hauteur, couleur et ciel changent.
+func set_time(i: int) -> void:
+	time_of_day = clampi(i, 0, TIMES.size() - 1)
+	if _env == null:
+		return
+	if _sky_phys == null:
+		_sky_phys = ProceduralSkyMaterial.new()
+		_sky_phys.sun_angle_max = 8.0
+		_sky_phys.sun_curve = 0.08
+		_sky_phys.ground_bottom_color = Color(0.12, 0.13, 0.12)
+	# [hauteur du soleil (°), couleur, énergie, énergie du ciel, exposition, couleur du brouillard, densité, nuit]
+	var P: Array = [
+		[48.0, Color(1.0, 0.96, 0.9), 1.6, 1.0, 1.0, Color(0.75, 0.82, 0.92), 0.000014, 0.0],
+		[24.0, Color(1.0, 0.86, 0.66), 1.5, 0.9, 1.05, Color(0.85, 0.80, 0.70), 0.00002, 0.0],
+		[9.0, Color(1.0, 0.62, 0.38), 1.8, 1.0, 1.1, Color(0.90, 0.62, 0.46), 0.00003, 0.35],
+		[38.0, Color(0.55, 0.65, 1.0), 0.32, 1.0, 1.25, Color(0.05, 0.07, 0.12), 0.00003, 1.0],
+	][time_of_day]
+	_sun.rotation = Vector3(deg_to_rad(-float(P[0])), _sun_az, 0)
+	_sun.light_color = P[1]
+	_sun.light_energy = P[2]
+	if time_of_day == 0:
+		_env.sky.sky_material = _sky_day
+		_env.fog_aerial_perspective = 0.85
+	elif time_of_day < 3:
+		_env.sky.sky_material = _sky_phys
+		# ciel peint : fin d'après-midi (bleu doux, horizon doré) ; coucher (bleu profond, horizon orangé)
+		_sky_phys.sky_top_color = Color(0.26, 0.44, 0.75) if time_of_day == 1 else Color(0.14, 0.2, 0.42)
+		_sky_phys.sky_horizon_color = Color(0.88, 0.80, 0.66) if time_of_day == 1 else Color(1.0, 0.56, 0.30)
+		_sky_phys.ground_horizon_color = _sky_phys.sky_horizon_color.darkened(0.3)
+		_sky_phys.sky_energy_multiplier = P[3]
+		_env.fog_aerial_perspective = 0.0
+		_env.fog_light_color = P[5]
+	else:
+		# nuit : ciel bleu nuit, clair de lune (le « soleil » devient la lune)
+		if _sky_night == null:
+			_sky_night = ProceduralSkyMaterial.new()
+			_sky_night.sky_top_color = Color(0.01, 0.015, 0.04)
+			_sky_night.sky_horizon_color = Color(0.05, 0.07, 0.13)
+			_sky_night.ground_bottom_color = Color(0.01, 0.01, 0.015)
+			_sky_night.ground_horizon_color = Color(0.04, 0.05, 0.08)
+			_sky_night.sun_angle_max = 2.0
+			_sky_night.sun_curve = 0.02
+		_env.sky.sky_material = _sky_night
+		_env.fog_aerial_perspective = 0.0
+		_env.fog_light_color = P[5]
+	_env.tonemap_exposure = P[4]
+	_env.fog_density = P[6]
+	# lumière ambiante : ciel le jour ; chaude au coucher, bleutée la nuit (sinon tout devient noir)
+	if time_of_day < 2:
+		_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+		_env.ambient_light_energy = 1.0
+	else:
+		_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+		_env.ambient_light_color = Color(0.62, 0.50, 0.45) if time_of_day == 2 else Color(0.20, 0.25, 0.40)
+		_env.ambient_light_energy = 0.9 if time_of_day == 2 else 0.75
+	var night: float = P[7]
+	if buildings and buildings.mat:
+		buildings.mat.set_shader_parameter("night", night)
+	if car and car.has_method("set_lights"):
+		car.set_lights(night > 0.2)
 
 func _terrain() -> void:
 	terrain = Terrain3D.new()
@@ -200,10 +285,12 @@ func _shots(path: String) -> void:
 	car.freeze = true
 	DirAccess.make_dir_recursive_absolute("user://shots")
 	for s in list:
+		if s.has("time"):
+			set_time(int(s.time))
 		if s.has("cam"):
 			# vue de la caméra du jeu (0 poursuite, 1 conducteur, 2 capot) après un court trajet
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; vegetation.target = car; crops.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; vegetation.target = car; crops.target = car; grass.target = car
 			cam_rig.mode = int(s.cam)
 			car.touch_throttle = 0.5
 			for i in 240:
@@ -213,7 +300,7 @@ func _shots(path: String) -> void:
 			print("capture ", s.name, " : objets ", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
 				", appels de dessin ", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
 				", primitives ", Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
-			for n in [roads, buildings, fences, water, vegetation, crops, terrain]:
+			for n in [roads, buildings, fences, water, vegetation, crops, grass, terrain]:
 				if n == null:
 					continue
 				n.visible = false
@@ -227,7 +314,7 @@ func _shots(path: String) -> void:
 		if s.get("tap", false):
 			# téléportation par un vrai toucher : bouton CARTE puis toucher sur la carte (chemin complet des entrées)
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; vegetation.target = car; crops.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; vegetation.target = car; crops.target = car; grass.target = car
 			var hud := find_children("*", "CanvasLayer", false, false)[0]
 			var before := car.global_position
 			Input.action_press("carte")
@@ -258,7 +345,7 @@ func _shots(path: String) -> void:
 			hud.map.zoom = 0.5
 			hud.map._pick(hud.map.world_to_screen(Vector2(s.tp[0], s.tp[1])))
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; vegetation.target = car; crops.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; vegetation.target = car; crops.target = car; grass.target = car
 			for i in 240:
 				await get_tree().physics_frame
 			print("téléporté en ", car.global_position, " roues au sol ", car.wheels.filter(func(w): return w.is_in_contact()).size())
@@ -286,6 +373,7 @@ func _shots(path: String) -> void:
 		water.target = c
 		vegetation.target = c
 		crops.target = c
+		grass.target = c
 		c.global_position = p
 		c.look_at(Vector3(s.look[0], s.look[1], s.look[2]), Vector3.UP)
 		c.fov = s.get("fov", 62.0)
@@ -297,6 +385,7 @@ func _shots(path: String) -> void:
 			water._process(0.3)
 			vegetation._process(0.3)
 			crops._process(0.3)
+			grass._process(0.3)
 			await get_tree().process_frame
 		get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % s.name)
 		print("capture ", s.name)

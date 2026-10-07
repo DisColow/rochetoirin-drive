@@ -55,13 +55,39 @@ class Builder:
                 f = c + n * s[ax]
                 self.quad(mat, f - u - v, f + u - v, f + u + v, f - u + v, n, col)
 
-    def prims(self):
+    def prims(self, smooth=("paint", "beige", "glass")):
         out = []
         for mat, d in self.m.items():
             P = np.array(d["P"], np.float32); N = np.array(d["N"], np.float32)
+            if mat in smooth:
+                N = smooth_normals(P, N)
             out.append((mat, P, N, np.array(d["UV"], np.float32), np.arange(len(P), dtype=np.uint32),
                         np.array(d["C"], np.float32)))
         return out
+
+
+def smooth_normals(P, N, max_angle=38.0):
+    """Normales lissées entre faces voisines (même position) si l'angle est faible : carrosserie galbée, arêtes vives
+    gardées (angle > max_angle)."""
+    key = np.round(P / 0.002).astype(np.int64)
+    _, inv = np.unique(key, axis=0, return_inverse=True)
+    inv = inv.ravel()
+    acc = np.zeros((inv.max() + 1, 3)); np.add.at(acc, inv, N)
+    out = N.copy()
+    cosm = math.cos(math.radians(max_angle))
+    # moyenne restreinte : pour chaque sommet, somme des normales voisines proches de la sienne
+    groups = {}
+    for i, g in enumerate(inv):
+        groups.setdefault(g, []).append(i)
+    for idx in groups.values():
+        if len(idx) < 2:
+            continue
+        Ng = N[idx]
+        dots = Ng @ Ng.T
+        for a, i in enumerate(idx):
+            m = Ng[dots[a] > cosm].sum(0)
+            out[i] = m / max(np.linalg.norm(m), 1e-9)
+    return out.astype(np.float32)
 
 
 # ------------------------------------------------------------------------------------------------ silhouette
@@ -174,6 +200,19 @@ def body(B):
 
 def details(B):
     zf = -2.125
+    # joints de carrosserie (portes avant et arrière, hayon) : fines lignes sombres
+    for sx in (-1, 1):
+        for zj in (-1.42, -0.36, 0.84):
+            w = half_w(zj) + 0.003
+            B.box("plastic", (sx * w, (BEIGE_TOP + BELT) / 2 - 0.08, zj), (0.003, (BELT - BEIGE_TOP) / 2 + 0.2, 0.006))
+        # monogramme « Espace » sur l'aile avant
+        B.box("chrome", (sx * (half_w(-1.75) + 0.004), 0.78, -1.78), (0.003, 0.015, 0.09))
+        # baguette de protection noire en haut du bas de caisse beige
+        B.box("plastic", (sx * (half_w(0.0) + 0.006), BEIGE_TOP + 0.005, 0.0), (0.006, 0.012, 1.6))
+    B.box("plastic", (0, 0.43, ZR + 0.003), (0.6, 0.004, 0.003))
+    # bandeau caoutchouc noir sur le bouclier avant et arrière
+    B.box("plastic", (0, BEIGE_TOP - 0.01, ZF - 0.004), (0.80, 0.014, 0.008))
+    B.box("plastic", (0, BEIGE_TOP - 0.01, ZR + 0.006), (0.80, 0.014, 0.008))
     # calandre : fond noir, 5 lamelles rouges, losange Renault
     B.box("plastic", (0, 0.685, zf + 0.012), (0.43, 0.085, 0.006))
     for k in range(5):

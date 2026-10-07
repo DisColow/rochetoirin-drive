@@ -6,8 +6,9 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v2.7.apk — Espace I, Chamont, marche arrière, collisions](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.7.apk)**
-(APK de 653 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+**[RochetoirinSimulator-v2.8.apk — herbe, ombres douces, maisons patinées, heures de la journée](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.8.apk)**
+(APK de 689 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+[v2.7](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.7.apk),
 [v2.6](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.6.apk),
 [v2.5](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.5.apk),
 [v2.4](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.4.apk),
@@ -16,6 +17,19 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 [v2.2](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.apk),
 [v2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.1.apk),
 [v2.0](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk).
+
+![Beauté](docs/apercus/v2.8_beaute.jpg)
+
+Nouveautés de la v2.8 (« rendre le jeu beaucoup plus joli », points 1 à 4) :
+- **herbe et fleurs en 3D autour de la voiture** : pelouse rase dans les villages, herbe haute, coquelicots, boutons
+  d'or et bleuets dans les prés, graminées et fleurs sur les bas-côtés, fougères en sous-bois ; elles ondulent au vent
+  et s'effacent en douceur au loin ; rien ne pousse sur les routes, trottoirs, bâtiments, clôtures, eau ou champs
+  (carte du sol au mètre) ; densité selon le réglage de la végétation ;
+- **ombres douces** : pied des murs assombri, sol plus sombre au pied des maisons et sous les arbres ;
+- **maisons patinées** : gouttières et descentes d'eau, coulures sous les fenêtres, tuiles inégales, mousse sur les
+  pans orientés au nord ;
+- **heure de la journée** (bouton ⚙) : midi, fin d'après-midi dorée, coucher de soleil, nuit au clair de lune avec les
+  phares de l'Espace et des fenêtres éclairées ; image un peu plus contrastée.
 
 ![Espace I et Chamont](docs/apercus/v2.7_espace_chamont.jpg)
 

@@ -164,6 +164,9 @@ def main():
         Os = ndi.gaussian_filter(O, (6, 6, 0))                               # teinte lissée (12 m) : pas de taches
         tint = np.clip(Os / np.maximum(med, 1) * 0.78, 0.35, 1.0)
         tint = 0.65 * tint + 0.35 * 0.82                                       # atténuée : la texture fait le détail
+        # ombres douces précalculées : pied des bâtiments, sous les arbres (build_ground.ao_region)
+        from build_ground import ao_region
+        tint = tint * ao_region(i, j)[..., None]
         img = np.dstack([tint, np.full(H.shape, 0.5)])
         Image.fromarray((img * 255).astype(np.uint8), "RGBA").save("%s/r_%d_%d.color.png" % (OUT, i, j))
     json.dump(dict(regions=plan["regions"], size=512, spacing=2.0), open(OUT + "/index.json", "w"))

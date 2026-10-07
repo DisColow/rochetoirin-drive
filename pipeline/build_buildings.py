@@ -269,7 +269,37 @@ def soffit(M, pts, nrm):
     M.poly(P, uv, IDX["bardage_bois"], srgb((1.15, 1.1, 1.0)), -np.asarray(nrm, float))
 
 
-def roof_rect(M, R, others, eave, pitch, kind, back, layer, tint, wall_layer, wall_tint, ov=0.35):
+ZINC = (0.80, 0.81, 0.82)
+
+
+def gutter(M, a, b, nrm, ground):
+    """Gouttière pendante le long de l'égout (a -> b) et descente d'eau jusqu'au sol à une extrémité."""
+    a = np.asarray(a, float); b = np.asarray(b, float); n = np.asarray(nrm, float)
+    n = n / max(np.linalg.norm(n), 1e-6)
+    off = n * 0.07 + np.array([0, -0.12, 0])
+    lay = IDX["beton"]
+    p0, p1 = a + off, b + off
+    # gouttière : demi-rond approché (fond + deux bords)
+    for (dy, dn, w) in ((-0.05, 0.0, 0.07), (0.0, 0.06, 0.0), (0.0, -0.06, 0.0)):
+        q0 = p0 + n * dn + np.array([0, dy, 0]); q1 = p1 + n * dn + np.array([0, dy, 0])
+        if w:
+            M.poly([q0 - n * w, q1 - n * w, q1 + n * w, q0 + n * w], [(0, 0), (1, 0), (1, 0.1), (0, 0.1)], lay, srgb(ZINC), (0, -1, 0))
+        else:
+            M.poly([q0, q1, q1 + np.array([0, -0.05, 0]), q0 + np.array([0, -0.05, 0])], [(0, 0), (1, 0), (1, 0.1), (0, 0.1)],
+                   lay, srgb(ZINC), n if dn > 0 else -n)
+    if ground is not None:
+        d = (b - a) / max(np.linalg.norm(b - a), 1e-6)
+        top = p0 + d * 0.25 - np.array([0, 0.05, 0])
+        bot = np.array([top[0], ground + 0.1, top[2]])
+        if top[1] - bot[1] > 1.0:
+            w = 0.045
+            for (u, nn) in ((d, d), (-d, -d), (n, n), (-n, -n)):
+                side = np.cross(nn, [0, 1, 0]); side = side / max(np.linalg.norm(side), 1e-6) * w
+                c0 = top + u * w; c1 = bot + u * w
+                M.poly([c0 - side, c0 + side, c1 + side, c1 - side], [(0, 0), (0.1, 0), (0.1, 1), (0, 1)], lay, srgb(ZINC), nn)
+
+
+def roof_rect(M, R, others, eave, pitch, kind, back, layer, tint, wall_layer, wall_tint, ov=0.35, ground=None):
     """Toit d'un rectangle (repère tourné) ; back(P) ramène au repère monde. kind : 'gable' | 'hip'."""
     x0, z0, x1, z1 = R
     along_x = (x1 - x0) >= (z1 - z0)
@@ -361,6 +391,8 @@ def roof_rect(M, R, others, eave, pitch, kind, back, layer, tint, wall_layer, wa
         nrm = np.array(W(0, te + sg, 0)) - np.array(W(0, te, 0)); nrm[1] = 0
         M.poly([a, b, (b[0], b[1] - 0.18, b[2]), (a[0], a[1] - 0.18, a[2])], [(0, 0), (1, 0), (1, 0.1), (0, 0.1)],
                IDX["crepi"], srgb((0.85, 0.84, 0.8)), nrm)
+        if pitch > 0.12:
+            gutter(M, a, b, nrm, ground)
     return ytop
 
 
@@ -697,7 +729,7 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
             pitch = math.radians(ov["pitch"])
         ytop = eave
         for R in rects:
-            ytop = max(ytop, roof_rect(M, R, rects, eave, pitch, rk, lambda P: rot(P, ang, cen), rl, rtint, wl, wtint))
+            ytop = max(ytop, roof_rect(M, R, rects, eave, pitch, rk, lambda P: rot(P, ang, cen), rl, rtint, wl, wtint, ground=gmin))
         if kind in ("maison", "collectif") and rnd(key, "ch") < 0.75:
             chimney(M, main, eave, pitch, lambda P: rot(P, ang, cen), key, wl if wall != "bardage_bois" else IDX["crepi"], wtint)
     # collisions : prisme de l'emprise
@@ -786,8 +818,13 @@ def main():
         if i in LM.replaced:
             _col_prism(C, p, g, dem)
             continue
+        nL = len(M.L)
         try:
             info = build_one(M, C, p, g, dem, ortho, road_tree, rp, tree, polys, i, LM.override.get(i))
+            if info:
+                # sol du bâtiment (UV2.y) : le shader assombrit le pied des murs (ombre douce)
+                for a in M.L[nL:]:
+                    a[:, 1] = info["gmin"]
             k = info["kind"] if info else None
             if info and i in LM.override:
                 LM.extras(M, C, i, info)
