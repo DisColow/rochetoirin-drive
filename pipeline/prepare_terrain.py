@@ -3,7 +3,7 @@ couleur (teinte issue de l'orthophoto, atténuée). Sorties : ../godot/import/te
 
 Textures (ordre des assets Terrain3D) :
  0 herbe tondue (leafy_grass)   1 prairie (grass_ground)   2 sous-bois (forest_ground_04)
- 3 roche (aerial_rocks_02)      4 terre labourée (brown_mud_02)   5 accotement gravillonné (dry_ground_rocks)
+ 3 roche (aerial_rocks_02)      4 terre labourée (brown_mud_02)   5 accotement (gravillons gris dans l'herbe rase)
 """
 import json, os, pickle
 import numpy as np
@@ -100,10 +100,26 @@ def main():
     for g in (forest, farm, grass, resid, fields):
         shapely.prepare(g)
     rng = np.random.default_rng(3)
+    # eau (build_water.py) : terrain creusé sous les étangs et les cours d'eau, fond vaseux
+    from scipy.spatial import cKDTree
+    CV = np.load("data/eau_carve.npz")["pts"] if os.path.exists("data/eau_carve.npz") else np.zeros((0, 3))
+    ctree = cKDTree(CV[:, :2]) if len(CV) else None
     for (i, j) in [tuple(r) for r in plan["regions"]]:
         H = np.load("data/dem_carved/r_%d_%d.npy" % (i, j)).astype(np.float32)
         xs = i * REG + np.arange(512) * 2.0; zs = j * REG + np.arange(512) * 2.0
         X, Z = np.meshgrid(xs, zs)
+        wet = np.zeros(H.shape, bool)
+        if ctree is not None:
+            d, k = ctree.query(np.c_[X.ravel(), Z.ravel()], distance_upper_bound=1.3)
+            hit = np.isfinite(d)
+            if hit.any():
+                _, sd0 = rf(X.ravel()[hit], Z.ravel()[hit])
+                ok = sd0 > 0.8                                  # jamais sous une chaussée
+                idx = np.nonzero(hit)[0][ok]
+                Hf = H.ravel().copy()
+                Hf[idx] = np.minimum(Hf[idx], CV[k[idx], 2] - 0.6)
+                H = Hf.reshape(H.shape)
+                wet.ravel()[idx] = True
         # pente
         gy, gx = np.gradient(H, 2.0)
         slope = np.degrees(np.arctan(np.hypot(gx, gy)))
@@ -121,6 +137,7 @@ def main():
         base = np.ones(H.shape, np.uint32)
         base[clean(isres, 500)] = 0
         base[clean(isf, 500)] = 2
+        base[wet] = 2
         # terre / chaume : champs cultivés réels (RPG) + grandes zones de sol nu sur la photo ; pas de taches
         # (< 2 000 m²) : elles prennent la texture dominante autour
         bare = ndi.gaussian_filter(((exg < 8) & (lum > 70)).astype(np.float32), 2.0) > 0.5
@@ -135,8 +152,8 @@ def main():
         # accotements gravillonnés le long des routes (0,8 m fondu)
         _, sd = rf(X.ravel(), Z.ravel())
         sd = sd.reshape(H.shape)
-        sh = np.clip(1.0 - (sd - 0.3) / 1.2, 0, 1) * 255
-        s_ = sh > 40
+        sh = np.clip(1.0 - (sd - 0.2) / 1.0, 0, 1) * 200      # étroit et fondu : l'herbe reste visible
+        s_ = sh > 50
         over[s_] = 5; blend[s_] = np.maximum(sh[s_], 0)
         angle = (rng.random(H.shape) * 16).astype(np.uint32)
         C = enc(base, over, blend.astype(np.uint32), angle)

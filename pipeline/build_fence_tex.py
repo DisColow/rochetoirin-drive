@@ -51,7 +51,7 @@ def foliage(sprites, n, size, tint, seed, fringe=False, red=0.0):
     """Feuillage dense : rameaux semés du fond vers l'avant (raccord périodique). fringe : bord supérieur clairsemé
     (alpha), le bas plein."""
     rng = np.random.default_rng(seed)
-    col = np.zeros((S, S, 3), np.float32); col[:] = np.array([0.035, 0.05, 0.025])
+    col = np.zeros((S, S, 3), np.float32); col[:] = np.array([0.075, 0.105, 0.05])
     hgt = np.zeros((S, S), np.float32); cov = np.zeros((S, S), np.float32)
     depth = np.sort(rng.random(n))
     for d in depth:

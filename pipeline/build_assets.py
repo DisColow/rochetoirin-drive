@@ -31,11 +31,35 @@ def terrain_textures():
         else:
             a = im("%s/%s/diff.jpg" % (PH, t), "RGB"); h = im("%s/%s/disp.jpg" % (PH, t), "L")
             n = im("%s/%s/nor_gl.jpg" % (PH, t), "RGB"); r = im("%s/%s/rough.jpg" % (PH, t), "L")
+        if k == 5:
+            a, h, n, r = verge()
         if k == 4:                                    # chaume : moins éblouissant
             from PIL import ImageEnhance
             a = ImageEnhance.Brightness(a).enhance(0.78)
         Image.merge("RGBA", (*a.split(), h)).save("%s/%d_albedo_height.png" % (GT, k))
         Image.merge("RGBA", (*n.split(), r)).save("%s/%d_normal_rough.png" % (GT, k))
+
+
+def verge():
+    """Accotement : gravillons gris clairsemés dans l'herbe rase (pas de bande de terre orange)."""
+    from scipy import ndimage as ndi
+    g = "data/ph/gravel_road/"; b = "data/acg/Grass001/Grass001_2K-JPG_"
+    ga, gh, gn, gr = im(g + "diff.jpg", "RGB"), im(g + "disp.jpg", "L"), im(g + "nor_gl.jpg", "RGB"), im(g + "rough.jpg", "L")
+    ha, hh, hn, hr = im(b + "Color.jpg", "RGB"), im(b + "Displacement.jpg", "L"), im(b + "NormalGL.jpg", "RGB"), im(b + "Roughness.jpg", "L")
+    rng = np.random.default_rng(4)
+    noise = rng.random((S // 8, S // 8))
+    noise = np.kron(noise, np.ones((8, 8)))
+    noise = ndi.gaussian_filter(noise, 28, mode="wrap") + 0.35 * ndi.gaussian_filter(noise, 5, mode="wrap")
+    noise = (noise - noise.min()) / (noise.max() - noise.min())
+    m = np.clip((noise - 0.3) * 1.8, 0.15, 0.9)[..., None]       # part de gravillons (jamais nulle, jamais totale)
+    A = lambda x: np.asarray(x, np.float32)
+    gav = A(ga); lum = gav.mean(2, keepdims=True)
+    gav = lum + (gav - lum) * 0.3                                  # gravillons gris
+    out = []
+    for x, y in ((gav, A(ha)), (A(gh)[..., None], A(hh)[..., None]), (A(gn), A(hn)), (A(gr)[..., None], A(hr)[..., None])):
+        v = x * m + y * (1 - m)
+        out.append(Image.fromarray(np.clip(v, 0, 255).astype(np.uint8).squeeze()))
+    return out
 
 
 def road_textures():

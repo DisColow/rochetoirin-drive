@@ -1,5 +1,7 @@
 # Consignes du projet
 
+- **Notification à la fin de chaque tour** : quand le travail est fini et que c'est à l'utilisateur d'écrire, lui
+  envoyer une notification (outil PushNotification, message court en français : ce qui est prêt / ce qu'on attend de lui).
 - Après chaque livraison (modification du jeu, nouvel APK), **mettre à jour ce dépôt systématiquement** :
   commit + push sur `main`, sans demander de confirmation (on peut revenir en arrière avec git).
 - Publier l'APK de release dans `releases/RochetoirinSimulator-vX.Y.apk` (version incrémentée) et mettre à jour
@@ -23,7 +25,8 @@
   `prepare_terrain.py`, `build_assets.py`, `convert_car.py`, `fetch_communes.py`, `build_map.py`, `fetch_landmarks.py`,
   `fetch_sv_landmarks.py` (cache Street View privé d'abord), `fetch_building_tex.py`, `build_bld_tex.py`,
   `build_buildings.py`, `build_gps.py`, `fetch_trees.py` (Sketchfab, SKETCHFAB_TOKEN), `fetch_cadastre.py`, `build_fence_tex.py`,
-  `build_fences.py` (clôtures : relevé `clotures_bourg.json` ; contrôle « rien sur la route » doit donner 0) ; puis
+  `build_fences.py` (clôtures : relevé `clotures_bourg.json` ; contrôle « rien sur la route » doit donner 0),
+  `fetch_water.py`, `build_water.py` (eau ; à lancer avant `prepare_terrain.py`, qui creuse le terrain dessous) ; puis
   `godot --headless --import`, `godot --headless --script res://tools/prepare_trees.gd`, `godot --headless --import`,
   `xvfb-run godot --path godot res://tools/bake_impostors.tscn`, `impostor_bleed.py`, `build_crop_tex.py`,
   `build_vegetation.py`, `build_crops.py`, `godot --headless --import` et

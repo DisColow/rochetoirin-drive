@@ -191,7 +191,7 @@ def build_line(o, P, Y, style, key, opts):
         h0, h1, w = HEDGE_DIM[style]
         h = opts.get("h") or (h0 + (h1 - h0) * r("h"))
         w = opts.get("w") or w * (0.85 + 0.3 * r("w"))
-        tint = np.array([0.92, 0.96, 0.9]) * (0.9 + 0.2 * r("t"))
+        tint = np.array([1.04, 1.08, 1.0]) * (0.9 + 0.2 * r("t"))
         o.rec(R_HEDGE, P, Y, IDX[style], IDX["bord_" + style[5:]], 0.0, h, w, tint, seed=r("n") * 100)
         o.rec(R_COLL, P, Y, h1=min(h, 1.5))
         return

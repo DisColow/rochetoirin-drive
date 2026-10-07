@@ -21,7 +21,12 @@ func _ready() -> void:
 			continue
 		var p := f.trim_prefix("t_").trim_suffix(".glb").split("_")
 		tiles[Vector2i(int(p[0]), int(p[1]))] = "res://world/roads/" + f
-	mats["asphalt"] = _mat("asphalt", 0.30, Color(0.82, 0.82, 0.82))
+	var am := ShaderMaterial.new()
+	am.shader = preload("res://scripts/asphalt.gdshader")
+	am.set_shader_parameter("albedo_tex", load("res://assets/tex/asphalt_albedo.jpg"))
+	am.set_shader_parameter("normal_tex", load("res://assets/tex/asphalt_normal.jpg"))
+	am.set_shader_parameter("rough_tex", load("res://assets/tex/asphalt_rough.jpg"))
+	mats["asphalt"] = am
 	mats["asphalt_bridge"] = mats["asphalt"]
 	mats["dirt"] = _mat("dirt", 0.35, Color(1, 1, 1))
 	mats["sidewalk"] = _mat("sidewalk", 0.5, Color(1, 1, 1))

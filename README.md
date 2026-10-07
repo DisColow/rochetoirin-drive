@@ -6,14 +6,26 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v2.5.apk — clôtures, haies, murets et portails](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.5.apk)**
-(APK de 633 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+**[RochetoirinSimulator-v2.6.apk — étape 6 : textures et finitions, rivières et étangs](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.6.apk)**
+(APK de 638 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+[v2.5](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.5.apk),
 [v2.4](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.4.apk),
 [v2.3](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.3.apk),
 [v2.2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.1.apk),
 [v2.2](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.apk),
 [v2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.1.apk),
 [v2.0](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk).
+
+![Finitions](docs/apercus/v2.6_finitions.jpg)
+
+Nouveautés de la v2.6 (étape 6 : textures et finitions) :
+- **rivières, ruisseaux et étangs** (BD TOPO) : la Bourbre, le Bion, les ruisseaux permanents, 166 étangs, retenues
+  et mares ; surface qui reflète le ciel, vaguelettes qui suivent le courant ; l'eau ne remonte jamais la pente, le
+  terrain est creusé dessous (fond vaseux), et elle s'arrête au bord des routes (sauf sous les ponts) ;
+- **bas-côtés** : fini les bandes de terre orange le long de toutes les routes ; herbe rase un peu usée, plus étroite ;
+- **enrobé** plus sombre et moins répétitif (deux échelles mélangées, reprises et usure en grandes plaques) ;
+- **prés moins uniformes** : variations de teinte à grande échelle ;
+- haies plus claires (elles paraissaient noires de loin).
 
 ![Clôtures](docs/apercus/v2.5_clotures.jpg)
 
