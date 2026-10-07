@@ -2,7 +2,7 @@ config_version=5
 
 [application]
 
-config/version="2.9"
+config/version="3.0"
 
 run/flush_stdout_on_print=true
 run/flush_stdout_on_print.debug=true
@@ -54,6 +54,7 @@ renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
 anti_aliasing/quality/msaa_3d=2
+textures/default_filters/anisotropic_filtering_level=4
 lights_and_shadows/directional_shadow/size=4096
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=2
 lights_and_shadows/directional_shadow/size.mobile=4096

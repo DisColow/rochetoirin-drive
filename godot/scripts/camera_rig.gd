@@ -7,6 +7,7 @@ var mode := 0                      # 0 poursuite, 1 conducteur, 2 capot
 var _pos := Vector3.ZERO
 var _look := Vector3.ZERO
 var eye := Vector3(-0.39, 1.33, 0.10)
+var cockpit: CanvasLayer          # habitacle en pixel art (vue conducteur)
 
 func _ready() -> void:
 	cam = Camera3D.new()
@@ -26,7 +27,13 @@ func snap() -> void:
 	_look = t.origin + Vector3(0, 1.2, 0)
 
 func cycle() -> void:
-	mode = (mode + 1) % 3
+	set_mode((mode + 1) % 3)
+
+func set_mode(m: int) -> void:
+	mode = m
+	if cockpit:
+		cockpit.eye = eye
+		cockpit.set_active(mode == 1)
 
 func _process(dt: float) -> void:
 	if Input.is_action_just_pressed("camera"):
@@ -45,5 +52,9 @@ func _process(dt: float) -> void:
 	else:
 		var p := t * (eye if mode == 1 else Vector3(0, 1.45, 1.2))
 		cam.global_position = p
-		cam.global_basis = Basis.looking_at(fwd, t.basis.y) if true else cam.global_basis
-		cam.fov = 66.0
+		# vue conducteur : regard un peu plongeant (la route apparaît au-dessus de la planche de bord en pixel art)
+		var b := Basis.looking_at(fwd, t.basis.y)
+		if mode == 1:
+			b = b * Basis(Vector3.RIGHT, deg_to_rad(-7.0))
+		cam.global_basis = b
+		cam.fov = 68.0 if mode == 1 else 66.0

@@ -71,9 +71,29 @@ func _ready() -> void:
 	for n in body.find_children("*", "MeshInstance3D", true, false):
 		n.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	_steering_wheel(meta)
+	# ombre douce de contact sous la caisse (le soleil seul laisse la voiture « flotter » quand il est haut)
+	var gr := Gradient.new()
+	gr.set_color(0, Color(0, 0, 0, 0.62)); gr.set_color(1, Color(0, 0, 0, 0.0))
+	gr.add_point(0.55, Color(0, 0, 0, 0.45))
+	var gt := GradientTexture2D.new()
+	gt.gradient = gr; gt.fill = GradientTexture2D.FILL_RADIAL
+	gt.fill_from = Vector2(0.5, 0.5); gt.fill_to = Vector2(0.5, 0.0); gt.width = 64; gt.height = 128
+	var sm := StandardMaterial3D.new()
+	sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	sm.albedo_texture = gt
+	sm.render_priority = -1
+	var pm := PlaneMesh.new(); pm.size = Vector2(2.3, 4.9)
+	var blob := MeshInstance3D.new()
+	blob.mesh = pm; blob.material_override = sm
+	blob.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	blob.position = Vector3(0, 0.05, 0)
+	add_child(blob)
+	_blob = blob
 
 var _wheel_node: Node3D
 var _wheel_rim: Node3D
+var _blob: MeshInstance3D
 
 ## Volant (à la place mesurée sur le modèle), incliné de 62° et tourné avec la direction.
 func _steering_wheel(meta: Dictionary) -> void:
@@ -156,10 +176,32 @@ func _materials(root: Node) -> void:
 var _body: Node3D
 var blown := false
 
+## Ombre de contact posée sur le sol (rayon vers le bas), estompée quand la voiture décolle.
+func _place_blob() -> void:
+	var o := global_position + global_basis.y * 1.0
+	var q := PhysicsRayQueryParameters3D.create(o, o - Vector3(0, 3.0, 0))
+	q.exclude = [get_rid()]
+	var hit := get_world_3d().direct_space_state.intersect_ray(q)
+	if hit.is_empty():
+		_blob.visible = false
+		return
+	var gap := global_position.y - float(hit.position.y)
+	_blob.visible = gap < 1.2
+	_blob.global_position = Vector3(global_position.x, float(hit.position.y) + 0.04, global_position.z)
+	_blob.transparency = clampf(gap / 1.2, 0.0, 1.0)
+
+## Vue cockpit (habitacle en pixel art) : la caisse 3D ne fait plus que porter son ombre, le volant 3D disparaît.
+func set_cockpit(on: bool) -> void:
+	for n in _body.find_children("*", "MeshInstance3D", true, false):
+		n.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY if on else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	if _wheel_node:
+		_wheel_node.visible = not on
+
 ## Explosion (gardien des limites) : la voiture disparaît et s'immobilise jusqu'à sa réapparition.
 func blow_up() -> void:
 	blown = true
 	_body.visible = false
+	_blob.visible = false
 	for w in wheels:
 		w.visible = false
 	freeze = true
@@ -173,6 +215,7 @@ func respawn_at(p: Vector3, heading_deg: float) -> void:
 		reset_to_road()
 	hold(0.5)
 	_body.visible = true
+	_blob.visible = true
 	for w in wheels:
 		w.visible = true
 	blown = false
@@ -229,6 +272,7 @@ func forward_speed() -> float:
 func _physics_process(dt: float) -> void:
 	if blown:
 		return
+	_place_blob()
 	if _hold_t > 0.0:
 		_hold_t -= dt
 		global_transform = _hold_xf

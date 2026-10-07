@@ -81,6 +81,12 @@ func _ready() -> void:
 	cam_rig = preload("res://scripts/camera_rig.gd").new()
 	cam_rig.target = car
 	add_child(cam_rig)
+	var ck = preload("res://scripts/cockpit.gd").new()
+	ck.name = "Cockpit"
+	ck.car = car
+	ck.main = self
+	add_child(ck)
+	cam_rig.cockpit = ck
 	# étalonnage de l'image finale (calque 2D sous l'interface)
 	var gl := CanvasLayer.new()
 	gl.layer = -1
@@ -185,6 +191,8 @@ func _environment() -> void:
 
 ## Étalonnage et netteté : désactivés au niveau Faible (téléphones modestes).
 func set_post(level: int) -> void:
+	# anticrénelage : 4× aux niveaux Élevée et Maximale (fils, clôtures et toits sans escaliers), 2× sinon
+	get_viewport().msaa_3d = Viewport.MSAA_4X if level >= 2 else Viewport.MSAA_2X
 	if post:
 		post.visible = level >= 1 and not OS.get_environment("RS_SKIP").contains("post")
 
@@ -326,8 +334,9 @@ func _shots(path: String) -> void:
 			# vue de la caméra du jeu (0 poursuite, 1 conducteur, 2 capot) après un court trajet
 			car.freeze = false
 			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; vegetation.target = car; crops.target = car; grass.target = car
-			cam_rig.mode = int(s.cam)
+			cam_rig.set_mode(int(s.cam))
 			car.touch_throttle = 0.5
+			car.touch_steer = float(s.get("steer", 0.0))
 			for i in 240:
 				await get_tree().physics_frame
 			car.touch_throttle = 0.0

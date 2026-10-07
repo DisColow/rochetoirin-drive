@@ -6,8 +6,24 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v2.9.apk — gardien des limites, lignes électriques, lampadaires, étalonnage](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.9.apk)**
-(APK de 691 Mo, Android 8+, OpenGL ES 3).
+**[RochetoirinSimulator-v3.0.apk — vue cockpit en pixel art, image plus nette](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.0.apk)**
+(APK d'environ 660 Mo, Android 8+, OpenGL ES 3).
+![Cockpit](docs/apercus/v3.0_cockpit.jpg)
+
+Nouveautés de la v3.0 :
+- **vue cockpit refaite en pixel art**, à la manière des vieux jeux de voitures : habitacle de l'Espace I dessiné en
+  gros pixels (pavillon, pare-soleil, montants, planche de bord, aérateurs, autoradio K7, commandes de chauffage,
+  boîte à gants, vignette auto sur le pare-brise) par-dessus la route en 3D ;
+  - compteurs à aiguilles orange (vitesse, compte-tours d'une boîte auto à 4 rapports, essence, température) ;
+  - volant deux branches au losange Renault qui tourne avec la direction, mains du conducteur dessus ;
+  - heure sur l'autoradio, voyant vert des phares, lettre de la boîte (P, R, D) allumée ;
+  - rétroviseur avec une vraie vue arrière en basse résolution, sapin désodorisant qui se balance dans les virages ;
+  - l'habitacle suit les secousses, prend la lumière de l'heure choisie, compteurs rétroéclairés la nuit ;
+- **image plus nette** : filtrage anisotrope 16×, anticrénelage 4× aux réglages Élevée et Maximale (fils, clôtures et
+  toits sans escaliers) ;
+- **ombre de contact sous l'Espace** (la voiture ne « flotte » plus quand le soleil est haut).
+
+[v2.9 — gardien des limites, lignes électriques, lampadaires, étalonnage](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.9.apk)
 ![Gardien](docs/apercus/v2.9_gardien.jpg)
 
 Nouveautés de la v2.9 :
