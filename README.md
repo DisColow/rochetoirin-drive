@@ -7,7 +7,11 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 ## Télécharger
 
 **[RochetoirinSimulator-v2.8.apk — herbe, ombres douces, maisons patinées, heures de la journée](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.8.apk)**
-(APK de 689 Mo, Android 8+, OpenGL ES 3). Versions précédentes :
+(APK de 689 Mo, Android 8+, OpenGL ES 3).
+**Essai** : [même version en rendu « Mobile » (Vulkan)](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.8-rendu-mobile.apk)
+— application séparée (« Rochetoirin (Mobile) »), s'installe à côté de la version normale ; non vérifiable ici (le
+conteneur n'a pas de Vulkan matériel) : à essayer, et à désinstaller si elle plante.
+Versions précédentes :
 [v2.7](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.7.apk),
 [v2.6](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.6.apk),
 [v2.5](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.5.apk),

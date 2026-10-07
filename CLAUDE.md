@@ -41,6 +41,8 @@
   (densité réglable), 6 textures et finitions. Étape ajoutée, faite en v2.5 : clôtures, haies, murets et portails.
 - L'APK (> 100 Mo) va dans `releases/` via **Git LFS** (`.gitattributes`) ; les GitHub Releases sont interdites à cette
   session. Lien : `https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/<apk>`.
+- APK d'essai en rendu Mobile (Vulkan) : même projet, paquet `fr.rochetoirin.sim2.mobile` (script : passer
+  `rendering_method` à `mobile` et le nom de paquet le temps de l'export, puis restaurer).
 - Captures de contrôle : `xvfb-run godot --path godot -- --shots=<json>` ; essai de conduite : `-- --drive-test`.
 - **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
   souples, pas d'à-coups de chargement).
