@@ -4,9 +4,13 @@
   envoyer une notification (outil PushNotification, message court en français : ce qui est prêt / ce qu'on attend de lui).
 - Après chaque livraison (modification du jeu, nouvel APK), **mettre à jour ce dépôt systématiquement** :
   commit + push sur `main`, sans demander de confirmation (on peut revenir en arrière avec git).
-- Publier l'APK de release dans `releases/RochetoirinSimulator-vX.Y.apk` (version incrémentée) et mettre à jour
-  le lien « Télécharger » du README. Les captures d'écran / comparatifs vont dans `docs/apercus/`.
-- Avant de livrer : `./gradlew testDebugUnitTest` puis `./gradlew assembleRelease`.
+- **L'APK est construit par GitHub Actions** (`.github/workflows/apk.yml`), jamais ici (ça consomme le temps de
+  l'utilisateur) : à chaque push sur `godot` touchant `godot/`, l'action prend le projet + la branche `donnees`
+  (fichiers générés par `pipeline/`), exporte, signe (secret `ANDROID_KEYSTORE`) et dépose
+  `releases/RochetoirinSimulator-vX.Y.apk` (X.Y = `config/version` de `godot/project.godot`, à incrémenter avec
+  `version/code` d'`export_presets.cfg` à chaque livraison). Après toute régénération de données :
+  `pipeline/publier_donnees.sh` (n'envoie que les fichiers modifiés) **avant** de pousser le code. Mettre à jour le
+  lien « Télécharger » du README ; captures et comparatifs dans `docs/apercus/`.
 - Les données brutes (`tools/data/`) ne sont pas versionnées : elles se régénèrent avec les scripts `tools/fetch_*`.
 - **Quota Google Street View** : avant tout appel à l'API, récupérer le cache privé
   `DisColow/rochetoirin-streetview` (copier `streetview/` dans `tools/data/streetview/`) ; après tout nouveau

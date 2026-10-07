@@ -1,0 +1,127 @@
+# Construction de l'APK par GitHub (rien à faire à la main) :
+# à chaque push sur la branche godot qui touche le jeu, on récupère le projet (branche godot) et les données
+# générées par pipeline/ (branche donnees), on importe et on exporte avec Godot 4.4.1, on signe avec la clé du
+# secret ANDROID_KEYSTORE (keystore en base64), puis on dépose releases/RochetoirinSimulator-vX.Y.apk (Git LFS),
+# X.Y étant config/version de godot/project.godot.
+name: APK Android
+
+on:
+  push:
+    branches: [godot]
+    paths:
+      - "godot/**"
+      - ".github/workflows/apk.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: apk
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: 4.4.1
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Projet (branche godot, sans télécharger les anciens APK)
+        uses: actions/checkout@v4
+        with:
+          ref: godot
+          lfs: false
+          fetch-depth: 1
+
+      - name: Données générées (branche donnees)
+        uses: actions/checkout@v4
+        with:
+          ref: donnees
+          path: donnees
+          lfs: false
+          fetch-depth: 1
+
+      - name: Données dans le projet
+        run: |
+          cp -a donnees/. godot/
+          rm -rf godot/.git donnees
+          du -sh godot
+
+      - name: Cache de l'import Godot
+        uses: actions/cache@v4
+        with:
+          path: godot/.godot
+          key: import-${{ hashFiles('godot/project.godot') }}-${{ github.sha }}
+          restore-keys: |
+            import-${{ hashFiles('godot/project.godot') }}-
+            import-
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Godot et modèles d'export
+        run: |
+          cd /tmp
+          base=https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable
+          wget -q $base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
+          wget -q $base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+          unzip -q Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
+          sudo mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 /usr/local/bin/godot
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          unzip -q Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+          mv templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+          mkdir -p ~/.config/godot
+          printf '[gd_resource type="EditorSettings" format=3]\n\n[resource]\nexport/android/android_sdk_path = "%s"\nexport/android/java_sdk_path = "%s"\n' \
+            "$ANDROID_HOME" "$JAVA_HOME" > ~/.config/godot/editor_settings-4.4.tres
+
+      - name: Clé de signature
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+        run: |
+          if [ -z "$KEYSTORE" ]; then
+            echo "::error::Secret ANDROID_KEYSTORE absent (keystore en base64) : ajoutez-le dans Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          echo "$KEYSTORE" | base64 -d > /tmp/release.keystore
+
+      - name: Import
+        working-directory: godot
+        run: |
+          godot --headless --import || true
+          godot --headless --import || true
+
+      - name: Export
+        working-directory: godot
+        env:
+          GODOT_ANDROID_KEYSTORE_RELEASE_PATH: /tmp/release.keystore
+          GODOT_ANDROID_KEYSTORE_RELEASE_USER: ${{ secrets.ANDROID_KEYSTORE_USER || 'androiddebugkey' }}
+          GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || 'android' }}
+        run: |
+          V=$(sed -n 's/^config\/version="\(.*\)"/\1/p' project.godot)
+          echo "V=$V" >> $GITHUB_ENV
+          mkdir -p ../out
+          godot --headless --export-release "Android" ../out/RochetoirinSimulator-v$V.apk
+          ls -la ../out
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          $BT/apksigner verify ../out/RochetoirinSimulator-v$V.apk
+
+      - name: Dépôt de l'APK dans releases/
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git lfs install --local
+          for i in 1 2 3 4; do
+            git fetch --depth=1 origin godot
+            git reset -q --hard origin/godot
+            cp out/RochetoirinSimulator-v$V.apk releases/
+            git add releases/RochetoirinSimulator-v$V.apk
+            git commit -q -m "APK v$V construit par GitHub Actions (${GITHUB_SHA::7}) [skip ci]" || exit 0
+            git push origin HEAD:godot && exit 0
+            sleep $((2 ** i))
+          done
+          exit 1
