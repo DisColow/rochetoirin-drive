@@ -2,7 +2,7 @@ config_version=5
 
 [application]
 
-config/version="2.8"
+config/version="2.9"
 
 run/flush_stdout_on_print=true
 run/flush_stdout_on_print.debug=true

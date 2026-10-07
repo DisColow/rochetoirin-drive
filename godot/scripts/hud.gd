@@ -80,6 +80,7 @@ func _open_settings() -> void:
 			veg.update_now()
 			get_parent().crops.set_level(i)
 			get_parent().grass.set_level(i)
+			get_parent().set_post(i)
 			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
 			cfg.set_value("affichage", "vegetation", i); cfg.save("user://reglages.cfg")
 			for c in h.get_children():

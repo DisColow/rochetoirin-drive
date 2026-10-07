@@ -35,6 +35,7 @@ func _ready() -> void:
 	continuous_cd = true
 	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/car/meta.json"))
 	var body: Node3D = load("res://assets/car/body.glb").instantiate()
+	_body = body
 	body.rotation.y = PI          # modèle : avant vers -Z ; véhicule Godot : avant vers +Z
 	add_child(body)
 	_materials(body)
@@ -152,6 +153,30 @@ func _materials(root: Node) -> void:
 			if by_name.has(nm):
 				mi.set_surface_override_material(s, by_name[nm])
 
+var _body: Node3D
+var blown := false
+
+## Explosion (gardien des limites) : la voiture disparaît et s'immobilise jusqu'à sa réapparition.
+func blow_up() -> void:
+	blown = true
+	_body.visible = false
+	for w in wheels:
+		w.visible = false
+	freeze = true
+
+## Réapparition après l'explosion (position et cap choisis par le gardien ; INF : route la plus proche).
+func respawn_at(p: Vector3, heading_deg: float) -> void:
+	freeze = false
+	if p.is_finite():
+		place(p, heading_deg)
+	else:
+		reset_to_road()
+	hold(0.5)
+	_body.visible = true
+	for w in wheels:
+		w.visible = true
+	blown = false
+
 var _lamp_mat: StandardMaterial3D
 var _tail_mat: StandardMaterial3D
 var _beams := []
@@ -202,6 +227,8 @@ func forward_speed() -> float:
 	return linear_velocity.dot(global_transform.basis.z)
 
 func _physics_process(dt: float) -> void:
+	if blown:
+		return
 	if _hold_t > 0.0:
 		_hold_t -= dt
 		global_transform = _hold_xf

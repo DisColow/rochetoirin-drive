@@ -10,6 +10,9 @@ var buildings: Node3D
 var vegetation: Node3D
 var crops: Node3D
 var grass: Node3D
+var guardian: Node3D
+var poles: Node3D
+var post: ColorRect
 var fences: Node3D
 var water: Node3D
 var cam_rig: Node3D
@@ -63,12 +66,36 @@ func _ready() -> void:
 	add_child(grass)
 	grass.target = car
 	set_time(int(cfg.get_value("affichage", "heure", 0)))
+	poles = preload("res://scripts/poles.gd").new()
+	add_child(poles)
+	poles.target = car
+	poles.update_now()
+	poles.set_night(1.0 if time_of_day == 3 else (0.35 if time_of_day == 2 else 0.0))
+	# gardien des limites de la carte
+	guardian = preload("res://scripts/guardian.gd").new()
+	guardian.car = car
+	guardian.terrain = terrain
+	add_child(guardian)
 	if "collision_target" in terrain:
 		terrain.set("collision_target", car)
 	cam_rig = preload("res://scripts/camera_rig.gd").new()
 	cam_rig.target = car
 	add_child(cam_rig)
+	# étalonnage de l'image finale (calque 2D sous l'interface)
+	var gl := CanvasLayer.new()
+	gl.layer = -1
+	post = ColorRect.new()
+	post.set_anchors_preset(Control.PRESET_FULL_RECT)
+	post.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var gm := ShaderMaterial.new()
+	gm.shader = preload("res://scripts/grade.gdshader")
+	post.material = gm
+	gl.add_child(post)
+	add_child(gl)
+	post.visible = not OS.get_environment("RS_SKIP").contains("post")
+	set_post(vegetation.level)
 	var hud = preload("res://scripts/hud.gd").new()
+	hud.name = "HUD"
 	hud.car = car
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS          # la carte reste utilisable jeu en pause
 	add_child(hud)
@@ -89,6 +116,7 @@ func _teleport(p: Vector3, heading: float) -> void:
 	buildings.update_now()
 	fences.update_now()
 	water.update_now()
+	poles.update_now()
 	vegetation.update_now()
 	grass.update_now()
 
@@ -154,6 +182,11 @@ func _environment() -> void:
 	add_child(sun)
 	_sun = sun
 	_sun_az = sun.rotation.y
+
+## Étalonnage et netteté : désactivés au niveau Faible (téléphones modestes).
+func set_post(level: int) -> void:
+	if post:
+		post.visible = level >= 1 and not OS.get_environment("RS_SKIP").contains("post")
 
 # ---------------------------------------------------------------- heure de la journée (Réglages)
 const TIMES := ["Midi", "Après-midi", "Coucher", "Nuit"]
@@ -224,6 +257,8 @@ func set_time(i: int) -> void:
 	var night: float = P[7]
 	if buildings and buildings.mat:
 		buildings.mat.set_shader_parameter("night", night)
+	if poles:
+		poles.set_night(night)
 	if car and car.has_method("set_lights"):
 		car.set_lights(night > 0.2)
 
@@ -290,7 +325,7 @@ func _shots(path: String) -> void:
 		if s.has("cam"):
 			# vue de la caméra du jeu (0 poursuite, 1 conducteur, 2 capot) après un court trajet
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; vegetation.target = car; crops.target = car; grass.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; vegetation.target = car; crops.target = car; grass.target = car
 			cam_rig.mode = int(s.cam)
 			car.touch_throttle = 0.5
 			for i in 240:
@@ -314,8 +349,8 @@ func _shots(path: String) -> void:
 		if s.get("tap", false):
 			# téléportation par un vrai toucher : bouton CARTE puis toucher sur la carte (chemin complet des entrées)
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; vegetation.target = car; crops.target = car; grass.target = car
-			var hud := find_children("*", "CanvasLayer", false, false)[0]
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; vegetation.target = car; crops.target = car; grass.target = car
+			var hud := get_node("HUD")
 			var before := car.global_position
 			Input.action_press("carte")
 			await get_tree().process_frame
@@ -339,13 +374,13 @@ func _shots(path: String) -> void:
 			get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % s.name)
 			continue
 		if s.get("tp", false):
-			var hud := find_children("*", "CanvasLayer", false, false)[0]
+			var hud := get_node("HUD")
 			hud._show_drive(false)
 			hud.map.open()
 			hud.map.zoom = 0.5
 			hud.map._pick(hud.map.world_to_screen(Vector2(s.tp[0], s.tp[1])))
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; vegetation.target = car; crops.target = car; grass.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; vegetation.target = car; crops.target = car; grass.target = car
 			for i in 240:
 				await get_tree().physics_frame
 			print("téléporté en ", car.global_position, " roues au sol ", car.wheels.filter(func(w): return w.is_in_contact()).size())
@@ -353,7 +388,7 @@ func _shots(path: String) -> void:
 			print("capture ", s.name)
 			continue
 		if s.get("map", false):
-			var hud := find_children("*", "CanvasLayer", false, false)[0]
+			var hud := get_node("HUD")
 			hud._show_drive(false)
 			get_tree().paused = false
 			hud.map.open()
@@ -371,6 +406,7 @@ func _shots(path: String) -> void:
 		buildings.target = c
 		fences.target = c
 		water.target = c
+		poles.target = c
 		vegetation.target = c
 		crops.target = c
 		grass.target = c
@@ -383,6 +419,7 @@ func _shots(path: String) -> void:
 			buildings._process(0.3)
 			fences._process(0.3)
 			water._process(0.3)
+			poles._process(0.3)
 			vegetation._process(0.3)
 			crops._process(0.3)
 			grass._process(0.3)
@@ -423,7 +460,7 @@ func _physics_process(_dt: float) -> void:
 			car.global_transform = Transform3D(tr.basis.rotated(tr.basis.z, PI), tr.origin + tr.basis.x * 14.0 + Vector3(0, 1.5, 0))
 			print("retournée en ", car.global_position)
 		if t % 120 == 0 and t > 240:
-			print("  t=%ds pos=%s haut=%.2f route=%s" % [t / 120, car.global_position.snapped(Vector3(0.1, 0.1, 0.1)), car.global_transform.basis.y.y, find_children("*", "CanvasLayer", false, false)[0].names.road_at(car.global_position)])
+			print("  t=%ds pos=%s haut=%.2f route=%s" % [t / 120, car.global_position.snapped(Vector3(0.1, 0.1, 0.1)), car.global_transform.basis.y.y, get_node("HUD").names.road_at(car.global_position)])
 		return
 	if OS.get_cmdline_user_args().has("--hard-steer"):
 		car.touch_steer = (1.0 if t < 1000 else -1.0) if t > 840 and t < 1150 else 0.0
@@ -431,6 +468,10 @@ func _physics_process(_dt: float) -> void:
 			print("  braquage t=%.2f v=%d km/h haut=%.2f roues=%d" % [t / 120.0, car.kmh(), car.global_transform.basis.y.y, car.wheels.filter(func(w): return w.is_in_contact()).size()])
 	if not car.global_position.is_finite() or car.linear_velocity.length() > 80.0:
 		print("ANOMALIE t=%d pos=%s v=%s" % [t, car.global_position, car.linear_velocity])
+	if OS.get_cmdline_user_args().has("--snap") and t % 60 == 0:
+		DirAccess.make_dir_recursive_absolute("user://shots")
+		get_viewport().get_texture().get_image().save_png("user://shots/snap_%03d.png" % (t / 60))
+		print("  snap %d gardien=%s charge=%.2f voiture visible=%s pos=%s" % [t / 60, guardian.state, guardian._charge, not car.blown, car.global_position.snapped(Vector3.ONE)])
 	if t % 120 == 0:
 		print("t=%.0fs pos=%s v=%.0f km/h avant=%.1f roues au sol=%d" % [t / 120.0, car.global_position.snapped(Vector3(0.1, 0.1, 0.1)), car.kmh(), car.forward_speed(), car.wheels.filter(func(w): return w.is_in_contact()).size()])
 	if t > dur + 600:

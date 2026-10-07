@@ -28,7 +28,8 @@
   `build_fences.py` (clôtures : relevé `clotures_bourg.json` ; contrôle « rien sur la route » doit donner 0),
   `fetch_water.py`, `build_water.py` (eau ; à lancer avant `prepare_terrain.py`, qui creuse le terrain dessous),
   `build_ground.py` (carte de l'herbe, après `prepare_terrain.py` ; les ombres douces du terrain viennent de son
-  `ao_region`), `build_grass_tex.py` ; puis
+  `ao_region`), `build_grass_tex.py`, `build_zone.py` (limite de la carte pour le gardien), `build_sfx.py` (sons de
+  synthèse), `fetch_power.py`, `build_poles.py` (pylônes, poteaux, fils, lampadaires) ; puis
   `godot --headless --import`, `godot --headless --script res://tools/prepare_trees.gd`, `godot --headless --import`,
   `xvfb-run godot --path godot res://tools/bake_impostors.tscn`, `impostor_bleed.py`, `build_crop_tex.py`,
   `build_vegetation.py`, `build_crops.py`, `godot --headless --import` et
@@ -44,5 +45,7 @@
 - APK d'essai en rendu Mobile (Vulkan) : même projet, paquet `fr.rochetoirin.sim2.mobile` (script : passer
   `rendering_method` à `mobile` et le nom de paquet le temps de l'export, puis restaurer).
 - Captures de contrôle : `xvfb-run godot --path godot -- --shots=<json>` ; essai de conduite : `-- --drive-test`.
+- Gardien des limites : modèle `godot/models/goku.glb` fourni par l'utilisateur (« Goku (Rigged & Animated) » de Kari,
+  CC BY 4.0) ; **crédits à ajouter dans le jeu plus tard : le rappeler à l'utilisateur.**
 - **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
   souples, pas d'à-coups de chargement).

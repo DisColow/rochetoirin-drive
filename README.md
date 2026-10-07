@@ -6,12 +6,13 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v2.8.apk — herbe, ombres douces, maisons patinées, heures de la journée](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.8.apk)**
-(APK de 689 Mo, Android 8+, OpenGL ES 3).
-**Essai** : [même version en rendu « Mobile » (Vulkan)](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.8-rendu-mobile.apk)
+**[RochetoirinSimulator-v2.9.apk — gardien des limites, lignes électriques, lampadaires, étalonnage](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.9.apk)**
+(APK de 691 Mo, Android 8+, OpenGL ES 3).
+**Essai (v2.8)** : [rendu « Mobile » (Vulkan)](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.8-rendu-mobile.apk)
 — application séparée (« Rochetoirin (Mobile) »), s'installe à côté de la version normale ; non vérifiable ici (le
 conteneur n'a pas de Vulkan matériel) : à essayer, et à désinstaller si elle plante.
 Versions précédentes :
+[v2.8](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.8.apk),
 [v2.7](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.7.apk),
 [v2.6](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.6.apk),
 [v2.5](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.5.apk),
@@ -21,6 +22,17 @@ Versions précédentes :
 [v2.2](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.2.apk),
 [v2.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.1.apk),
 [v2.0](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v2.0.apk).
+
+![Gardien](docs/apercus/v2.9_gardien.jpg)
+
+Nouveautés de la v2.9 :
+- **gardien des limites** : un combattant volant plane au-delà de la limite de la carte (modèle « Goku (Rigged &
+  Animated) » de Kari, CC BY 4.0) ; quand on s'approche du bord, on l'entend charger son attaque et la boule d'énergie
+  grossit ; si on sort, il tire sa vague d'énergie : l'Espace explose (flammes, fumée, débris) puis réapparaît sur la
+  route la plus proche, dans le sens inverse ; pas de cinématique, le jeu continue ;
+- **lignes électriques** : pylônes haute tension et poteaux bois ou béton à leur vraie place (OSM), fils qui pendent ;
+- **lampadaires** dans les villages (allumés le soir, avec de vraies lumières près de la voiture) ;
+- **étalonnage de l'image** : couleurs plus riches, netteté, vignette (désactivé au réglage de végétation Faible).
 
 ![Beauté](docs/apercus/v2.8_beaute.jpg)
 
