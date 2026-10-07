@@ -6,6 +6,14 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
+**[RochetoirinSimulator-v3.4.apk — correctif : plantage au démarrage depuis la v3.1](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.4.apk)**
+(construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
+
+Nouveautés de la v3.4 :
+- **correctif du plantage juste après l'écran de démarrage** (v3.1 à v3.3) : l'ambiance des matériaux (vent, ombres
+  des nuages, pluie) n'utilise plus de paramètres globaux de shader, refusés par certains GPU de téléphone ;
+- **mode sûr** : si un démarrage plante quand même, le suivant se lance sans le shader modifié du relief.
+
 **[RochetoirinSimulator-v3.3.apk — voitures dans les cours, tracteurs, horizon plus garni](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.3.apk)**
 (APK d'environ 660 Mo, Android 8+, OpenGL ES 3).
 ![Village](docs/apercus/v3.3_village.jpg)

@@ -23,6 +23,7 @@ func _ready() -> void:
 		tiles[Vector2i(int(p[0]), int(p[1]))] = "res://world/roads/" + f
 	var am := ShaderMaterial.new()
 	am.shader = preload("res://scripts/asphalt.gdshader")
+	preload("res://scripts/env.gd").add(am)
 	am.set_shader_parameter("albedo_tex", load("res://assets/tex/asphalt_albedo.jpg"))
 	am.set_shader_parameter("normal_tex", load("res://assets/tex/asphalt_normal.jpg"))
 	am.set_shader_parameter("rough_tex", load("res://assets/tex/asphalt_rough.jpg"))
@@ -36,6 +37,7 @@ func _ready() -> void:
 	# peinture routière : blanc légèrement usé, posée au-dessus de l'enrobé
 	var mk := ShaderMaterial.new()
 	mk.shader = preload("res://scripts/ground.gdshader")
+	preload("res://scripts/env.gd").add(mk)
 	mk.set_shader_parameter("textured", false)
 	mk.set_shader_parameter("tint", Color(0.86, 0.86, 0.84))
 	mk.set_shader_parameter("rough", 0.6)
@@ -70,6 +72,7 @@ func _ready() -> void:
 func _mat(name: String, scale: float, tint: Color) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = preload("res://scripts/ground.gdshader")
+	preload("res://scripts/env.gd").add(m)
 	m.set_shader_parameter("albedo_tex", load("res://assets/tex/%s_albedo.jpg" % name))
 	m.set_shader_parameter("normal_tex", load("res://assets/tex/%s_normal.jpg" % name))
 	m.set_shader_parameter("rough_tex", load("res://assets/tex/%s_rough.jpg" % name))

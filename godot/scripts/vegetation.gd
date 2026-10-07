@@ -44,6 +44,7 @@ func _ready() -> void:
 		sizes.append(float(info["size"][n]))
 	imp_mat = ShaderMaterial.new()
 	imp_mat.shader = preload("res://scripts/impostor.gdshader")
+	preload("res://scripts/env.gd").add(imp_mat)
 	imp_mat.set_shader_parameter("albedo_atlas", load("res://assets/veg/impostors_albedo.png"))
 	imp_mat.set_shader_parameter("normal_atlas", load("res://assets/veg/impostors_normal.png"))
 	quad = QuadMesh.new()
@@ -61,6 +62,7 @@ func _wind_materials(mesh: Mesh) -> void:
 			continue
 		var sm := ShaderMaterial.new()
 		sm.shader = preload("res://scripts/tree.gdshader")
+		preload("res://scripts/env.gd").add(sm)
 		sm.set_shader_parameter("albedo_tex", m.albedo_texture)
 		if m.normal_enabled and m.normal_texture:
 			sm.set_shader_parameter("normal_tex", m.normal_texture)

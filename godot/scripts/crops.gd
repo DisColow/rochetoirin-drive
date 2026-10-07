@@ -22,6 +22,7 @@ var _rng := RandomNumberGenerator.new()
 func _ready() -> void:
 	mat = ShaderMaterial.new()
 	mat.shader = preload("res://scripts/crops.gdshader")
+	preload("res://scripts/env.gd").add(mat)
 	mat.set_shader_parameter("albedo_atlas", load("res://assets/veg/crops_albedo.png"))
 	mat.set_shader_parameter("normal_atlas", load("res://assets/veg/crops_normal.png"))
 	quad = QuadMesh.new()

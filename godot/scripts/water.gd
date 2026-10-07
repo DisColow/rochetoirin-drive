@@ -22,6 +22,7 @@ func _ready() -> void:
 		tiles[Vector2i(int(p[0]), int(p[1]))] = "res://world/water/" + f
 	mat = ShaderMaterial.new()
 	mat.shader = preload("res://scripts/water.gdshader")
+	preload("res://scripts/env.gd").add(mat)
 
 func _d(k: Vector2i, c: Vector3) -> float:
 	return Vector2((k.x + 0.5) * TILE - c.x, (k.y + 0.5) * TILE - c.z).length()

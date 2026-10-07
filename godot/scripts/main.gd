@@ -22,7 +22,20 @@ var dust: Node3D
 var rain: Node3D
 var cockpit: CanvasLayer
 
+## Mode sûr : si le démarrage précédent n'est pas allé jusqu'au bout (plantage pendant le chargement ou les
+## premières images), on démarre sans le shader remplaçant du relief et avec moins d'anticrénelage.
+const BOOT_FLAG := "user://demarrage.flag"
+var safe_mode := false
+
 func _ready() -> void:
+	safe_mode = FileAccess.file_exists(BOOT_FLAG)
+	var bf := FileAccess.open(BOOT_FLAG, FileAccess.WRITE)
+	if bf:
+		bf.store_string(Time.get_datetime_string_from_system())
+		bf.close()
+	get_tree().create_timer(8.0).timeout.connect(func(): DirAccess.remove_absolute(BOOT_FLAG))
+	if safe_mode:
+		print("mode sûr : le démarrage précédent a planté")
 	var skip := OS.get_environment("RS_SKIP")
 	if not skip.contains("env"): _environment()
 	if not skip.contains("terrain"): _terrain()
@@ -220,7 +233,7 @@ func _environment() -> void:
 ## Étalonnage et netteté : désactivés au niveau Faible (téléphones modestes).
 func set_post(level: int) -> void:
 	# anticrénelage : 4× aux niveaux Élevée et Maximale (fils, clôtures et toits sans escaliers), 2× sinon
-	get_viewport().msaa_3d = Viewport.MSAA_4X if level >= 2 else Viewport.MSAA_2X
+	get_viewport().msaa_3d = Viewport.MSAA_4X if level >= 2 and not safe_mode else Viewport.MSAA_2X
 	if post:
 		post.visible = level >= 1 and not OS.get_environment("RS_SKIP").contains("post")
 
@@ -303,12 +316,12 @@ func set_time(i: int) -> void:
 ## en fin d'après-midi ; pas de nuages découpés au coucher ni la nuit).
 var wind_strength := 0.55
 func _apply_ambience() -> void:
-	RenderingServer.global_shader_parameter_set("wind", Vector4(0.8, 0.6, wind_strength, 0.0))
+	preload("res://scripts/env.gd").set_value("wind", Vector4(0.8, 0.6, wind_strength, 0.0))
 	var cl := Vector4([0.45, 0.32, 0.0, 0.0][time_of_day], 0.0, 0.0, 0.0)
 	if OS.get_environment("RS_CLOUDS") != "":                # essai : « force,seuil »
 		var v := OS.get_environment("RS_CLOUDS").split(",")
 		cl = Vector4(float(v[0]), float(v[1]), 0.0, 0.0)
-	RenderingServer.global_shader_parameter_set("clouds", cl)
+	preload("res://scripts/env.gd").set_value("clouds", cl)
 	if birds:
 		birds.day = time_of_day < 3
 
@@ -360,7 +373,7 @@ func _apply_weather() -> void:
 	else:
 		_sun.shadow_opacity = 1.0
 		_env.fog_sky_affect = 0.0
-	RenderingServer.global_shader_parameter_set("wet", _wet)
+	preload("res://scripts/env.gd").set_value("wet", _wet)
 	if car and car.has_method("set_wet"):
 		car.set_wet(_wet)
 	if rain:
@@ -372,7 +385,7 @@ func _apply_weather() -> void:
 	if birds:
 		birds.day = time_of_day < 3 and w < 2
 	if w > 0:
-		RenderingServer.global_shader_parameter_set("clouds", Vector4.ZERO)
+		preload("res://scripts/env.gd").set_value("clouds", Vector4.ZERO)
 	if car and car.has_method("set_lights"):
 		car.set_lights(_night > 0.2 or w >= 2)
 
@@ -395,9 +408,11 @@ func _terrain() -> void:
 	m.set_shader_param("macro_variation_slope", 0.4)
 	m.set_shader_param("noise1_scale", 0.03)
 	m.set_shader_param("noise2_scale", 0.09)
-	# shader du relief remplacé (même code + ombres des nuages et sol mouillé)
-	m.set("shader_override", preload("res://scripts/terrain.gdshader"))
-	m.set("shader_override_enabled", true)
+	# shader du relief remplacé (même code + ombres des nuages et sol mouillé), sauf en mode sûr
+	if not safe_mode:
+		m.set("shader_override", load("res://scripts/terrain.gdshader"))
+		m.set("shader_override_enabled", true)
+		preload("res://scripts/env.gd").terrain_mat = m
 	add_child(terrain)
 	terrain.set_camera(get_viewport().get_camera_3d())
 
@@ -423,7 +438,7 @@ func _process(_dt: float) -> void:
 	# sol qui se mouille peu à peu sous la pluie et sèche après
 	if absf(_wet - _wet_target) > 0.001:
 		_wet = move_toward(_wet, _wet_target, _dt / (6.0 if _wet_target > _wet else 25.0))
-		RenderingServer.global_shader_parameter_set("wet", _wet)
+		preload("res://scripts/env.gd").set_value("wet", _wet)
 		if dust:
 			dust.wet = _wet
 		car.set_wet(_wet)

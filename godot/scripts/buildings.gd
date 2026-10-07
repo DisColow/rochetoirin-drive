@@ -22,6 +22,7 @@ func _ready() -> void:
 		tiles[Vector2i(int(p[0]), int(p[1]))] = "res://world/buildings/" + f
 	mat = ShaderMaterial.new()
 	mat.shader = preload("res://scripts/building.gdshader")
+	preload("res://scripts/env.gd").add(mat)
 	mat.set_shader_parameter("albedo_tex", load("res://assets/bld/albedo.png"))
 	mat.set_shader_parameter("normal_tex", load("res://assets/bld/normal.png"))
 

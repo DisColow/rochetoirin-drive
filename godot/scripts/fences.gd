@@ -44,8 +44,10 @@ func _ready() -> void:
 	var nrm = load("res://assets/fence/normal.png")
 	mat = ShaderMaterial.new()
 	mat.shader = preload("res://scripts/fence.gdshader")
+	preload("res://scripts/env.gd").add(mat)
 	mat_cut = ShaderMaterial.new()
 	mat_cut.shader = preload("res://scripts/fence_cut.gdshader")
+	preload("res://scripts/env.gd").add(mat_cut)
 	for m in [mat, mat_cut]:
 		m.set_shader_parameter("albedo_tex", alb)
 		m.set_shader_parameter("normal_tex", nrm)

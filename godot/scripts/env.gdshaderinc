@@ -1,10 +1,10 @@
-// Ambiance partagée par les matériaux du monde (paramètres globaux, réglés par main.gd) :
+// Ambiance partagée par les matériaux du monde (paramètres de chaque matériau, tenus à jour par env.gd) :
 //  wind   : x, y = direction du vent (plan xz), z = force (0 calme … 1 fort), w = inutilisé ;
 //  clouds : x = assombrissement sous un nuage (0 = pas d'ombres de nuages), y = seuil de couverture, z, w inutilisés ;
 //  wet    : 0 sec … 1 détrempé (pluie).
-global uniform vec4 wind;
-global uniform vec4 clouds;
-global uniform float wet;
+uniform vec4 wind = vec4(0.8, 0.6, 0.55, 0.0);
+uniform vec4 clouds = vec4(0.0);
+uniform float wet = 0.0;
 
 // Rafales qui traversent le paysage dans le sens du vent (0 … 1).
 float env_gust(vec2 p) {

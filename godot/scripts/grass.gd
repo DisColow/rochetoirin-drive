@@ -27,6 +27,7 @@ var _t := 0.0
 func _ready() -> void:
 	mat = ShaderMaterial.new()
 	mat.shader = preload("res://scripts/grass.gdshader")
+	preload("res://scripts/env.gd").add(mat)
 	mat.set_shader_parameter("atlas", load("res://assets/veg/grass_albedo.png"))
 	# touffe : deux plans croisés de 1 × 1 m, base au sol
 	var st := SurfaceTool.new()

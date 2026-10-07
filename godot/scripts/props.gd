@@ -23,6 +23,7 @@ func _ready() -> void:
 			tiles[Vector2i(int(p[0]), int(p[1]))] = "res://world/props/" + f
 	var paint := ShaderMaterial.new()
 	paint.shader = preload("res://scripts/paint.gdshader")
+	preload("res://scripts/env.gd").add(paint)
 	var mats := {
 		"paint": paint,
 		"glass": _m(Color(0.05, 0.06, 0.07), 0.05, 0.3),
