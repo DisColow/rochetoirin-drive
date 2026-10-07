@@ -61,9 +61,9 @@ func _open_settings() -> void:
 	_show_drive(false)
 	settings = PanelContainer.new()
 	var sb := StyleBoxFlat.new(); sb.bg_color = Color(0.08, 0.09, 0.11, 0.94); sb.set_corner_radius_all(22)
-	sb.content_margin_left = 40; sb.content_margin_right = 40; sb.content_margin_top = 30; sb.content_margin_bottom = 30
+	sb.content_margin_left = 40; sb.content_margin_right = 40; sb.content_margin_top = 22; sb.content_margin_bottom = 22
 	settings.add_theme_stylebox_override("panel", sb)
-	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 24)
+	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 12)
 	settings.add_child(v)
 	var t := Label.new(); t.text = "Réglages"; t.add_theme_font_size_override("font_size", 44); v.add_child(t)
 	var l := Label.new(); l.text = "Densité de la végétation"; l.add_theme_font_size_override("font_size", 30); v.add_child(l)
@@ -73,7 +73,7 @@ func _open_settings() -> void:
 		b.text = veg.LEVELS[i].name
 		b.toggle_mode = true
 		b.button_pressed = i == veg.level
-		b.custom_minimum_size = Vector2(220, 90)
+		b.custom_minimum_size = Vector2(220, 70)
 		b.add_theme_font_size_override("font_size", 30)
 		b.pressed.connect(func():
 			veg.set_level(i)
@@ -95,7 +95,7 @@ func _open_settings() -> void:
 		b.text = main_node.TIMES[i]
 		b.toggle_mode = true
 		b.button_pressed = i == main_node.time_of_day
-		b.custom_minimum_size = Vector2(220, 90)
+		b.custom_minimum_size = Vector2(220, 70)
 		b.add_theme_font_size_override("font_size", 30)
 		b.pressed.connect(func():
 			main_node.set_time(i)
@@ -104,9 +104,26 @@ func _open_settings() -> void:
 			for c in ht.get_children():
 				c.button_pressed = c == b)
 		ht.add_child(b)
+	# météo (ciel, lumière, brume, pluie et route mouillée)
+	var lw := Label.new(); lw.text = "Météo"; lw.add_theme_font_size_override("font_size", 30); v.add_child(lw)
+	var hw := HBoxContainer.new(); hw.add_theme_constant_override("separation", 16); v.add_child(hw)
+	for i in main_node.WEATHERS.size():
+		var b := Button.new()
+		b.text = main_node.WEATHERS[i]
+		b.toggle_mode = true
+		b.button_pressed = i == main_node.weather
+		b.custom_minimum_size = Vector2(220, 70)
+		b.add_theme_font_size_override("font_size", 30)
+		b.pressed.connect(func():
+			main_node.set_weather(i)
+			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+			cfg.set_value("affichage", "meteo", i); cfg.save("user://reglages.cfg")
+			for c in hw.get_children():
+				c.button_pressed = c == b)
+		hw.add_child(b)
 	var note := Label.new(); note.text = "Moins de végétation = jeu plus fluide sur les téléphones modestes."
 	note.add_theme_font_size_override("font_size", 22); note.modulate = Color(1, 1, 1, 0.7); v.add_child(note)
-	var close := Button.new(); close.text = "Fermer"; close.custom_minimum_size = Vector2(0, 90)
+	var close := Button.new(); close.text = "Fermer"; close.custom_minimum_size = Vector2(0, 76)
 	close.add_theme_font_size_override("font_size", 32)
 	close.pressed.connect(func():
 		settings.queue_free(); settings = null

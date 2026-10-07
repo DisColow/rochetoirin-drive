@@ -35,8 +35,8 @@ void fragment() {
 	}
 	// variation douce de couleur (haies moins uniformes, salissures)
 	float v = 0.86 + 0.24 * vnoise(wpos.xz * 0.45 + wpos.y * 0.3);
-	ALBEDO = a.rgb * tint * tint * v * env_cloud(wpos.xz);
-	ROUGHNESS = n.a;
+	ALBEDO = a.rgb * tint * tint * v * env_cloud(wpos.xz) * (1.0 - 0.2 * wet);
+	ROUGHNESS = n.a * (1.0 - 0.45 * wet);
 	NORMAL_MAP = n.rgb;
 	NORMAL_MAP_DEPTH = 1.0;
 }

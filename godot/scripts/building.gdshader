@@ -51,13 +51,13 @@ void fragment() {
 		float moss = north * smoothstep(0.35, 0.8, vnoise(wpos.xz * 0.7 + 3.0)) * 0.55;
 		col = mix(col, vec3(0.20, 0.24, 0.11), moss);
 	}
-	ALBEDO = col * env_cloud(wpos.xz);
+	ALBEDO = col * env_cloud(wpos.xz) * (1.0 - 0.2 * wet);
 	// le soir et la nuit : une partie des fenêtres éclairées (lumière chaude), au hasard par fenêtre
 	if (night > 0.0 && a.a > 0.5) {
 		float lit = step(0.5, hash(floor(wpos.xz * 0.9) + floor(wpos.y / 2.7) * 7.31));
 		EMISSION = vec3(1.0, 0.72, 0.42) * 1.8 * night * lit * a.a;
 	}
-	ROUGHNESS = mix(n.a, 0.04, a.a);
+	ROUGHNESS = mix(n.a, 0.04, a.a) * (1.0 - 0.45 * wet);
 	SPECULAR = mix(0.4, 0.9, a.a);
 	METALLIC = 0.0;
 	NORMAL_MAP = n.rgb;

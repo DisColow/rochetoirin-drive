@@ -6,8 +6,22 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v3.1.apk — vent, nuages qui passent, oiseaux, poussière](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.1.apk)**
+**[RochetoirinSimulator-v3.2.apk — météo : pluie, route mouillée, brouillard, ciel couvert](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.2.apk)**
 (APK d'environ 660 Mo, Android 8+, OpenGL ES 3).
+![Météo](docs/apercus/v3.2_meteo.jpg)
+
+Nouveautés de la v3.2 (réglage **Météo** dans ⚙, combinable avec l'heure de la journée) :
+- **beau temps** (comme avant), **couvert** (ciel gris, soleil voilé, ombres pâles, couleurs plus douces),
+  **pluie**, **brouillard** (on ne voit plus qu'à 100-200 m, le ciel se fond dans la brume) ;
+- **pluie** : traits de pluie poussés par le vent et par la vitesse, bruit de pluie sur la tôle, ciel sombre ;
+  - la route se mouille peu à peu : enrobé sombre et brillant qui reflète le ciel et les phares, **flaques** avec des
+    ronds de gouttes, trottoirs, murs, toits et terre assombris ; elle sèche quand la pluie s'arrête ;
+  - en vue cockpit : **gouttes sur le pare-brise** (elles remontent quand on roule vite) et **essuie-glaces** qui
+    balaient ;
+  - gerbes d'eau derrière les roues à la place de la poussière ;
+- phares allumés automatiquement sous la pluie et dans le brouillard ; pas d'oiseaux sous la pluie.
+
+[v3.1 — vent, nuages qui passent, oiseaux, poussière](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.1.apk)
 ![Nuages](docs/apercus/v3.1_nuages.jpg)
 
 Nouveautés de la v3.1 (le paysage bouge) :

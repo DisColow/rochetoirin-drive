@@ -33,6 +33,12 @@ var _bob := 0.0
 var _bob_v := 0.0
 var _frame := 0
 var _clock := 0.0
+# pluie : gouttes sur le pare-brise (x, y, taille, âge) et essuie-glaces
+var rain := 0.0
+var drops := []
+var _wipe := 0.0
+var _wipe_prev := 0.0
+var _rng := RandomNumberGenerator.new()
 
 const FONT := {
 	"0": "111101101101111", "1": "010110010010111", "2": "111001111100111", "3": "111001111001111",
@@ -135,6 +141,7 @@ func _process(dt: float) -> void:
 	var vert := acc.dot(t.basis.y) + lon * 0.15
 	_bob_v += (-_bob * 180.0 - _bob_v * 18.0 - clampf(vert, -40.0, 40.0) * 0.12) * dt
 	_bob = clampf(_bob + _bob_v * dt, -3.0, 3.0)
+	_rain_update(dt, kmh)
 	var off := Vector2(0, round(_bob))
 	for n in [lit, glow, front, back]:
 		n.position = off
@@ -144,6 +151,78 @@ func _process(dt: float) -> void:
 	front.modulate = amb
 	for n in [back, lit, glow, front]:
 		n.queue_redraw()
+
+const WIPERS := [[Vector2(62, 0), 96.0], [Vector2(252, 0), 92.0]]     # pivot (y : pied du pare-brise), longueur
+
+func _wiper_angle(ph: float) -> float:
+	# 0 : à plat vers la droite ; monte jusqu'à 100° (aller-retour avec un temps d'arrêt en bas)
+	var t := fposmod(ph, 1.0)
+	var u := clampf(t / 0.8, 0.0, 1.0)
+	return deg_to_rad(100.0) * sin(u * PI)
+
+func _rain_update(dt: float, kmh: float) -> void:
+	if rain <= 0.01 and drops.is_empty():
+		return
+	var base := float(vh - 100) + 13.0
+	# nouvelles gouttes
+	var n := int(rain * dt * 60.0 + _rng.randf())
+	for i in n:
+		drops.append([_rng.randf_range(24, 456), _rng.randf_range(16, base - 4), _rng.randi_range(1, 3), 0.0])
+	# les gouttes glissent vers le bas, ou vers le haut et les côtés quand on roule vite
+	var up := clampf((kmh - 50.0) / 60.0, 0.0, 1.0)
+	for d in drops:
+		d[3] += dt
+		d[1] += (6.0 * (1.0 - up) - 30.0 * up) * dt * (0.3 + 0.2 * d[2])
+		d[0] += (float(d[0]) - 240.0) * 0.6 * up * dt
+	# essuie-glaces : balayage qui efface les gouttes
+	if rain > 0.01:
+		_wipe += dt / 1.3
+	elif fposmod(_wipe, 1.0) > 0.01:
+		_wipe = minf(_wipe + dt / 1.3, ceil(_wipe))
+	var a0 := _wiper_angle(_wipe_prev); var a1 := _wiper_angle(_wipe)
+	_wipe_prev = _wipe
+	var lo := minf(a0, a1) - 0.03; var hi := maxf(a0, a1) + 0.03
+	var keep := []
+	for d in drops:
+		var gone: bool = d[1] < 10.0 or d[1] > base or d[0] < 10.0 or d[0] > 470.0 or d[3] > 25.0
+		if not gone:
+			for w in WIPERS:
+				var piv: Vector2 = Vector2(w[0].x, base)
+				var v := Vector2(d[0], d[1]) - piv
+				var ang := atan2(-v.y, v.x)
+				if v.length() < float(w[1]) and ang >= lo and ang <= hi:
+					gone = true
+		if not gone:
+			keep.append(d)
+	drops = keep
+	if drops.size() > 260:
+		drops = drops.slice(drops.size() - 260)
+
+func _draw_rain() -> void:
+	if drops.is_empty() and rain <= 0.01:
+		return
+	var amb: Color = lit.modulate
+	var hi := Color(0.85, 0.9, 0.95) * amb; hi.a = 0.85
+	var lo := Color(0.25, 0.28, 0.32) * amb; lo.a = 0.7
+	for d in drops:
+		var p := Vector2(round(d[0]), round(d[1]))
+		var sz: int = d[2]
+		if sz >= 2:
+			back.draw_rect(Rect2(p, Vector2(sz, sz)), Color(0.55, 0.6, 0.66, 0.45) * amb)
+		back.draw_rect(Rect2(p, Vector2(1, 1)), hi)
+		back.draw_rect(Rect2(p + Vector2(0, sz), Vector2(maxf(sz - 1, 1), 1)), lo)
+	# essuie-glaces (bras et balais noirs), pieds cachés par la planche de bord
+	var base := float(vh - 100) + 13.0
+	var a := _wiper_angle(_wipe)
+	for w in WIPERS:
+		var piv := Vector2(w[0].x, base + 4.0)
+		var dirv := Vector2(cos(a), -sin(a))
+		var tip: Vector2 = piv + dirv * float(w[1])
+		var col := Color(0.04, 0.04, 0.045)
+		back.draw_line(piv, piv + dirv * float(w[1]) * 0.55, col, 2.0)
+		back.draw_line(piv + dirv * float(w[1]) * 0.25, tip, col, 1.0)
+		var n := Vector2(-dirv.y, dirv.x)
+		back.draw_line(piv + dirv * float(w[1]) * 0.3 + n, tip + n, Color(0.12, 0.12, 0.13), 1.0)
 
 func _tod() -> int:
 	return int(main.time_of_day) if main and "time_of_day" in main else 0
@@ -157,6 +236,7 @@ func _draw_back() -> void:
 	back.draw_set_transform(Vector2(float(m[0]) + float(m[2]), float(m[1])), 0.0, Vector2(-1, 1))
 	back.draw_texture_rect(mirror_vp.get_texture(), Rect2(0, 0, float(m[2]), float(m[3])), false, Color(0.82, 0.84, 0.88))
 	back.draw_set_transform(Vector2.ZERO)
+	_draw_rain()
 
 func _pillar(ci: CanvasItem, pts: PackedVector2Array) -> void:
 	var uv := PackedVector2Array()

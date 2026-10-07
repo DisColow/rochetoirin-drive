@@ -18,6 +18,8 @@ var water: Node3D
 var cam_rig: Node3D
 var birds: Node3D
 var dust: Node3D
+var rain: Node3D
+var cockpit: CanvasLayer
 
 func _ready() -> void:
 	var skip := OS.get_environment("RS_SKIP")
@@ -67,7 +69,9 @@ func _ready() -> void:
 	grass.terrain = terrain
 	add_child(grass)
 	grass.target = car
+	weather = int(cfg.get_value("affichage", "meteo", 0))
 	set_time(int(cfg.get_value("affichage", "heure", 0)))
+	_wet = _wet_target                                    # au démarrage : sol déjà mouillé s'il pleut
 	poles = preload("res://scripts/poles.gd").new()
 	add_child(poles)
 	poles.target = car
@@ -99,6 +103,12 @@ func _ready() -> void:
 	ck.main = self
 	add_child(ck)
 	cam_rig.cockpit = ck
+	cockpit = ck
+	rain = preload("res://scripts/rain.gd").new()
+	rain.cam_rig = cam_rig
+	rain.car = car
+	add_child(rain)
+	set_time(time_of_day)
 	# étalonnage de l'image finale (calque 2D sous l'interface)
 	var gl := CanvasLayer.new()
 	gl.layer = -1
@@ -280,8 +290,8 @@ func set_time(i: int) -> void:
 		buildings.mat.set_shader_parameter("night", night)
 	if poles:
 		poles.set_night(night)
-	if car and car.has_method("set_lights"):
-		car.set_lights(night > 0.2)
+	_night = night
+	_apply_weather()
 
 ## Vent (direction fixe, force modérée) et ombres des nuages : le jour seulement (ciel à cumulus à midi, plus léger
 ## en fin d'après-midi ; pas de nuages découpés au coucher ni la nuit).
@@ -295,6 +305,68 @@ func _apply_ambience() -> void:
 	RenderingServer.global_shader_parameter_set("clouds", cl)
 	if birds:
 		birds.day = time_of_day < 3
+
+# ---------------------------------------------------------------- météo (Réglages)
+const WEATHERS := ["Beau temps", "Couvert", "Pluie", "Brouillard"]
+var weather := 0
+var _night := 0.0
+var _wet := 0.0
+var _wet_target := 0.0
+var _sky_grey: ProceduralSkyMaterial
+
+func set_weather(i: int) -> void:
+	weather = clampi(i, 0, WEATHERS.size() - 1)
+	set_time(time_of_day)
+
+## Ciel gris uniforme, soleil voilé (ombres pâles), brume plus ou moins dense, vent, sol mouillé, pluie, essuie-glaces ;
+## phares allumés la nuit, sous la pluie et dans le brouillard.
+func _apply_weather() -> void:
+	if _env == null:
+		return
+	var w := weather
+	_env.adjustment_saturation = [1.08, 0.92, 0.86, 0.8][w]
+	wind_strength = [0.55, 0.65, 0.9, 0.12][w]
+	_wet_target = [0.0, 0.0, 1.0, 0.3][w]
+	if w > 0:
+		if _sky_grey == null:
+			_sky_grey = ProceduralSkyMaterial.new()
+			_sky_grey.sun_angle_max = 30.0
+			_sky_grey.sun_curve = 0.5
+		var k: float = [1.0, 0.8, 0.45, 0.06][time_of_day]           # luminosité du ciel selon l'heure
+		var top := Color(0.56, 0.6, 0.65) if w == 1 else (Color(0.4, 0.43, 0.47) if w == 2 else Color(0.72, 0.74, 0.76))
+		var hor := Color(0.74, 0.76, 0.78) if w != 2 else Color(0.55, 0.57, 0.6)
+		if time_of_day == 2:
+			hor = hor.lerp(Color(0.85, 0.6, 0.45), 0.35)
+		_sky_grey.sky_top_color = top * k
+		_sky_grey.sky_horizon_color = hor * k
+		_sky_grey.ground_horizon_color = hor * k * 0.8
+		_sky_grey.ground_bottom_color = Color(0.2, 0.21, 0.2) * k
+		_env.sky.sky_material = _sky_grey
+		_sun.light_energy *= [1.0, 0.32, 0.2, 0.28][w]
+		_sun.shadow_opacity = [1.0, 0.45, 0.3, 0.35][w]
+		_env.fog_aerial_perspective = 0.0
+		_env.fog_light_color = hor * k
+		_env.fog_density = [0.0, 0.00012, 0.0011, 0.011][w]
+		_env.fog_sky_affect = [0.0, 0.0, 0.3, 0.85][w]
+		if time_of_day < 2:
+			_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+			_env.ambient_light_energy = 1.25
+	else:
+		_sun.shadow_opacity = 1.0
+		_env.fog_sky_affect = 0.0
+	RenderingServer.global_shader_parameter_set("wet", _wet)
+	if rain:
+		rain.on = w == 2
+		rain.set_night(_night)
+	if cockpit:
+		cockpit.rain = 1.0 if w == 2 else 0.0
+	_apply_ambience()
+	if birds:
+		birds.day = time_of_day < 3 and w < 2
+	if w > 0:
+		RenderingServer.global_shader_parameter_set("clouds", Vector4.ZERO)
+	if car and car.has_method("set_lights"):
+		car.set_lights(_night > 0.2 or w >= 2)
 
 func _terrain() -> void:
 	terrain = Terrain3D.new()
@@ -340,6 +412,12 @@ func _far() -> void:
 		add_child(n)
 
 func _process(_dt: float) -> void:
+	# sol qui se mouille peu à peu sous la pluie et sèche après
+	if absf(_wet - _wet_target) > 0.001:
+		_wet = move_toward(_wet, _wet_target, _dt / (6.0 if _wet_target > _wet else 25.0))
+		RenderingServer.global_shader_parameter_set("wet", _wet)
+		if dust:
+			dust.wet = _wet
 	if terrain and get_viewport().get_camera_3d() and terrain.get_camera() != get_viewport().get_camera_3d():
 		terrain.set_camera(get_viewport().get_camera_3d())
 
@@ -357,8 +435,12 @@ func _shots(path: String) -> void:
 	car.freeze = true
 	DirAccess.make_dir_recursive_absolute("user://shots")
 	for s in list:
-		if s.has("time"):
-			set_time(int(s.time))
+		if s.has("weather"):
+			weather = int(s.weather)
+			_wet_target = [0.0, 0.0, 1.0, 0.3][weather]
+			_wet = _wet_target
+		if s.has("time") or s.has("weather"):
+			set_time(int(s.get("time", time_of_day)))
 		if s.has("cam"):
 			# vue de la caméra du jeu (0 poursuite, 1 conducteur, 2 capot) après un court trajet
 			car.freeze = false
