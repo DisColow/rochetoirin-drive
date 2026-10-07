@@ -1,0 +1,24 @@
+{
+ "cell": 256,
+ "names": [
+  "chene",
+  "feuillu",
+  "chene2",
+  "bouleau",
+  "peuplier",
+  "epicea",
+  "sapin",
+  "pin"
+ ],
+ "size": {
+  "bouleau": 1.04,
+  "chene": 1.38644463323744,
+  "chene2": 1.53982628323394,
+  "epicea": 1.04,
+  "feuillu": 1.0713730918777,
+  "peuplier": 1.04,
+  "pin": 1.04,
+  "sapin": 1.04
+ },
+ "views": 8
+}
