@@ -164,6 +164,8 @@ func _materials(root: Node) -> void:
 	hub.albedo_color = Color(0.72, 0.73, 0.75); hub.metallic = 0.45; hub.roughness = 0.35
 	if _lamp_mat == null:
 		_lamp_mat = lamp; _tail_mat = tail
+	if _paint_mat == null:
+		_paint_mat = paint
 	var by_name := {"hubcap": hub, "paint": paint, "beige": beige, "orange": orange, "fog": fog, "glass": glass, "chrome": chrome, "rubber": rubber, "plastic": plastic,
 		"lamp": lamp, "tail": tail, "interior": vcol, "plate_front": vcol, "plate_rear": vcol}
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
@@ -221,6 +223,13 @@ func respawn_at(p: Vector3, heading_deg: float) -> void:
 	blown = false
 
 var _lamp_mat: StandardMaterial3D
+var _paint_mat: StandardMaterial3D
+
+## Pluie : carrosserie mouillée, plus brillante.
+func set_wet(w: float) -> void:
+	if _paint_mat:
+		_paint_mat.roughness = lerpf(0.32, 0.08, w)
+		_paint_mat.clearcoat_roughness = lerpf(0.1, 0.02, w)
 var _tail_mat: StandardMaterial3D
 var _beams := []
 

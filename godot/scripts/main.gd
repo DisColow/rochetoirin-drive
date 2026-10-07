@@ -17,6 +17,7 @@ var fences: Node3D
 var water: Node3D
 var cam_rig: Node3D
 var birds: Node3D
+var props: Node3D
 var dust: Node3D
 var rain: Node3D
 var cockpit: CanvasLayer
@@ -76,6 +77,10 @@ func _ready() -> void:
 	add_child(poles)
 	poles.target = car
 	poles.update_now()
+	props = preload("res://scripts/props.gd").new()
+	add_child(props)
+	props.target = car
+	props.update_now()
 	poles.set_night(1.0 if time_of_day == 3 else (0.35 if time_of_day == 2 else 0.0))
 	# gardien des limites de la carte
 	guardian = preload("res://scripts/guardian.gd").new()
@@ -145,6 +150,7 @@ func _teleport(p: Vector3, heading: float) -> void:
 	fences.update_now()
 	water.update_now()
 	poles.update_now()
+	props.update_now()
 	vegetation.update_now()
 	grass.update_now()
 
@@ -355,6 +361,8 @@ func _apply_weather() -> void:
 		_sun.shadow_opacity = 1.0
 		_env.fog_sky_affect = 0.0
 	RenderingServer.global_shader_parameter_set("wet", _wet)
+	if car and car.has_method("set_wet"):
+		car.set_wet(_wet)
 	if rain:
 		rain.on = w == 2
 		rain.set_night(_night)
@@ -418,6 +426,7 @@ func _process(_dt: float) -> void:
 		RenderingServer.global_shader_parameter_set("wet", _wet)
 		if dust:
 			dust.wet = _wet
+		car.set_wet(_wet)
 	if terrain and get_viewport().get_camera_3d() and terrain.get_camera() != get_viewport().get_camera_3d():
 		terrain.set_camera(get_viewport().get_camera_3d())
 
@@ -444,7 +453,7 @@ func _shots(path: String) -> void:
 		if s.has("cam"):
 			# vue de la caméra du jeu (0 poursuite, 1 conducteur, 2 capot) après un court trajet
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; vegetation.target = car; crops.target = car; grass.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; vegetation.target = car; crops.target = car; grass.target = car
 			cam_rig.set_mode(int(s.cam))
 			car.touch_throttle = 0.5
 			car.touch_steer = float(s.get("steer", 0.0))
@@ -469,7 +478,7 @@ func _shots(path: String) -> void:
 		if s.get("tap", false):
 			# téléportation par un vrai toucher : bouton CARTE puis toucher sur la carte (chemin complet des entrées)
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; vegetation.target = car; crops.target = car; grass.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; vegetation.target = car; crops.target = car; grass.target = car
 			var hud := get_node("HUD")
 			var before := car.global_position
 			Input.action_press("carte")
@@ -500,7 +509,7 @@ func _shots(path: String) -> void:
 			hud.map.zoom = 0.5
 			hud.map._pick(hud.map.world_to_screen(Vector2(s.tp[0], s.tp[1])))
 			car.freeze = false
-			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; vegetation.target = car; crops.target = car; grass.target = car
+			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; vegetation.target = car; crops.target = car; grass.target = car
 			for i in 240:
 				await get_tree().physics_frame
 			print("téléporté en ", car.global_position, " roues au sol ", car.wheels.filter(func(w): return w.is_in_contact()).size())
@@ -527,6 +536,7 @@ func _shots(path: String) -> void:
 		fences.target = c
 		water.target = c
 		poles.target = c
+		props.target = c
 		vegetation.target = c
 		crops.target = c
 		grass.target = c
@@ -540,6 +550,7 @@ func _shots(path: String) -> void:
 			fences._process(0.3)
 			water._process(0.3)
 			poles._process(0.3)
+			props._process(0.3)
 			vegetation._process(0.3)
 			crops._process(0.3)
 			grass._process(0.3)

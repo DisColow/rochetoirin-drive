@@ -6,8 +6,19 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v3.2.apk — météo : pluie, route mouillée, brouillard, ciel couvert](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.2.apk)**
+**[RochetoirinSimulator-v3.3.apk — voitures dans les cours, tracteurs, horizon plus garni](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.3.apk)**
 (APK d'environ 660 Mo, Android 8+, OpenGL ES 3).
+![Village](docs/apercus/v3.3_village.jpg)
+
+Nouveautés de la v3.3 (la vie des villages) :
+- **1 400 voitures garées dans les cours**, derrière les portails, capot vers la maison (citadines, compactes,
+  breaks, ludospaces des années 80 à 2000, couleurs variées, un peu de poussière en bas de caisse) ; jamais sur la
+  route, dans un bâtiment ou à travers une clôture ; on ne passe pas au travers ;
+- **poubelles** (verte et grise) à côté des portails, **tracteurs** près des bâtiments agricoles ;
+- **arbres visibles plus loin** (jusqu'à 1,6 km en Élevée, 2,2 km en Maximale) : l'horizon ne se vide plus ;
+- **l'Espace brille sous la pluie** (carrosserie mouillée).
+
+[v3.2 — météo : pluie, route mouillée, brouillard, ciel couvert](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.2.apk)
 ![Météo](docs/apercus/v3.2_meteo.jpg)
 
 Nouveautés de la v3.2 (réglage **Météo** dans ⚙, combinable avec l'heure de la journée) :
