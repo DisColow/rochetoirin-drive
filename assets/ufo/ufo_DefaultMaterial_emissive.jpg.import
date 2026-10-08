@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b5yy23ntnw18t"
-path="res://.godot/imported/goku_0.png-9114f6815588169f8eddaad75011bb0b.ctex"
+uid="uid://tdilbu0bg3vn"
+path="res://.godot/imported/ufo_DefaultMaterial_emissive.jpg-b3a16399686430729ffc7eda08b055a2.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "8aa4396c132b68b9cfc8312d5f805293"
+"md5": "39f0f85f69174d88138e990d4a36d279"
 }
 
 [deps]
 
-source_file="res://models/goku_0.png"
-dest_files=["res://.godot/imported/goku_0.png-9114f6815588169f8eddaad75011bb0b.ctex"]
+source_file="res://assets/ufo/ufo_DefaultMaterial_emissive.jpg"
+dest_files=["res://.godot/imported/ufo_DefaultMaterial_emissive.jpg-b3a16399686430729ffc7eda08b055a2.ctex"]
 
 [params]
 
