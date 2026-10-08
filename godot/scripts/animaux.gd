@@ -23,7 +23,7 @@ func _ready() -> void:
 	var fence := StandardMaterial3D.new()
 	fence.albedo_color = Color(0.38, 0.28, 0.18); fence.roughness = 0.9
 	var wire := StandardMaterial3D.new()
-	wire.albedo_color = Color(0.22, 0.22, 0.24); wire.metallic = 0.6; wire.roughness = 0.5
+	wire.albedo_color = Color(0.52, 0.52, 0.54); wire.metallic = 0.5; wire.roughness = 0.45   # barbelé galvanisé
 	for i in MODELS.size():
 		var mi: MeshInstance3D = (load("res://assets/animaux/%s.glb" % MODELS[i]) as PackedScene).instantiate().find_children("*", "MeshInstance3D", true, false)[0]
 		var mesh: Mesh = mi.mesh

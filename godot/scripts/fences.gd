@@ -10,6 +10,7 @@ const VIEW := 450.0             # clôtures, murets : effacés en fondu jusqu'à
 const VIEW_CUT := 280.0         # grillages, haies découpées
 const COLL := 160.0
 const CELL := 32.0             # touffes de haie regroupées par cases de 32 m
+const TOUFFES := false
 const TOUFFE_VIEW := 130.0
 const TOUFFE_STEP := 0.7
 var touffes := []              # maillages Blender (blender_haies.py) : thuya, laurier, photinia, champêtre
@@ -59,8 +60,9 @@ func _ready() -> void:
 	mat_cut.set_shader_parameter("cut", true)
 	preload("res://scripts/env.gd").fade(mat, VIEW)
 	preload("res://scripts/env.gd").fade(mat_cut, VIEW_CUT)
-	# touffes de feuillage des haies (modèles Blender, texture build_haie_tex.py)
-	if ResourceLoader.exists("res://assets/fence/touffe_thuya.glb"):
+	# touffes de feuillage des haies (modèles Blender, texture build_haie_tex.py) : désactivées depuis la v4.2, elles
+	# faisaient des bosses disgracieuses sur les haies taillées (TOUFFES = true pour les remettre)
+	if TOUFFES and ResourceLoader.exists("res://assets/fence/touffe_thuya.glb"):
 		for e in ["thuya", "laurier", "photinia", "champetre"]:
 			var sc: Node = (load("res://assets/fence/touffe_%s.glb" % e) as PackedScene).instantiate()
 			touffes.append((sc.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D).mesh)

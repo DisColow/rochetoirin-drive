@@ -109,7 +109,7 @@ func _build(k: Vector2i) -> void:
 		if not f[3].intersects(rect):
 			continue
 		var t: int = f[0]
-		var part := _rows(f, t, f[1], SPACING[t] if t != 2 else 3.0, cellpoly)
+		var part := _rows(f, t, f[1], SPACING[t] if t != 2 and t != 1 else 3.0, cellpoly)
 		buf.append_array(part)
 		count += part.size() / 16
 	if count == 0:
@@ -182,8 +182,9 @@ func _rows(f: Array, t: int, d: Vector2, sp: float, cellpoly: PackedVector2Array
 						var yb: float = terrain.data.get_height(Vector3(m.x + dn.x * w * 0.5, 0, m.y + dn.y * w * 0.5))
 						var slope := 0.0 if is_nan(ya) or is_nan(yb) else (yb - ya) * signf(dn.dot(d))
 						var h: float = HEIGHT[t] * _rng.randf_range(0.92, 1.06)
-						if t == 2:
-							# nappe horizontale (bande de 3 m × sp) à hauteur des épis / du feuillage
+						if t == 2 or t == 1:
+							# nappe horizontale (bande de 3 m × sp) à hauteur des épis / du feuillage : un champ de blé se
+							# voit de dessus depuis la route (les rangs verticaux faisaient des murs sombres en dents de scie)
 							var hh: float = (0.85 if t == 1 else 0.75) * _rng.randf_range(0.95, 1.05)
 							# axes (rang, -travers, haut) : repère direct, la face visible regarde vers le haut
 							var c0 := m + nrm * sp * 0.5

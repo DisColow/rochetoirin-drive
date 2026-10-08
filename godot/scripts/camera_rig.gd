@@ -23,6 +23,8 @@ func _input(e: InputEvent) -> void:
 		elif not e.pressed:
 			_drag.erase(e.index)
 	elif e is InputEventScreenDrag and _drag.has(e.index):
+		if mode == 1:
+			return                       # vue conducteur : regard fixe (le cockpit pixel art est une image plate)
 		var lim := 0.55 if mode != 0 else PI
 		yaw_off = clampf(yaw_off - e.relative.x * 0.006, -lim, lim)
 		pitch_off = clampf(pitch_off - e.relative.y * 0.004, -0.35 if mode != 0 else -0.25, 0.6 if mode == 0 else 0.35)
@@ -50,6 +52,9 @@ func cycle() -> void:
 
 func set_mode(m: int) -> void:
 	mode = m
+	if mode == 1:
+		yaw_off = 0.0
+		pitch_off = 0.0
 	if target and target.has_method("set_view_mode"):
 		target.set_view_mode(m)
 	if cockpit:
