@@ -6,8 +6,19 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v4.2.apk — relief lisse, parkings, vrais champs de blé](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.2.apk)**
+**[RochetoirinSimulator-v4.3.apk — bâtiments revus avec vous](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.3.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
+
+Nouveautés de la v4.3 (suite de la revue des modèles) :
+- **fenêtres** : les étages sous un toit bas reçoivent des fenêtres plus basses au lieu de rien, et les pignons hauts une
+  fenêtre de comble (avec volets sur les maisons anciennes) ;
+- **plus de socle noir** sous les maisons : soubassement dans l'enduit du mur, 25 cm, et ombre du pied des murs adoucie ;
+- **commerces** : toit-terrasse (sauf bâtiments anciens), fenêtres sans volets, et **devanture avec grande enseigne**
+  sur les 512 bâtiments commerciaux qui n'en avaient pas (métier tiré au sort, nom inventé : jamais de vraie marque) ;
+- **immeubles** : **escaliers extérieurs** avec garde-corps jusqu'aux portes des étages (529 immeubles), côté rue
+  de préférence.
+
+[v4.2 — relief lisse, parkings, vrais champs de blé](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.2.apk)
 
 Nouveautés de la v4.2 :
 - **relief lisse** : fini les plateaux en escalier sur les pentes ; le relief vient désormais du LiDAR HD de l'IGN

@@ -54,6 +54,55 @@ def kit_line(a, b, y_off=0.02):
         kit("faitiere", X, Y, Z, a + X * k + np.array([0, y_off, 0]))
 TILE = 256.0
 SCALE = {n: s for n, _, s in LAYERS}
+GABLE_WIN = [False, None]
+STAIRS = []                      # escaliers extérieurs posés (contrôle) : x, sol, z, normale du mur        # fenêtre de comble dans les pignons hauts (bâtiment en cours), teinte des volets
+
+
+def _box(M, c, ax, ay, az, layer, tint):
+    """Pavé centré en c, demi-axes ax, ay, az (vecteurs 3D orthogonaux)."""
+    c = np.asarray(c, float); ax = np.asarray(ax, float); ay = np.asarray(ay, float); az = np.asarray(az, float)
+    for a, b, n in ((ax, ay, az), (ay, ax, -az), (ay, az, ax), (az, ay, -ax), (az, ax, ay), (ax, az, -ay)):
+        f = c + n
+        pts = [f - a - b, f + a - b, f + a + b, f - a + b]
+        M.poly(pts, [(0, 0), (1, 0), (1, 1), (0, 1)], layer, tint, n)
+
+
+def ext_stairs(M, C, A, B, gnd, u0, nf):
+    """Escalier extérieur droit le long du mur A -> B (vu de dehors) : une volée de 16 marches par étage (2,75 m) puis un
+    palier de 1,4 m devant la porte, garde-corps métallique côté vide, collision comprise."""
+    A = np.asarray(A, float); B = np.asarray(B, float)
+    L = float(np.hypot(*(B - A))); d = (B - A) / L; n2 = np.array([d[1], -d[0]])
+    D3 = np.array([d[0], 0, d[1]]); N3 = np.array([n2[0], 0, n2[1]]); UP = np.array([0.0, 1.0, 0.0])
+    wid = 1.1; off = 0.05 + wid / 2
+    conc = srgb((0.78, 0.77, 0.74)); rail = srgb((0.28, 0.29, 0.31))
+    P = lambda u, y, o: np.array([A[0] + d[0] * u + n2[0] * o, y, A[1] + d[1] * u + n2[1] * o])
+    u = u0
+    for f in range(nf):
+        y0 = gnd + f * 2.75
+        for s in range(16):
+            yc = y0 + (s + 1) * 2.75 / 16
+            _box(M, P(u + s * 0.275 + 0.1375, yc - 0.04, off), D3 * 0.14, UP * 0.04, N3 * wid / 2, IDX["beton"], conc)
+        # limon côté vide et palier
+        _box(M, P(u + 2.2, y0 + 1.33, off + wid / 2), D3 * 2.25, UP * 0.15, N3 * 0.03, IDX["beton"], conc)
+        ul = u + 16 * 0.275
+        _box(M, P(ul + 0.7, y0 + 2.75 - 0.08, off), D3 * 0.7, UP * 0.08, N3 * wid / 2, IDX["beton"], conc)
+        # poteau sous le palier
+        _box(M, P(ul + 1.25, (gnd + y0 + 2.67) / 2, off + wid / 2 - 0.08), D3 * 0.06, UP * ((y0 + 2.67 - gnd) / 2), N3 * 0.06, IDX["beton"], conc)
+        # garde-corps : main courante inclinée sur la volée, droite sur le palier, barreaux
+        for t in np.linspace(0.0, 1.0, 9):
+            yb = y0 + t * 2.75
+            _box(M, P(u + t * 4.4, yb + 0.5, off + wid / 2 + 0.02), D3 * 0.012, UP * 0.5, N3 * 0.012, IDX["beton"], rail)
+        a = P(u, y0 + 1.0, off + wid / 2 + 0.02); b = P(ul, y0 + 2.75 + 1.0, off + wid / 2 + 0.02)
+        v = b - a
+        _box(M, (a + b) / 2, v / 2, UP * 0.025, N3 * 0.025, IDX["beton"], rail)
+        _box(M, P(ul + 0.7, y0 + 2.75 + 1.0, off + wid / 2 + 0.02), D3 * 0.7, UP * 0.025, N3 * 0.025, IDX["beton"], rail)
+        _box(M, P(ul + 1.4, y0 + 2.75 + 0.5, off), D3 * 0.012, UP * 0.5, N3 * (wid / 2), IDX["beton"], rail)
+        # collision : volée et palier
+        q = [P(u, 0, 0.05), P(ul + 1.4, 0, 0.05), P(ul + 1.4, 0, off + wid / 2), P(u, 0, off + wid / 2)]
+        V = np.array([[p[0], gnd - 0.3, p[2]] for p in q] + [[p[0], y0 + 2.75, p[2]] for p in q], np.float32)
+        I = [0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7, 4, 5, 6, 4, 6, 7]
+        C.append((V, np.array(I, np.uint32)))
+        u = ul + 1.4
 
 
 class CarvedDEM(DEM):
@@ -409,6 +458,17 @@ def roof_rect(M, R, others, eave, pitch, kind, back, layer, tint, wall_layer, wa
             nrm = np.array(W(s_w + sg, tc, 0)) - np.array(W(s_w, tc, 0)); nrm[1] = 0
             wsc = SCALE[LAYERS[wall_layer][0]]
             M.poly(tri, [(-hw / wsc, 0), (hw / wsc, 0), (0, -rise / wsc)], wall_layer, wall_tint, nrm)
+            if ends[side][0] == "outer" and GABLE_WIN[0] and rise >= 2.0 and hw >= 2.2:
+                # fenêtre de comble au milieu du pignon (posée en applique : le pignon n'est pas percé)
+                nn = nrm / max(np.linalg.norm(nrm), 1e-9)
+                right = np.array([nn[2], 0.0, -nn[0]])
+                c = np.array(W(s_w, tc, eave + 0.35)) + nn * 0.03
+                kit("fenetre", right * 0.8, (0, 1.0, 0), nn, c - right * 0.4)
+                M.poly([c - right * 0.45 + nn * 0.05, c + right * 0.45 + nn * 0.05, c + right * 0.45 - nn * 0.03, c - right * 0.45 - nn * 0.03],
+                       [(0, 0), (1, 0), (1, 0.2), (0, 0.2)], IDX["beton"], srgb((0.95, 0.93, 0.88)), (0, 1, 0))
+                if GABLE_WIN[1] is not None:
+                    for sgn in (-1, 1):
+                        kit("volet", right * 0.4, (0, 1.0, 0), nn, c + right * (0.4 if sgn > 0 else -0.8) + nn * 0.03, GABLE_WIN[1])
             if ends[side][0] == "outer":
                 # épaisseur de rive (planche de rive)
                 s_o = s_e + sg * ov
@@ -531,12 +591,15 @@ def wall_edge(M, A, B, base, top, gnd, layer, tint, openings, shutter_tint, plin
             M.poly([W(u0, v0), W(u1, v0), W(u1, v0, -dep), W(u0, v0, -dep)], [(0, 0), (1, 0), (1, 0.1), (0, 0.1)], IDX["beton"],
                    srgb((0.7, 0.7, 0.68)), (0, 1, 0))
     if plinth and gnd - base > 0.05:
-        cuts = sorted([(o[0], o[1]) for o in openings if o[2] < gnd + 0.35])
+        # soubassement : même matière que le mur, un ton plus sombre, 25 cm au-dessus du sol (il paraissait noir)
+        cuts = sorted([(o[0], o[1]) for o in openings if o[2] < gnd + 0.25])
         u = 0.0
+        ptint = np.asarray(tint) * 0.86
         for h0, h1 in cuts + [(L, L)]:
             if h0 - u > 0.05:
-                M.poly([W(u, base, 0.02), W(h0, base, 0.02), W(h0, gnd + 0.35, 0.02), W(u, gnd + 0.35, 0.02)],
-                       [(u / 3, 0), (h0 / 3, 0), (h0 / 3, -0.3), (u / 3, -0.3)], IDX["beton"], srgb((0.72, 0.71, 0.68)), nrm)
+                M.poly([W(u, base, 0.02), W(h0, base, 0.02), W(h0, gnd + 0.25, 0.02), W(u, gnd + 0.25, 0.02)],
+                       [(u / sc, -base / sc), (h0 / sc, -base / sc), (h0 / sc, -(gnd + 0.25) / sc), (u / sc, -(gnd + 0.25) / sc)],
+                       layer, ptint, nrm)
             u = max(u, h1)
 
 
@@ -653,6 +716,9 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
         flat = True
     if dec is None and kind in ("activite", "collectif", "commerce") and "hip" not in ov:
         flat = True
+    # commerces : toit-terrasse, sauf les bâtiments anciens (centres de bourg)
+    if kind == "commerce" and wall not in ("pierre", "pierre_taillee", "crepi_ancien") and "roof" not in ov:
+        flat = True
     if dec is None and not flat:
         # forme quelconque : rectangle orienté si l'emprise le remplit à peu près, sinon terrasse
         a, c, r = obb_frame(poly)
@@ -674,6 +740,8 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
     gw = dem.h(ringw[:, 0], ringw[:, 1])
     top = eave + (0.6 if flat else 0.0)
     modern = ov.get("modern", wall in ("crepi", "brique", "beton") and rnd(key, "roll") < 0.6)
+    if kind == "commerce" and wall not in ("pierre", "pierre_taillee", "crepi_ancien") and "modern" not in ov:
+        modern = True                    # commerces récents : fenêtres sans volets battants
     sh_tint = None if modern else srgb(ov.get("shutters") or pick(key, "st", SHUTTER_TINTS))
     win_layer = IDX["fenetre_volet_roulant"] if modern else IDX["fenetre"]
     # côté rue : arête dont le milieu est le plus proche d'une route
@@ -684,6 +752,25 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
     street = int(order[0])
     floors = max(1, int((eave - gmax - 0.2) / 2.75))
     KIT_DOOR[0] = pick(key, "door", DOOR_TINTS); KIT_DOOR[1] = rnd(key, "marq") < 0.35
+    GABLE_WIN[0] = kind in ("maison", "collectif") and not modern or (kind == "maison" and rnd(key, "gw") < 0.5)
+    GABLE_WIN[1] = sh_tint
+    # immeubles : escalier extérieur le long du plus long mur libre (hors rue si possible) jusqu'aux étages
+    stair = None
+    if kind == "collectif" and floors >= 2 and "kind" not in ov:
+        cand = []
+        for k in range(len(ringw) - 1):
+            n2 = np.array([E[k][1], -E[k][0]]) / max(Ls[k], 1e-6)
+            mid = mids[k] + n2 * 0.7
+            if any(others[j].contains(Point(mid)) for j in others_tree.query(Point(mid)) if j != my_i):
+                continue
+            if Ls[k] >= 7.0:
+                cand.append((Ls[k] + (8.0 if k == street else 0.0), k))     # côté rue de préférence : visible
+        if cand:
+            k = max(cand)[1]
+            nf = int(min(floors - 1, (Ls[k] - 1.0) // 5.8))
+            if nf >= 1:
+                u0 = (Ls[k] - nf * 5.8) / 2
+                stair = (k, u0, u0 + nf * 5.8, nf)
     for k in range(len(ringw) - 1):
         Aa, Bb = ringw[k], ringw[k + 1]
         L = Ls[k]
@@ -723,10 +810,13 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
                 door_slot = None
                 if k == street and slots and kind in ("maison", "collectif"):
                     door_slot = min(range(len(slots)), key=lambda j: abs(slots[j] - L / 2) + rnd(key, "ds%d" % j) * 2)
-                for f in range(floors):
-                    v0 = gnd + 0.9 + f * 2.75
-                    if v0 + wh > eave - 0.25:
-                        break
+                for f in range(floors + 1):
+                    v0 = gnd + 0.9 + f * 2.75; whf = wh
+                    if v0 + whf > eave - 0.25:
+                        # étage sous un égout bas : fenêtre plus basse (allège à 0,55 m) plutôt que pas de fenêtre
+                        v0 = gnd + f * 2.75 + 0.55; whf = 0.95
+                        if f == 0 or v0 + whf > eave - 0.15 or v0 < gnd + f * 2.75 + 0.4:
+                            break
                     for j, uc in enumerate(slots):
                         if f == 0 and kind == "commerce" and k == street:
                             ops.append((uc - 1.25, uc + 1.25, gnd + 0.08, gnd + 2.6, IDX["vitrine"], 0.08)); continue
@@ -734,11 +824,22 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
                             ops.append((uc - 0.47, uc + 0.47, gnd + 0.1, gnd + 2.25, IDX["porte"], 0.12)); continue
                         if f > 0 and kind == "commerce" and k == street and v0 < gnd + 2.8:
                             continue
-                        ops.append((uc - ww / 2, uc + ww / 2, v0, v0 + wh, win_layer, 0.14))
+                        if stair is not None and k == stair[0] and stair[1] - 0.4 < uc < stair[2] + 0.4:
+                            continue                         # derrière l'escalier extérieur
+                        ops.append((uc - ww / 2, uc + ww / 2, v0, v0 + whf, win_layer, 0.14))
                 # commerce : vitrines au rez-de-chaussée ⇒ fenêtres d'étage au-dessus de 3 m
                 if kind == "commerce" and k == street:
                     ops = [o for o in ops if not (o[4] == win_layer and o[2] < gnd + 2.8)]
+        if stair is not None and k == stair[0]:
+            for f in range(1, stair[3] + 1):
+                ud = stair[1] + f * 5.8 - 0.65                  # porte au palier de l'étage f
+                ops.append((ud - 0.47, ud + 0.47, gnd + f * 2.75 + 0.02, gnd + f * 2.75 + 2.17, IDX["porte"], 0.12))
         wall_edge(M, Aa, Bb, base, top, gnd, wl, wtint, ops, sh_tint)
+        if stair is not None and k == stair[0]:
+            ext_stairs(M, C, Aa, Bb, gnd, stair[1], stair[3])
+            dd = (Bb - Aa) / L; nn = np.array([dd[1], -dd[0]])
+            sc_ = Aa + dd * (stair[1] + stair[2]) / 2
+            STAIRS.append([float(sc_[0]), float(gnd), float(sc_[1]), float(nn[0]), float(nn[1])])
         # antenne satellite sur un pignon ou une façade (une maison sur huit)
         if kind == "maison" and not mitoyen and k != street and L >= 4 and rnd(key, "dish%d" % k) < 0.06 and eave - gnd > 3.6:
             dd = (Bb - Aa) / L
@@ -922,6 +1023,8 @@ def main():
     for (tx, tz), S in KT.items():
         open("%s/k_%d_%d.bin" % (OUT, tx, tz), "wb").write(np.int32(len(S)).tobytes() + np.array(S, "<f4").tobytes())
     print("kit :", {n: sum(1 for r in KIT if r[0] == i) for i, n in enumerate(KIT_MODELS)})
+    json.dump(STAIRS, open("data/stairs.json", "w"))
+    print("escaliers extérieurs :", len(STAIRS))
     print(len(tiles), "tuiles,", ntri, "triangles", stats)
 
 

@@ -33,7 +33,7 @@ void fragment() {
 	float dirt = 0.88 + 0.16 * vnoise(wpos.xz * 0.35 + wpos.y * 0.2);
 	vec3 t = mix(tint * tint, vec3(1.0), a.a);
 	// ombre douce au pied des murs (sol du bâtiment en UV2.y ; 0 = inconnu)
-	float ao = ground > 1.0 ? mix(0.58, 1.0, smoothstep(0.0, 1.8, wpos.y - ground)) : 1.0;
+	float ao = ground > 1.0 ? mix(0.8, 1.0, smoothstep(0.0, 1.0, wpos.y - ground)) : 1.0;   // léger : le pied des murs paraissait noir
 	vec3 col = a.rgb * t * mix(dirt, 1.0, a.a) * ao;
 	int L = int(layer + 0.5);
 	bool is_wall = L <= 7 || L == 20;

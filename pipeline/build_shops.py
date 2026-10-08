@@ -134,6 +134,15 @@ GENERIC = {   # métier -> (étiquette, noms inventés, fond, texte, police, acc
 OTHER = ("COMMERCE", ["Le Comptoir", "Au Bon Coin", "Chez Nous"], (60, 60, 70), (255, 255, 255), F_SANS, None)
 
 
+def pick_w(key, salt, items):
+    r = rnd(key, salt) * sum(w for _, w in items)
+    for v, w in items:
+        r -= w
+        if r <= 0:
+            return v
+    return items[-1][0]
+
+
 def rnd(key, salt=""):
     return int(hashlib.md5((str(key) + salt).encode()).hexdigest()[:8], 16) / 2 ** 32
 
@@ -308,13 +317,35 @@ def main():
         nm = names[int(rnd(key, "nom") * len(names))]
         return nm, lab if lab.upper() != nm.upper() else None, bg, fg, font, None, acc
 
+    # bâtiments « commerce » de la BD TOPO sans commerce OSM à moins de 25 m : devanture et enseigne génériques
+    # (métier tiré au sort, nom inventé), traitées après les commerces OSM (qui gardent la priorité sur les façades)
+    from build_buildings import classify
+    osm_pts = []
     for e in d["elements"]:
+        if "lon" in e or "center" in e:
+            lon, lat = (e["lon"], e["lat"]) if "lon" in e else (e["center"]["lon"], e["center"]["lat"])
+            osm_pts.append(Point(*geo.to_local(lon, lat)))
+    OSMP = Local([q.buffer(25) for q in osm_pts])
+    SMALL = [("bakery", 3), ("hairdresser", 3), ("restaurant", 3), ("pharmacy", 2), ("tobacco", 2), ("clothes", 2),
+             ("florist", 1), ("optician", 1), ("bank", 1), ("cafe", 2), ("beauty", 1), ("car_repair", 1), ("butcher", 1)]
+    BIG = [("doityourself", 3), ("garden_centre", 2), ("clothes", 2), ("car", 2), ("shoes", 1), ("pet", 1)]
+    synth = []
+    for bi, (p, g) in enumerate(blds):
+        if classify(p, g) != "commerce" or not zone.contains(g.centroid) or OSMP.near(g.centroid, 0.0):
+            continue
+        k_ = pick_w(p.get("cleabs", str(bi)), "metier", BIG if g.area > 400 else SMALL)
+        synth.append({"id": "bd%d" % bi, "tags": {"shop": k_}, "xz": (g.centroid.x, g.centroid.y)})
+    stats["commerces BD TOPO sans OSM"] = len(synth)
+    for e in list(d["elements"]) + synth:
         t = e.get("tags", {})
         kind = t.get("shop") or t.get("amenity") or t.get("craft")
         if kind in ("vacant", None):
             continue
-        lon, lat = (e["lon"], e["lat"]) if "lon" in e else (e["center"]["lon"], e["center"]["lat"])
-        x, z = geo.to_local(lon, lat)
+        if "xz" in e:
+            x, z = e["xz"]
+        else:
+            lon, lat = (e["lon"], e["lat"]) if "lon" in e else (e["center"]["lon"], e["center"]["lat"])
+            x, z = geo.to_local(lon, lat)
         P = Point(float(x), float(z))
         if not zone.contains(P):
             continue
