@@ -599,6 +599,7 @@ func _shots(path: String) -> void:
 		c.global_position = p
 		c.look_at(Vector3(s.look[0], s.look[1], s.look[2]), Vector3.UP)
 		c.fov = s.get("fov", 62.0)
+		get_node("HUD").visible = s.get("hud", true)          # "hud": false : image du monde seul (revues)
 		terrain.set_camera(c)
 		for i in 40:
 			roads._process(0.3)

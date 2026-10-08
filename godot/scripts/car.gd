@@ -95,7 +95,8 @@ func _ready() -> void:
 ## ---------------------------------------------------------------- voiture en sprite pixel art
 ## Atlas précalculé (blender_sprite.py + build_car_sprite.py) : la vue est choisie selon la direction de la caméra
 ## dans le repère de la voiture (32 angles × 4 hauteurs) et le braquage ; la caisse 3D ne fait plus que son ombre.
-var sprite_mode := true
+## Depuis la v4.0, le modèle 3D est de nouveau affiché par défaut (le sprite reste au choix dans les réglages).
+var sprite_mode := false
 var view_mode := 0                   # mode de caméra (0 poursuite) : le sprite ne sert qu'en vue extérieure
 var _sprite: MeshInstance3D
 var _sprite_mat: ShaderMaterial
@@ -123,7 +124,7 @@ func _make_sprite() -> void:
 	add_child(_sprite)
 	var cfg := ConfigFile.new()
 	if cfg.load("user://reglages.cfg") == OK:
-		sprite_mode = str(cfg.get_value("affichage", "voiture", "sprite")) == "sprite"
+		sprite_mode = str(cfg.get_value("affichage", "voiture_v4", "3d")) == "sprite"
 	_apply_sprite()
 
 func set_sprite_mode(on: bool) -> void:

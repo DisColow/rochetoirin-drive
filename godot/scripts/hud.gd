@@ -166,7 +166,7 @@ func _open_settings() -> void:
 		b.pressed.connect(func():
 			car_node.set_sprite_mode(opt[0] == "sprite")
 			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
-			cfg.set_value("affichage", "voiture", opt[0]); cfg.save("user://reglages.cfg")
+			cfg.set_value("affichage", "voiture_v4", opt[0]); cfg.save("user://reglages.cfg")
 			for c in hc.get_children():
 				c.button_pressed = c == b)
 		hc.add_child(b)

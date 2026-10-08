@@ -6,8 +6,13 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v4.0.apk — plus rien ne surgit ni ne disparaît d'un coup](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.0.apk)**
+**[RochetoirinSimulator-v4.1.apk — retour de la voiture en 3D](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.1.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
+
+Nouveautés de la v4.1 :
+- **la voiture est de nouveau affichée avec son modèle 3D** par défaut ; le sprite pixel art reste au choix dans ⚙.
+
+[v4.0 — plus rien ne surgit ni ne disparaît d'un coup](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.0.apk)
 
 Nouveautés de la v4.0 :
 - **fin des apparitions et disparitions brutales** : les objets (glissières, panneaux, péages, commerces, voitures
