@@ -9,13 +9,11 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 **[RochetoirinSimulator-v4.5.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.5.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
-**Windows et Steam Deck** : [Actions > Windows et Steam Deck](https://github.com/DisColow/rochetoirin-drive/actions/workflows/desktop.yml),
-ouvrir la dernière exécution réussie, puis télécharger en bas de page (compte GitHub connecté) :
-- `RochetoirinSimulator-vX.Y-windows` : dézipper, lancer `RochetoirinSimulator.exe` (clavier : flèches, C caméra,
-  M carte, R replacer ; manette ; la souris fait office de doigt sur les boutons) ;
-- `RochetoirinSimulator-vX.Y-steamdeck` : en mode Bureau, extraire l'archive, Steam > Jeux > Ajouter un jeu non Steam
-  > `RochetoirinSimulator.x86_64`, puis jouer en mode Jeu (voir `LISEZMOI.txt`).
-Les archives restent 90 jours ; chaque nouvelle version en produit de nouvelles.
+**Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
+chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'APK, `RochetoirinSimulator-vX.Y-windows.zip`
+(dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
+fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
+Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
 Nouveautés de la v4.5 :
 - **versions Windows et Steam Deck** construites automatiquement par GitHub Actions à chaque nouvelle version

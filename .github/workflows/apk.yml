@@ -1,7 +1,8 @@
 # Construction de l'APK par GitHub (rien à faire à la main) :
 # à chaque push sur la branche godot qui touche le jeu, on récupère le projet (branche godot) et les données
 # générées par pipeline/ (branche donnees), on importe et on exporte avec Godot 4.4.1, on signe avec la clé du
-# secret ANDROID_KEYSTORE (keystore en base64), puis on dépose releases/RochetoirinSimulator-vX.Y.apk (Git LFS),
+# secret ANDROID_KEYSTORE (keystore en base64), puis on joint l'APK à la release GitHub « vX.Y » (créée au besoin,
+# notes tirées du README) et, au premier build de la version, on dépose releases/RochetoirinSimulator-vX.Y.apk (Git LFS),
 # X.Y étant config/version de godot/project.godot.
 name: APK Android
 
@@ -110,8 +111,23 @@ jobs:
           BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
           $BT/apksigner verify ../out/RochetoirinSimulator-v$V.apk
 
-      - name: Dépôt de l'APK dans releases/
+      - name: Release GitHub vX.Y (APK)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
+          python3 .github/scripts/notes_release.py "$V" > /tmp/notes.md
+          gh release view "v$V" >/dev/null 2>&1 || \
+            gh release create "v$V" --target "$GITHUB_SHA" --title "Rochetoirin Simulator v$V" --notes-file /tmp/notes.md || true
+          gh release edit "v$V" --notes-file /tmp/notes.md || true
+          gh release upload "v$V" out/RochetoirinSimulator-v$V.apk --clobber
+
+      - name: "Dépôt de l'APK dans releases/ (premier build de la version seulement, quota Git LFS)"
+        run: |
+          if git ls-files --error-unmatch releases/RochetoirinSimulator-v$V.apk >/dev/null 2>&1; then
+            echo "APK v$V déjà dans releases/ : la release GitHub porte la version à jour."
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git lfs install --local

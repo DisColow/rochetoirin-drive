@@ -2,11 +2,11 @@
 # à chaque nouvelle version (godot/project.godot modifié sur la branche godot) ou à la demande (Actions > Run workflow),
 # on récupère le projet (branche godot) et les données générées par pipeline/ (branche donnees), on importe une fois
 # avec Godot 4.4.1 (textures S3TC/BPTC des PC), on exporte les préréglages « Windows » et « Linux », puis on dépose
-# deux archives en artefacts de l'action (90 jours) :
+# deux archives dans la release GitHub « vX.Y » (créée par cette action ou par celle de l'APK) :
 #   RochetoirinSimulator-vX.Y-windows.zip     : RochetoirinSimulator.exe + .pck (dézipper, lancer l'exe)
 #   RochetoirinSimulator-vX.Y-steamdeck.tar.gz : binaire Linux + .pck (mode Bureau : extraire, « Ajouter un jeu non
 #                                                Steam » sur RochetoirinSimulator.x86_64, puis jouer en mode Jeu)
-# Pas de dépôt dans releases/ : ces archives (~1 Go) épuiseraient le quota Git LFS, déjà occupé par les APK.
+# Pas de dépôt dans releases/ : ces archives (~700 Mo) épuiseraient le quota Git LFS ; les releases n'y comptent pas.
 name: Windows et Steam Deck
 
 on:
@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   GODOT_VERSION: 4.4.1
@@ -115,18 +115,12 @@ jobs:
           tar -C out/steamdeck -czf out/RochetoirinSimulator-v$V-steamdeck.tar.gz .
           ls -la out
 
-      - name: Artefact Windows
-        uses: actions/upload-artifact@v4
-        with:
-          name: RochetoirinSimulator-v${{ env.V }}-windows
-          path: out/RochetoirinSimulator-v${{ env.V }}-windows.zip
-          compression-level: 0
-          retention-days: 90
-
-      - name: Artefact Steam Deck
-        uses: actions/upload-artifact@v4
-        with:
-          name: RochetoirinSimulator-v${{ env.V }}-steamdeck
-          path: out/RochetoirinSimulator-v${{ env.V }}-steamdeck.tar.gz
-          compression-level: 0
-          retention-days: 90
+      - name: Release GitHub vX.Y (Windows et Steam Deck)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          python3 .github/scripts/notes_release.py "$V" > /tmp/notes.md
+          gh release view "v$V" >/dev/null 2>&1 || \
+            gh release create "v$V" --target "$GITHUB_SHA" --title "Rochetoirin Simulator v$V" --notes-file /tmp/notes.md || true
+          gh release upload "v$V" out/RochetoirinSimulator-v$V-windows.zip out/RochetoirinSimulator-v$V-steamdeck.tar.gz --clobber

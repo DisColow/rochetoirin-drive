@@ -66,10 +66,11 @@
 - Étapes validées une par une, **un APK à chaque étape** : 1 routes + relief + horizon, 2 signalisation et marquages,
   3 bâtiments génériques (modèles 3D réalistes, tailles réelles, variés), 4 bâtiments emblématiques, 5 végétation
   (densité réglable), 6 textures et finitions. Étape ajoutée, faite en v2.5 : clôtures, haies, murets et portails.
-- **Windows et Steam Deck** : `.github/workflows/desktop.yml` (à chaque modification de `godot/project.godot`, donc à
-  chaque nouvelle version, ou à la demande) exporte les préréglages « Windows » et « Linux » et les dépose en
-  **artefacts** de l'action (90 jours), pas dans `releases/` (quota Git LFS).
-- L'APK (> 100 Mo) va dans `releases/` via **Git LFS** (`.gitattributes`) ; les GitHub Releases sont interdites à cette
+- **Releases GitHub** : à chaque nouvelle version, les actions créent la release « vX.Y » (notes = section « Nouveautés
+  de la vX.Y » du README, `.github/scripts/notes_release.py`) et y joignent l'APK (`apk.yml`) puis les versions Windows
+  et Steam Deck (`desktop.yml`, déclenchée par une modification de `godot/project.godot`, donc à chaque nouvelle version,
+  ou à la demande) : écrire la section « Nouveautés » du README **avant** de pousser la version.
+- L'APK (> 100 Mo) va aussi dans `releases/` via **Git LFS** (premier build de chaque version seulement) (`.gitattributes`) ; les GitHub Releases sont interdites à cette
   session. Lien : `https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/<apk>`.
 - Rendu Mobile (Vulkan) essayé en v2.8 : moins joli que Compatibility sur le téléphone de l'utilisateur, abandonné.
 - Captures de contrôle : `xvfb-run godot --path godot -- --shots=<json>` ; essai de conduite : `-- --drive-test`.
