@@ -165,6 +165,10 @@ def main():
         Os = ndi.gaussian_filter(O, (6, 6, 0))                               # teinte lissée (12 m) : pas de taches
         tint = np.clip(Os / np.maximum(med, 1) * 0.78, 0.35, 1.0)
         tint = 0.65 * tint + 0.35 * 0.82                                       # atténuée : la texture fait le détail
+        # hors forêt et hors champs : teinte photo encore plus atténuée (buissons, ombres portées de la photo et
+        # bas-côtés sombres faisaient des taches dans l'herbe)
+        flat = (~isf & ~soil)[..., None]
+        tint = np.where(flat, 0.35 * tint + 0.65 * np.median(tint.reshape(-1, 3), axis=0), tint)
         # ombres douces précalculées : pied des bâtiments, sous les arbres (build_ground.ao_region)
         from build_ground import ao_region
         tint = tint * ao_region(i, j)[..., None]

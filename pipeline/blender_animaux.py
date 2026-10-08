@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy
 import mathutils
 import blender_commerces
-from blender_commerces import reset, mat, cyl, export
+from blender_commerces import reset, mat, cyl, box, export
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "godot", "assets", "animaux")
 blender_commerces.OUT = OUT
@@ -125,9 +125,16 @@ def cloture():
     reset()
     wood = mat("piquet", (0.38, 0.28, 0.18), rough=0.9)
     o = cyl("piquet", (0, 0, 0.62), 0.05, 1.3, wood, n=7)
+    # fils barbelés : deux brins torsadés (assez épais pour rester visibles à l'écran) et pointes tous les 25 cm
+    fm = mat("fil", (0.5, 0.5, 0.52), 0.45, 0.6)
     for z in (0.45, 0.8, 1.12):
-        w = cyl("fil", (0.5, 0, z), 0.006, 1.0, mat("fil", (0.25, 0.25, 0.27), 0.8, 0.5), n=4)
-        w.rotation_euler = (0, math.radians(90), 0)
+        for dy in (-0.006, 0.006):
+            w = cyl("fil", (0.5, dy, z + dy * 0.5), 0.0075, 1.0, fm, n=4)
+            w.rotation_euler = (0, math.radians(90), 0)
+        for k in range(4):
+            x = 0.125 + 0.25 * k
+            box("fil", (x, 0, z), (0.012, 0.05, 0.012), fm)
+            box("fil", (x, 0, z), (0.012, 0.012, 0.05), fm)
     export("cloture")
 
 

@@ -510,6 +510,12 @@ def main():
     ways += plazas
     print("gares de péage :", [(p["tags"]["name"], p["tags"]["toll"]) for p in plazas])
     S = samples(ways)
+    # parkings : emprises nivelées (points de terrassement en plus de ceux des routes), places, marquage
+    import parking
+    PK = parking.Parkings(ways, zone)
+    Sp = PK.samples(dem, road_height_fn(S))
+    print("parkings :", len(PK.lots), "emprises,", len(Sp), "points de nivellement")
+    S = np.vstack([S, Sp])
     rf = road_height_fn(S)
     regions = [tuple(r) for r in json.load(open("data/routes_plan.json"))["regions"]]
     carve(dem, rf, regions)
@@ -542,6 +548,8 @@ def main():
                 off = ls.offset_curve(sg * (w["w"] / 2 + SW_W / 2), join_style="round")
                 if not off.is_empty:
                     walk.append(off.buffer(SW_W / 2, cap_style="flat", join_style="round", quad_segs=3))
+    pk_paved, pk_unpaved = PK.surfaces()
+    paved += pk_paved; unpaved += pk_unpaved
     Zc = zone.buffer(50)
     paved = [g.intersection(Zc) for g in paved]; unpaved = [g.intersection(Zc) for g in unpaved]
     walk = [g.intersection(Zc) for g in walk]
@@ -574,6 +582,8 @@ def main():
     print("autoroutes : %d zébras" % AG.markings(det, chains, ways, use, hroad_b))
     AG.plaza_markings(det, [w for w in ways if w.get("plaza")], hroad_b)
     st = furniture.signs(det, ways, use, hroad_b, node_tags, city_names, towns)
+    print("parkings : %d places, %d traits" % (PK.build(), PK.markings(det, hroad_b)))
+    PK.save()
     print("marquages : %d passages piétons, %d lignes d'arrêt ; panneaux :" % (nc, ns), st)
     tiles = set()
     mnx, mnz, mxx, mxz = unary_union([paved_u, unpaved_u]).bounds

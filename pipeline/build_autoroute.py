@@ -312,10 +312,12 @@ def main():
         nose = np.zeros(n, bool)
         for a in c["aux"]:
             lo, hi, kind, glo, ghi = a[:5]
+            # musoir : la glissière s'interrompt sur la zone revêtue et repart de l'absorbeur (triangle avec celle
+            # de la bretelle)
             if kind == "sortie":
-                nose |= (s > ghi - 3) & (s < ghi + 30)
+                nose |= (s > ghi - 3) & (s < ghi + 1.5)
             else:
-                nose |= (s > glo - 30) & (s < glo + 3)
+                nose |= (s > glo - 1.5) & (s < glo + 3)
         rail(P, R, hw + c["rext"] + 0.75, ~brd & ~nose, skip_ways=cw)
         # terre-plein central
         tw = c["twin"]
@@ -451,6 +453,7 @@ def main():
         me = {widx[id(l)]}
         att = np.isfinite(l["att_s"])
         near_att = dilate(att, 10)
+        near_att_l = dilate(att, 1)            # côté autoroute : la glissière part du musoir
         brd = np.full(n, bool(l["bridge"]))
         ends_ok = np.ones(n, bool)
         for k, nd in zip(l["idx"], l["nodes"]):
@@ -459,7 +462,7 @@ def main():
                 ends_ok &= np.abs(s - s[k]) > 25
         nl = dilate(l["noleft"], 10)
         rail(P, R, np.full(n, lw + 0.6), ~near_att & ~brd & ends_ok, skip_ways=me)
-        rail(P, R, np.full(n, -(lw + 0.6)), ~near_att & ~brd & ends_ok & ~nl, skip_ways=me)
+        rail(P, R, np.full(n, -(lw + 0.6)), ~near_att_l & ~brd & ends_ok & ~nl, skip_ways=me)
     # ------------------------------------------------------------------ bornes d'appel d'urgence
     for e in osm:
         if e["type"] != "node" or e["tags"].get("emergency") != "phone":

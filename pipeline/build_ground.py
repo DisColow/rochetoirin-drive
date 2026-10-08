@@ -65,7 +65,13 @@ def ao_region(i, j):
     d = ndi.distance_transform_edt(~b)
     ao_b = 1.0 - 0.38 * np.exp(-d / 1.6)
     ao_b[b] = 0.62
-    c = ndi.gaussian_filter((canopy(i, j) > 2.5).astype(np.float32), 2.0)
+    # sous les massifs boisés seulement (≥ 600 m² de canopée d'un tenant) : les buissons isolés du LiDAR, que le jeu
+    # ne modélise pas, laissaient des taches sombres dans l'herbe
+    cm = canopy(i, j) > 2.5
+    lab, n = ndi.label(cm)
+    if n:
+        cm = np.r_[False, ndi.sum(cm, lab, np.arange(1, n + 1)) >= 600][lab]
+    c = ndi.gaussian_filter(cm.astype(np.float32), 2.0)
     ao_c = 1.0 - 0.28 * c
     ao = ao_b * ao_c
     return ao.reshape(512, 2, 512, 2).mean(axis=(1, 3))

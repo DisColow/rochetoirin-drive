@@ -305,6 +305,9 @@ def main():
         b = LineString(w["P"]).buffer(w["w"] / 2 + (1.6 if any(w["sidewalk"]) else 0.0) + 0.5
                                       + {"motorway": 10.0, "motorway_link": 4.0}.get(w["cls"], 0.0))   # emprise autoroutière
         (drive_z if w["tags"].get("service") in DRIVE else main_z).append(b)
+    # parkings revêtus (build_roads.py -> parking.py) : rien ne les traverse
+    if os.path.exists("data/parkings.pkl"):
+        main_z += [l["geom"].buffer(0.3) for l in pickle.load(open("data/parkings.pkl", "rb"))["lots"]]
     MAIN, DRV, ALL = Local(main_z), Local(drive_z), Local(main_z + drive_z)
     print("emprise des routes prête")
     # bâtiments

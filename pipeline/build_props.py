@@ -281,6 +281,29 @@ def main():
                     out.append((6, c[0] + t[0] * side * 0.33, c[1] + t[1] * side * 0.33, capb, (0.42, 0.44, 0.45)))
                     nbin += 2
                     break
+    # voitures sur les places de parking (parking.py) : un tiers des places occupées, garées en marche avant
+    npk = 0
+    if os.path.exists("data/parkings.pkl"):
+        for li, lot in enumerate(pickle.load(open("data/parkings.pkl", "rb"))["lots"]):
+            for si, c in enumerate(lot["stalls"]):
+                key = "pk%d_%d" % (li, si)
+                if rnd(key, "occ") > 0.34:
+                    continue
+                c = np.asarray(c)
+                ctr = c.mean(axis=0)
+                along = c[1] - c[0]; deep = c[3] - c[0]
+                parallel = np.linalg.norm(along) > np.linalg.norm(deep)
+                v = along if parallel else deep                       # capot : vers le fond de la place
+                if parallel and rnd(key, "dir") < 0.5:
+                    v = -v
+                typ = pick(key, "type", [(1, 34), (2, 30), (3, 18), (4, 18)])
+                box = rect(ctr, v, CARS[typ]["L"] + 0.1, CARS[typ]["W"] + 0.1)
+                if ROAD.near(box, 0.0) or BLD.near(box, 0.0):
+                    continue
+                used.append(box)
+                out.append((typ, ctr[0], ctr[1], math.degrees(math.atan2(-v[0], -v[1])), pick(key, "col", PAINTS)))
+                npk += 1
+    print(npk, "voitures sur les parkings")
     # tracteurs près des grands bâtiments agricoles
     ntr = 0
     for k, (props, g) in enumerate(blds):
