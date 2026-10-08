@@ -6,8 +6,15 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v4.3.apk — bâtiments revus avec vous](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.3.apk)**
+**[RochetoirinSimulator-v4.4.apk — vrais animaux dans les prés](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.4.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
+
+Nouveautés de la v4.4 :
+- **animaux des prés** : les modèles faits main sont remplacés par de jolis modèles gratuits et texturés (Sketchfab,
+  CC BY 4.0, crédités dans ⚙ > Crédits) : **vaches Montbéliardes** pie rouge, **moutons** laineux, **chevaux** (bais,
+  alezans ou gris selon l'animal) ; ils broutent toujours (tête qui monte et descend, queue qui bat).
+
+[v4.3 — bâtiments revus avec vous](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.3.apk)
 
 Nouveautés de la v4.3 (suite de la revue des modèles) :
 - **fenêtres** : les étages sous un toit bas reçoivent des fenêtres plus basses au lieu de rien, et les pignons hauts une

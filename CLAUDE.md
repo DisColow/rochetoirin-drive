@@ -40,7 +40,7 @@
   `ao_region`), `build_grass_tex.py`, `build_zone.py` (limite de la carte pour le gardien), `build_sfx.py` (sons de
   synthèse), `fetch_power.py`, `build_poles.py` (pylônes, poteaux, fils, lampadaires), `build_cockpit.py` (vue cockpit en pixel art), `build_props.py`
   (voitures garées, poubelles, tracteurs ; après `build_fences.py`, qui fournit les portails), `fetch_shops.py`,
-  `build_shops.py` (commerces, marques parodiées), `fetch_sport.py`, `build_sport.py`, `build_animaux.py` (prés pâturés
+  `build_shops.py` (commerces, marques parodiées), `fetch_sport.py`, `build_sport.py`, `fetch_animaux.py` + `blender_animaux_import.py` (vache, mouton, cheval : modèles Sketchfab CC BY, crédits dans ⚙), `build_animaux.py` (prés pâturés
   et clôtures), `fetch_autoroute.py`, `build_autoroute.py`, `build_voix.py` (voix du gardien, Piper), `build_haie_tex.py` (feuilles des touffes de haie),
   `build_car_sprite_ia.py` (voiture en sprite d'après la planche de l'utilisateur `sources/espace_sprites.jpg` ;
   l'ancien `build_car_sprite.py` + `blender_sprite.py` reste possible) ; sons enregistrés dans `pipeline/sources/` ;

@@ -5,6 +5,8 @@ shader_type spatial;
 #include "res://scripts/env.gdshaderinc"
 
 uniform int species = 0;          // 0 vache, 1 mouton, 2 cheval
+uniform bool textured = false;    // modèles Sketchfab texturés (blender_animaux_import.py) ; sinon robe procédurale
+uniform sampler2D albedo_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 
 varying vec3 v_lp;
 varying vec3 v_wp;
@@ -36,6 +38,18 @@ void fragment() {
 	if (!env_fade_keep(v_wp, FRAGCOORD.xy)) {
 		discard;
 	}
+	if (textured) {
+		vec3 t = texture(albedo_tex, UV).rgb;
+		// variété sans autre modèle : chevaux bais (foncés), alezans (texture) ou gris ; vaches un peu plus ou moins claires
+		if (species == 2) {
+			float l = dot(t, vec3(0.3, 0.59, 0.11));
+			t = v_robe < 0.45 ? t * vec3(0.55, 0.5, 0.48) : (v_robe > 0.8 ? mix(t, vec3(l) * 1.7, 0.85) : t);
+		} else {
+			t *= 0.92 + 0.16 * v_robe;
+		}
+		ALBEDO = t * env_cloud(v_wp.xz) * (1.0 - 0.2 * wet);
+		ROUGHNESS = mix(species == 2 ? 0.6 : 0.9, 0.45, wet);
+	} else {
 	vec3 p = v_lp;
 	vec3 c;
 	float rough = 0.85;
@@ -66,4 +80,5 @@ void fragment() {
 	c = mix(c, vec3(0.08, 0.07, 0.06), smoothstep(0.1, 0.04, p.y));            // sabots
 	ALBEDO = c * env_cloud(v_wp.xz) * (1.0 - 0.2 * wet);
 	ROUGHNESS = mix(rough, 0.45, wet);
+	}
 }

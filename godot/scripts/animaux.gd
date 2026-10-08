@@ -33,6 +33,11 @@ func _ready() -> void:
 				var sm := ShaderMaterial.new()
 				sm.shader = preload("res://scripts/animal.gdshader")
 				sm.set_shader_parameter("species", i)
+				# modèles texturés (Sketchfab, blender_animaux_import.py) : texture de couleur d'origine
+				var om := mesh.surface_get_material(s) as BaseMaterial3D
+				if om and om.albedo_texture:
+					sm.set_shader_parameter("albedo_tex", om.albedo_texture)
+					sm.set_shader_parameter("textured", true)
 				preload("res://scripts/env.gd").add(sm)
 				mesh.surface_set_material(s, sm)
 			else:
