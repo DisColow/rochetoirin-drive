@@ -843,3 +843,115 @@ def export(chains):
     return [dict(P=c.P, s=c.s, T=c.T, R=c.R, hw=c.hw, lanes=c.lanes, y=c.y, twin=c.twin, aux=c.aux, gores=c.gores,
                  rext=c.rext, bridge=c.bridge_mask, ways=[w["id"] for w in c.ways], ref=c.ways[0]["tags"].get("ref", ""))
             for c in chains]
+
+
+# ------------------------------------------------------------------------------------------------ péages
+PL_LANE, PL_ISL, PL_FLAT, PL_TAPER = 3.0, 1.3, 16.0, 34.0
+
+
+def toll_plazas(ways):
+    """Gares de péage (OSM barrier=toll_booth sur une bretelle ou une chaussée) : la route s'élargit en 2 voies
+    (entrée : ticket) ou 3 voies (sortie : paiement) séparées par des îlots, sur ±16 m, raccordées en biseau sur 34 m.
+    Chaque gare est une voie de plus (cls « service », tags toll / lanes / name) dont la largeur varie (hw_arr), qui
+    suit le tracé et le profil de la bretelle."""
+    import json, geo
+    osm = json.load(open("data/osm_autoroute.json"))["elements"]
+    cand = [w for w in ways if w["cls"] in ("motorway", "motorway_link") and len(w["P"]) > 1 and not w["bridge"]]
+    nxt = defaultdict(list); prv = defaultdict(list)
+    for w in cand:
+        nxt[w["nodes"][0]].append(w); prv[w["nodes"][-1]].append(w)
+    out = []
+    for e in osm:
+        if e["type"] != "node" or e["tags"].get("barrier") != "toll_booth":
+            continue
+        x, z = geo.to_local(e["lon"], e["lat"])
+        best = None
+        for w in cand:
+            d = np.hypot(w["P"][:, 0] - x, w["P"][:, 1] - z)
+            k = int(np.argmin(d))
+            if best is None or d[k] < best[0]:
+                best = (d[k], w, k)
+        if best is None or best[0] > 15:
+            continue
+        _, w, k = best
+        # polyligne prolongée de part et d'autre (voies qui se suivent) : ±60 m autour de la cabine
+        P, Y = [w["P"]], [w["y"]]
+        s0 = float(w["s"][k])
+        def best(cs, ref, at_end):
+            """Voie qui prolonge le mieux (moins de changement de cap)."""
+            if not cs:
+                return None
+            return max(cs, key=lambda o: float(np.dot(o["T"][-1] if at_end else o["T"][0], ref)))
+        a, L = w, 0.0
+        while L < 60:
+            c = best(prv.get(a["nodes"][0], []), a["T"][0], True)
+            if c is None:
+                break
+            a = c; P.insert(0, a["P"][:-1]); Y.insert(0, a["y"][:-1]); s0 += a["s"][-1]; L += a["s"][-1]
+        a, L = w, 0.0
+        while L < 60:
+            c = best(nxt.get(a["nodes"][-1], []), a["T"][-1], False)
+            if c is None:
+                break
+            a = c; P.append(a["P"][1:]); Y.append(a["y"][1:]); L += a["s"][-1]
+        P = np.vstack(P); Y = np.concatenate(Y)
+        s = np.r_[0, np.cumsum(np.hypot(*np.diff(P, axis=0).T))]
+        m = (s > s0 - PL_FLAT - PL_TAPER) & (s < s0 + PL_FLAT + PL_TAPER)
+        if m.sum() < 4:
+            continue
+        P, Y, s = P[m], Y[m], s[m] - s0
+        pay = w["cls"] == "motorway" or _is_exit(w, ways)
+        n = 3 if pay else 2
+        hp = (n * PL_LANE + (n - 1) * PL_ISL) / 2 + 0.7
+        lw = w["w"] / 2
+        t = np.clip((PL_FLAT + PL_TAPER - np.abs(s)) / PL_TAPER, 0, 1)
+        t = t * t * (3 - 2 * t)
+        hw = lw + (hp - lw) * t
+        _, T, R = frame(P)
+        out.append(dict(id=-(len(out) + 1), cls="service", nodes=[], idx=[], tags={
+            "highway": "service", "name": "Péage de " + (e["tags"].get("name") or "l'autoroute"),
+            "toll": "pay" if pay else "ticket", "lanes": str(n), "toll_s0": float(-s[0])},
+            w=float(2 * hp), paved=True, bridge=False, layer=0, sidewalk=(0, 0), oneway=True,
+            P=P, s=s - s[0], T=T, N=R, y=Y, ground=Y.copy(), hw_arr=hw, fixed_profile=True, plaza=True))
+    return out
+
+
+def _is_exit(w, ways):
+    """Bretelle de sortie (paiement) ou d'entrée (ticket) : en aval de la cabine, la bretelle rejoint-elle d'abord le
+    réseau local (sortie) ou l'autoroute (entrée) ? À défaut, même question vers l'amont."""
+    at = defaultdict(list)
+    for o in ways:
+        for n in (o["nodes"][:1] + o["nodes"][-1:]) if o["nodes"] else []:
+            at[n].append(o)
+    def walk(start, down):
+        seen, front, ev = {id(w)}, [(start, 0.0)], None
+        while front:
+            front.sort(key=lambda q: q[1])
+            n, d = front.pop(0)
+            if d > 2500:
+                break
+            for o in at.get(n, []):
+                if id(o) in seen:
+                    continue
+                seen.add(id(o))
+                if o["cls"] == "motorway":
+                    return "autoroute"
+                if not o["cls"].endswith("_link"):
+                    return "local"
+                front.append((o["nodes"][-1] if down else o["nodes"][0], d + o["s"][-1]))
+        return None
+    r = walk(w["nodes"][-1], True)
+    if r:
+        return r == "local"
+    r = walk(w["nodes"][0], False)
+    return r == "autoroute"
+
+
+def plaza_markings(out, plazas, hroad):
+    """Lignes continues dans l'axe des îlots (devant et derrière), ligne d'arrêt devant les barrières."""
+    for w in plazas:
+        n = int(w["tags"]["lanes"]); hp = w["w"] / 2; s0 = w["tags"]["toll_s0"]
+        for j in range(n - 1):
+            v = -hp + 0.7 + j * (PL_LANE + PL_ISL) + PL_LANE + PL_ISL / 2
+            for a, b in ((s0 - 30, s0 - 8.5), (s0 + 8.5, s0 + 16)):
+                _poly_strip(out, hroad, w["P"], w["N"], w["s"], max(a, 0), min(b, w["s"][-1]), v, 2 * U)

@@ -164,6 +164,8 @@ func _ready() -> void:
 	var hud = preload("res://scripts/hud.gd").new()
 	hud.name = "HUD"
 	hud.car = car
+	if autoroute:
+		autoroute.hud = hud
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS          # la carte reste utilisable jeu en pause
 	add_child(hud)
 	hud.teleport.connect(_teleport)

@@ -167,12 +167,15 @@ func _process(_dt: float) -> void:
 	for i in els.size():
 		if absf(el - float(els[i])) < absf(el - float(els[ei])):
 			ei = i
-	var si := 1
-	if steer_value > 0.12:
-		si = 2
-	elif steer_value < -0.12:
-		si = 0
-	var idx := (ei * n_az + ai) * 3 + si
+	var n_st: int = (_sp.steers as Array).size()
+	var si := 0
+	if n_st == 3:
+		si = 1
+		if steer_value > 0.12:
+			si = 2
+		elif steer_value < -0.12:
+			si = 0
+	var idx := (ei * n_az + ai) * n_st + si
 	var cols := int(_sp.cols)
 	_sprite_mat.set_shader_parameter("cell", Vector2(idx % cols, idx / cols))
 	# roulis / tangage de la caisse vus de la caméra

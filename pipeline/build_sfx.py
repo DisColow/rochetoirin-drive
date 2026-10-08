@@ -60,7 +60,33 @@ def main():
     w = np.linspace(0, 1, f)
     x[:f] = x[:f] * w + x[n:n + f] * (1 - w)
     save("pluie", x[:n])
+    pluie_orage()
+    # bip de péage : deux notes courtes (ticket délivré / paiement accepté)
+    t1 = np.arange(int(SR * 0.11)) / SR; t2 = np.arange(int(SR * 0.16)) / SR
+    env = lambda tt: np.minimum(1, tt * 400) * np.minimum(1, (tt[-1] - tt) * 300)
+    b = np.r_[np.sin(2 * np.pi * 1046 * t1) * env(t1), np.zeros(int(SR * 0.05)), np.sin(2 * np.pi * 1568 * t2) * env(t2)]
+    save("bip", b * 0.5)
     print("sons :", os.listdir(OUT))
+
+
+def pluie_orage(src="sources/pluie_orage.mp3", T=90.0, F=6.0):
+    """Pluie et orage enregistrés (« Rain and thunder », Premankur Adhikary, Pixabay) : 90 s bouclables (fondu
+    enchaîné de 6 s), en Ogg Vorbis -> pluie.ogg (préférée par rain.gd au son de synthèse)."""
+    import subprocess, tempfile
+    if not os.path.exists(src):
+        return
+    tmp = tempfile.mktemp(suffix=".wav")
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", src, "-t", str(T + F), "-ac", "2", "-ar", "44100", tmp], check=True)
+    import wave
+    w = wave.open(tmp); a = np.frombuffer(w.readframes(w.getnframes()), "<i2").reshape(-1, 2).astype(np.float32); w.close()
+    n = int(44100 * T); f = int(44100 * F)
+    k = np.linspace(0, 1, f)[:, None]
+    a[:f] = a[:f] * k + a[n:n + f] * (1 - k)
+    a = a[:n]
+    w = wave.open(tmp, "wb"); w.setnchannels(2); w.setsampwidth(2); w.setframerate(44100)
+    w.writeframes(np.clip(a, -32768, 32767).astype("<i2").tobytes()); w.close()
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", tmp, "-c:a", "libvorbis", "-q:a", "4", OUT + "/pluie.ogg"], check=True)
+    os.remove(tmp)
 
 
 if __name__ == "__main__":

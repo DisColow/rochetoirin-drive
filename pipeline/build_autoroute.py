@@ -28,11 +28,19 @@ OUT_A = "../godot/assets/autoroute"
 OUT_W = "../godot/world/autoroute"
 TILE = 256.0
 MODELS = ["glissiere", "borne_sos", "panneau_bleu", "peage", "pile_peage", "chevron", "gba", "potence", "panneau_haut",
-          "rond", "grillage", "absorbeur"]
+          "rond", "grillage", "absorbeur", "barriere", "bras"]
 MID = {n: i for i, n in enumerate(MODELS)}
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 BLUE = (16, 62, 140)
 SPAN = 4.0                     # longueur des modèles de travée (glissière, GBA, grillage)
+
+
+# villes annoncées sur les panneaux de confirmation : (nom, (lon, lat), grande ville)
+_CITIES = [("Lyon", (4.8357, 45.7640), True), ("Chambéry", (5.9178, 45.5646), True), ("Grenoble", (5.7245, 45.1885), True),
+           ("Genève", (6.1432, 46.2044), True), ("Bourgoin-Jallieu", (5.2733, 45.5865), False),
+           ("La Tour-du-Pin", (5.4446, 45.5658), False), ("L'Isle-d'Abeau", (5.2290, 45.6196), False),
+           ("Voiron", (5.5889, 45.3644), False), ("Aéroport St-Exupéry", (5.0811, 45.7256), False)]
+CITIES = [(n, tuple(map(float, geo.to_local(lo, la))), m) for n, (lo, la), m in _CITIES]
 
 
 class Atlas:
@@ -91,7 +99,8 @@ class Atlas:
         """Présignalisation : cartouche « SORTIE n », distance, destinations."""
         def draw(c, d):
             d.rounded_rectangle([6, 6, self.CW - 7, self.CH - 7], 18, outline=(255, 255, 255), width=6)
-            self._sortie_box(d, num, 22, 18)
+            if num is not None:
+                self._sortie_box(d, num, 22, 18)
             fd = ImageFont.truetype(FONT, 34)
             b = fd.getbbox(dist)
             d.text((self.CW - 30 - (b[2] - b[0]), 26), dist, font=fd, fill=(255, 255, 255))
@@ -118,6 +127,62 @@ class Atlas:
                 d.text((30 - b2[0], 150 - b2[1]), num, font=f2, fill=(255, 255, 255))
             self._arrow(d, self.CW - 200, 40, 170)
         return self._cell(("mus", num), draw)
+
+    def bandeau(self, text):
+        """Inscription blanche sur fond bleu (fronton de l'auvent de péage), dessinée deux fois plus large puis
+        resserrée : affichée sur un panneau 4 fois plus large que haut, elle garde ses proportions."""
+        def draw(c, d):
+            big = Image.new("RGB", (self.CW * 2, self.CH), BLUE)
+            dd = ImageDraw.Draw(big)
+            f, b = self._fit(text, self.CW * 2 - 80, self.CH - 50, 200)
+            dd.text(((self.CW * 2 - (b[2] - b[0])) // 2 - b[0], (self.CH - (b[3] - b[1])) // 2 - b[1]), text, font=f, fill=(255, 255, 255))
+            c.paste(big.resize((self.CW, self.CH), Image.LANCZOS), (0, 0))
+        return self._cell(("band", text), draw)
+
+    def voie(self, kind):
+        """Signal de voie de péage (moitié gauche carrée) : flèche verte au-dessus, mode de paiement dessous."""
+        def draw(c, d):
+            H = self.CH
+            d.rectangle([0, 0, self.CW, H], fill=(20, 20, 24))
+            d.rectangle([6, 6, H - 7, H - 7], outline=(230, 230, 230), width=4)
+            # flèche verte (voie ouverte)
+            g = (40, 220, 70)
+            d.polygon([(H / 2 - 22, 24), (H / 2 + 22, 24), (H / 2 + 22, 66), (H / 2 + 44, 66), (H / 2, 108), (H / 2 - 44, 66),
+                       (H / 2 - 22, 66)], fill=g)
+            y0 = 124
+            if kind == "t":
+                d.ellipse([H / 2 - 56, y0, H / 2 + 56, y0 + 112], fill=(240, 120, 20))
+                f, b = self._fit("t", 90, 100, 100)
+                d.text((H / 2 - (b[2] - b[0]) / 2 - b[0], y0 + 56 - (b[3] - b[1]) / 2 - b[1]), "t", font=f, fill=(255, 255, 255))
+            elif kind == "cb":
+                d.rounded_rectangle([H / 2 - 70, y0 + 10, H / 2 + 70, y0 + 100], 10, fill=(30, 90, 190))
+                d.rectangle([H / 2 - 70, y0 + 28, H / 2 + 70, y0 + 44], fill=(10, 10, 10))
+                f, b = self._fit("CB", 80, 40, 40)
+                d.text((H / 2 + 20 - b[0], y0 + 56 - b[1]), "CB", font=f, fill=(255, 255, 255))
+            else:
+                d.rectangle([H / 2 - 52, y0 + 6, H / 2 + 52, y0 + 104], fill=(245, 245, 240))
+                for k in range(4):
+                    d.line([(H / 2 - 38, y0 + 26 + k * 18), (H / 2 + 38, y0 + 26 + k * 18)], fill=(60, 60, 60), width=4)
+        r = self._cell(("voie", kind), draw)
+        return (r[0], r[1], self.CH / self.W, r[3])
+
+    def confirmation(self, ref, dests):
+        """Panneau de confirmation : cartouche rouge de l'autoroute, destinations et distances (km)."""
+        def draw(c, d):
+            d.rounded_rectangle([6, 6, self.CW - 7, self.CH - 7], 18, outline=(255, 255, 255), width=6)
+            f, b = self._fit(ref, 150, 40, 36)
+            wb = b[2] - b[0] + 30
+            d.rounded_rectangle([24, 18, 24 + wb, 72], 8, fill=(200, 20, 30), outline=(255, 255, 255), width=3)
+            d.text((24 + 15 - b[0], 45 - (b[3] - b[1]) // 2 - b[1]), ref, font=f, fill=(255, 255, 255))
+            rows = dests[:3]
+            hh = (self.CH - 90 - 18) // max(1, len(rows))
+            for k, (name, km) in enumerate(rows):
+                y = 88 + k * hh
+                fk, bk = self._fit("%d" % km, 120, hh - 8, 40)
+                d.text((self.CW - 30 - (bk[2] - bk[0]) - bk[0], y + (hh - (bk[3] - bk[1])) // 2 - bk[1]), "%d" % km, font=fk, fill=(255, 255, 255))
+                fn, bn = self._fit(name, self.CW - 200, hh - 8, 40)
+                d.text((30 - bn[0], y + (hh - (bn[3] - bn[1])) // 2 - bn[1]), name, font=fn, fill=(255, 255, 255))
+        return self._cell(("conf", ref, tuple(dests)), draw)
 
     def vitesse(self, v):
         """Limitation de vitesse (moitié gauche carrée de la case) : disque blanc, couronne rouge, chiffres noirs."""
@@ -303,6 +368,38 @@ def main():
                 continue
             p = P[k] + R[k] * (hw[k] + c["rext"][k] + 2.2)
             add("rond", basis_facing(-c["T"][k]), p, float(hroad(*p)[0]) - 0.05, atlas.vitesse(speed_at(k)))
+        # panneaux de confirmation (destinations et distances) : après chaque entrée, et au début de la chaussée
+        conf = [a[1] + 450 for a in c["aux"] if a[2] == "entrée"] + [700.0]
+        done = []
+        for sv in sorted(conf):
+            if sv >= s[-1] - 200 or any(abs(sv - x) < 1500 for x in done):
+                continue
+            if any(a[0] - 120 < sv < a[4] + 120 for a in c["aux"]):
+                continue
+            k = int(np.searchsorted(s, sv))
+            if brd[max(0, k - 5):k + 6].any():
+                continue
+            k2 = int(np.clip(np.searchsorted(s, sv + 2500), 0, n - 1))
+            dv = P[k2] - P[k]; dv = dv / max(np.linalg.norm(dv), 1e-6)
+            rows = []
+            for name, (x_, z_), major in CITIES:
+                v = np.array([x_, z_]) - P[k]; dist = float(np.linalg.norm(v))
+                if dist < 3000 or (v / dist) @ dv < 0.55:
+                    continue
+                rows.append((dist * 1.2 / 1000.0, name, major))
+            if not rows:
+                continue
+            rows.sort()
+            pickd = [r for r in rows if not r[2]][:1] + [r for r in rows if r[2]][:2]
+            pickd.sort()
+            dests = [(r[1], max(1, int(round(r[0])))) for r in pickd]
+            p = P[k] + R[k] * (hw[k] + c["rext"][k] + 3.2)
+            if pave.on_road(p, 1.0):
+                continue
+            add("panneau_bleu", basis_facing(-c["T"][k], 4.4, 2.2), p, float(hroad(*p)[0]) + 2.4,
+                atlas.confirmation(c["ref"] or "A 43", dests))
+            stats["confirmation"] += 1
+            done.append(sv)
         # sorties
         for a in c["aux"]:
             lo, hi, kind, glo, ghi, lid, node, sj = a
@@ -375,33 +472,68 @@ def main():
         p = c["P"][k] + c["R"][k] * (c["hw"][k] + c["rext"][k] + 1.5)
         add("borne_sos", basis_facing(-c["R"][k]), p, float(hroad(*p)[0]) - 0.05)
     # ------------------------------------------------------------------ péages
-    for e in osm:
-        if e["tags"].get("barrier") != "toll_booth":
+    # gares élargies par build_roads.py (voies « plaza ») : auvent, îlots et cabines entre les voies, borne et bras de
+    # barrière par voie (le bras est animé par autoroute.gd), liste des gares pour le ticket et le paiement
+    import autoroute_geom as AG
+    sites = []
+    for w in ways:
+        if not w.get("plaza"):
             continue
-        if e["type"] == "node":
-            x, z = geo.to_local(e["lon"], e["lat"])
-        else:
-            g = e.get("geometry") or []
-            if not g:
+        tg = w["tags"]; n = int(tg["lanes"]); hp = w["w"] / 2; s0 = tg["toll_s0"]
+        si = len(sites)
+        k = int(np.clip(np.searchsorted(w["s"], s0), 0, len(w["s"]) - 1))
+        T, R = w["T"][k], w["N"][k]; p = w["P"][k]
+        y = float(w["y"][k])
+        sites.append(dict(name=tg["name"], kind=tg["toll"], x=float(p[0]), z=float(p[1])))
+        add("peage", (T[0] * 16.0, 0.0, T[1] * 16.0, 0.0, 1.0, 0.0, R[0] * (hp + 1.6) / 4.5, 0.0, R[1] * (hp + 1.6) / 4.5), p, y + 0.2)
+        # inscription « PÉAGE » sur le fronton (face aux voitures qui arrivent)
+        pf = p - T * 8.06
+        add("panneau_haut", basis_facing(-T, 3.6, 0.9), pf, y + 0.2 + 6.88, atlas.bandeau("PÉAGE"))
+        # signaux de voie sous le fronton : flèche verte + paiement (sortie : télépéage à gauche, CB ; entrée : ticket)
+        for j in range(n):
+            vc = -hp + 0.7 + j * (AG.PL_LANE + AG.PL_ISL) + AG.PL_LANE / 2
+            kind = ("t" if j == 0 else "cb") if tg["toll"] == "pay" else ("t" if j == 0 else "ticket")
+            q = p - T * 8.12 + R * vc
+            add("panneau_haut", basis_facing(-T, 1.1, 1.1), q, y + 0.2 + 5.75, atlas.voie(kind))
+        # présignalisation sur la bretelle : « PÉAGE » à 300 m et 120 m, limitation à 30 avant la gare
+        bw = [o for o in ways if o["cls"] in ("motorway_link", "motorway") and len(o["P"]) > 1 and not o.get("plaza")]
+        for dist, what in ((300.0, "pre"), (120.0, "pre"), (60.0, "v30")):
+            qq = p - T * dist
+            best = None
+            for o in bw:
+                dd = np.hypot(*(o["P"] - qq).T); kk = int(np.argmin(dd))
+                if (best is None or dd[kk] < best[0]) and o["T"][kk] @ T > 0.5:
+                    best = (dd[kk], o, kk)
+            if best is None or best[0] > 40:
                 continue
-            x, z = geo.to_local(np.mean([q["lon"] for q in g]), np.mean([q["lat"] for q in g]))
-        best = None
-        for w in ways:
-            if w["cls"] not in ("motorway", "motorway_link") or len(w["P"]) < 2:
+            _, o, kk = best
+            ohw = o["hw_arr"][kk] if "hw_arr" in o else o["w"] / 2
+            qs = o["P"][kk] + o["N"][kk] * (ohw + 2.0)
+            if pave.on_road(qs, 0.5):
                 continue
-            dd = np.hypot(w["P"][:, 0] - x, w["P"][:, 1] - z)
-            k = int(np.argmin(dd))
-            if best is None or dd[k] < best[0]:
-                best = (dd[k], w, k)
-        if best is None or best[0] > 25:
-            continue
-        _, w, k = best
-        T, R = w["T"][k], w["N"][k]
-        hw = w["hw_arr"][k] if "hw_arr" in w else w["w"] / 2
-        p = w["P"][k]; y = float(w["y"][k])
-        add("peage", (T[0] * 8.0, 0.0, T[1] * 8.0, 0.0, 1.0, 0.0, R[0] * (hw + 2.0) / 4.5, 0.0, R[1] * (hw + 2.0) / 4.5), p, y)
-        for sg in (1, -1):
-            add("pile_peage", basis_facing(R * -sg), p + R * sg * (hw + 1.6), y)
+            if what == "pre":
+                add("panneau_bleu", basis_facing(-o["T"][kk], 3.2, 1.6), qs, float(hroad(*qs)[0]) + 2.2,
+                    atlas.panel(None, ["PÉAGE", tg["name"].replace("Péage de ", "")], "%d m" % dist))
+            else:
+                add("rond", basis_facing(-o["T"][kk]), qs, float(hroad(*qs)[0]) - 0.05, atlas.vitesse(30))
+        L, I = AG.PL_LANE, AG.PL_ISL
+        for j in range(n + 1):
+            # îlots : entre les voies, et sur les deux bords de la gare
+            v = -hp + 0.7 + j * (L + I) - I / 2
+            v = max(v, -hp + 0.45) if j == 0 else (min(v, hp - 0.45) if j == n else v)
+            q = p + R * v
+            add("pile_peage", basis_facing(T), q, float(hroad(*q)[0]))
+        for j in range(n):
+            left = -hp + 0.7 + j * (L + I)                 # bord gauche de la voie j (automate côté conducteur)
+            kb = int(np.clip(np.searchsorted(w["s"], s0 + 3.5), 0, len(w["s"]) - 1))
+            Tb, Rb = w["T"][kb], w["N"][kb]
+            q = w["P"][kb] + Rb * (left - 0.25)
+            yb = float(hroad(*q)[0])
+            B = (Rb[0], 0.0, Rb[1], 0.0, 1.0, 0.0, -Tb[0], 0.0, -Tb[1])
+            add("barriere", B, q, yb)
+            add("bras", B, q + Rb * 0.0, yb + 1.0, (si, 1.0 if tg["toll"] == "pay" else 0.0, j, 0))
+    json.dump(sites, open(OUT_W + "/peages.json", "w"), ensure_ascii=False)
+    stats["gares de péage"] = len(sites)
     atlas.img.save(OUT_A + "/panneaux.png")
     T_ = defaultdict(list)
     for r in inst:

@@ -53,6 +53,37 @@ func _ready() -> void:
 
 var settings: Control
 
+const CREDITS := """Gardien : « Goku (Rigged & Animated) » par Kari (sketchfab.com/3d-models), licence CC BY 4.0.
+Pluie et orage : Sound Effect by Premankur Adhikary from Pixabay.
+Arbres : modèles Sketchfab (licences CC BY / CC0, auteurs listés dans le dépôt).
+Textures : Poly Haven et ambientCG (CC0).
+Données : © les contributeurs d'OpenStreetMap (ODbL) ; IGN (BD TOPO, RGE ALTI, LiDAR HD, BD ORTHO, Licence Ouverte Etalab).
+Voix du gardien : Piper, voix française « tom ».
+Modèles des commerces, équipements, haies, maisons et sprite de la voiture : faits avec Blender pour le jeu."""
+
+## Message bref au centre de l'écran (péage…), qui s'efface tout seul.
+var _toast: PanelContainer
+var _toast_t := 0.0
+func toast(text: String, secs := 3.5) -> void:
+	if _toast == null:
+		_toast = PanelContainer.new()
+		var sb := StyleBoxFlat.new(); sb.bg_color = Color(0.06, 0.12, 0.3, 0.88); sb.set_corner_radius_all(18)
+		sb.content_margin_left = 34; sb.content_margin_right = 34; sb.content_margin_top = 14; sb.content_margin_bottom = 14
+		sb.border_color = Color(1, 1, 1, 0.8); sb.set_border_width_all(3)
+		_toast.add_theme_stylebox_override("panel", sb)
+		_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var l := Label.new(); l.add_theme_font_size_override("font_size", 34)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_toast.add_child(l)
+		add_child(_toast)
+	(_toast.get_child(0) as Label).text = text
+	_toast.reset_size()
+	var vs := get_viewport().get_visible_rect().size
+	_toast.position = Vector2((vs.x - _toast.get_combined_minimum_size().x) / 2, vs.y * 0.22)
+	_toast.modulate.a = 1.0
+	_toast.visible = true
+	_toast_t = secs
+
 ## Réglages : densité de la végétation (mémorisée dans user://reglages.cfg).
 func _open_settings() -> void:
 	if settings and is_instance_valid(settings):
@@ -141,6 +172,21 @@ func _open_settings() -> void:
 		hc.add_child(b)
 	var note := Label.new(); note.text = "Moins de végétation = jeu plus fluide sur les téléphones modestes."
 	note.add_theme_font_size_override("font_size", 22); note.modulate = Color(1, 1, 1, 0.7); v.add_child(note)
+	# crédits (licences des modèles, sons et données)
+	var cb := Button.new(); cb.text = "Crédits"; cb.custom_minimum_size = Vector2(0, 64)
+	cb.add_theme_font_size_override("font_size", 28)
+	var cr := Label.new()
+	cr.text = CREDITS
+	cr.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cr.custom_minimum_size = Vector2(900, 0)
+	cr.add_theme_font_size_override("font_size", 20)
+	cr.visible = false
+	cb.pressed.connect(func():
+		cr.visible = not cr.visible
+		settings.reset_size()
+		settings.position = (get_viewport().get_visible_rect().size - settings.get_combined_minimum_size()) / 2)
+	v.add_child(cb)
+	v.add_child(cr)
 	var close := Button.new(); close.text = "Fermer"; close.custom_minimum_size = Vector2(0, 76)
 	close.add_theme_font_size_override("font_size", 32)
 	close.pressed.connect(func():
@@ -252,6 +298,11 @@ func _show_drive(on: bool) -> void:
 	get_tree().paused = not on
 
 func _process(_dt: float) -> void:
+	if _toast and _toast.visible:
+		_toast_t -= _dt
+		_toast.modulate.a = clampf(_toast_t / 0.6, 0.0, 1.0)
+		if _toast_t <= 0.0:
+			_toast.visible = false
 	if Input.is_action_just_pressed("carte") and not map.visible:
 		_open_map()
 	if Input.is_action_just_pressed("reglages") and not map.visible:

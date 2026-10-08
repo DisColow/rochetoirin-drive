@@ -156,26 +156,62 @@ def panneau_bleu():
 
 
 def peage():
-    """Auvent de gare de péage (1 m de large, mis à l'échelle de la chaussée) à 5,5 m de haut sur deux piles hors des
-    voies ; bandeau bleu et « PÉAGE »."""
+    """Auvent de gare de péage : dalle blanche épaisse (1 m le long de la route, mise à l'échelle), bandeau bleu sur les
+    deux faces, rampes lumineuses en sous-face ; à 5,8 m au-dessus des voies (largeur ±4,5 m, mise à l'échelle)."""
     reset()
     w = mat("blanc", (0.9, 0.9, 0.88), 0.2, 0.45)
-    box("toit", (0, 0, 6.2), (1.0, 9.0, 0.8), w, bevel=0.03)
-    box("bande", (0, 0, 6.0), (1.02, 9.02, 0.3), mat("bande", (0.1, 0.25, 0.6), rough=0.4))
-    for sx in (-0.5, 0.5):
-        pass
+    box("toit", (0, 0, 6.35), (1.0, 9.2, 1.1), w, bevel=0.03)
+    box("bande", (0, 0, 6.15), (1.02, 9.22, 0.42), mat("bande", (0.1, 0.25, 0.6), rough=0.4))
+    for y in (-3.0, -1.0, 1.0, 3.0):
+        box("neon", (0, y, 5.79), (0.9, 0.12, 0.03), mat("neon", (1.0, 0.97, 0.9), rough=0.3))
     export("peage")
 
 
 def pile_peage():
+    """Îlot de péage (14 m le long de la route, +z glTF) : bordure, nez rayés jaune et noir aux deux bouts, cabine
+    vitrée, pilier qui porte l'auvent."""
     reset()
     w = mat("blanc", (0.9, 0.9, 0.88), 0.2, 0.45)
-    box("pile", (0, 0, 2.9), (0.8, 1.6, 5.8), w, bevel=0.06)
-    box("cabine", (0, 0, 1.25), (1.4, 2.4, 2.5), mat("cabine", (0.85, 0.85, 0.82), 0.2, 0.5), bevel=0.05)
+    box("pile", (0, 0, 3.0), (0.7, 1.4, 6.0), w, bevel=0.06)
+    box("cabine", (0, 2.6, 1.3), (1.0, 2.2, 2.4), mat("cabine", (0.85, 0.85, 0.82), 0.2, 0.5), bevel=0.05)
+    for sx in (-1, 1):
+        plane("vitre", (sx * 0.505, 2.6, 1.6), 1.6, 1.0, mat("vitre", (0.1, 0.15, 0.2), 0.3, 0.05), facing=sx)
+    box("ilot", (0, 0, 0.11), (1.25, 11.0, 0.22), mat("beton", (0.6, 0.6, 0.58), rough=0.85), bevel=0.03)
+    j = mat("ilot", (0.95, 0.75, 0.1), rough=0.6); n = mat("noir", (0.05, 0.05, 0.05), rough=0.5)
     for sy in (-1, 1):
-        plane("vitre", (0, sy * 1.205, 1.6), 1.2, 1.0, mat("vitre", (0.1, 0.15, 0.2), 0.3, 0.05), facing=sy * -1)
-    box("ilot", (0, 0, 0.12), (1.6, 6.0, 0.25), mat("ilot", (0.95, 0.75, 0.1), rough=0.6), bevel=0.05)
+        for k in range(6):
+            y = sy * (5.5 + 0.25 * k + 0.125)
+            wdt = 1.25 * (1 - k / 7.5)
+            box("nez", (0, y, 0.12 - k * 0.012), (wdt, 0.25, 0.24 - k * 0.024), j if k % 2 == 0 else n)
     export("pile_peage")
+
+
+def barriere():
+    """Borne de barrière de péage (fût jaune et noir) et automate de paiement (écran, fente à ticket), sur l'îlot.
+    Repère : bras le long de +x, +z vers les voitures qui arrivent."""
+    reset()
+    j = mat("ilot", (0.95, 0.75, 0.1), rough=0.6)
+    box("fut", (0, 0, 0.55), (0.34, 0.34, 1.1), j, bevel=0.03)
+    box("bande", (0, 0, 0.9), (0.35, 0.35, 0.12), mat("noir", (0.05, 0.05, 0.05), rough=0.5))
+    box("tete", (0.12, 0, 1.0), (0.12, 0.2, 0.2), mat("galva", **GALVA))
+    # automate de paiement, en amont de la barrière (vers +z glTF = -y Blender)
+    c = mat("cabine", (0.85, 0.85, 0.82), 0.2, 0.5)
+    box("automate", (-0.05, -1.6, 0.75), (0.5, 0.45, 1.5), c, bevel=0.03)
+    plane("ecran", (0.21, -1.6, 1.15), 0.3, 0.22, mat("noir", (0.05, 0.05, 0.05), rough=0.5))
+    box("fente", (0.21, -1.6, 0.85), (0.02, 0.18, 0.04), mat("orange", (0.95, 0.42, 0.04), rough=0.4))
+    box("auvent_automate", (-0.05, -1.6, 1.55), (0.62, 0.6, 0.06), mat("bande", (0.1, 0.25, 0.6), rough=0.4))
+    export("barriere")
+
+
+def bras():
+    """Lisse de barrière (3 m, bandes rouges et blanches), pivot à l'origine, le long de +x, à 1 m de haut."""
+    reset()
+    r = mat("rouge", (0.8, 0.05, 0.05), rough=0.4); b = mat("blanc", (0.9, 0.9, 0.88), 0.2, 0.45)
+    n = 8
+    for k in range(n):
+        x0 = 0.12 + k * (2.9 / n)
+        box("lisse", (x0 + 1.45 / n, 0, 0), (2.9 / n, 0.06, 0.09), r if k % 2 == 0 else b)
+    export("bras")
 
 
 def chevron():
@@ -190,7 +226,7 @@ def chevron():
 def main():
     os.makedirs(OUT, exist_ok=True)
     for f in (glissiere, gba, borne_sos, panneau_bleu, panneau_haut, potence, rond, grillage, absorbeur, peage, pile_peage,
-              chevron):
+              chevron, barriere, bras):
         f()
 
 

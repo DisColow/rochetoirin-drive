@@ -6,8 +6,24 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v3.8.apk — voiture en sprite pixel art, haies feuillues, maisons détaillées](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.8.apk)**
+**[RochetoirinSimulator-v3.9.apk — vrais péages, panneaux de destinations, nouveau sprite de la voiture, pluie enregistrée](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.9.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
+
+Nouveautés de la v3.9 :
+- **péages fonctionnels** (Bourgoin, L'Isle-d'Abeau Centre, La Tour-du-Pin, entrées et sorties) : la bretelle s'élargit
+  en 2 ou 3 voies séparées par de longs îlots à nez rayés jaune et noir, cabines, grand auvent blanc à bandeau bleu
+  « PÉAGE » éclairé la nuit, signaux de voie (flèche verte, télépéage « t », CB, ticket), présignalisation « PÉAGE »
+  et limitation à 30 ; **une barrière par voie qui se lève quand on arrive** (jamais d'arrêt obligatoire), ticket
+  pris à l'entrée, paiement à la sortie selon la distance parcourue, avec message et bip ; le trou dans la route
+  sous l'auvent de La Tour-du-Pin est comblé ;
+- **panneaux de destinations** sur l'autoroute : confirmation après chaque entrée (« A 43 — Chambéry 41 km,
+  Genève 106 km »…) selon le sens de circulation ;
+- **nouveau sprite de la voiture** d'après la planche fournie (détourée, rangée par angle de vue et hauteur) ;
+- **caméra qui ne traverse plus les murs, les haies ni le relief** (bras à ressort) et sprite qui ne s'enfonce plus
+  dans la route ;
+- **pluie et orage enregistrés** (Premankur Adhikary, Pixabay) au lieu du son de synthèse ; **page Crédits** dans ⚙.
+
+[v3.8 — voiture en sprite, haies feuillues, maisons détaillées](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.8.apk)
 
 Nouveautés de la v3.8 :
 - **la voiture devient un sprite pixel art** façon jeux de course des années 90 : l'Espace est précalculé dans

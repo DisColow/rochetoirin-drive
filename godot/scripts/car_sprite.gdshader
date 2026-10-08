@@ -10,7 +10,7 @@ uniform sampler2D feux : filter_nearest, repeat_disable;
 uniform vec2 grid = vec2(24.0, 16.0);
 uniform vec2 cell = vec2(0.0);          // colonne, ligne
 uniform float roll = 0.0;               // rad, sens horaire à l'écran
-uniform float push = 2.4;               // avance vers la caméra (m)
+uniform float push = 3.2;               // avance vers la caméra (m)
 uniform float head = 0.0;               // phares 0 … 1
 uniform float tail = 0.0;               // feux arrière 0 … 1 (2 = frein)
 uniform float night = 0.0;
@@ -20,7 +20,7 @@ varying vec3 v_wp;
 void vertex() {
 	vec3 c = (VIEW_MATRIX * vec4(MODEL_MATRIX[3].xyz, 1.0)).xyz;
 	float d = length(c);
-	float k = max(d - push, 0.3) / max(d, 0.001);
+	float k = max(d - min(push, d * 0.6), 0.3) / max(d, 0.001);
 	vec2 q = VERTEX.xy;
 	float cr = cos(roll), sr = sin(roll);
 	q = vec2(q.x * cr + q.y * sr, -q.x * sr + q.y * cr);

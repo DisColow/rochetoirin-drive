@@ -75,6 +75,14 @@ func _process(dt: float) -> void:
 		var want := t.origin - flat * 7.2 * cos(pitch_off) + Vector3(0, 2.6 + 7.2 * sin(pitch_off), 0)
 		var k := 1.0 - exp(-dt * 5.0)
 		_pos = _pos.lerp(want, k)
+		# bras à ressort : la caméra ne traverse ni murs, ni haies, ni relief (rayon depuis le toit de la voiture)
+		var head := t.origin + Vector3(0, 1.5, 0)
+		var q := PhysicsRayQueryParameters3D.create(head, _pos + (_pos - head).normalized() * 0.4)
+		q.exclude = [target.get_rid()]
+		var hit := get_world_3d().direct_space_state.intersect_ray(q)
+		if not hit.is_empty():
+			var hp: Vector3 = hit.position
+			_pos = head + (hp - head) * maxf(0.0, 1.0 - 0.45 / maxf((hp - head).length(), 0.01))
 		_look = _look.lerp(t.origin + Vector3(0, 1.2, 0) + flat * 3.0, 1.0 - exp(-dt * 10.0)) if _look != Vector3.ZERO else t.origin
 		cam.global_position = _pos
 		cam.look_at(_look, Vector3.UP)

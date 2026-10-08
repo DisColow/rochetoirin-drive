@@ -6,7 +6,7 @@ extends Node3D
 const TILE := 256.0
 const VIEW := 700.0
 const MODELS := ["glissiere", "borne_sos", "panneau_bleu", "peage", "pile_peage", "chevron", "gba", "potence", "panneau_haut",
-	"rond", "grillage", "absorbeur"]
+	"rond", "grillage", "absorbeur", "barriere", "bras"]
 # portée d'affichage par modèle (m)
 const RANGE := {"glissiere": 320.0, "gba": 450.0, "grillage": 160.0, "borne_sos": 250.0, "rond": 450.0}
 const MATS := {
@@ -18,11 +18,21 @@ const MATS := {
 	"vitre": [6, Color(0.1, 0.15, 0.2), 0.05, 0.3], "ilot": [0, Color(0.95, 0.75, 0.1), 0.6, 0.0],
 	"chevrons": [8, Color(1, 1, 1), 0.4, 0.0],
 	"catadioptre": [5, Color(0.95, 0.55, 0.1), 0.3, 0.0, Color(0.9, 0.45, 0.05)],
+	"neon": [5, Color(1, 0.98, 0.92), 0.3, 0.0, Color(1.0, 0.95, 0.85)],
+	"rouge": [0, Color(0.8, 0.05, 0.05), 0.4, 0.0],
 	"gba": [0, Color(0.8, 0.79, 0.76), 0.9, 0.0],
 	"vert": [0, Color(0.16, 0.3, 0.18), 0.6, 0.0], "treillis": [7, Color(0.35, 0.42, 0.36), 0.6, 0.0, Color(0, 0, 0), 0.05],
 }
 
 var target: Node3D
+var hud: CanvasLayer
+# péages : bras de barrière animés (un par voie), ticket à l'entrée, paiement à la sortie
+var sites: Array = []
+var arms := {}                # tuile -> [ {node, xf, site, pay, a, hold} ]
+var ticket := -1              # gare d'entrée (indice) ou -1
+var _last_site := -1
+var _last_t := -100.0
+var _bip: AudioStreamPlayer
 var tiles := {}
 var loaded := {}
 var meshes := []
@@ -35,6 +45,11 @@ func _ready() -> void:
 		if f.ends_with(".bin"):
 			var p := f.trim_prefix("r_").trim_suffix(".bin").split("_")
 			tiles[Vector2i(int(p[0]), int(p[1]))] = "res://world/autoroute/" + f
+	if FileAccess.file_exists("res://world/autoroute/peages.json"):
+		sites = JSON.parse_string(FileAccess.get_file_as_string("res://world/autoroute/peages.json"))
+	if ResourceLoader.exists("res://assets/sfx/bip.wav"):
+		_bip = AudioStreamPlayer.new(); _bip.stream = load("res://assets/sfx/bip.wav"); _bip.volume_db = -6.0
+		add_child(_bip)
 	var atlas: Texture2D = load("res://assets/autoroute/panneaux.png")
 	var cache := {}
 	for n in MODELS:
@@ -86,6 +101,7 @@ func update_now() -> void:
 func _process(dt: float) -> void:
 	if target == null:
 		return
+	_barriers(dt)
 	_t -= dt
 	if _t > 0.0:
 		return
@@ -100,6 +116,7 @@ func _process(dt: float) -> void:
 		if not ws.has(k):
 			loaded[k].queue_free()
 			loaded.erase(k)
+			arms.erase(k)
 
 func _add(k: Vector2i) -> void:
 	if loaded.has(k):
@@ -120,6 +137,17 @@ func _add(k: Vector2i) -> void:
 			by[m] = []
 		by[m].append([xf, Color(f[o + 13], f[o + 14], f[o + 15], f[o + 16])])
 		var nm: String = MODELS[m]
+		if nm == "bras":
+			by[m].pop_back()
+			var arm := MeshInstance3D.new()
+			arm.mesh = meshes[m]
+			arm.transform = xf
+			arm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			root.add_child(arm)
+			if not arms.has(k):
+				arms[k] = []
+			arms[k].append({"node": arm, "xf": xf, "site": int(f[o + 13]), "pay": f[o + 14] > 0.5, "a": 0.0, "hold": 0.0})
+			continue
 		if nm in ["peage", "grillage", "panneau_haut"]:
 			continue
 		var cs := CollisionShape3D.new()
@@ -136,7 +164,7 @@ func _add(k: Vector2i) -> void:
 			cs.transform = xf * Transform3D(Basis.IDENTITY, Vector3(0, 3.8, 0))
 		else:
 			bs.size = {"borne_sos": Vector3(0.5, 1.5, 0.4), "panneau_bleu": Vector3(1.0, 1.0, 0.3), "pile_peage": Vector3(1.6, 5.8, 2.6),
-				"chevron": Vector3(0.2, 1.6, 0.2), "rond": Vector3(0.15, 2.3, 0.15)}[nm]
+				"chevron": Vector3(0.2, 1.6, 0.2), "rond": Vector3(0.15, 2.3, 0.15), "barriere": Vector3(0.36, 1.1, 0.36)}[nm]
 			if nm == "panneau_bleu":
 				bs.size = Vector3(b.x.length() * 0.75, 2.5, 0.3)
 				cs.transform = Transform3D(b.orthonormalized(), xf.origin + Vector3(0, -1.25, 0))
@@ -145,6 +173,8 @@ func _add(k: Vector2i) -> void:
 		cs.shape = bs
 		body.add_child(cs)
 	for m in by:
+		if by[m].is_empty():
+			continue
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_custom_data = true
@@ -160,3 +190,46 @@ func _add(k: Vector2i) -> void:
 		root.add_child(mi)
 	add_child(root)
 	loaded[k] = root
+
+## Barrières : le bras se lève quand la voiture arrive dans sa voie (jamais d'arrêt obligatoire : jeu sans friction),
+## retombe 1,5 s après son passage ; à la levée : ticket (entrée) ou paiement (sortie, selon la distance depuis la gare
+## d'entrée), message et bip.
+func _barriers(dt: float) -> void:
+	var p := target.global_position
+	var now := Time.get_ticks_msec() / 1000.0
+	for k in arms:
+		for b in arms[k]:
+			var l: Vector3 = (b.xf as Transform3D).affine_inverse() * p
+			var near := l.x > -0.3 and l.x < 3.3 and l.z > -4.0 and l.z < 26.0 and absf(l.y + 1.0) < 4.0
+			if near:
+				if b.hold <= 0.0 and b.a < 0.05:
+					_passage(b, now)
+				b.hold = 1.5
+			else:
+				b.hold = maxf(b.hold - dt, 0.0)
+			var want := 1.45 if b.hold > 0.0 else 0.0
+			b.a = move_toward(b.a, want, dt * 2.2)
+			(b.node as Node3D).transform = (b.xf as Transform3D) * Transform3D(Basis(Vector3(0, 0, 1), b.a), Vector3.ZERO)
+
+func _passage(b: Dictionary, now: float) -> void:
+	if b.site == _last_site and now - _last_t < 8.0:
+		return
+	_last_site = b.site; _last_t = now
+	var s: Dictionary = sites[b.site] if b.site < sites.size() else {"name": "Péage", "x": 0.0, "z": 0.0}
+	var msg := ""
+	if b.pay:
+		var price := 2.9
+		if ticket >= 0 and ticket < sites.size():
+			var e: Dictionary = sites[ticket]
+			var km := Vector2(float(s.x) - float(e.x), float(s.z) - float(e.z)).length() / 1000.0
+			price = maxf(1.2, snappedf(0.95 + km * 0.105, 0.1))
+		msg = "%s : %s € payés — bonne route !" % [s.name, ("%.2f" % price).replace(".", ",")]
+		ticket = -1
+	else:
+		ticket = b.site
+		msg = "%s : ticket pris — bonne route !" % s.name
+	print("péage : ", msg)
+	if hud and hud.has_method("toast"):
+		hud.toast(msg)
+	if _bip:
+		_bip.play()

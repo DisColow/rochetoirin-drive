@@ -129,7 +129,10 @@ def load_network():
     for e in d["elements"]:
         t = e.get("tags", {})
         cls = t.get("highway")
-        if e["type"] != "way" or cls not in CLS or t.get("area") == "yes" or t.get("tunnel") in ("yes", "building_passage"):
+        if e["type"] != "way" or cls not in CLS or t.get("area") == "yes" or t.get("tunnel") == "yes":
+            continue
+        # passage sous un bâtiment : gardé pour les bretelles (gares de péage sous leur auvent), pas dans le bourg
+        if t.get("tunnel") == "building_passage" and cls not in ("motorway", "motorway_link"):
             continue
         if t.get("access") in ("private", "no") and cls == "track":
             continue
@@ -153,8 +156,8 @@ def load_network():
         if t.get("sidewalk:right") == "yes":
             sides = (sides[0], 1)
         ways.append(dict(id=e["id"], cls=cls, nodes=[n for n in e["nodes"] if n in N], tags=t, w=width_of(t, cls),
-                         paved=paved, bridge=t.get("bridge") not in (None, "no"), layer=int(t.get("layer", "0") or 0)
-                         if str(t.get("layer", "0")).lstrip("-").isdigit() else 0, sidewalk=sides,
+                         paved=paved, bridge=t.get("bridge") not in (None, "no"), layer=(int(t.get("layer", "0") or 0)
+                         if str(t.get("layer", "0")).lstrip("-").isdigit() else 0) if t.get("tunnel") != "building_passage" else 0, sidewalk=sides,
                          oneway=t.get("oneway") in ("yes", "1") or t.get("junction") == "roundabout" or cls == "motorway"))
     node_tags = {e["id"]: e["tags"] for e in d["elements"] if e["type"] == "node" and e.get("tags")}
     towns = {}
@@ -502,6 +505,10 @@ def main():
     N, ways, zone, node_tags, towns = load_network()
     print(len(ways), "voies dans la zone")
     ways, chains = profiles(N, ways, dem)
+    import autoroute_geom as AG
+    plazas = AG.toll_plazas(ways)
+    ways += plazas
+    print("gares de péage :", [(p["tags"]["name"], p["tags"]["toll"]) for p in plazas])
     S = samples(ways)
     rf = road_height_fn(S)
     regions = [tuple(r) for r in json.load(open("data/routes_plan.json"))["regions"]]
@@ -565,6 +572,7 @@ def main():
                                 node_tags, {"uncontrolled", "marked", "zebra", "traffic_signals", None})
     import autoroute_geom as AG
     print("autoroutes : %d zébras" % AG.markings(det, chains, ways, use, hroad_b))
+    AG.plaza_markings(det, [w for w in ways if w.get("plaza")], hroad_b)
     st = furniture.signs(det, ways, use, hroad_b, node_tags, city_names, towns)
     print("marquages : %d passages piétons, %d lignes d'arrêt ; panneaux :" % (nc, ns), st)
     tiles = set()

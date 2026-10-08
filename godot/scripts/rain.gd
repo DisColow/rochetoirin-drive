@@ -37,7 +37,15 @@ func _ready() -> void:
 	drops.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	drops.visibility_aabb = AABB(Vector3(-40, -40, -40), Vector3(80, 80, 80))
 	add_child(drops)
-	if ResourceLoader.exists("res://assets/sfx/pluie.wav"):
+	if ResourceLoader.exists("res://assets/sfx/pluie.ogg"):
+		# pluie et orage enregistrés (« Rain and thunder », Premankur Adhikary, Pixabay), 90 s bouclables
+		sound = AudioStreamPlayer.new()
+		var og: AudioStreamOggVorbis = load("res://assets/sfx/pluie.ogg")
+		og.loop = true
+		sound.stream = og
+		sound.volume_db = -60.0
+		add_child(sound)
+	elif ResourceLoader.exists("res://assets/sfx/pluie.wav"):
 		sound = AudioStreamPlayer.new()
 		var st: AudioStreamWAV = load("res://assets/sfx/pluie.wav")
 		st.loop_mode = AudioStreamWAV.LOOP_FORWARD

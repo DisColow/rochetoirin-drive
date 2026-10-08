@@ -41,7 +41,8 @@
   (voitures garées, poubelles, tracteurs ; après `build_fences.py`, qui fournit les portails), `fetch_shops.py`,
   `build_shops.py` (commerces, marques parodiées), `fetch_sport.py`, `build_sport.py`, `build_animaux.py` (prés pâturés
   et clôtures), `fetch_autoroute.py`, `build_autoroute.py`, `build_voix.py` (voix du gardien, Piper), `build_haie_tex.py` (feuilles des touffes de haie),
-  `build_car_sprite.py` (voiture en sprite, après `blender_sprite.py`) ;
+  `build_car_sprite_ia.py` (voiture en sprite d'après la planche de l'utilisateur `sources/espace_sprites.jpg` ;
+  l'ancien `build_car_sprite.py` + `blender_sprite.py` reste possible) ; sons enregistrés dans `pipeline/sources/` ;
   modèles Blender (module bpy dans un venv) : `blender_commerces.py`, `blender_sport.py`, `blender_animaux.py`,
   `blender_autoroute.py`, `blender_sprite.py` (384 vues de l'Espace, ~45 min), `blender_haies.py` (touffes),
   `blender_maisons.py` (kit de détails des maisons, posé par `build_buildings.py`) ; puis
@@ -65,6 +66,6 @@
 - Rendu Mobile (Vulkan) essayé en v2.8 : moins joli que Compatibility sur le téléphone de l'utilisateur, abandonné.
 - Captures de contrôle : `xvfb-run godot --path godot -- --shots=<json>` ; essai de conduite : `-- --drive-test`.
 - Gardien des limites : modèle `godot/models/goku.glb` fourni par l'utilisateur (« Goku (Rigged & Animated) » de Kari,
-  CC BY 4.0) ; **crédits à ajouter dans le jeu plus tard : le rappeler à l'utilisateur.**
+  CC BY 4.0) ; crédits dans ⚙ > Crédits (`hud.gd`, `CREDITS`) : y ajouter toute nouvelle ressource sous licence.
 - **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
   souples, pas d'à-coups de chargement).
