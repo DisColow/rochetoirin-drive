@@ -5,6 +5,10 @@
 uniform vec4 wind = vec4(0.8, 0.6, 0.55, 0.0);
 uniform vec4 clouds = vec4(0.0);
 uniform float wet = 0.0;
+// Fondu au loin (cells.gd) : distance (m) où l'objet a fini de s'effacer (0 : jamais) ; position de la caméra tenue à
+// jour par env.gd (CAMERA_POSITION_WORLD serait celle de la lumière pendant le calcul des ombres).
+uniform float fade_far = 0.0;
+uniform vec3 env_cam = vec3(0.0);
 
 // Rafales qui traversent le paysage dans le sens du vent (0 … 1).
 float env_gust(vec2 p) {
@@ -25,4 +29,24 @@ float env_cloud(vec2 p) {
 	n += 0.5 * sin(q.x * 3.1 - q.y * 2.3 + 2.0) * sin(q.y * 3.7 + q.x * 1.1);
 	n += 0.25 * sin(q.x * 7.3 + q.y * 5.1) * sin(q.y * 6.1 - q.x * 4.7);
 	return 1.0 - clouds.x * smoothstep(clouds.y, clouds.y + 0.3, n);
+}
+
+// Fondu par tramage (le rendu Compatibility n'a pas de fondu de distance) : pixel gardé si f (0 … 1) dépasse le
+// seuil de la matrice de Bayer 4 × 4 de ce pixel. Fondus de distance des objets et fondus enchaînés.
+const float ENV_BAYER[16] = { 0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0 };
+bool env_dither_keep(float f, vec2 fc) {
+	int i = int(mod(fc.x, 4.0)) + int(mod(fc.y, 4.0)) * 4;
+	return f > (ENV_BAYER[i] + 0.5) / 16.0;
+}
+// Fondu au loin : disparaît progressivement de far - band à far (far <= 0 : pas de fondu).
+bool env_far_keep(float d, float far, vec2 fc) {
+	if (far <= 0.0) {
+		return true;
+	}
+	float band = max(far * 0.12, 8.0);
+	return env_dither_keep(clamp((far - d) / band, 0.0, 1.0), fc);
+}
+// Fondu au loin d'un point du monde, pour ce matériau : if (!env_fade_keep(v_wp, FRAGCOORD.xy)) { discard; }
+bool env_fade_keep(vec3 wp, vec2 fc) {
+	return env_far_keep(length(wp - env_cam), fade_far, fc);
 }

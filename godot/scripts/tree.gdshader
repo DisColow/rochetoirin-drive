@@ -9,11 +9,14 @@ uniform sampler2D normal_tex : hint_normal, filter_linear_mipmap, repeat_enable;
 uniform bool use_normal = false;
 uniform bool leaf = false;
 uniform float scissor = 0.45;
+uniform float near_cut = 1e6;          // relais avec les imposteurs (vegetation.gd, impostor.gdshader)
 
 varying vec3 v_wp;
+varying float v_cd;
 
 void vertex() {
 	vec3 org = MODEL_MATRIX[3].xyz;
+	v_cd = length((org - env_cam).xz);
 	float s = length(MODEL_MATRIX[1].xyz);            // modèle de hauteur ~1, mis à la taille de l'arbre
 	float h = clamp(VERTEX.y, 0.0, 1.2);
 	float g = env_gust(org.xz);
@@ -30,6 +33,10 @@ void vertex() {
 }
 
 void fragment() {
+	// s'efface là où l'imposteur apparaît : mêmes pixels de la trame, en négatif
+	if (env_dither_keep(clamp((v_cd - (near_cut - 4.0)) / 8.0, 0.0, 1.0), FRAGCOORD.xy)) {
+		discard;
+	}
 	vec4 c = texture(albedo_tex, UV);
 	if (leaf && c.a < scissor) {
 		discard;

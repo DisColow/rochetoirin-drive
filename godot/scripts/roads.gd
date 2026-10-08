@@ -4,6 +4,8 @@ extends Node3D
 
 const TILE := 256.0
 const VIEW := 1400.0          # tuiles affichées jusqu'à cette distance (au-delà : sol coloré)
+const DETAIL := 450.0          # portée des panneaux et marquages
+const Cells := preload("res://scripts/cells.gd")
 const COLL := 320.0           # collisions jusqu'à cette distance
 
 var target: Node3D
@@ -154,9 +156,15 @@ func _add(k: Vector2i, sc: PackedScene) -> void:
 			if mats.has(mn):
 				mi.set_surface_override_material(s, mats[mn])
 		if mi.name.begins_with("detail"):
-			mi.visibility_range_end = 450.0              # panneaux et marquages : inutiles au loin
-			mi.visibility_range_end_margin = 30.0
-			mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			# panneaux et marquages : inutiles au loin, effacés par tramage jusqu'à 450 m (cells.gd), puis retirés
+			for s in mesh.get_surface_count():
+				var sm: Material = mi.get_surface_override_material(s)
+				if sm == null:
+					sm = mesh.surface_get_material(s)
+				if sm:
+					mi.set_surface_override_material(s, Cells.material(sm, DETAIL))
+			mi.visibility_range_end = DETAIL + mesh.get_aabb().size.length() * 0.5 + 10.0
+			mi.visibility_range_end_margin = 10.0
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		else:
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

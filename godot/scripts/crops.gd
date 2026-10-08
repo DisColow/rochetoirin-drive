@@ -23,6 +23,7 @@ func _ready() -> void:
 	mat = ShaderMaterial.new()
 	mat.shader = preload("res://scripts/crops.gdshader")
 	preload("res://scripts/env.gd").add(mat)
+	preload("res://scripts/env.gd").fade(mat, RANGE[level])     # rangs effacés en fondu jusqu'à la portée
 	mat.set_shader_parameter("albedo_atlas", load("res://assets/veg/crops_albedo.png"))
 	mat.set_shader_parameter("normal_atlas", load("res://assets/veg/crops_normal.png"))
 	quad = QuadMesh.new()
@@ -32,6 +33,8 @@ func _ready() -> void:
 
 func set_level(l: int) -> void:
 	level = l
+	if mat:
+		mat.set_shader_parameter("fade_far", RANGE[level])
 	for k in cells.keys():
 		if cells[k]:
 			cells[k].queue_free()

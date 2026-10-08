@@ -174,8 +174,9 @@ def pile_peage():
     w = mat("blanc", (0.9, 0.9, 0.88), 0.2, 0.45)
     box("pile", (0, 0, 3.0), (0.7, 1.4, 6.0), w, bevel=0.06)
     box("cabine", (0, 2.6, 1.3), (1.0, 2.2, 2.4), mat("cabine", (0.85, 0.85, 0.82), 0.2, 0.5), bevel=0.05)
+    # vitres sur les deux flancs de la cabine (côté voies), à fleur de paroi
     for sx in (-1, 1):
-        plane("vitre", (sx * 0.505, 2.6, 1.6), 1.6, 1.0, mat("vitre", (0.1, 0.15, 0.2), 0.3, 0.05), facing=sx)
+        box("vitre", (sx * 0.505, 2.6, 1.6), (0.02, 1.6, 1.0), mat("vitre", (0.1, 0.15, 0.2), 0.3, 0.05))
     box("ilot", (0, 0, 0.11), (1.25, 11.0, 0.22), mat("beton", (0.6, 0.6, 0.58), rough=0.85), bevel=0.03)
     j = mat("ilot", (0.95, 0.75, 0.1), rough=0.6); n = mat("noir", (0.05, 0.05, 0.05), rough=0.5)
     for sy in (-1, 1):

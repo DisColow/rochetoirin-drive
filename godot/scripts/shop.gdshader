@@ -24,6 +24,9 @@ void vertex() {
 }
 
 void fragment() {
+	if (!env_fade_keep(v_wp, FRAGCOORD.xy)) {
+		discard;
+	}
 	float sh = env_cloud(v_wp.xz);
 	vec3 c = albedo;
 	float r = rough;

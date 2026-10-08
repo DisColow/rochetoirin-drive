@@ -4,6 +4,7 @@
 extends Node3D
 
 const TILE := 256.0
+const Cells := preload("res://scripts/cells.gd")
 const VIEW := 700.0
 const MODELS := ["glissiere", "borne_sos", "panneau_bleu", "peage", "pile_peage", "chevron", "gba", "potence", "panneau_haut",
 	"rond", "grillage", "absorbeur", "barriere", "bras"]
@@ -140,8 +141,9 @@ func _add(k: Vector2i) -> void:
 		if nm == "bras":
 			by[m].pop_back()
 			var arm := MeshInstance3D.new()
-			arm.mesh = meshes[m]
+			arm.mesh = Cells.faded(meshes[m], 700.0)
 			arm.transform = xf
+			arm.visibility_range_end = 720.0
 			arm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 			root.add_child(arm)
 			if not arms.has(k):
@@ -175,19 +177,7 @@ func _add(k: Vector2i) -> void:
 	for m in by:
 		if by[m].is_empty():
 			continue
-		var mm := MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.use_custom_data = true
-		mm.mesh = meshes[m]
-		mm.instance_count = by[m].size()
-		for i in by[m].size():
-			mm.set_instance_transform(i, by[m][i][0])
-			mm.set_instance_custom_data(i, by[m][i][1])
-		var mi := MultiMeshInstance3D.new()
-		mi.multimesh = mm
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if MODELS[m] in ["glissiere", "grillage", "gba"] else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-		mi.visibility_range_end = RANGE.get(MODELS[m], 700.0)
-		root.add_child(mi)
+		Cells.add(root, meshes[m], by[m], RANGE.get(MODELS[m], 700.0), not MODELS[m] in ["glissiere", "grillage", "gba"])
 	add_child(root)
 	loaded[k] = root
 

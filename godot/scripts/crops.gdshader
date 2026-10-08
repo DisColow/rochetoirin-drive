@@ -30,6 +30,9 @@ void vertex() {
 }
 
 void fragment() {
+	if (!env_fade_keep(v_wp, FRAGCOORD.xy)) {
+		discard;
+	}
 	vec4 c = texture(albedo_atlas, UV);
 	if (c.a < 0.5) {
 		discard;

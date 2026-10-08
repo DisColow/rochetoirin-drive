@@ -19,3 +19,20 @@ static func set_value(k: String, v) -> void:
 		m.set_shader_parameter(k, v)
 	if terrain_mat:
 		terrain_mat.set_shader_param(k, v)
+
+## Matériaux qui s'effacent au loin (fade_far) ou relaient d'autres modèles selon la distance : position de la caméra.
+static var cam_mats: Array = []
+static var cam := Vector3(1e6, 0.0, 1e6)
+
+static func fade(m: ShaderMaterial, far: float) -> ShaderMaterial:
+	m.set_shader_parameter("fade_far", far)
+	m.set_shader_parameter("env_cam", cam)
+	cam_mats.append(m)
+	return m
+
+static func set_cam(p: Vector3) -> void:
+	if p.distance_squared_to(cam) < 0.04:
+		return
+	cam = p
+	for m in cam_mats:
+		m.set_shader_parameter("env_cam", p)

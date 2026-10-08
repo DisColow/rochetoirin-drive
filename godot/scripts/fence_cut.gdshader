@@ -25,6 +25,9 @@ float vnoise(vec2 p) {
 }
 
 void fragment() {
+	if (!env_fade_keep(wpos, FRAGCOORD.xy)) {
+		discard;
+	}
 	vec4 a = texture(albedo_tex, vec3(UV, layer));
 	vec4 n = texture(normal_tex, vec3(UV, layer));
 	if (cut) {

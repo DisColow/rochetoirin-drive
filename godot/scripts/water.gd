@@ -82,6 +82,5 @@ func _add(k: Vector2i) -> void:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mi.visibility_range_end = VIEW
 		mi.visibility_range_end_margin = 100.0
-		mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 	add_child(n)
 	loaded[k] = n

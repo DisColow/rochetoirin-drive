@@ -3,6 +3,7 @@
 extends Node3D
 
 const TILE := 256.0
+const Cells := preload("res://scripts/cells.gd")
 const VIEW := 520.0
 const MODELS := {1: "car1", 2: "car2", 3: "car3", 4: "car4", 5: "tractor", 6: "bin"}
 const BOXES := {1: Vector3(1.62, 1.4, 3.72), 2: Vector3(1.7, 1.43, 4.1), 3: Vector3(1.75, 1.46, 4.6),
@@ -114,18 +115,6 @@ func _add(k: Vector2i) -> void:
 		cs.transform = xf * Transform3D(Basis.IDENTITY, Vector3(0, BOXES[t].y / 2, 0))
 		body.add_child(cs)
 	for t in by:
-		var mm := MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.use_custom_data = true
-		mm.mesh = meshes[t]
-		mm.instance_count = by[t].size()
-		for i in by[t].size():
-			mm.set_instance_transform(i, by[t][i][0])
-			mm.set_instance_custom_data(i, by[t][i][1])
-		var mi := MultiMeshInstance3D.new()
-		mi.multimesh = mm
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-		mi.visibility_range_end = 420.0 if t != 6 else 160.0
-		root.add_child(mi)
+		Cells.add(root, meshes[t], by[t], 420.0 if t != 6 else 200.0, true)
 	add_child(root)
 	loaded[k] = root

@@ -21,6 +21,9 @@ void vertex() {
 }
 
 void fragment() {
+	if (!env_fade_keep(wpos, FRAGCOORD.xy)) {
+		discard;
+	}
 	float k = wet;
 	if (textured) {
 		ALBEDO = texture(albedo_tex, UV).rgb * tint * env_cloud(wpos.xz) * (1.0 - wet_dark * k);

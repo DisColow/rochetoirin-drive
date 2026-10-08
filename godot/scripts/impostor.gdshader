@@ -7,7 +7,7 @@ render_mode skip_vertex_transform, cull_disabled;
 
 uniform sampler2D albedo_atlas : source_color, filter_linear_mipmap, repeat_disable;
 uniform sampler2D normal_atlas : filter_linear_mipmap, repeat_disable;
-uniform float near_cut = 60.0;         // en deçà : le vrai modèle 3D est affiché
+uniform float near_cut = 60.0;         // en deçà : le vrai modèle 3D est affiché (relais tramé sur ± 4 m, tree.gdshader)
 uniform float far_cut = 1200.0;
 
 varying vec3 v_right;
@@ -23,8 +23,9 @@ void vertex() {
 	vec3 cam = INV_VIEW_MATRIX[3].xyz;
 	vec3 to = cam - origin;
 	to.y = 0.0;
-	v_dist = length(to);
-	to = to / max(v_dist, 0.001);
+	float dl = length(to);
+	to = to / max(dl, 0.001);
+	v_dist = length((origin - env_cam).xz);      // même distance que le modèle 3D qui prend le relais
 	vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), to));
 	vec3 wp = origin + right * VERTEX.x * scale + vec3(0.0, 1.0, 0.0) * (VERTEX.y + 0.5) * scale;
 	float hh = VERTEX.y + 0.5;
@@ -44,9 +45,9 @@ void vertex() {
 
 void fragment() {
 	vec4 c = texture(albedo_atlas, UV);
-	// relais avec les vrais modèles (fondu tramé sur 6 m) et au loin
-	float hash = fract(sin(dot(floor(FRAGCOORD.xy), vec2(12.9898, 78.233))) * 43758.5453);
-	if (c.a < 0.5 || v_dist < near_cut + hash * 6.0 - 3.0 || v_dist > far_cut - hash * 40.0) {
+	// relais avec les vrais modèles (fondu tramé complémentaire de tree.gdshader, sur 8 m) et fondu au loin
+	float fin = clamp((v_dist - (near_cut - 4.0)) / 8.0, 0.0, 1.0);
+	if (c.a < 0.5 || !env_dither_keep(fin, FRAGCOORD.xy) || !env_far_keep(v_dist, far_cut, FRAGCOORD.xy)) {
 		discard;
 	}
 	vec3 n = texture(normal_atlas, UV).rgb * 2.0 - 1.0;

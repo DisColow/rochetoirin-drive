@@ -3,6 +3,7 @@
 extends Node3D
 
 const TILE := 256.0
+const Cells := preload("res://scripts/cells.gd")
 const VIEW := 650.0
 const MODELS := ["but_foot", "poteaux_rugby", "filet_tennis", "panier_basket", "mat_eclairage", "grillage", "banc_touche"]
 const COLL := {
@@ -177,16 +178,9 @@ func _add(k: Vector2i) -> void:
 				cs.transform = Transform3D(b.orthonormalized(), xf.origin) * Transform3D(Basis.IDENTITY, c[0])
 				body.add_child(cs)
 	for m in by:
-		var mm := MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.mesh = meshes[m]
-		mm.instance_count = by[m].size()
-		for i in by[m].size():
-			mm.set_instance_transform(i, by[m][i])
-		var mmi := MultiMeshInstance3D.new()
-		mmi.multimesh = mm
-		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if MODELS[m] == "mat_eclairage" else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		mmi.visibility_range_end = 600.0 if MODELS[m] == "mat_eclairage" else 300.0
-		root.add_child(mmi)
+		var l := []
+		for xf in by[m]:
+			l.append([xf])
+		Cells.add(root, meshes[m], l, 600.0 if MODELS[m] == "mat_eclairage" else 320.0, MODELS[m] == "mat_eclairage")
 	add_child(root)
 	loaded[k] = root

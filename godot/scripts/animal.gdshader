@@ -33,6 +33,9 @@ void vertex() {
 }
 
 void fragment() {
+	if (!env_fade_keep(v_wp, FRAGCOORD.xy)) {
+		discard;
+	}
 	vec3 p = v_lp;
 	vec3 c;
 	float rough = 0.85;

@@ -4,6 +4,7 @@
 extends Node3D
 
 const TILE := 256.0
+const Cells := preload("res://scripts/cells.gd")
 const VIEW := 900.0
 const LIGHTS := 6
 
@@ -165,17 +166,11 @@ func _add(k: Vector2i) -> void:
 		if t == 1:
 			heads.append(Vector3(x, y + 5.9, z) + b * Vector3(0, 0, -1.45))
 	for t in by:
-		var mm := MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.mesh = meshes[t]
-		mm.instance_count = by[t].size()
-		for i in by[t].size():
-			mm.set_instance_transform(i, by[t][i])
-		var mi := MultiMeshInstance3D.new()
-		mi.multimesh = mm
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if t == 4 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		mi.visibility_range_end = VIEW if t == 4 else 450.0
-		root.add_child(mi)
+		var l := []
+		for xf in by[t]:
+			l.append([xf])
+		# par cases de 64 m (et non par tuile entière) ; matériaux d'origine (têtes de lampadaires allumées la nuit)
+		Cells.add(root, meshes[t], l, VIEW if t == 4 else 450.0, t == 4, false)
 	# fils : rubans fins croisés (visibles sous tous les angles)
 	var nw := sp.get_32()
 	if nw > 0:

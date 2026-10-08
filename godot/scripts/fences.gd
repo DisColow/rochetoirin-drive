@@ -6,11 +6,11 @@
 extends Node3D
 
 const TILE := 256.0
-const VIEW := 520.0
-const VIEW_CUT := 300.0
+const VIEW := 450.0             # clôtures, murets : effacés en fondu jusqu'à cette distance (m), tuile retirée ensuite
+const VIEW_CUT := 280.0         # grillages, haies découpées
 const COLL := 160.0
 const CELL := 32.0             # touffes de haie regroupées par cases de 32 m
-const TOUFFE_VIEW := 110.0
+const TOUFFE_VIEW := 130.0
 const TOUFFE_STEP := 0.7
 var touffes := []              # maillages Blender (blender_haies.py) : thuya, laurier, photinia, champêtre
 var mat_touffe: ShaderMaterial
@@ -57,6 +57,8 @@ func _ready() -> void:
 		m.set_shader_parameter("albedo_tex", alb)
 		m.set_shader_parameter("normal_tex", nrm)
 	mat_cut.set_shader_parameter("cut", true)
+	preload("res://scripts/env.gd").fade(mat, VIEW)
+	preload("res://scripts/env.gd").fade(mat_cut, VIEW_CUT)
 	# touffes de feuillage des haies (modèles Blender, texture build_haie_tex.py)
 	if ResourceLoader.exists("res://assets/fence/touffe_thuya.glb"):
 		for e in ["thuya", "laurier", "photinia", "champetre"]:
@@ -67,6 +69,7 @@ func _ready() -> void:
 		mat_touffe.shader = preload("res://scripts/haie_touffe.gdshader")
 		mat_touffe.set_shader_parameter("leaves", load("res://assets/fence/feuilles.png"))
 		preload("res://scripts/env.gd").add(mat_touffe)
+		preload("res://scripts/env.gd").fade(mat_touffe, TOUFFE_VIEW)
 
 func _exit_tree() -> void:
 	for k in tasks:
@@ -156,9 +159,8 @@ func _finish(k: Vector2i) -> void:
 		mi.mesh = m
 		mi.material_override = mat_cut if j == 1 else mat
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if j == 1 else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-		mi.visibility_range_end = VIEW_CUT if j == 1 else VIEW
-		mi.visibility_range_end_margin = 60.0
-		mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+		mi.visibility_range_end = (VIEW_CUT if j == 1 else VIEW) + m.get_aabb().size.length() * 0.5 + 10.0
+		mi.visibility_range_end_margin = 10.0
 		root.add_child(mi)
 	if r.size() > 3 and touffes.size() == 4:
 		var cl: Dictionary = r[3]
@@ -176,9 +178,8 @@ func _finish(k: Vector2i) -> void:
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			# visibilité de la case de 32 m (et non de la tuile entière) : touffes près de la caméra seulement
 			mi.position = Vector3((key.y + 0.5) * CELL, 0, (key.z + 0.5) * CELL)
-			mi.visibility_range_end = TOUFFE_VIEW
-			mi.visibility_range_end_margin = 20.0
-			mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			mi.visibility_range_end = TOUFFE_VIEW + CELL * 0.75 + 6.0
+			mi.visibility_range_end_margin = 10.0
 			root.add_child(mi)
 	add_child(root)
 	loaded[k] = root

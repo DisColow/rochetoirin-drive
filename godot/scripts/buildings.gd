@@ -14,7 +14,7 @@ var mat: ShaderMaterial
 var _t := 0.0
 # kit de détails Blender (blender_maisons.py) posé par build_buildings.py : k_tx_tz.bin, affiché près de la caméra
 const KIT_MODELS := ["fenetre", "fenetre_vr", "volet", "porte", "garage", "marquise", "faitiere", "mitron", "antenne", "parabole"]
-const KIT_VIEW := {"faitiere": 260.0, "mitron": 260.0, "antenne": 300.0, "volet": 170.0, "marquise": 140.0}
+const KIT_FADE := 210.0        # détails des maisons : effacés en fondu jusqu'à cette distance (m)
 const KIT_MATS := {  # surface : [type, couleur, rugosité, métal]
 	"menuiserie": [0, Color(0.92, 0.92, 0.9), 0.45, 0.0], "vitrage": [2, Color(0.1, 0.12, 0.14), 0.05, 0.3],
 	"couleur": [1, Color(1, 1, 1), 0.6, 0.0], "fer": [0, Color(0.08, 0.08, 0.09), 0.4, 0.5],
@@ -53,6 +53,7 @@ func _ready() -> void:
 					sm.set_shader_parameter("kind", d[0]); sm.set_shader_parameter("albedo", d[1])
 					sm.set_shader_parameter("rough", d[2]); sm.set_shader_parameter("metal", d[3])
 					preload("res://scripts/env.gd").add(sm)
+					preload("res://scripts/env.gd").fade(sm, KIT_FADE)
 					kit_mats.append(sm)
 					cache[nm] = sm
 				mesh.surface_set_material(s, cache[nm])
@@ -129,7 +130,6 @@ func _add(k: Vector2i) -> void:
 		mi.material_override = mat
 		mi.visibility_range_end = VIEW
 		mi.visibility_range_end_margin = 100.0
-		mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 	var kf := "res://world/buildings/k_%d_%d.bin" % [k.x, k.y]
 	if not kit_meshes.is_empty() and FileAccess.file_exists(kf):
 		var a := FileAccess.get_file_as_bytes(kf)
@@ -160,9 +160,9 @@ func _add(k: Vector2i) -> void:
 			mi.multimesh = mm
 			mi.position = Vector3((key.y + 0.5) * CELLK, 0, (key.z + 0.5) * CELLK)
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			mi.visibility_range_end = KIT_VIEW.get(KIT_MODELS[key.x], 150.0)
-			mi.visibility_range_end_margin = 20.0
-			mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			# détails effacés par tramage jusqu'à KIT_FADE (maison_kit.gdshader), case retirée une fois invisible
+			mi.visibility_range_end = KIT_FADE + CELLK * 0.75 + 6.0
+			mi.visibility_range_end_margin = 10.0
 			n.add_child(mi)
 	add_child(n)
 	loaded[k] = n

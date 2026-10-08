@@ -6,8 +6,22 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v3.9.apk — vrais péages, panneaux de destinations, nouveau sprite de la voiture, pluie enregistrée](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.9.apk)**
+**[RochetoirinSimulator-v4.0.apk — plus rien ne surgit ni ne disparaît d'un coup](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.0.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
+
+Nouveautés de la v4.0 :
+- **fin des apparitions et disparitions brutales** : les objets (glissières, panneaux, péages, commerces, voitures
+  garées, animaux, équipements sportifs, poteaux) ne sont plus affichés par tuiles entières de 256 m mais par cases
+  de 64 m, et **s'effacent en fondu tramé** à l'approche de leur portée au lieu de surgir d'un bloc ; même chose pour
+  les panneaux et marquages des routes, les clôtures, les touffes de haie, les détails des maisons et les cultures ;
+- **arbres** : le relais entre arbre 3D et imposteur (image plate au loin) se fait depuis la caméra, en fondu tramé,
+  et se rapproche quand le nombre d'arbres 3D est plafonné : plus de trous ni d'arbres qui clignotent ;
+- **péages** : les vitres des cabines dépassaient dans les voies en panneaux sombres flottants (on aurait dit des
+  obstacles) ; elles sont maintenant à fleur des cabines ;
+- marge anti-clignotement rétablie partout (le fondu de visibilité de Godot ne marche pas en rendu Compatibility et
+  supprimait cette marge).
+
+[v3.9 — vrais péages, panneaux de destinations, nouveau sprite de la voiture, pluie enregistrée](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.9.apk)
 
 Nouveautés de la v3.9 :
 - **péages fonctionnels** (Bourgoin, L'Isle-d'Abeau Centre, La Tour-du-Pin, entrées et sorties) : la bretelle s'élargit

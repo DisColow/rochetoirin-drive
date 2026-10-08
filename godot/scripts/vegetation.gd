@@ -5,6 +5,7 @@
 extends Node3D
 
 const TILE := 256.0
+const NEAR_MARGIN := 14.0     # avance possible de la caméra entre deux choix des modèles 3D (0,2 s)
 const SPECIES := ["chene", "feuillu", "chene2", "bouleau", "peuplier", "epicea", "sapin", "pin"]
 # niveaux de densité : part des arbres, portée des imposteurs (m), rayon des modèles 3D (m), nombre max de modèles 3D
 const LEVELS := [
@@ -23,6 +24,7 @@ var pending := []
 var meshes := []         # Mesh par essence
 var sizes := []          # taille de l'imposteur (en hauteurs d'arbre) par essence
 var imp_mat: ShaderMaterial
+var tree_mats := []      # matériaux des modèles 3D (relais avec les imposteurs)
 var quad: QuadMesh
 var pool := []           # MeshInstance3D réutilisés (modèles 3D proches)
 var trunks: StaticBody3D
@@ -45,6 +47,7 @@ func _ready() -> void:
 	imp_mat = ShaderMaterial.new()
 	imp_mat.shader = preload("res://scripts/impostor.gdshader")
 	preload("res://scripts/env.gd").add(imp_mat)
+	preload("res://scripts/env.gd").fade(imp_mat, 0.0)
 	imp_mat.set_shader_parameter("albedo_atlas", load("res://assets/veg/impostors_albedo.png"))
 	imp_mat.set_shader_parameter("normal_atlas", load("res://assets/veg/impostors_normal.png"))
 	quad = QuadMesh.new()
@@ -69,12 +72,14 @@ func _wind_materials(mesh: Mesh) -> void:
 			sm.set_shader_parameter("use_normal", true)
 		sm.set_shader_parameter("leaf", m.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR or m.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_HASH)
 		sm.set_shader_parameter("scissor", m.alpha_scissor_threshold)
+		preload("res://scripts/env.gd").fade(sm, 0.0)
+		tree_mats.append(sm)
 		mesh.surface_set_material(i, sm)
 
 func set_level(l: int) -> void:
 	level = clampi(l, 0, LEVELS.size() - 1)
 	var L: Dictionary = LEVELS[level]
-	imp_mat.set_shader_parameter("near_cut", L.near - 4.0)
+	_set_cut(L.near)
 	imp_mat.set_shader_parameter("far_cut", L.far)
 	for k in mmi.keys():
 		mmi[k].queue_free()
@@ -160,14 +165,24 @@ func _process(dt: float) -> void:
 				data.erase(k)
 	_near_t -= dt
 	if _near_t <= 0.0:
-		_near_t = 0.25
+		_near_t = 0.2
 		_update_near()
 
-## Modèles 3D des arbres proches (et troncs pour les collisions), pris dans un réservoir réutilisé.
+## Distance du relais modèles 3D / imposteurs (fondu tramé sur ± 4 m autour).
+func _set_cut(d: float) -> void:
+	imp_mat.set_shader_parameter("near_cut", d)
+	for m in tree_mats:
+		m.set_shader_parameter("near_cut", d)
+
+## Modèles 3D des arbres proches de la caméra (et troncs pour les collisions), pris dans un réservoir réutilisé.
+## Choisis jusqu'au relais + 4 m + NEAR_MARGIN (la caméra avance entre deux mises à jour) ; si le plafond de modèles
+## les tronque, le relais se rapproche d'autant : jamais de trou entre modèles 3D et imposteurs.
 func _update_near() -> void:
-	var c := target.global_position
+	var cam := get_viewport().get_camera_3d()
+	var c := cam.global_position if cam else target.global_position
 	var L: Dictionary = LEVELS[level]
-	var r2: float = L.near * L.near
+	var R: float = L.near + 4.0 + NEAR_MARGIN
+	var r2: float = R * R
 	var found := []
 	var kc := Vector2i(floori(c.x / TILE), floori(c.z / TILE))
 	for dx in range(-1, 2):
@@ -185,7 +200,11 @@ func _update_near() -> void:
 				if d < r2:
 					found.append([d, a[o], a[o + 1], a[o + 2], a[o + 3], a[o + 4], int(a[o + 5]), a[o + 7]])
 	found.sort_custom(func(p, q): return p[0] < q[0])
-	found.resize(mini(found.size(), int(L.max_near)))
+	if found.size() > int(L.max_near):
+		found.resize(int(L.max_near))
+		_set_cut(maxf(sqrt(found[-1][0]) - 4.0 - NEAR_MARGIN, 8.0))
+	else:
+		_set_cut(L.near)
 	while pool.size() < found.size():
 		var mi := MeshInstance3D.new()
 		add_child(mi)

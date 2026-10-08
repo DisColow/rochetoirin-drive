@@ -38,6 +38,7 @@ func _ready() -> void:
 		bf.store_string(Time.get_datetime_string_from_system())
 		bf.close()
 	get_tree().create_timer(8.0).timeout.connect(func(): DirAccess.remove_absolute(BOOT_FLAG))
+	RenderingServer.frame_pre_draw.connect(_env_cam)
 	if safe_mode:
 		print("mode sûr : le démarrage précédent a planté")
 	var skip := OS.get_environment("RS_SKIP")
@@ -474,6 +475,12 @@ func _process(_dt: float) -> void:
 		car.set_wet(_wet)
 	if terrain and get_viewport().get_camera_3d() and terrain.get_camera() != get_viewport().get_camera_3d():
 		terrain.set_camera(get_viewport().get_camera_3d())
+
+## Position de la caméra pour les fondus au loin des matériaux (env.gd), à chaque image, captures comprises.
+func _env_cam() -> void:
+	var c := get_viewport().get_camera_3d()
+	if c:
+		preload("res://scripts/env.gd").set_cam(c.global_position)
 
 # ---------------------------------------------------------------- captures de contrôle (pipeline)
 # godot --path godot -- --shots=res://shots.json : [{"name", "pos":[x,y,z], "look":[x,y,z], "fov"}] -> user://shots/
