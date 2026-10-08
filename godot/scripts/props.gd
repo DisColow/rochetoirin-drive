@@ -1,4 +1,5 @@
-## Vie des villages (build_props.py) : voitures garées dans les cours, poubelles, tracteurs ; tuiles de 256 m chargées au
+## Vie des villages (build_props.py) : voitures garées dans les cours (modèles gratuits Sketchfab, crédités dans ⚙),
+## poubelles, tracteurs ; tuiles de 256 m chargées au
 ## fil de la route, un MultiMesh par modèle et par tuile (couleur de carrosserie par instance), collisions en boîtes.
 extends Node3D
 
@@ -6,8 +7,9 @@ const TILE := 256.0
 const Cells := preload("res://scripts/cells.gd")
 const VIEW := 520.0
 const MODELS := {1: "car1", 2: "car2", 3: "car3", 4: "car4", 5: "tractor", 6: "bin"}
-const BOXES := {1: Vector3(1.62, 1.4, 3.72), 2: Vector3(1.7, 1.43, 4.1), 3: Vector3(1.75, 1.46, 4.6),
-	4: Vector3(1.68, 1.8, 4.0), 5: Vector3(2.2, 2.7, 4.2), 6: Vector3(0.6, 1.05, 0.75)}
+# boîtes de collision (largeur, hauteur, longueur) : voitures aux mesures de blender_voitures.py (rétros exclus)
+const BOXES := {1: Vector3(1.66, 1.48, 3.75), 2: Vector3(1.75, 1.5, 4.05), 3: Vector3(1.76, 1.45, 4.45),
+	4: Vector3(1.63, 1.6, 4.15), 5: Vector3(2.2, 2.7, 4.2), 6: Vector3(0.6, 1.05, 0.75)}
 
 var target: Node3D
 var tiles := {}

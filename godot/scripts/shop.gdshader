@@ -14,6 +14,8 @@ uniform vec3 glow : source_color = vec3(0.0);
 uniform float night = 0.0;
 uniform float grid = 0.0;            // filets et grillages : maille (m), trous découpés
 uniform sampler2D atlas : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+uniform sampler2D atlas2 : source_color, filter_linear_mipmap_anisotropic, repeat_disable;   // 2e page (x + 10)
+uniform sampler2D atlas3 : source_color, filter_linear_mipmap_anisotropic, repeat_disable;   // 3e page (x + 20)
 
 varying vec4 v_c;
 varying vec3 v_wp;
@@ -32,7 +34,14 @@ void fragment() {
 	float r = rough;
 	vec3 e = vec3(0.0);
 	if (kind == 1) {
-		c = texture(atlas, v_c.xy + clamp(vec2(UV.x, 1.0 - UV.y), 0.004, 0.996) * v_c.zw).rgb;
+		vec2 cu = clamp(vec2(UV.x, 1.0 - UV.y), 0.004, 0.996) * v_c.zw;
+		if (v_c.x >= 15.0) {
+			c = texture(atlas3, vec2(v_c.x - 20.0, v_c.y) + cu).rgb;
+		} else if (v_c.x >= 5.0) {
+			c = texture(atlas2, vec2(v_c.x - 10.0, v_c.y) + cu).rgb;
+		} else {
+			c = texture(atlas, v_c.xy + cu).rgb;
+		}
 		e = c * night * 0.9;
 		r = 0.3;
 	} else if (kind == 2) {

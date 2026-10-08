@@ -7,7 +7,7 @@ const TILE := 256.0
 const Cells := preload("res://scripts/cells.gd")
 const VIEW := 600.0
 const MODELS := ["vitrine", "porte", "enseigne", "lampes", "banne", "croix", "carotte", "totem", "ombriere", "pompe",
-	"abri_caddies", "terrasse", "auvent"]
+	"abri_caddies", "terrasse", "auvent", "bandeau", "pilastre", "coffre_rideau", "porte_sectionnelle", "bardage"]
 # collisions (boîtes locales : centre, taille) des objets posés au sol
 const COLL := {
 	"totem": [[Vector3(0, 2.9, 0), Vector3(2.0, 5.8, 0.8)]],
@@ -18,7 +18,7 @@ const COLL := {
 }
 # matériau Blender -> [kind, couleur, rugosité, métal, lueur]
 const MATS := {
-	"cadre": [0, Color(0.16, 0.17, 0.18), 0.4, 0.6], "socle": [0, Color(0.55, 0.53, 0.5), 0.8, 0.0],
+	"cadre": [3, Color(0.16, 0.17, 0.18), 0.4, 0.6], "socle": [0, Color(0.55, 0.53, 0.5), 0.8, 0.0],
 	"verre": [6, Color(0.05, 0.06, 0.07), 0.05, 0.4], "interieur": [4, Color(0.75, 0.72, 0.65), 0.9, 0.0],
 	"chrome": [0, Color(0.85, 0.86, 0.88), 0.15, 1.0], "caisson": [0, Color(0.12, 0.12, 0.13), 0.4, 0.3],
 	"enseigne": [1, Color(1, 1, 1), 0.3, 0.0], "metal": [0, Color(0.35, 0.36, 0.38), 0.4, 0.6],
@@ -43,6 +43,8 @@ func _ready() -> void:
 			var p := f.trim_prefix("s_").trim_suffix(".bin").split("_")
 			tiles[Vector2i(int(p[0]), int(p[1]))] = "res://world/shops/" + f
 	var atlas: Texture2D = load("res://assets/shops/enseignes.png")
+	var atlas2: Texture2D = load("res://assets/shops/enseignes2.png") if ResourceLoader.exists("res://assets/shops/enseignes2.png") else atlas
+	var atlas3: Texture2D = load("res://assets/shops/enseignes3.png") if ResourceLoader.exists("res://assets/shops/enseignes3.png") else atlas
 	var cache := {}
 	for n in MODELS:
 		var sc: PackedScene = load("res://assets/shops/%s.glb" % n)
@@ -64,6 +66,8 @@ func _ready() -> void:
 				if d.size() > 4:
 					sm.set_shader_parameter("glow", d[4])
 				sm.set_shader_parameter("atlas", atlas)
+				sm.set_shader_parameter("atlas2", atlas2)
+				sm.set_shader_parameter("atlas3", atlas3)
 				preload("res://scripts/env.gd").add(sm)
 				cache[nm] = sm
 			mesh.surface_set_material(s, cache[nm])
@@ -135,7 +139,7 @@ func _add(k: Vector2i) -> void:
 				cs.transform = xf * Transform3D(Basis.IDENTITY, c[0])
 				body.add_child(cs)
 	for m in by:
-		var big: bool = MODELS[m] in ["totem", "ombriere", "enseigne", "auvent"]
+		var big: bool = MODELS[m] in ["totem", "ombriere", "enseigne", "auvent", "bardage", "porte_sectionnelle"]
 		Cells.add(root, meshes[m], by[m], 550.0 if big else 300.0, big)
 	add_child(root)
 	loaded[k] = root

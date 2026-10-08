@@ -2,11 +2,12 @@
 
 Refonte complète sous **Godot 4** : relief IGN à 2 m, routes OpenStreetMap posées sur le relief réel, textures PBR,
 ciel HDRI, horizon réel (Alpes, courbure terrestre). Zone : Rochetoirin, La Tour-du-Pin, Saint-Clair-de-la-Tour,
-Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
+Saint-Chef (commune entière, Chamont compris), Bourgoin-Jallieu (commune entière), L'Isle-d'Abeau et les routes qui y
+mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v4.6.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.6.apk)**
+**[RochetoirinSimulator-v4.7.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.7.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -14,6 +15,23 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v4.7 :
+- **Bourgoin-Jallieu** entre dans la carte (toute la commune : centre-ville, zones commerciales, quartiers), et
+  **Saint-Chef en entier** : la carte suit maintenant les limites des communes, plus seulement les routes entre
+  villages ; Chamont et tous ses chemins sont accessibles d'où qu'on arrive (la carte passe de 66 à 115 km²).
+- **commerces d'après leurs photos Street View** : chacun des 935 commerces photographiés a été examiné et décrit
+  (couleurs de l'enseigne, des menuiseries et du bandeau peint, store, rideau métallique, terrasse, vitrine de centre-ville,
+  grande surface en bardage, atelier à portes sectionnelles, station) ; les autres sont modélisés **selon leur métier**
+  (près de 90 métiers : boulangerie, fromagerie, pressing, garage, pompes funèbres, tatouage…), avec des noms toujours
+  inventés et des marques parodiées ; près de 700 enseignes différentes.
+- **piscines** dans les jardins, repérées sur la photo aérienne de l'IGN : margelle, eau turquoise qui ondule, bassins
+  carrelés, piscines hors-sol rondes ; jamais hors des propriétés (seulement dans une parcelle habitée, loin des routes,
+  des maisons et des limites), et ni herbe ni voiture garée dessus.
+- **voitures garées** : de vrais modèles 3D gratuits (Sketchfab, CC BY 4.0, crédités dans ⚙ > Crédits) remplacent les
+  voitures faites main : citadine, berline des années 80, berline et compacte, sans logo de vraie marque.
+
+[v4.6 — soucoupe volante à rayon tracteur](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.6.apk)
 
 Nouveautés de la v4.6 :
 - **le gardien des limites devient une soucoupe volante** (« UFO » de sebslom, Sketchfab, CC BY 4.0, crédité dans ⚙ >

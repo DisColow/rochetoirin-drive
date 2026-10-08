@@ -28,6 +28,12 @@ def _buildings():
     return _cache["b"]
 
 
+def _pools():
+    if "p" not in _cache:
+        _cache["p"] = pickle.load(open("data/pools.pkl", "rb")) if os.path.exists("data/pools.pkl") else []
+    return _cache["p"]
+
+
 def _poly_raster(polys, i, j, grow=0.0):
     im = Image.new("L", (N, N), 0); d = ImageDraw.Draw(im)
     x0, z0 = i * REG, j * REG
@@ -123,6 +129,7 @@ def main():
         # exclusions
         cat[_poly_raster(roads, i, j)] = 0
         cat[ndi.binary_dilation(building_mask(i, j), iterations=1)] = 0
+        cat[_poly_raster(_pools(), i, j, grow=0.5)] = 0                 # piscines (build_pools.py)
         im = Image.new("L", (N, N), 0); d = ImageDraw.Draw(im)
         for P, half in _fence_lines(i, j):
             pts = [(x - i * REG, z - j * REG) for x, z in P]

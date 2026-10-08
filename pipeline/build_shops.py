@@ -28,7 +28,7 @@ OUT_A = "../godot/assets/shops"
 OUT_W = "../godot/world/shops"
 TILE = 256.0
 MODELS = ["vitrine", "porte", "enseigne", "lampes", "banne", "croix", "carotte", "totem", "ombriere", "pompe",
-          "abri_caddies", "terrasse", "auvent"]
+          "abri_caddies", "terrasse", "auvent", "bandeau", "pilastre", "coffre_rideau", "porte_sectionnelle", "bardage"]
 MID = {n: i for i, n in enumerate(MODELS)}
 
 F_SANS = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
@@ -131,7 +131,143 @@ GENERIC = {   # métier -> (étiquette, noms inventés, fond, texte, police, acc
     "pet": ("ANIMALERIE", ["Croquettes & Cie"], (0, 120, 160), (255, 255, 255), F_SANS, None),
     "fuel": ("STATION", ["Station du Rond-Point"], (230, 30, 40), (255, 255, 255), F_SANS, None),
 }
-OTHER = ("COMMERCE", ["Le Comptoir", "Au Bon Coin", "Chez Nous"], (60, 60, 70), (255, 255, 255), F_SANS, None)
+OTHER = ("COMMERCE", ["Le Comptoir", "Au Bon Coin", "Chez Nous", "La Boutique", "L'Échoppe", "Le Magasin du Coin"],
+         (60, 60, 70), (255, 255, 255), F_SANS, None)
+
+# métiers moins fréquents : (étiquette, noms inventés, fond, texte, police) ; noms jamais repris des vrais commerces
+for _k, _v in {
+    "car_wash": ("LAVAGE AUTO", ["Lav'Auto Express", "Station Bulle", "Brillance Auto"], (0, 120, 200), (255, 255, 255), F_SANS),
+    "furniture": ("MEUBLES", ["L'Atelier du Meuble", "Maison & Salon", "Le Grenier Moderne", "Confort Dauphiné"], (60, 50, 45), (255, 255, 255), F_SANS),
+    "variety_store": ("BAZAR · DISCOUNT", ["Tout à Petits Prix", "Le Grand Bazar", "Bric & Broc"], (230, 0, 60), (255, 255, 255), F_SANS),
+    "mobile_phone": ("TÉLÉPHONIE", ["Allô Mobile", "Phone Service", "Répar'Phone"], (230, 30, 40), (255, 255, 255), F_SANS),
+    "electronics": ("ÉLECTROMÉNAGER · TV", ["Électro Dauphiné", "Le Grand Écran", "Électro Service"], (240, 120, 0), (255, 255, 255), F_SANS),
+    "interior_decoration": ("DÉCORATION", ["Déco & Vous", "L'Instant Déco", "Maison Bohème"], (240, 235, 225), (60, 50, 45), F_ITAL),
+    "travel_agency": ("VOYAGES", ["Évasion Voyages", "Horizons Lointains", "Bon Voyage"], (0, 120, 190), (255, 255, 255), F_SANS),
+    "sports": ("SPORTS", ["Sport Passion", "Le Vestiaire", "Top Sport"], (0, 70, 150), (255, 255, 255), F_SANS),
+    "kitchen": ("CUISINES · BAINS", ["Cuisines Création", "L'Art de la Cuisine", "Cuisine & Bain"], (40, 40, 45), (255, 255, 255), F_SANS),
+    "greengrocer": ("PRIMEUR", ["Le Panier Frais", "Fruits & Légumes du Coin", "Au Jardin Gourmand"], (60, 140, 50), (255, 255, 255), F_SERIF),
+    "fireplace": ("POÊLES · CHEMINÉES", ["Au Coin du Feu", "Flamme Dauphinoise", "Chaleur Bois"], (40, 40, 45), (240, 130, 30), F_SANS),
+    "tattoo": ("TATOUAGE", ["Encre Noire", "L'Aiguille d'Or", "Ink Isère"], (20, 20, 22), (255, 255, 255), F_ITAL),
+    "paint": ("PEINTURES", ["Couleurs & Murs", "La Palette", "Peintures du Nord-Isère"], (230, 230, 230), (30, 90, 170), F_SANS),
+    "books": ("LIBRAIRIE", ["La Page Tournée", "Au Fil des Mots", "Le Marque-Page"], (110, 30, 35), (255, 240, 220), F_SERIF),
+    "cosmetics": ("PARFUMERIE · BEAUTÉ", ["Belle & Rebelle", "L'Essentiel Beauté", "Fleur de Peau"], (20, 20, 25), (255, 255, 255), F_ITAL),
+    "perfumery": ("PARFUMERIE", ["Sillage", "L'Heure Bleue", "Essence"], (20, 20, 25), (220, 190, 110), F_ITAL),
+    "confectionery": ("CONFISERIE", ["Les Bonbons de Mamie", "Douceurs Sucrées", "Le Petit Gourmand"], (230, 110, 160), (255, 255, 255), F_ITAL),
+    "chocolate": ("CHOCOLATIER", ["Cacao & Cie", "Le Chocolat d'Antan", "Ganache"], (80, 45, 30), (230, 200, 150), F_SERIF),
+    "cheese": ("FROMAGERIE", ["La Cloche à Fromage", "Le Saint-Marcellin", "Crème & Croûte"], (240, 225, 180), (90, 60, 30), F_SERIF),
+    "alcohol": ("CAVE · VINS", ["La Cave du Coin", "Tire-Bouchon", "Vins & Terroirs"], (90, 20, 35), (240, 220, 180), F_SERIF),
+    "wine": ("CAVE · VINS", ["La Cave du Coin", "Tire-Bouchon", "Vins & Terroirs"], (90, 20, 35), (240, 220, 180), F_SERIF),
+    "deli": ("ÉPICERIE FINE", ["Le Garde-Manger", "Saveurs d'Ici", "Gourmandises"], (40, 60, 45), (230, 200, 140), F_SERIF),
+    "dry_cleaning": ("PRESSING", ["Pressing Net", "Blanc d'Isère", "Pressing du Centre"], (0, 130, 190), (255, 255, 255), F_SANS),
+    "computer": ("INFORMATIQUE", ["Clic & Répare", "Informatique Services", "Octet"], (30, 40, 60), (120, 200, 255), F_SANS),
+    "toys": ("JOUETS", ["Le Coffre à Jouets", "Pirouette", "Jeux & Merveilles"], (230, 50, 40), (255, 220, 0), F_SANS),
+    "frozen_food": ("SURGELÉS", ["Le Grand Froid", "Banquise", "Surgelés Gourmands"], (0, 90, 170), (255, 255, 255), F_SANS),
+    "funeral_directors": ("POMPES FUNÈBRES", ["Pompes Funèbres du Dauphiné", "Pompes Funèbres de la Bourbre"], (40, 40, 50), (220, 220, 220), F_SERIF),
+    "motorcycle": ("MOTOS", ["Moto Passion", "Deux Roues 38", "Bécane Service"], (20, 20, 22), (240, 130, 0), F_SANS),
+    "tyres": ("PNEUS", ["Pneu Service", "Gomme & Jante", "Roule Malin"], (20, 20, 22), (255, 210, 0), F_SANS),
+    "hardware": ("QUINCAILLERIE", ["La Quincaillerie", "Clou & Vis", "Outils Pro"], (200, 30, 30), (255, 255, 255), F_SANS),
+    "bicycle": ("CYCLES", ["Cycles Dauphiné", "Le Grand Braquet", "Roue Libre"], (30, 120, 60), (255, 255, 255), F_SANS),
+    "massage": ("MASSAGES", ["Bien-Être & Sérénité", "Zen Attitude", "Les Mains d'Or"], (230, 220, 200), (90, 60, 40), F_ITAL),
+    "e-cigarette": ("CIGARETTE ÉLECTRONIQUE", ["Le Nuage", "Vapo Store", "Fumée Douce"], (20, 20, 22), (120, 220, 200), F_SANS),
+    "second_hand": ("DÉPÔT-VENTE", ["Seconde Main", "Le Grenier", "Troc & Puces"], (90, 60, 120), (255, 255, 255), F_SANS),
+    "hearing_aids": ("AUDITION", ["Audition Conseil", "À l'Écoute", "Bien Entendre"], (255, 255, 255), (0, 90, 160), F_SANS),
+    "medical_supply": ("MATÉRIEL MÉDICAL", ["Médical Services", "Santé Confort"], (255, 255, 255), (0, 130, 90), F_SANS),
+    "fabric": ("TISSUS · MERCERIE", ["Fil & Aiguille", "Le Comptoir des Tissus"], (150, 40, 90), (255, 255, 255), F_ITAL),
+    "photo": ("PHOTO", ["Photo Flash", "Déclic", "L'Objectif"], (20, 20, 22), (230, 30, 40), F_SANS),
+    "pastry": ("PÂTISSERIE", ["Le Chou Gourmand", "Mille Douceurs", "L'Éclair d'Or"], (250, 235, 240), (150, 50, 90), F_ITAL),
+    "ice_cream": ("GLACIER", ["Givre & Sorbet", "La Boule Glacée"], (180, 220, 240), (40, 80, 150), F_ITAL),
+    "pet_grooming": ("TOILETTAGE", ["Poils & Moustaches", "Toutou Beau"], (240, 160, 190), (255, 255, 255), F_ITAL),
+    "nutrition_supplements": ("NUTRITION", ["Forme & Vitalité", "Nutri Sport"], (40, 120, 60), (255, 255, 255), F_SANS),
+    "gold_buyer": ("ACHAT OR", ["Or & Argent", "Le Comptoir de l'Or"], (20, 20, 22), (220, 180, 80), F_SERIF),
+    "watches": ("HORLOGERIE", ["Le Temps Passe", "L'Heure Juste"], (20, 20, 22), (220, 180, 80), F_SERIF),
+    "bag": ("MAROQUINERIE", ["Sacs & Valises", "Cuir d'Isère"], (80, 50, 30), (240, 220, 180), F_SERIF),
+    "leather": ("MAROQUINERIE", ["Sacs & Valises", "Cuir d'Isère"], (80, 50, 30), (240, 220, 180), F_SERIF),
+    "fashion_accessories": ("ACCESSOIRES", ["Bijoux & Babioles", "Les Petits Riens"], (240, 220, 230), (120, 40, 80), F_ITAL),
+    "baby_goods": ("PUÉRICULTURE", ["Bébé Câlin", "Petits Petons"], (255, 255, 255), (230, 80, 140), F_SANS),
+    "bed": ("LITERIE", ["Le Roi du Sommeil", "Doux Rêves"], (20, 40, 90), (255, 255, 255), F_SANS),
+    "bathroom_furnishing": ("SALLES DE BAINS", ["Bain & Bien-Être", "L'Eau Vive"], (0, 90, 170), (255, 255, 255), F_SANS),
+    "tiles": ("CARRELAGE", ["Carrelages du Rhône", "Le Monde du Carreau"], (220, 220, 220), (180, 40, 40), F_SANS),
+    "trade": ("NÉGOCE · MATÉRIAUX", ["Matériaux Dauphiné", "Négoce du Bâtiment"], (230, 230, 230), (200, 30, 30), F_SANS),
+    "wholesale": ("GROSSISTE", ["Le Grossiste", "Cash Pro"], (0, 70, 140), (255, 255, 255), F_SANS),
+    "car_parts": ("PIÈCES AUTO", ["Pièces Auto Service", "Auto Pièces 38"], (220, 30, 30), (255, 255, 255), F_SANS),
+    "art": ("GALERIE D'ART", ["Galerie des Arts", "L'Atelier"], (240, 240, 240), (30, 30, 30), F_SERIF),
+    "copyshop": ("REPROGRAPHIE", ["Copie Express", "Imprim'Services"], (0, 110, 180), (255, 255, 255), F_SANS),
+    "stationery": ("PAPETERIE", ["Papier Crayon", "La Plume"], (40, 90, 160), (255, 255, 255), F_SANS),
+    "gas": ("GAZ · STATION", ["Station du Carrefour"], (230, 30, 40), (255, 255, 255), F_SANS),
+    "beverages": ("BOISSONS", ["Le Comptoir des Boissons"], (0, 90, 60), (255, 255, 255), F_SANS),
+    "seafood": ("POISSONNERIE", ["La Marée", "Au Bon Poisson"], (0, 90, 150), (255, 255, 255), F_SERIF),
+    "ticket": ("BILLETTERIE", ["Point Billets"], (230, 30, 40), (255, 255, 255), F_SANS),
+}.items():
+    GENERIC.setdefault(_k, _v + (None,))
+# plus de noms pour les métiers fréquents (moins de doublons d'une enseigne à l'autre)
+for _k, _more in {
+    "clothes": ["Le Fil Rouge", "Tendance", "Ma Garde-Robe", "L'Étiquette", "Coton & Lin", "Maille à Part", "Jean'Isère",
+                "Les Petites Robes", "Chic & Choc", "Mode d'Ici"],
+    "restaurant": ["Le Bistrot du Marché", "La Table d'Hôtes", "Le Petit Zinc", "L'Assiette Dauphinoise", "Le Tilleul",
+                   "La Marmite", "Le Coin Gourmand", "Chez Lulu", "La Pergola", "Le Comptoir des Saveurs"],
+    "hairdresser": ["Coupe Tifs", "Ciseaux d'Or", "Mèche Rebelle", "Le Salon", "Barbe & Brushing", "Studio Coiffure",
+                    "Boucles & Brillance"],
+    "fast_food": ["Burger du Coin", "Snack Express", "Kebab Royal", "Pizza Express", "Le Croc'", "Tacos Plus"],
+    "bakery": ["Le Pain d'Antan", "La Mie Dorée", "Aux Pains d'Isère", "Le Fournil de la Bourbre", "La Croûte Dorée"],
+    "beauty": ["Bulle de Beauté", "Ongles & Cie", "L'Écrin", "Soin Divin"],
+    "bank": ["Banque de la Bourbre", "Crédit du Dauphiné", "Caisse Régionale"],
+    "car_repair": ["Garage de la Gare", "Garage des Collines", "Auto Réparation 38", "Mécanique Service"],
+    "car": ["Auto Bourbre", "Dauphiné Automobiles", "Les Autos du Rond-Point", "Garage Central"],
+    "bar": ["Le Balto", "Le Rallye", "Le Bar des Amis", "Café de la Gare"],
+    "optician": ["Les Lunettes d'Isère", "Vue d'Ici", "Optique du Centre"],
+    "convenience": ["L'Épicerie Fine du Coin", "Proxi Panier", "Le Petit Marché"],
+    "butcher": ["Boucherie du Marché", "La Bonne Viande", "Boucherie Traditionnelle"],
+}.items():
+    if _k in GENERIC:
+        _g = GENERIC[_k]
+        GENERIC[_k] = (_g[0], _g[1] + [n for n in _more if n not in _g[1]]) + _g[2:]
+
+# Fiches des devantures d'après les photos Street View (fetch_sv_shops.py, cache privé), relevées à la main dans
+# sources/shops_sv.txt : « id type cadre bandeau enseigne_fond/enseigne_texte store rideau terrasse »
+#   type : V vitrine en rez-de-chaussée, G grande surface (bardage, grandes lettres), A atelier (portes sectionnelles),
+#          S station-service, X photo inexploitable (le métier décide) ; couleurs nommées (PALETTE), « - » = aucun ;
+#   store : couleur (ou couleur+couleur, toile rayée) ; rideau : r = rideau métallique ; terrasse : t.
+PALETTE = {
+    "blanc": (240, 240, 236), "creme": (232, 222, 196), "beige": (205, 185, 150), "gris_clair": (190, 192, 192),
+    "gris": (135, 138, 140), "anthracite": (60, 63, 66), "noir": (25, 25, 27), "bois": (125, 85, 50),
+    "marron": (90, 60, 40), "bordeaux": (110, 25, 35), "rouge": (200, 30, 35), "orange": (235, 120, 25),
+    "jaune": (245, 200, 30), "vert_clair": (140, 190, 70), "vert": (40, 130, 60), "vert_fonce": (25, 75, 45),
+    "turquoise": (30, 160, 170), "bleu_clair": (110, 170, 220), "bleu": (30, 90, 180), "bleu_marine": (25, 40, 85),
+    "violet": (110, 50, 130), "rose": (225, 110, 160), "or": (200, 160, 70), "alu": (175, 178, 180),
+    "terracotta": (185, 85, 45),
+}
+ATELIERS = ("car_repair", "car", "tyres", "car_wash", "motorcycle", "car_parts", "trade", "agrarian", "craft")
+GRANDES = ("supermarket", "doityourself", "garden_centre", "furniture", "electronics", "sports", "car", "hardware",
+           "department_store", "wholesale", "pet", "toys", "kitchen", "bed", "interior_decoration", "variety_store",
+           "clothes", "shoes", "appliance", "paint", "farm")
+CADRES = ["anthracite", "noir", "alu", "blanc", "anthracite", "bois", "alu"]
+BARDAGES = ["gris_clair", "blanc", "anthracite", "gris_clair", "beige", "gris"]
+
+
+def load_fiches(path="sources/shops_sv.txt"):
+    out = {}
+    if not os.path.exists(path):
+        return out
+    for ln in open(path, encoding="utf-8"):
+        ln = ln.split("#")[0].split()
+        if len(ln) < 2:
+            continue
+        f = dict(type=ln[1])
+        c = lambda v: PALETTE.get(v) if v and v != "-" else None
+        if len(ln) >= 8:
+            f["cadre"] = c(ln[2]); f["bandeau"] = c(ln[3])
+            e = ln[4].split("/")
+            if len(e) == 2 and c(e[0]) and c(e[1]):
+                f["ens"] = (c(e[0]), c(e[1]))
+            f["store"] = c(ln[5].split("+")[0]) if ln[5] != "-" else None
+            f["rideau"] = ln[6] == "r"
+            f["terrasse"] = ln[7] == "t"
+        out[ln[0]] = f
+    return out
+
+
+def c01(c):
+    return (c[0] / 255.0, c[1] / 255.0, c[2] / 255.0, 1.0)
 
 
 def pick_w(key, salt, items):
@@ -149,12 +285,18 @@ def rnd(key, salt=""):
 
 # ================================================================================================ atlas
 class Atlas:
+    """Trois pages de 4096² (enseignes.png, enseignes2.png, enseignes3.png) : bandeaux de 512 × 96 (8 colonnes ; 32
+    lignes en page 1, au-dessus des totems, 42 en pages 2 et 3), totems de 256² (16 × 4 en bas de la page 1). La page d'un bandeau est codée
+    dans la partie entière de son décalage x (+ 10 par page), lue par shop.gdshader."""
     W = 4096
-    CW, CH, NW = 640, 128, 6 * 24        # bandeaux : 6 colonnes × 24 lignes
-    SQ = 256                             # totems : 16 × 4 cases carrées sous les bandeaux
+    CW, CH = 512, 96
+    COLS = 8
+    ROWS = (32, 42, 42)
+    SQ = 256
 
     def __init__(self):
-        self.img = Image.new("RGB", (self.W, self.W), (40, 40, 45))
+        self.imgs = [Image.new("RGB", (self.W, self.W), (40, 40, 45)) for _ in self.ROWS]
+        self.img = self.imgs[0]
         self.wide = {}
         self.sq = {}
 
@@ -197,24 +339,28 @@ class Atlas:
         if key in self.wide:
             return self.wide[key]
         i = len(self.wide)
-        if i >= self.NW:
+        page, k = 0, i
+        while page < len(self.ROWS) and k >= self.COLS * self.ROWS[page]:
+            k -= self.COLS * self.ROWS[page]; page += 1
+        if page >= len(self.ROWS):
             return self.wide[next(iter(self.wide))]
-        cx, cy = (i % 6) * self.CW, (i // 6) * self.CH
-        cell = Image.new("RGB", (self.CW, self.CH), bg)
+        cx, cy = (k % self.COLS) * self.CW, (k // self.COLS) * self.CH
+        H = self.CH
+        cell = Image.new("RGB", (self.CW, H), bg)
         d = ImageDraw.Draw(cell)
-        d.rectangle([3, 3, self.CW - 4, self.CH - 4], outline=tuple(int(c * 0.75) for c in fg), width=3)
-        x0 = 24 + self._deco(d, style, 24, 26, 76, fg, bg) if style else 24
-        f = self._font(font, title, self.CW - x0 - 24, 60 if sub else 92, 84)
+        d.rectangle([2, 2, self.CW - 3, H - 3], outline=tuple(int(c * 0.75) for c in fg), width=2)
+        x0 = 18 + self._deco(d, style, 18, int(H * 0.2), int(H * 0.6), fg, bg) if style else 18
+        f = self._font(font, title, self.CW - x0 - 18, int(H * 0.47) if sub else int(H * 0.72), int(H * 0.66))
         b = f.getbbox(title)
         tw = b[2] - b[0]
-        ty = 12 - b[1] if sub else (self.CH - (b[3] - b[1])) // 2 - b[1]
-        d.text((x0 + (self.CW - x0 - 24 - tw) // 2 - b[0], ty), title, font=f, fill=fg)
+        ty = int(H * 0.09) - b[1] if sub else (H - (b[3] - b[1])) // 2 - b[1]
+        d.text((x0 + (self.CW - x0 - 18 - tw) // 2 - b[0], ty), title, font=f, fill=fg)
         if sub:
-            fs = self._font(F_COND, sub, self.CW - x0 - 40, 28, 28)
+            fs = self._font(F_COND, sub, self.CW - x0 - 30, int(H * 0.22), int(H * 0.22))
             bs = fs.getbbox(sub)
-            d.text((x0 + (self.CW - x0 - 24 - (bs[2] - bs[0])) // 2, 90), sub, font=fs, fill=fg)
-        self.img.paste(cell, (cx, cy))
-        r = (cx / self.W, cy / self.W, self.CW / self.W, self.CH / self.W)
+            d.text((x0 + (self.CW - x0 - 18 - (bs[2] - bs[0])) // 2, int(H * 0.7)), sub, font=fs, fill=fg)
+        self.imgs[page].paste(cell, (cx, cy))
+        r = (cx / self.W + 10.0 * page, cy / self.W, self.CW / self.W, self.CH / self.W)
         self.wide[key] = r
         return r
 
@@ -224,7 +370,7 @@ class Atlas:
         i = len(self.sq)
         if i >= 64:
             return self.sq[next(iter(self.sq))]
-        cx, cy = (i % 16) * self.SQ, 24 * self.CH + (i // 16) * self.SQ
+        cx, cy = (i % 16) * self.SQ, self.ROWS[0] * self.CH + (i // 16) * self.SQ
         cell = Image.new("RGB", (self.SQ, self.SQ), bg)
         d = ImageDraw.Draw(cell)
         d.rectangle([4, 4, self.SQ - 5, self.SQ - 5], outline=fg, width=4)
@@ -287,6 +433,8 @@ def main():
     BT = STRtree([g for _, g in blds])
     BLD = Local([g for _, g in blds])
     d = json.load(open("data/osm_shops.json"))
+    FICHES = load_fiches()
+    print(len(FICHES), "fiches d'après Street View")
     atlas = Atlas()
     inst = []
     used = defaultdict(list)          # bâtiment -> intervalles (arête, t0, t1) occupés
@@ -351,6 +499,16 @@ def main():
             continue
         key = e["id"]
         title, sub, bg, fg, font, style, acc = sign_for(t, kind, key)
+        fi = FICHES.get(key if isinstance(key, str) else "%s%d" % (e["type"][0], key))
+        typ = fi["type"] if fi and fi["type"] != "X" else None
+        if fi and typ:
+            stats["d'après photo"] += 1
+            if fi.get("ens"):
+                bg, fg = fi["ens"]
+        else:
+            stats["d'après le métier"] += 1
+        if typ is None and kind in ATELIERS:
+            typ = "A"
         if kind == "fuel":
             stats["station"] += station(P, t, title, bg, fg, font, style, atlas, inst, dem, MAINL, free_box)
             continue
@@ -364,7 +522,7 @@ def main():
             stats["sans bâtiment"] += 1
             continue
         p, g = blds[bi]
-        big = kind == "supermarket" and g.area > 700
+        big = typ == "G" or (typ is None and ((kind == "supermarket" and g.area > 700) or (kind in GRANDES and g.area > 600)))
         ring = np.asarray(g.exterior.coords)
         # façade : arête vers la route la plus proche (normale extérieure tournée vers elle)
         best = None
@@ -389,7 +547,10 @@ def main():
         _, k, a, b, L, tdir, nrm = best
         gmin, eave = height_info(p, g)
         if big:
-            stats["supermarché"] += supermarket(k, a, b, L, tdir, nrm, gmin, eave, title, sub, bg, fg, font, style, atlas, inst, dem, free_box, used[bi])
+            bard = (fi or {}).get("bandeau") or PALETTE[BARDAGES[int(rnd(key, "bardage") * len(BARDAGES))]]
+            cad = (fi or {}).get("cadre") or PALETTE["alu"]
+            stats["grande surface"] += supermarket(k, a, b, L, tdir, nrm, gmin, eave, title, sub, bg, fg, font, style, atlas,
+                                                   inst, dem, free_box, used[bi], bard, cad, kind == "supermarket")
             continue
         # devanture : largeur selon le métier, centrée sur le point OSM projeté, sans chevaucher les voisines
         w = float(np.clip(L - 0.6, 2.0, 4.0 + 3.0 * rnd(key, "w")))
@@ -416,10 +577,53 @@ def main():
             stats["mur trop bas"] += 1
             used[bi].pop()
             continue
+        # menuiseries, bandeau peint, rideau, store, terrasse : d'après la photo, sinon selon le métier
+        cad = (fi or {}).get("cadre") or PALETTE[CADRES[int(rnd(key, "cadre") * len(CADRES))]]
+        if fi and typ:
+            band = fi.get("bandeau")
+            rideau = fi.get("rideau", False)
+            if acc and acc[0] == "banne":
+                acc = ("banne", c01(fi["store"])[:3]) if fi.get("store") else None
+            elif acc and acc[0] == "terrasse" and not fi.get("terrasse"):
+                acc = None
+            if fi.get("store") and not acc:
+                acc = ("banne", c01(fi["store"])[:3])
+            elif fi.get("terrasse") and not acc:
+                acc = ("terrasse", (0.55, 0.1, 0.1))
+        else:
+            band = bg if (kind in ("bakery", "butcher", "bar", "restaurant", "cafe", "pub", "florist", "jewelry")
+                          and rnd(key, "bandeau") < 0.6) else None
+            rideau = rnd(key, "rideau") < (0.15 if kind in ("bakery", "restaurant", "cafe", "bar") else 0.45)
+        if typ == "A":
+            # atelier : portes sectionnelles de 3 m (couleur du cadre), porte de service, enseigne au-dessus
+            nd = max(1, int((w - 1) // 3.4))
+            xx = t0 + 0.2
+            for j in range(nd):
+                m = a + tdir * (xx + 1.5) + nrm * 0.12
+                inst.append(xf("porte_sectionnelle", (m[0], yb, m[1]), tdir, (3.0, 1, 1), c01(cad)))
+                xx += 3.4
+            if w - (xx - t0) >= 1.0:
+                m = a + tdir * (xx + 0.5) + nrm * 0.16
+                inst.append(xf("porte", (m[0], yb, m[1]), tdir, custom=c01(PALETTE["anthracite"])))
+            cen = a + tdir * (t0 + w / 2) + nrm * 0.16
+            rect = atlas.wide_cell((title, sub, bg, fg), title, sub, bg, fg, font, style)
+            sw = min(w, 6.0)
+            inst.append(xf("enseigne", (cen[0], yb + 3.35, cen[1]), tdir, (sw, 0.85, 1), rect))
+            stats["atelier"] += 1
+            continue
         door = int(w // 2)
         for i in range(int(w)):
             m = a + tdir * (t0 + i + 0.5) + nrm * 0.16
-            inst.append(xf("porte" if i == door else "vitrine", (m[0], yb, m[1]), tdir))
+            inst.append(xf("porte" if i == door else "vitrine", (m[0], yb, m[1]), tdir, custom=c01(cad)))
+            if rideau:
+                inst.append(xf("coffre_rideau", (m[0], yb, m[1]), tdir))
+        if band:
+            mb = a + tdir * (t0 + w / 2) + nrm * 0.1
+            inst.append(xf("bandeau", (mb[0], yb + 2.95, mb[1]), tdir, (w + 0.6, 1.2, 1), c01(band)))
+            for tt in (t0 - 0.15, t0 + w + 0.15):
+                mp = a + tdir * tt + nrm * 0.1
+                inst.append(xf("pilastre", (mp[0], yb - 0.02, mp[1]), tdir, custom=c01(band)))
+            stats["bandeau peint"] += 1
         cen = a + tdir * (t0 + w / 2) + nrm * 0.16
         rect = atlas.wide_cell((title, sub, bg, fg), title, sub, bg, fg, font, style)
         sw = min(w, 5.2)
@@ -450,7 +654,9 @@ def main():
                         stats["terrasse"] += 1
         stats["devanture"] += 1
     # écriture
-    atlas.img.save(OUT_A + "/enseignes.png")
+    atlas.imgs[0].save(OUT_A + "/enseignes.png")
+    atlas.imgs[1].save(OUT_A + "/enseignes2.png")
+    atlas.imgs[2].save(OUT_A + "/enseignes3.png")
     T = defaultdict(list)
     for r in inst:
         T[(int(math.floor(r[10] / TILE)), int(math.floor(r[12] / TILE)))].append(r)
@@ -459,22 +665,30 @@ def main():
     print(dict(stats), len(inst), "instances,", len(T), "tuiles,", len(atlas.wide), "enseignes,", len(atlas.sq), "totems")
 
 
-def supermarket(k, a, b, L, tdir, nrm, gmin, eave, title, sub, bg, fg, font, style, atlas, inst, dem, free_box, used):
-    """Grande enseigne en haut de façade, vitrage et portes d'entrée sous un auvent, totem et abri à chariots."""
+def supermarket(k, a, b, L, tdir, nrm, gmin, eave, title, sub, bg, fg, font, style, atlas, inst, dem, free_box, used,
+                bard=(190, 192, 192), cad=(175, 178, 180), market=True):
+    """Grande surface : façade en bardage nervuré (couleur relevée sur la photo, sinon neutre), grande enseigne en haut
+    de façade, vitrage et portes d'entrée ; supermarché : auvent d'entrée, totem et abri à chariots."""
     w = min(L - 2.0, 24.0)
     t0 = (L - w) / 2
     used.append((k, t0, t0 + w))
     cen = a + tdir * (L / 2) + nrm * 0.04
     yb = float(dem.h(np.array([cen[0]]), np.array([cen[1]]))[0]) - 0.05
+    for i in range(int(L)):
+        m = a + tdir * (i + 0.5) + nrm * 0.03
+        ym = float(dem.h(np.array([m[0]]), np.array([m[1]]))[0]) - 0.1
+        inst.append(xf("bardage", (m[0], ym, m[1]), tdir, (1.0, eave - ym - 0.15, 1), c01(bard)))
     rect = atlas.wide_cell((title, None, bg, fg), title, None, bg, fg, font, style)
     sh = float(np.clip((eave - yb) * 0.32, 1.4, 2.6))
     sw = min(sh * 5.0, w)
     ys = max(yb + 3.6, eave - sh - 0.5)
     inst.append(xf("enseigne", (cen[0], ys, cen[1]), tdir, (sw, sh, 1.6), rect))
-    nv = int(min(w, 12))
+    nv = int(min(w, 12 if market else 8))
     for i in range(nv):
-        m = a + tdir * (L / 2 - nv / 2 + i + 0.5) + nrm * 0.03
-        inst.append(xf("porte" if nv // 2 - 1 <= i <= nv // 2 else "vitrine", (m[0], yb, m[1]), tdir))
+        m = a + tdir * (L / 2 - nv / 2 + i + 0.5) + nrm * 0.09
+        inst.append(xf("porte" if nv // 2 - 1 <= i <= nv // 2 else "vitrine", (m[0], yb, m[1]), tdir, custom=c01(cad)))
+    if not market:
+        return 1
     inst.append(xf("auvent", (cen[0], yb, cen[1]), tdir, custom=(bg[0] / 255, bg[1] / 255, bg[2] / 255, 1.0)))
     # totem et chariots devant, hors de l'emprise des routes et des bâtiments
     sq = atlas.square_cell((title, bg, fg), title, bg, fg, font, style)

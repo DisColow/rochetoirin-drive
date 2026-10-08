@@ -5,8 +5,9 @@ Placement logique (rien ne déborde sur la route, rien dans un bâtiment ni à t
    0,6 m des limites), hors des bâtiments et hors de l'emprise des routes ;
  - poubelles (verte, à couvercle jaune) : à côté du portail, à l'intérieur ;
  - tracteurs : près d'un grand bâtiment agricole, dans sa parcelle, hors des routes et des bâtiments.
-Modèles procéduraux (années 80 à 2000, comme dans un village de l'Isère) : citadine (Clio, 205), compacte (306,
-Mégane), break (Laguna, 406), ludospace (Kangoo, Berlingo), tracteur, poubelle.
+Voitures : modèles gratuits Sketchfab (fetch_voitures.py + blender_voitures.py : citadine, berline des années 80,
+berline, compacte ; crédits dans ⚙), à défaut modèles procéduraux (citadine, compacte, break, ludospace) ; tracteur et
+poubelle procéduraux.
 Sorties : ../godot/assets/props/*.glb ; ../godot/world/props/pp_tx_tz.bin : int32 n puis n × (type, x, y, z, cap, r, g, b)
 en float32 (couleur de la carrosserie)."""
 import hashlib, json, math, os, pickle, shutil
@@ -59,6 +60,9 @@ CARS = {
             top=[(0, 0.6), (0.06, 0.82), (0.75, 1.0), (1.25, 1.75), (1.45, 1.80), (3.9, 1.80), (3.98, 1.70), (4.0, 1.0)],
             ws=(0.78, 1.25), rw=(3.92, 3.99)),
 }
+
+# citadine et berline (carrosserie teintée par voiture) plus fréquentes que les deux modèles à carrosserie texturée
+CAR_MIX = [(1, 35), (2, 15), (3, 35), (4, 15)]
 
 
 def car(spec):
@@ -191,8 +195,13 @@ def bin_():
 
 def models():
     os.makedirs(OUT_A, exist_ok=True)
-    for t, spec in CARS.items():
-        write_glb("%s/car%d.glb" % (OUT_A, t), car(spec).prims(smooth=("paint", "glass")), "car%d" % t)
+    if os.path.exists("data/voitures_dims.json"):
+        # voitures : modèles gratuits (fetch_voitures.py + blender_voitures.py) ; gabarits de placement à leurs mesures
+        for t, d in json.load(open("data/voitures_dims.json")).items():
+            CARS[int(t)]["L"] = d["L"]; CARS[int(t)]["W"] = d["W"]
+    else:
+        for t, spec in CARS.items():
+            write_glb("%s/car%d.glb" % (OUT_A, t), car(spec).prims(smooth=("paint", "glass")), "car%d" % t)
     write_glb(OUT_A + "/tractor.glb", tractor().prims(smooth=()), "tractor")
     write_glb(OUT_A + "/bin.glb", bin_().prims(smooth=()), "bin")
 
@@ -215,7 +224,7 @@ def main():
     EDGE = Local([LineString(g.exterior.coords) for _, g in parcels])
     gates = json.load(open("data/fences_gates.json"))
     out = []
-    used = []
+    used = [g.buffer(0.5) for g in pickle.load(open("data/pools.pkl", "rb"))] if os.path.exists("data/pools.pkl") else []
 
     def free(box, inner=None):
         if ROAD.near(box, 0.0) or BLD.near(box, 0.0):
@@ -247,7 +256,7 @@ def main():
             continue
         inner = par[0].buffer(-0.6)
         if rnd(gi, "car") < 0.62:
-            typ = pick(gi, "type", [(1, 34), (2, 30), (3, 18), (4, 18)])
+            typ = pick(gi, "type", CAR_MIX)
             L = CARS[typ]["L"] + 0.2; W = CARS[typ]["W"] + 0.25
             for back in (1.2, 2.0, 3.0):
                 c = m + n * (back + L / 2)
@@ -259,7 +268,7 @@ def main():
                     out.append((typ, c[0], c[1], cap, col)); ncar += 1
                     # deuxième voiture à côté
                     if rnd(gi, "car2") < 0.22:
-                        typ2 = pick(gi, "type2", [(1, 40), (2, 30), (4, 30)])
+                        typ2 = pick(gi, "type2", CAR_MIX)
                         L2 = CARS[typ2]["L"] + 0.2
                         for side in (1, -1):
                             c2 = m + n * (back + L2 / 2) + t * side * (W + 0.6)
@@ -296,7 +305,7 @@ def main():
                 v = along if parallel else deep                       # capot : vers le fond de la place
                 if parallel and rnd(key, "dir") < 0.5:
                     v = -v
-                typ = pick(key, "type", [(1, 34), (2, 30), (3, 18), (4, 18)])
+                typ = pick(key, "type", CAR_MIX)
                 box = rect(ctr, v, CARS[typ]["L"] + 0.1, CARS[typ]["W"] + 0.1)
                 if ROAD.near(box, 0.0) or BLD.near(box, 0.0):
                     continue

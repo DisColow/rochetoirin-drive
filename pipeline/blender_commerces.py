@@ -5,7 +5,11 @@ Repère des modèles (après export glTF) : x le long de la façade, y en haut, 
 Sorties : ../godot/assets/shops/<nom>.glb
  - vitrine (module de 1 m), porte (1 m), enseigne (bandeau 1 × 1, face avant UV 0..1 -> case de l'atlas),
    banne (store de 1 m), croix (pharmacie), carotte (tabac), totem, ombriere (station-service), pompe,
-   abri_caddies, terrasse (table, chaises, parasol), auvent (entrée de supermarché)."""
+   abri_caddies, terrasse (table, chaises, parasol), auvent (entrée de supermarché) ;
+ - habillage des devantures d'après les photos Street View (couleur d'instance, matériau « bande ») : bandeau (planche
+   de 1 × 0,8 m au-dessus des vitrines), pilastre (montant de 3,8 m), coffre_rideau (coffre de rideau métallique de
+   1 m), porte_sectionnelle (porte d'atelier à lames, module de 1 × 3 m), bardage (panneau nervuré de 1 × 1 m des
+   grandes surfaces, mis à l'échelle de la façade)."""
 import math, os
 import bpy
 import bmesh
@@ -306,9 +310,61 @@ def auvent():
     export("auvent")
 
 
+def bandeau():
+    """Planche peinte au-dessus des vitrines (devanture en applique) : 1 m × 0,8 m, 8 cm d'épaisseur, corniche."""
+    reset()
+    b = mat("bande", (0.8, 0.1, 0.1), rough=0.5)
+    box("planche", (0, -0.04, 0.4), (1.0, 0.08, 0.8), b)
+    box("corniche", (0, -0.07, 0.83), (1.0, 0.14, 0.06), b)
+    box("filet", (0, -0.085, 0.04), (1.0, 0.03, 0.04), b)
+    export("bandeau")
+
+
+def pilastre():
+    """Montant de devanture en applique (30 cm × 3,8 m), base et chapiteau simples."""
+    reset()
+    b = mat("bande", (0.8, 0.1, 0.1), rough=0.5)
+    box("fut", (0, -0.06, 1.9), (0.3, 0.12, 3.8), b, bevel=0.01)
+    box("base", (0, -0.08, 0.15), (0.36, 0.16, 0.3), b, bevel=0.01)
+    box("chapiteau", (0, -0.09, 3.72), (0.38, 0.18, 0.16), b, bevel=0.01)
+    export("pilastre")
+
+
+def coffre_rideau():
+    """Coffre de rideau métallique (1 m), posé sous l'enseigne au-dessus d'une vitrine, glissières latérales."""
+    reset()
+    c = mat("coffre", (0.9, 0.9, 0.88), 0.2, 0.4)
+    box("coffre", (0, -0.16, 2.78), (1.0, 0.26, 0.3), c, bevel=0.015)
+    box("lame", (0, -0.03, 2.6), (1.0, 0.02, 0.06), mat("metal", (0.45, 0.46, 0.48), 0.6, 0.4))
+    export("coffre_rideau")
+
+
+def porte_sectionnelle():
+    """Porte d'atelier à lames horizontales (module de 1 × 3 m), dormant gris."""
+    reset()
+    b = mat("bande", (0.8, 0.1, 0.1), rough=0.45)
+    plane("tablier", (0, -0.04, 1.5), 1.0, 3.0, b)
+    for k in range(6):
+        box("lame", (0, -0.055, 0.25 + k * 0.5), (1.0, 0.03, 0.04), b)
+    box("linteau", (0, -0.07, 3.08), (1.0, 0.14, 0.16), mat("metal", (0.35, 0.36, 0.38), 0.6, 0.4))
+    box("seuil", (0, -0.08, 0.015), (1.0, 0.16, 0.03), mat("socle", (0.55, 0.53, 0.5), rough=0.8))
+    export("porte_sectionnelle")
+
+
+def bardage():
+    """Bardage métallique nervuré des grandes surfaces : panneau de 1 × 1 m (mis à l'échelle de la façade), 4 nervures."""
+    reset()
+    b = mat("bande", (0.8, 0.1, 0.1), rough=0.45)
+    plane("tole", (0, -0.03, 0.5), 1.0, 1.0, b)
+    for x in (-0.375, -0.125, 0.125, 0.375):
+        box("nervure", (x, -0.05, 0.5), (0.05, 0.04, 1.0), b)
+    export("bardage")
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
-    for f in (vitrine, porte, enseigne, lampes, banne, croix, carotte, totem, ombriere, pompe, abri_caddies, terrasse, auvent):
+    for f in (vitrine, porte, enseigne, lampes, banne, croix, carotte, totem, ombriere, pompe, abri_caddies, terrasse, auvent,
+              bandeau, pilastre, coffre_rideau, porte_sectionnelle, bardage):
         f()
 
 
