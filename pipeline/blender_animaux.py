@@ -121,16 +121,14 @@ def cheval():
 
 
 def cloture():
-    """Travée de clôture de pâture de 1 m (mise à l'échelle en jeu) : piquet bois à l'origine, 3 fils barbelés vers +x."""
+    """Travée de clôture de pâture de 1 m (étirée en jeu à la longueur de la travée) : 3 fils barbelés vers +x, en
+    deux brins torsadés assez épais pour rester visibles à l'écran, pointes tous les 25 cm. Le piquet est un modèle à
+    part (piquet), pour ne pas être élargi avec la travée."""
     reset()
-    wood = mat("piquet", (0.38, 0.28, 0.18), rough=0.9)
-    o = cyl("piquet", (0, 0, 0.62), 0.05, 1.3, wood, n=7)
-    # fils barbelés : deux brins torsadés (assez épais pour rester visibles à l'écran) et pointes tous les 25 cm
     fm = mat("fil", (0.5, 0.5, 0.52), 0.45, 0.6)
     for z in (0.45, 0.8, 1.12):
         for dy in (-0.006, 0.006):
-            w = cyl("fil", (0.5, dy, z + dy * 0.5), 0.0075, 1.0, fm, n=4)
-            w.rotation_euler = (0, math.radians(90), 0)
+            box("fil", (0.5, dy, z + dy * 0.5), (1.0, 0.013, 0.013), fm)
         for k in range(4):
             x = 0.125 + 0.25 * k
             box("fil", (x, 0, z), (0.012, 0.05, 0.012), fm)
@@ -138,9 +136,16 @@ def cloture():
     export("cloture")
 
 
+def piquet():
+    """Piquet de clôture en bois (Ø 10 cm, 1,3 m), posé au début de chaque travée."""
+    reset()
+    cyl("piquet", (0, 0, 0.62), 0.05, 1.3, mat("piquet", (0.38, 0.28, 0.18), rough=0.9), n=7)
+    export("piquet")
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
-    for f in (vache, mouton, cheval, cloture):
+    for f in (vache, mouton, cheval, cloture, piquet):
         f()
 
 

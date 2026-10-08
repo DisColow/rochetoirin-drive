@@ -5,7 +5,7 @@ extends Node3D
 const TILE := 256.0
 const Cells := preload("res://scripts/cells.gd")
 const VIEW := 450.0
-const MODELS := ["vache", "mouton", "cheval", "cloture"]
+const MODELS := ["vache", "mouton", "cheval", "cloture", "piquet"]
 
 var target: Node3D
 var tiles := {}
@@ -95,6 +95,8 @@ func _add(k: Vector2i) -> void:
 		if not by.has(m):
 			by[m] = []
 		by[m].append([xf, Color(f[o + 13], f[o + 14], f[o + 15], f[o + 16])])
+		if m == 4:
+			continue                     # piquet : la collision de la travée le couvre
 		var cs := CollisionShape3D.new()
 		var bs := BoxShape3D.new()
 		if m == 3:

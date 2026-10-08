@@ -6,8 +6,23 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v4.1.apk — retour de la voiture en 3D](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.1.apk)**
+**[RochetoirinSimulator-v4.2.apk — relief lisse, parkings, vrais champs de blé](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.2.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
+
+Nouveautés de la v4.2 :
+- **relief lisse** : fini les plateaux en escalier sur les pentes ; le relief vient désormais du LiDAR HD de l'IGN
+  (1 m, moyenné à 2 m) au lieu d'une grille de 5 m agrandie en marches ;
+- **parkings** : 515 parkings en enrobé, nivelés, avec **13 800 places marquées** (le long des allées, ou en rangées
+  quand aucune allée n'est cartographiée) et des voitures garées sur un tiers d'entre elles ;
+- **champs de blé** : une vraie nappe d'épis dorés qui suit le relief et s'arrête net au bord du champ, bordée d'épis
+  vus de côté, au lieu de rangées de « murs » sombres en dents de scie ;
+- **clôtures des prés** : les fils barbelés sont enfin visibles (ils étaient mal orientés) et les piquets sont fins ;
+- **sorties d'autoroute** : les glissières de l'autoroute et de la bretelle partent de l'absorbeur et forment le
+  triangle du musoir ;
+- **haies** sans les bosses (touffes) ; **plus de taches sombres** dans l'herbe des bas-côtés ;
+- **vue cockpit** : la caméra ne s'oriente plus au doigt (on ne sort plus du tableau de bord).
+
+[v4.1 — retour de la voiture en 3D](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.1.apk)
 
 Nouveautés de la v4.1 :
 - **la voiture est de nouveau affichée avec son modèle 3D** par défaut ; le sprite pixel art reste au choix dans ⚙.

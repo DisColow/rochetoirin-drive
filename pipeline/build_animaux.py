@@ -116,6 +116,7 @@ def main():
                 h = np.array([v[0], 0, v[2]]); h /= max(np.linalg.norm(h), 1e-6)
                 Z = (-h[2], 0.0, h[0])
                 out.append((3,) + X + Y + Z + (a[0], ya - 0.05, a[1], 0.0, 0.0, 0.0, 0.0))
+                out.append((4, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, a[0], ya - 0.05, a[1], 0.0, 0.0, 0.0, 0.0))
                 stats["travées"] += 1
     T = defaultdict(list)
     for r in out:

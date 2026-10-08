@@ -104,6 +104,7 @@ func _build(k: Vector2i) -> void:
 	var tk := Vector2i(floori(x0 / TILE), floori(z0 / TILE))
 	var buf := PackedFloat32Array()
 	var count := 0
+	var root := Node3D.new()
 	_rng.seed = hash(k)
 	for f in _tile_fields(tk):
 		if not f[3].intersects(rect):
@@ -112,20 +113,73 @@ func _build(k: Vector2i) -> void:
 		var part := _rows(f, t, f[1], SPACING[t] if t != 2 and t != 1 else 3.0, cellpoly)
 		buf.append_array(part)
 		count += part.size() / 16
-	if count == 0:
+		if t == 1 or t == 2:
+			var sh := _sheet(f, t, cellpoly)
+			if sh:
+				root.add_child(sh)
+	if count > 0:
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_custom_data = true
+		mm.mesh = quad
+		mm.instance_count = count
+		mm.buffer = buf
+		var node := MultiMeshInstance3D.new()
+		node.multimesh = mm
+		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(node)
+	if root.get_child_count() == 0:
+		root.free()
 		cells[k] = null
 		return
+	add_child(root)
+	cells[k] = root
+
+## Dessus d'un champ de céréales ou de feuillage dans une case : nappe découpée exactement au contour de la parcelle,
+## posée sur le relief par carrés de 4 m, à hauteur des épis (les bandes verticales ne font plus que la bordure).
+## Un seul exemplaire de MultiMesh pour garder les données d'instance du shader des cultures (ligne de l'atlas, teinte).
+func _sheet(f: Array, t: int, cellpoly: PackedVector2Array) -> MultiMeshInstance3D:
+	var hh: float = 0.85 if t == 1 else 0.75
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n := 0
+	var Q := 4.0
+	for poly in Geometry2D.intersect_polygons(f[2], cellpoly):
+		var r := Rect2(poly[0], Vector2.ZERO)
+		for p in poly:
+			r = r.expand(p)
+		for gx in range(floori(r.position.x / Q), ceili(r.end.x / Q)):
+			for gz in range(floori(r.position.y / Q), ceili(r.end.y / Q)):
+				var sq := PackedVector2Array([Vector2(gx * Q, gz * Q), Vector2(gx * Q + Q, gz * Q), Vector2(gx * Q + Q, gz * Q + Q), Vector2(gx * Q, gz * Q + Q)])
+				for piece in Geometry2D.intersect_polygons(sq, poly):
+					if Geometry2D.is_polygon_clockwise(piece):
+						piece.reverse()
+					var hs := []
+					for v in piece:
+						var y: float = terrain.data.get_height(Vector3(v.x, 0, v.y))
+						hs.append(0.0 if is_nan(y) else y + hh)
+					for i in range(1, piece.size() - 1):
+						for j in [0, i, i + 1]:              # sens des faces vues du dessus (sinon normale retournée)
+							var v: Vector2 = piece[j]
+							st.set_normal(Vector3.UP)
+							st.set_uv(Vector2(v.x / 3.0, v.y))
+							st.add_vertex(Vector3(v.x, hs[j], v.y))
+							n += 1
+	if n == 0:
+		return null
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_custom_data = true
-	mm.mesh = quad
-	mm.instance_count = count
-	mm.buffer = buf
-	var node := MultiMeshInstance3D.new()
-	node.multimesh = mm
-	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(node)
-	cells[k] = node
+	st.generate_tangents()                # relief de texture (normal map) du shader des cultures
+	mm.mesh = st.commit()
+	mm.instance_count = 1
+	mm.set_instance_transform(0, Transform3D.IDENTITY)
+	mm.set_instance_custom_data(0, Color((t + 3) / 6.0, _rng.randf(), 1.0, -1.0))
+	var mi := MultiMeshInstance3D.new()
+	mi.multimesh = mm
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
 
 ## Rangs d'une parcelle dans une case : droites parallèles à d, espacées de sp ; bandes de 3 m sur le relief.
 func _rows(f: Array, t: int, d: Vector2, sp: float, cellpoly: PackedVector2Array) -> PackedFloat32Array:
@@ -161,6 +215,8 @@ func _rows(f: Array, t: int, d: Vector2, sp: float, cellpoly: PackedVector2Array
 						buf.append_array([dd.x * w, 0.0, nn.x, m.x, 0.0, h, 0.0, y - 0.05, dd.y * w, 0.0, nn.y, m.y,
 							t / 6.0, _rng.randf(), 1.0, h])
 		for poly in clipped:
+			if t == 1 or t == 2:
+				break                            # dessus : _sheet
 			for kk in range(ceili(tmin / sp), floori(tmax / sp) + 1):
 				var off := kk * sp
 				var line := PackedVector2Array([nrm * off + d * (smin - 1.0), nrm * off + d * (smax + 1.0)])
@@ -183,14 +239,7 @@ func _rows(f: Array, t: int, d: Vector2, sp: float, cellpoly: PackedVector2Array
 						var slope := 0.0 if is_nan(ya) or is_nan(yb) else (yb - ya) * signf(dn.dot(d))
 						var h: float = HEIGHT[t] * _rng.randf_range(0.92, 1.06)
 						if t == 2 or t == 1:
-							# nappe horizontale (bande de 3 m × sp) à hauteur des épis / du feuillage : un champ de blé se
-							# voit de dessus depuis la route (les rangs verticaux faisaient des murs sombres en dents de scie)
-							var hh: float = (0.85 if t == 1 else 0.75) * _rng.randf_range(0.95, 1.05)
-							# axes (rang, -travers, haut) : repère direct, la face visible regarde vers le haut
-							var c0 := m + nrm * sp * 0.5
-							buf.append_array([d.x * w, -nrm.x * sp, 0.0, c0.x, 0.0, 0.0, 1.0, y + hh, d.y * w, -nrm.y * sp, 0.0, c0.y,
-								(t + 3) / 6.0, _rng.randf(), _rng.randf_range(0.9, 1.06), -1.0])
-							continue
+							continue                     # dessus du champ : _sheet (nappe découpée au contour)
 						# transformation : x = rang (largeur w), y = hauteur, z = travers (1 m)
 						var bx := Vector3(d.x, 0, d.y) * w
 						var bz := Vector3(nrm.x, 0, nrm.y)
