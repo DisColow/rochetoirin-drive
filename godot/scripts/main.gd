@@ -646,18 +646,36 @@ func _physics_process(_dt: float) -> void:
 			get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--void-test"):
-		# essai du gardien : voiture lâchée dans le vide, loin au-delà de la limite (il doit dire « HA ! » et tirer)
-		car.touch_throttle = 0.0
+		# essai du gardien : voiture posée sur le relief juste avant le bord de la carte, en roulant vers le vide
+		# (la soucoupe doit attendre qu'elle tombe, puis la ramener sur une route)
+		car.touch_throttle = 1.0 if t > 500 else 0.0
 		if t == 240:
 			var cp := Vector2(car.global_position.x, car.global_position.z)
 			var nr: Array = guardian._nearest(cp)
 			var q: Vector2 = nr[0]
 			var out := (q - cp).normalized()
-			var p := q + out * 420.0
-			car.place(Vector3(p.x, car.global_position.y + 60.0, p.y), 0.0)
-			print("lâchée hors carte en ", car.global_position, " distance à la limite ", guardian._nearest(p)[1])
+			var p := q
+			var h := 0.0
+			for k in 400:
+				var hh: float = terrain.data.get_height(Vector3(p.x, 0, p.y))
+				if is_nan(hh):
+					break
+				h = hh
+				p += out * 4.0
+			p -= out * 40.0
+			h = terrain.data.get_height(Vector3(p.x, 0, p.y))
+			car.place(Vector3(p.x, h + 1.0, p.y), rad_to_deg(atan2(out.x, -out.y)))
+			car.hold(2.0)                               # collisions du relief générées autour de la caméra
+			if cam_rig and cam_rig.has_method("snap"):
+				cam_rig.snap()
+			print("posée avant le vide en ", car.global_position, " distance à la limite ", guardian._nearest(p)[1])
+		if t > 240 + 120 * 40:
+			get_tree().quit()
+		if OS.get_cmdline_user_args().has("--snap") and t > 240 and t % 120 == 0:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/ovni_%02d.png" % ((t - 240) / 120))
 		if t > 240 and t % 30 == 0:
-			print("  t=%.2f état=%s y=%.1f soufflée=%s" % [t / 120.0, guardian.state, car.global_position.y, car.blown])
+			print("  t=%.2f état=%s pos=%s portée=%s" % [t / 120.0, guardian.state, car.global_position.snapped(Vector3.ONE), car.carried])
 		return
 	if OS.get_cmdline_user_args().has("--flip-test"):
 		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
@@ -677,7 +695,7 @@ func _physics_process(_dt: float) -> void:
 	if OS.get_cmdline_user_args().has("--snap") and t % 60 == 0:
 		DirAccess.make_dir_recursive_absolute("user://shots")
 		get_viewport().get_texture().get_image().save_png("user://shots/snap_%03d.png" % (t / 60))
-		print("  snap %d gardien=%s charge=%.2f voiture visible=%s pos=%s" % [t / 60, guardian.state, guardian._charge, not car.blown, car.global_position.snapped(Vector3.ONE)])
+		print("  snap %d gardien=%s éveil=%.2f portée=%s pos=%s" % [t / 60, guardian.state, guardian._charge, car.carried, car.global_position.snapped(Vector3.ONE)])
 	if t % 120 == 0:
 		print("t=%.0fs pos=%s v=%.0f km/h avant=%.1f roues au sol=%d" % [t / 120.0, car.global_position.snapped(Vector3(0.1, 0.1, 0.1)), car.kmh(), car.forward_speed(), car.wheels.filter(func(w): return w.is_in_contact()).size()])
 	if t > dur + 600:

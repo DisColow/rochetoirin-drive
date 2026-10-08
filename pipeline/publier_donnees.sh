@@ -8,7 +8,7 @@ export GIT_INDEX_FILE=$(mktemp -u)
 L=""
 for d in world terrain assets/terrain_tex assets/tex assets/sky.hdr assets/sky.hdr.import assets/car \
   assets/terrain_assets.tres assets/bld assets/veg assets/fence assets/sfx assets/cockpit assets/props \
-  assets/shops assets/sport assets/animaux assets/autoroute assets/maisons models/goku_*.png models/goku_*.png.import; do
+  assets/shops assets/sport assets/animaux assets/autoroute assets/maisons assets/ufo; do
   [ -e "$d" ] && L="$L $d"
 done
 git --work-tree=. add -f $L

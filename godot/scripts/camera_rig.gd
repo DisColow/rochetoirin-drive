@@ -15,6 +15,7 @@ var yaw_off := 0.0
 var pitch_off := 0.0
 var _drag := {}
 var _idle := 0.0
+var _carry := 0.0                 # 0 à 1 : plan large quand la soucoupe porte la voiture
 
 func _input(e: InputEvent) -> void:
 	if e is InputEventScreenTouch:
@@ -78,7 +79,12 @@ func _process(dt: float) -> void:
 	if mode == 0:
 		var flat := Vector3(fwd.x, 0, fwd.z).normalized().rotated(Vector3.UP, yaw_off)
 		var want := t.origin - flat * 7.2 * cos(pitch_off) + Vector3(0, 2.6 + 7.2 * sin(pitch_off), 0)
-		var k := 1.0 - exp(-dt * 5.0)
+		# voiture portée par la soucoupe : plan large, un peu en contrebas, voiture et soucoupe dans le cadre
+		_carry = move_toward(_carry, 1.0 if target.carried else 0.0, dt * 0.8)
+		var c := _carry * _carry * (3.0 - 2.0 * _carry)
+		if c > 0.0:
+			want = want.lerp(t.origin - flat * 19.0 + Vector3(0, 1.0, 0), c)
+		var k := 1.0 - exp(-dt * lerpf(5.0, 14.0, c))
 		_pos = _pos.lerp(want, k)
 		# bras à ressort : la caméra ne traverse ni murs, ni haies, ni relief (rayon depuis le toit de la voiture)
 		var head := t.origin + Vector3(0, 1.5, 0)
@@ -88,7 +94,8 @@ func _process(dt: float) -> void:
 		if not hit.is_empty():
 			var hp: Vector3 = hit.position
 			_pos = head + (hp - head) * maxf(0.0, 1.0 - 0.45 / maxf((hp - head).length(), 0.01))
-		_look = _look.lerp(t.origin + Vector3(0, 1.2, 0) + flat * 3.0, 1.0 - exp(-dt * 10.0)) if _look != Vector3.ZERO else t.origin
+		var look_at := (t.origin + Vector3(0, 1.2, 0) + flat * 3.0).lerp(t.origin + Vector3(0, 5.0, 0), c)
+		_look = _look.lerp(look_at, 1.0 - exp(-dt * 10.0)) if _look != Vector3.ZERO else t.origin
 		cam.global_position = _pos
 		cam.look_at(_look, Vector3.UP)
 		cam.fov = lerpf(cam.fov, 62.0 + clampf(target.kmh() / 8.0, 0.0, 12.0), 1.0 - exp(-dt * 2.0))

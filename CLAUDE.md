@@ -37,11 +37,11 @@
   `build_fences.py` (clôtures : relevé `clotures_bourg.json` ; contrôle « rien sur la route » doit donner 0),
   `fetch_water.py`, `build_water.py` (eau ; à lancer avant `prepare_terrain.py`, qui creuse le terrain dessous),
   `build_ground.py` (carte de l'herbe, après `prepare_terrain.py` ; les ombres douces du terrain viennent de son
-  `ao_region`), `build_grass_tex.py`, `build_zone.py` (limite de la carte pour le gardien), `build_sfx.py` (sons de
-  synthèse), `fetch_power.py`, `build_poles.py` (pylônes, poteaux, fils, lampadaires), `build_cockpit.py` (vue cockpit en pixel art), `build_props.py`
+  `ao_region`), `build_grass_tex.py`, `build_zone.py` (limite de la carte pour le gardien), `fetch_ufo.py` + `blender_ufo.py` (soucoupe du gardien),
+  `build_sfx.py` (sons de synthèse), `fetch_power.py`, `build_poles.py` (pylônes, poteaux, fils, lampadaires), `build_cockpit.py` (vue cockpit en pixel art), `build_props.py`
   (voitures garées, poubelles, tracteurs ; après `build_fences.py`, qui fournit les portails), `fetch_shops.py`,
   `build_shops.py` (commerces, marques parodiées), `fetch_sport.py`, `build_sport.py`, `fetch_animaux.py` + `blender_animaux_import.py` (vache, mouton, cheval : modèles Sketchfab CC BY, crédits dans ⚙), `build_animaux.py` (prés pâturés
-  et clôtures), `fetch_autoroute.py`, `build_autoroute.py`, `build_voix.py` (voix du gardien, Piper), `build_haie_tex.py` (feuilles des touffes de haie),
+  et clôtures), `fetch_autoroute.py`, `build_autoroute.py`, `build_haie_tex.py` (feuilles des touffes de haie),
   `build_car_sprite_ia.py` (voiture en sprite d'après la planche de l'utilisateur `sources/espace_sprites.jpg` ;
   l'ancien `build_car_sprite.py` + `blender_sprite.py` reste possible) ; sons enregistrés dans `pipeline/sources/` ;
   modèles Blender (module bpy dans un venv) : `blender_commerces.py`, `blender_sport.py`, `blender_animaux.py`,
@@ -74,7 +74,11 @@
   session. Lien : `https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/<apk>`.
 - Rendu Mobile (Vulkan) essayé en v2.8 : moins joli que Compatibility sur le téléphone de l'utilisateur, abandonné.
 - Captures de contrôle : `xvfb-run godot --path godot -- --shots=<json>` ; essai de conduite : `-- --drive-test`.
-- Gardien des limites : modèle `godot/models/goku.glb` fourni par l'utilisateur (« Goku (Rigged & Animated) » de Kari,
-  CC BY 4.0) ; crédits dans ⚙ > Crédits (`hud.gd`, `CREDITS`) : y ajouter toute nouvelle ressource sous licence.
+- Gardien des limites (`scripts/guardian.gd`) : soucoupe volante « UFO » de sebslom (Sketchfab, CC BY 4.0 ;
+  `fetch_ufo.py` + `blender_ufo.py` -> `assets/ufo/ufo.glb`), rayon tracteur qui ramène la voiture sur la route
+  (`car.carried`) ; essai : `-- --drive-test --void-test [--snap]`. Crédits dans ⚙ > Crédits (`hud.gd`, `CREDITS`) : y ajouter toute nouvelle ressource sous licence.
+- **Modèles 3D : toujours privilégier les modèles gratuits trouvables en ligne** (Sketchfab CC BY/CC0 via
+  SKETCHFAB_TOKEN, Poly Haven, Kenney, Quaternius…, crédités dans ⚙ > Crédits) plutôt que de modéliser soi-même ; ne
+  modéliser (Blender, procédural) qu'à défaut de modèle convenable.
 - **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
   souples, pas d'à-coups de chargement).

@@ -2,7 +2,9 @@
  - charge.wav : bourdonnement d'énergie qui monte, en boucle (gardien qui charge son attaque)
  - vague.wav  : souffle de la vague d'énergie (grondement + sifflement descendant)
  - boum.wav   : explosion (choc grave + souffle bruité qui décroît)
- - pluie.wav  : pluie sur la carrosserie, en boucle (bruissement + gouttes)"""
+ - pluie.wav  : pluie sur la carrosserie, en boucle (bruissement + gouttes)
+ - soucoupe.wav : vrombissement de la soucoupe du gardien, en boucle (bourdon grave qui ondule + tintement aigu)
+ - rayon.wav    : rayon tracteur, en boucle (accords scintillants qui montent, souffle)"""
 import os, wave
 import numpy as np
 
@@ -66,7 +68,29 @@ def main():
     env = lambda tt: np.minimum(1, tt * 400) * np.minimum(1, (tt[-1] - tt) * 300)
     b = np.r_[np.sin(2 * np.pi * 1046 * t1) * env(t1), np.zeros(int(SR * 0.05)), np.sin(2 * np.pi * 1568 * t2) * env(t2)]
     save("bip", b * 0.5)
+    soucoupe()
     print("sons :", os.listdir(OUT))
+
+
+def soucoupe():
+    # 4 s bouclables : les fréquences sont des multiples de 1/4 Hz, les modulations aussi (raccord sans clic)
+    T = 4.0; t = np.arange(int(SR * T)) / SR
+    wob = np.sin(2 * np.pi * 1.5 * t)
+    hum = sum(np.sin(2 * np.pi * 55 * k * t + 0.6 * k * wob) / k for k in (1, 2, 3, 4, 6))
+    ring = np.sin(2 * np.pi * 660 * t + 3 * np.sin(2 * np.pi * 0.5 * t)) * 0.12 * (0.6 + 0.4 * np.sin(2 * np.pi * 0.25 * t))
+    save("soucoupe", hum * (0.8 + 0.2 * np.sin(2 * np.pi * 3 * t)) + ring)
+    # rayon : arpèges scintillants (thérémine) qui montent en boucle, sur un souffle doux
+    T = 4.0; n = int(SR * T); t = np.arange(n) / SR
+    x = np.zeros(n)
+    for k, f0 in enumerate((440, 554, 659, 880)):
+        ph = 2 * np.pi * np.cumsum(f0 * (1 + 0.5 * ((t * 2 + k * 0.25) % 1))) / SR
+        x += np.sin(ph) * (0.5 + 0.5 * np.sin(2 * np.pi * (2 * t + k * 0.25))) * 0.25
+    vib = np.sin(2 * np.pi * 7 * t)
+    x += np.sin(2 * np.pi * 220 * t + 2 * vib) * 0.3
+    air = rng.normal(0, 1, n); air = lowpass(air - lowpass(air, 0.05), 0.4) * 0.25
+    f = int(SR * 0.3); w = np.linspace(0, 1, f)
+    x[:f] = x[:f] * w + x[-f:] * (1 - w)
+    save("rayon", x + air)
 
 
 def pluie_orage(src="sources/pluie_orage.mp3", T=90.0, F=6.0):

@@ -53,13 +53,12 @@ func _ready() -> void:
 
 var settings: Control
 
-const CREDITS := """Gardien : « Goku (Rigged & Animated) » par Kari (sketchfab.com/3d-models), licence CC BY 4.0.
+const CREDITS := """Soucoupe du gardien : « UFO » par sebslom (sketchfab.com/3d-models), licence CC BY 4.0.
 Pluie et orage : Sound Effect by Premankur Adhikary from Pixabay.
 Arbres : modèles Sketchfab (licences CC BY / CC0, auteurs listés dans le dépôt).
 Animaux (Sketchfab, licence CC BY 4.0) : « Cow » par JosueBoisvert, « Sheep » par kenchoo, « Horse Rigged (Game Ready) » par abhayexe.
 Textures : Poly Haven et ambientCG (CC0).
 Données : © les contributeurs d'OpenStreetMap (ODbL) ; IGN (BD TOPO, RGE ALTI, LiDAR HD, BD ORTHO, Licence Ouverte Etalab).
-Voix du gardien : Piper, voix française « tom ».
 Modèles des commerces, équipements, haies, maisons, clôtures et sprite de la voiture : faits avec Blender pour le jeu."""
 
 ## Message bref au centre de l'écran (péage…), qui s'efface tout seul.

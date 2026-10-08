@@ -6,7 +6,7 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v4.5.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.5.apk)**
+**[RochetoirinSimulator-v4.6.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.6.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -14,6 +14,16 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v4.6 :
+- **le gardien des limites devient une soucoupe volante** (« UFO » de sebslom, Sketchfab, CC BY 4.0, crédité dans ⚙ >
+  Crédits) : elle plane au-delà de la limite en tournant lentement, s'approche et allume ses feux (on l'entend vrombir)
+  quand la voiture arrive au bord de la carte, puis la suit si l'on roule au-delà ; elle n'intervient que lorsque la
+  voiture **commence à tomber hors de la carte** : elle la saisit dans son **rayon tracteur** vert, la soulève, l'emporte
+  au-dessus du pays (la caméra recule pour montrer la scène) et la repose en douceur sur la route la plus proche, tournée
+  vers l'intérieur de la carte. Plus d'explosion, on repart aussitôt.
+
+[v4.5 — versions Windows et Steam Deck](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.5.apk)
 
 Nouveautés de la v4.5 :
 - **versions Windows et Steam Deck** construites automatiquement par GitHub Actions à chaque nouvelle version

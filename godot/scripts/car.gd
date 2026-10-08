@@ -272,6 +272,8 @@ func _materials(root: Node) -> void:
 
 var _body: Node3D
 var blown := false
+## Portée par le rayon tracteur du gardien : position tenue par lui, plus de conduite ni de remise sur la route.
+var carried := false
 
 ## Ombre de contact posée sur le sol (rayon vers le bas), estompée quand la voiture décolle.
 func _place_blob() -> void:
@@ -381,6 +383,9 @@ func forward_speed() -> float:
 func _physics_process(dt: float) -> void:
 	if blown:
 		return
+	if carried:
+		_place_blob()
+		return
 	_place_blob()
 	if _hold_t > 0.0:
 		_hold_t -= dt
@@ -478,6 +483,8 @@ func _recovery(dt: float) -> void:
 
 ## Remise sur la route la plus proche, dans le sens de la voie le plus proche de celui de la voiture.
 func reset_to_road() -> void:
+	if carried:
+		return
 	var p := global_position
 	if not p.is_finite():
 		p = safe[-1].origin if safe.size() > 0 else Vector3.ZERO
