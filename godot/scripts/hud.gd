@@ -121,6 +121,24 @@ func _open_settings() -> void:
 			for c in hw.get_children():
 				c.button_pressed = c == b)
 		hw.add_child(b)
+	# voiture : sprite pixel art ou modèle 3D
+	var lc := Label.new(); lc.text = "Voiture"; lc.add_theme_font_size_override("font_size", 30); v.add_child(lc)
+	var hc := HBoxContainer.new(); hc.add_theme_constant_override("separation", 16); v.add_child(hc)
+	var car_node = main_node.car
+	for opt in [["sprite", "Sprite pixel art"], ["3d", "Modèle 3D"]]:
+		var b := Button.new()
+		b.text = opt[1]
+		b.toggle_mode = true
+		b.button_pressed = (opt[0] == "sprite") == car_node.sprite_mode
+		b.custom_minimum_size = Vector2(340, 70)
+		b.add_theme_font_size_override("font_size", 30)
+		b.pressed.connect(func():
+			car_node.set_sprite_mode(opt[0] == "sprite")
+			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+			cfg.set_value("affichage", "voiture", opt[0]); cfg.save("user://reglages.cfg")
+			for c in hc.get_children():
+				c.button_pressed = c == b)
+		hc.add_child(b)
 	var note := Label.new(); note.text = "Moins de végétation = jeu plus fluide sur les téléphones modestes."
 	note.add_theme_font_size_override("font_size", 22); note.modulate = Color(1, 1, 1, 0.7); v.add_child(note)
 	var close := Button.new(); close.text = "Fermer"; close.custom_minimum_size = Vector2(0, 76)

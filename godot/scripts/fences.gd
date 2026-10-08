@@ -9,6 +9,11 @@ const TILE := 256.0
 const VIEW := 520.0
 const VIEW_CUT := 300.0
 const COLL := 160.0
+const CELL := 32.0             # touffes de haie regroupées par cases de 32 m
+const TOUFFE_VIEW := 110.0
+const TOUFFE_STEP := 0.7
+var touffes := []              # maillages Blender (blender_haies.py) : thuya, laurier, photinia, champêtre
+var mat_touffe: ShaderMaterial
 enum { HEDGE = 1, WALL, PANEL, POSTS, BOX, COLL_REC }
 const F_CAPS := 1
 const F_VFULL := 2
@@ -52,6 +57,16 @@ func _ready() -> void:
 		m.set_shader_parameter("albedo_tex", alb)
 		m.set_shader_parameter("normal_tex", nrm)
 	mat_cut.set_shader_parameter("cut", true)
+	# touffes de feuillage des haies (modèles Blender, texture build_haie_tex.py)
+	if ResourceLoader.exists("res://assets/fence/touffe_thuya.glb"):
+		for e in ["thuya", "laurier", "photinia", "champetre"]:
+			var sc: Node = (load("res://assets/fence/touffe_%s.glb" % e) as PackedScene).instantiate()
+			touffes.append((sc.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D).mesh)
+			sc.free()
+		mat_touffe = ShaderMaterial.new()
+		mat_touffe.shader = preload("res://scripts/haie_touffe.gdshader")
+		mat_touffe.set_shader_parameter("leaves", load("res://assets/fence/feuilles.png"))
+		preload("res://scripts/env.gd").add(mat_touffe)
 
 func _exit_tree() -> void:
 	for k in tasks:
@@ -145,6 +160,26 @@ func _finish(k: Vector2i) -> void:
 		mi.visibility_range_end_margin = 60.0
 		mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 		root.add_child(mi)
+	if r.size() > 3 and touffes.size() == 4:
+		var cl: Dictionary = r[3]
+		for key in cl:
+			var buf := PackedFloat32Array(cl[key])
+			var mm := MultiMesh.new()
+			mm.transform_format = MultiMesh.TRANSFORM_3D
+			mm.use_colors = true
+			mm.mesh = touffes[key.x]
+			mm.instance_count = buf.size() / 16
+			mm.buffer = buf
+			var mi := MultiMeshInstance3D.new()
+			mi.multimesh = mm
+			mi.material_override = mat_touffe
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			# visibilité de la case de 32 m (et non de la tuile entière) : touffes près de la caméra seulement
+			mi.position = Vector3((key.y + 0.5) * CELL, 0, (key.z + 0.5) * CELL)
+			mi.visibility_range_end = TOUFFE_VIEW
+			mi.visibility_range_end_margin = 20.0
+			mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			root.add_child(mi)
 	add_child(root)
 	loaded[k] = root
 	colfaces[k] = r[2]
@@ -219,6 +254,7 @@ func _build(k: Vector2i, a: PackedFloat32Array) -> void:
 	var op := _surf()
 	var cut := _surf()
 	var col := PackedVector3Array()
+	var cl := {}                 # (essence, case de 32 m) -> PackedFloat32Array des instances de touffes
 	var o := 0
 	while o + 16 <= a.size():
 		var typ := int(a[o]); var n := int(a[o + 1])
@@ -233,14 +269,16 @@ func _build(k: Vector2i, a: PackedFloat32Array) -> void:
 			P[i] = Vector3(a[q], a[q + 1], a[q + 2])
 		o += 16 + n * 3
 		match typ:
-			HEDGE: _hedge(op, cut, P, layer, layer2, h1, w, tint, seed)
+			HEDGE:
+				_hedge(op, cut, P, layer, layer2, h1, w, tint, seed)
+				_touffes(cl, P, int(layer), h1, w, tint, seed)
 			WALL: _wall(op, P, layer, h0, h1, w, tint, flags & F_CAPS != 0)
 			PANEL: _panel(cut if flags & F_CUT else op, P, layer, h0, h1, w, tint, flags)
 			POSTS: _posts(op, P, layer, h0, h1, w, extra, tint)
 			BOX: _box(op, P[0], Vector3(t2.x, 0, t2.y), w, extra, h0, h1, layer, tint)
 			COLL_REC: _coll(col, P, h1)
 	mutex.lock()
-	results[k] = [op, cut, col]
+	results[k] = [op, cut, col, cl]
 	mutex.unlock()
 
 func _hedge(S: Dictionary, C: Dictionary, P: PackedVector3Array, layer: float, bord: float, h: float, w: float, tint: Color, seed: float) -> void:
@@ -414,3 +452,50 @@ static func _coll(col: PackedVector3Array, P: PackedVector3Array, h: float) -> v
 		var a := P[i] - Vector3(0, 0.3, 0); var b := P[i + 1] - Vector3(0, 0.3, 0)
 		var a2 := P[i] + Vector3(0, h, 0); var b2 := P[i + 1] + Vector3(0, h, 0)
 		col.append_array([a, b, b2, a, b2, a2])
+
+## Touffes de feuillage sur une haie : dessus et deux rangs sur chaque flanc, tous les 0,7 m (jitter déterministe),
+## orientées vers l'extérieur, teinte de la haie ; regroupées par essence et par case de 32 m (positions relatives).
+func _touffes(cl: Dictionary, P: PackedVector3Array, ess: int, h: float, w: float, tint: Color, seed: float) -> void:
+	if touffes.size() != 4 or ess < 0 or ess > 3 or P.size() < 2:
+		return
+	var fr := _frame(P)
+	var lat: PackedVector3Array = fr[0]; var s: PackedFloat32Array = fr[1]
+	var L: float = s[s.size() - 1]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(seed * 1000.0) + P.size() * 7919
+	var i := 0
+	var x := rng.randf() * TOUFFE_STEP
+	while x < L:
+		while i < s.size() - 2 and s[i + 1] < x:
+			i += 1
+		var f := (x - s[i]) / maxf(s[i + 1] - s[i], 1e-4)
+		var c := P[i].lerp(P[i + 1], f)
+		var lv := lat[i].lerp(lat[i + 1], f).normalized()
+		var ph := x * 0.9 + seed
+		var kw := 1.0 + 0.07 * sin(ph) + 0.04 * sin(ph * 2.7 + 1.0)
+		var kh := 1.0 + 0.05 * sin(ph * 0.6 + 2.0)
+		var spots := [[Vector3.UP, c + lv * (rng.randf_range(-0.22, 0.22) * w) + Vector3(0, h * kh - 0.12, 0)]]
+		for sd in [-1.0, 1.0]:
+			for hf in [0.38, 0.74]:
+				var hh: float = h * kh * (float(hf) + rng.randf_range(-0.08, 0.08))
+				var bulge: float = 0.5 if float(hf) > 0.3 else 0.45
+				spots.append([lv * float(sd), c + lv * (float(sd) * (bulge * w * kw - 0.06)) + Vector3(0, hh, 0)])
+		for sp in spots:
+			var nrm: Vector3 = (sp[0] as Vector3 + Vector3(rng.randf_range(-0.25, 0.25), rng.randf_range(-0.1, 0.25), rng.randf_range(-0.25, 0.25))).normalized()
+			var ax := nrm.cross(Vector3(0.31, 0.83, 0.47)).normalized()
+			var a := rng.randf() * TAU
+			var bx := nrm.cross(ax)
+			var X := ax * cos(a) + bx * sin(a)
+			var Y := nrm.cross(X)
+			var sc := clampf(w, 0.7, 1.4) * rng.randf_range(0.85, 1.2)
+			var p: Vector3 = sp[1]
+			var key := Vector3i(ess, floori(p.x / CELL), floori(p.z / CELL))
+			var o := Vector3((key.y + 0.5) * CELL, 0, (key.z + 0.5) * CELL)
+			if not cl.has(key):
+				cl[key] = []
+			var b: Array = cl[key]
+			var q := p - o
+			X *= sc; Y *= sc; var Z := nrm * sc
+			var v := rng.randf_range(0.85, 1.12)
+			b.append_array([X.x, Y.x, Z.x, q.x, X.y, Y.y, Z.y, q.y, X.z, Y.z, Z.z, q.z, tint.r * v, tint.g * v, tint.b * v, 1.0])
+		x += TOUFFE_STEP * rng.randf_range(0.8, 1.2)

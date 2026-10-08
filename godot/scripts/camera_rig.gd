@@ -50,6 +50,8 @@ func cycle() -> void:
 
 func set_mode(m: int) -> void:
 	mode = m
+	if target and target.has_method("set_view_mode"):
+		target.set_view_mode(m)
 	if cockpit:
 		cockpit.eye = eye
 		cockpit.set_active(mode == 1)

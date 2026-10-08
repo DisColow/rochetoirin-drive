@@ -90,6 +90,97 @@ func _ready() -> void:
 	blob.position = Vector3(0, 0.05, 0)
 	add_child(blob)
 	_blob = blob
+	_make_sprite()
+
+## ---------------------------------------------------------------- voiture en sprite pixel art
+## Atlas précalculé (blender_sprite.py + build_car_sprite.py) : la vue est choisie selon la direction de la caméra
+## dans le repère de la voiture (32 angles × 4 hauteurs) et le braquage ; la caisse 3D ne fait plus que son ombre.
+var sprite_mode := true
+var view_mode := 0                   # mode de caméra (0 poursuite) : le sprite ne sert qu'en vue extérieure
+var _sprite: MeshInstance3D
+var _sprite_mat: ShaderMaterial
+var _sp := {}
+
+func _make_sprite() -> void:
+	if not FileAccess.file_exists("res://assets/car/sprite.json"):
+		sprite_mode = false
+		return
+	_sp = JSON.parse_string(FileAccess.get_file_as_string("res://assets/car/sprite.json"))
+	var qm := QuadMesh.new()
+	qm.size = Vector2(_sp.size[0], _sp.size[1])
+	_sprite_mat = ShaderMaterial.new()
+	_sprite_mat.shader = preload("res://scripts/car_sprite.gdshader")
+	_sprite_mat.set_shader_parameter("atlas", load("res://assets/car/sprite.png"))
+	_sprite_mat.set_shader_parameter("feux", load("res://assets/car/sprite_feux.png"))
+	_sprite_mat.set_shader_parameter("grid", Vector2(_sp.cols, _sp.rows))
+	preload("res://scripts/env.gd").add(_sprite_mat)
+	_sprite = MeshInstance3D.new()
+	_sprite.mesh = qm
+	_sprite.material_override = _sprite_mat
+	_sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_sprite.extra_cull_margin = 6.0
+	_sprite.position = Vector3(0, float(_sp.center_y), 0)
+	add_child(_sprite)
+	var cfg := ConfigFile.new()
+	if cfg.load("user://reglages.cfg") == OK:
+		sprite_mode = str(cfg.get_value("affichage", "voiture", "sprite")) == "sprite"
+	_apply_sprite()
+
+func set_sprite_mode(on: bool) -> void:
+	sprite_mode = on and _sprite != null
+	_apply_sprite()
+
+func set_view_mode(m: int) -> void:
+	view_mode = m
+	_apply_sprite()
+
+func _apply_sprite() -> void:
+	if _sprite == null:
+		return
+	var on := sprite_mode and view_mode == 0 and not blown
+	_sprite.visible = on
+	if view_mode == 1:
+		return                       # vue conducteur : set_cockpit gère la caisse
+	var mode := GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY if on else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	for n in _body.find_children("*", "MeshInstance3D", true, false):
+		n.cast_shadow = mode
+	for w in wheels:
+		for n in w.find_children("*", "MeshInstance3D", true, false):
+			n.cast_shadow = mode
+	if _wheel_node:
+		_wheel_node.visible = not on
+
+func _process(_dt: float) -> void:
+	if _sprite == null or not _sprite.visible:
+		return
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var c := _sprite.global_position
+	var rel := global_basis.inverse() * (cam.global_position - c)
+	var az := atan2(rel.x, -rel.z)
+	var el := rad_to_deg(atan2(rel.y, Vector2(rel.x, rel.z).length()))
+	var n_az := int(_sp.n_az)
+	var ai := posmod(int(round(az / TAU * n_az)), n_az)
+	var els: Array = _sp.els
+	var ei := 0
+	for i in els.size():
+		if absf(el - float(els[i])) < absf(el - float(els[ei])):
+			ei = i
+	var si := 1
+	if steer_value > 0.12:
+		si = 2
+	elif steer_value < -0.12:
+		si = 0
+	var idx := (ei * n_az + ai) * 3 + si
+	var cols := int(_sp.cols)
+	_sprite_mat.set_shader_parameter("cell", Vector2(idx % cols, idx / cols))
+	# roulis / tangage de la caisse vus de la caméra
+	var up_v := cam.global_basis.inverse() * global_basis.y
+	_sprite_mat.set_shader_parameter("roll", atan2(up_v.x, up_v.y))
+	var lights_on: bool = not _beams.is_empty() and _beams[0].visible
+	_sprite_mat.set_shader_parameter("head", 1.0 if lights_on else 0.0)
+	_sprite_mat.set_shader_parameter("tail", (0.8 if lights_on else 0.0) + (1.2 if brake > 1.0 else 0.0))
 
 var _wheel_node: Node3D
 var _wheel_rim: Node3D
@@ -198,11 +289,15 @@ func set_cockpit(on: bool) -> void:
 		n.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY if on else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	if _wheel_node:
 		_wheel_node.visible = not on
+	if not on:
+		_apply_sprite()
 
 ## Explosion (gardien des limites) : la voiture disparaît et s'immobilise jusqu'à sa réapparition.
 func blow_up() -> void:
 	blown = true
 	_body.visible = false
+	if _sprite:
+		_sprite.visible = false
 	_blob.visible = false
 	for w in wheels:
 		w.visible = false
@@ -221,6 +316,7 @@ func respawn_at(p: Vector3, heading_deg: float) -> void:
 	for w in wheels:
 		w.visible = true
 	blown = false
+	_apply_sprite()
 
 var _lamp_mat: StandardMaterial3D
 var _paint_mat: StandardMaterial3D

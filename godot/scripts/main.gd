@@ -334,6 +334,7 @@ func set_time(i: int) -> void:
 	_apply_ambience()
 	if buildings and buildings.mat:
 		buildings.mat.set_shader_parameter("night", night)
+		buildings.set_kit_night(night)
 	if poles:
 		poles.set_night(night)
 	_night = night

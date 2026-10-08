@@ -26,6 +26,32 @@ from build_bld_tex import IDX, LAYERS
 from glb import write_glb
 
 OUT = "../godot/world/buildings"
+# kit de détails Blender (blender_maisons.py) posé sur les ouvertures et les toits : enregistrements d'instances
+KIT_MODELS = ["fenetre", "fenetre_vr", "volet", "porte", "garage", "marquise", "faitiere", "mitron", "antenne", "parabole"]
+KID = {n: i for i, n in enumerate(KIT_MODELS)}
+KIT = []
+DOOR_TINTS = [((0.42, 0.16, 0.1), 3), ((0.2, 0.3, 0.45), 2), ((0.25, 0.35, 0.26), 2), ((0.9, 0.9, 0.88), 3),
+              ((0.35, 0.35, 0.37), 2), ((0.55, 0.38, 0.22), 2)]
+
+
+def kit(name, X, Y, Z, o, col=(1, 1, 1)):
+    """Instance du kit : base (colonnes X, Y, Z) et origine (monde), couleur d'instance."""
+    KIT.append((KID[name],) + tuple(float(v) for v in X) + tuple(float(v) for v in Y) + tuple(float(v) for v in Z)
+               + (float(o[0]), float(o[1]), float(o[2])) + (float(col[0]), float(col[1]), float(col[2]), 1.0))
+
+
+def kit_line(a, b, y_off=0.02):
+    """Faîtières le long d'une arête de toit (a, b : points 3D), par mètres entiers."""
+    a = np.asarray(a, float); b = np.asarray(b, float)
+    v = b - a; L = float(np.linalg.norm(v))
+    if L < 0.4:
+        return
+    n = max(1, int(round(L)))
+    X = v / n
+    up = np.array([0, 1.0, 0]); Y = up - X * (X @ up) / (X @ X); Y /= np.linalg.norm(Y)
+    Z = np.cross(X, Y); Z /= np.linalg.norm(Z)
+    for k in range(n):
+        kit("faitiere", X, Y, Z, a + X * k + np.array([0, y_off, 0]))
 TILE = 256.0
 SCALE = {n: s for n, _, s in LAYERS}
 
@@ -359,8 +385,14 @@ def roof_rect(M, R, others, eave, pitch, kind, back, layer, tint, wall_layer, wa
               (su(rb), 0.0), (su(ra), 0.0)]
         M.poly(quad, uv, layer, tint, nrm)
         soffit(M, quad, nrm)
+    tiled = LAYERS[layer][0].startswith("tuile") and pitch > 0.15
+    if tiled and rb - ra > 0.3:
+        kit_line(W(ra, tc, ytop), W(rb, tc, ytop))
     for side, hip, s_e, s_r in ((0, hipA, sA, ra), (1, hipB, sB, rb)):
         sg = -1 if side == 0 else 1
+        if hip and tiled:
+            for tt in (-1, 1):
+                kit_line(W(s_e + sg * ov, tc + tt * (hw + ov), oy), W(s_r, tc, ytop))
         if hip:
             tri = [W(s_e + sg * ov, tc - hw - ov, oy), W(s_e + sg * ov, tc + hw + ov, oy), W(s_r, tc, ytop)]
             p0, p1, p2 = map(np.array, tri)
@@ -421,9 +453,19 @@ def chimney(M, R, eave, pitch, back, key, layer, tint):
         M.poly([(p[0], hlow, p[1]), (q[0], hlow, q[1]), (q[0], htop, q[1]), (p[0], htop, p[1])],
                [(0, -hlow / sc_), (L / sc_, -hlow / sc_), (L / sc_, -htop / sc_), (0, -htop / sc_)], layer, tint, n)
     M.poly([(p[0], htop, p[1]) for p in P], [(0, 0), (0.2, 0), (0.2, 0.2), (0, 0.2)], IDX["beton"], srgb((0.6, 0.6, 0.58)), (0, 1, 0))
+    ex = P[1] - P[0]; ex = ex / max(np.hypot(*ex), 1e-6)
+    X = np.array([ex[0], 0, ex[1]]); Z = np.cross(X, [0, 1, 0])
+    kit("mitron", X, (0, 1, 0), Z, (c[0], htop, c[1]))
+    if rnd(key, "ant") < 0.45:
+        a = rnd(key, "anta") * 6.283
+        X = np.array([math.cos(a), 0, math.sin(a)]); Z = np.cross(X, [0, 1, 0])
+        kit("antenne", X, (0, 1, 0), Z, (c[0] + ex[0] * 0.25, htop + 0.2, c[1] + ex[1] * 0.25))
 
 
 # ------------------------------------------------------------------------------------------------ murs et ouvertures
+KIT_DOOR = [(0.42, 0.16, 0.1), False]          # couleur de la porte d'entrée, marquise (réglés par build_one)
+
+
 def wall_edge(M, A, B, base, top, gnd, layer, tint, openings, shutter_tint, plinth=True):
     """Mur plan de A à B (2D) entre base et top, percé des ouvertures [(u0, u1, v0, v1, couche, profondeur)].
     gnd : altitude du sol au pied du mur (haut du soubassement)."""
@@ -458,7 +500,23 @@ def wall_edge(M, A, B, base, top, gnd, layer, tint, openings, shutter_tint, plin
         M.poly([W(u0, v0), W(u0, v0, -dep), W(u0, v1, -dep), W(u0, v1)], [(0, 0), (dep / sc, 0), (dep / sc, 1 / sc), (0, 1 / sc)], layer, tint, dv)
         M.poly([W(u1, v0), W(u1, v0, -dep), W(u1, v1, -dep), W(u1, v1)], [(0, 0), (dep / sc, 0), (dep / sc, 1 / sc), (0, 1 / sc)], layer, tint, -dv)
         M.poly([W(u0, v1), W(u1, v1), W(u1, v1, -dep), W(u0, v1, -dep)], [(0, 0), (1 / sc, 0), (1 / sc, dep / sc), (0, dep / sc)], layer, tint, (0, -1, 0))
+        # kit 3D (vu de dehors, x vers la droite = -d, origine au coin bas-gauche, au fond du tableau)
+        mX = -np.array([d[0], 0, d[1]]); Zk = nrm / max(np.linalg.norm(nrm), 1e-9)
+        wdt, hgt = u1 - u0, v1 - v0
+        if lay == IDX["fenetre"] or lay == IDX["fenetre_volet_roulant"]:
+            kit("fenetre" if lay == IDX["fenetre"] else "fenetre_vr", mX * wdt, (0, hgt, 0), Zk, W(u1, v0, -dep + 0.004))
+        elif lay == IDX["porte"]:
+            dc = KIT_DOOR[0]
+            kit("porte", mX * wdt, (0, hgt, 0), Zk, W(u1, v0, -dep + 0.004), dc)
+            if KIT_DOOR[1]:
+                kit("marquise", mX * (wdt + 0.3), (0, 1, 0), Zk, W(u1 + 0.15, v1 + 0.12, 0.0))
+        elif lay == IDX["porte_garage"] and wdt < 3.0:
+            kit("garage", mX * wdt, (0, hgt, 0), Zk, W(u1, v0, -dep + 0.004))
         if lay in (IDX["fenetre"], IDX["fenetre_volet_roulant"]):
+            if shutter_tint is not None and lay == IDX["fenetre"]:
+                w2 = (u1 - u0) / 2
+                for a_, b_ in ((u0 - w2, u0), (u1, u1 + w2)):
+                    kit("volet", mX * (b_ - a_), (0, hgt, 0), Zk, W(b_, v0, 0.055), shutter_tint)
             # appui de fenêtre saillant
             M.poly([W(u0 - 0.05, v0, 0.06), W(u1 + 0.05, v0, 0.06), W(u1 + 0.05, v0, -dep), W(u0 - 0.05, v0, -dep)],
                    [(0, 0), (1, 0), (1, 0.2), (0, 0.2)], IDX["beton"], srgb((0.95, 0.93, 0.88)), (0, 1, 0))
@@ -625,6 +683,7 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
     order = np.argsort(dists + np.where(Ls < 2.5, 1e3, 0))
     street = int(order[0])
     floors = max(1, int((eave - gmax - 0.2) / 2.75))
+    KIT_DOOR[0] = pick(key, "door", DOOR_TINTS); KIT_DOOR[1] = rnd(key, "marq") < 0.35
     for k in range(len(ringw) - 1):
         Aa, Bb = ringw[k], ringw[k + 1]
         L = Ls[k]
@@ -680,6 +739,11 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
                 if kind == "commerce" and k == street:
                     ops = [o for o in ops if not (o[4] == win_layer and o[2] < gnd + 2.8)]
         wall_edge(M, Aa, Bb, base, top, gnd, wl, wtint, ops, sh_tint)
+        # antenne satellite sur un pignon ou une façade (une maison sur huit)
+        if kind == "maison" and not mitoyen and k != street and L >= 4 and rnd(key, "dish%d" % k) < 0.06 and eave - gnd > 3.6:
+            dd = (Bb - Aa) / L
+            o = Aa + dd * (L * 0.82)
+            kit("parabole", (-dd[0], 0, -dd[1]), (0, 1, 0), (n2[0], 0, n2[1]), (o[0], gnd + 3.0, o[1]))
     # toit
     if flat:
         inner = foot.buffer(-0.25, join_style="mitre")
@@ -851,6 +915,13 @@ def main():
         Pc = np.vstack(Pc).astype(np.float32); Ic = np.concatenate(Ic)
         col = ("collision", Pc, np.tile([0, 1, 0], (len(Pc), 1)), Pc[:, [0, 2]], Ic)
         write_glb("%s/b_%d_%d.glb" % (OUT, tx, tz), {"bld": [pr], "col": [col]})
+    from collections import defaultdict
+    KT = defaultdict(list)
+    for r in KIT:
+        KT[(int(math.floor(r[10] / TILE)), int(math.floor(r[12] / TILE)))].append(r)
+    for (tx, tz), S in KT.items():
+        open("%s/k_%d_%d.bin" % (OUT, tx, tz), "wb").write(np.int32(len(S)).tobytes() + np.array(S, "<f4").tobytes())
+    print("kit :", {n: sum(1 for r in KIT if r[0] == i) for i, n in enumerate(KIT_MODELS)})
     print(len(tiles), "tuiles,", ntri, "triangles", stats)
 
 

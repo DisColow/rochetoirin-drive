@@ -6,8 +6,26 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v3.7.apk — autoroutes refaites de fond en comble](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.7.apk)**
+**[RochetoirinSimulator-v3.8.apk — voiture en sprite pixel art, haies feuillues, maisons détaillées](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.8.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
+
+Nouveautés de la v3.8 :
+- **la voiture devient un sprite pixel art** façon jeux de course des années 90 : l'Espace est précalculé dans
+  Blender sous 384 vues (32 angles × 4 hauteurs × braquage gauche / droit / droite), réduit en pixel art (palette de
+  40 couleurs, contour sombre, reflets), et la bonne vue s'affiche selon la position de la caméra ; la caisse s'incline
+  avec le roulis, les feux arrière s'allument la nuit et au freinage, l'ombre reste celle de la vraie voiture 3D.
+  Réglage ⚙ « Voiture : Sprite pixel art / Modèle 3D » pour revenir à la voiture 3D ; vues conducteur et capot
+  inchangées ;
+- **haies** : touffes de feuillage modélisées dans Blender (thuya en rameaux, laurier-palme vernissé, photinia aux
+  pousses rouges, haie champêtre aux feuilles variées), posées par milliers sur le dessus et les flancs des haies,
+  qui ondulent au vent : fini les blocs verts lisses ;
+- **maisons** : kit de détails modélisé dans Blender posé sur toutes les maisons (≈ 830 000 pièces, affichées près de
+  la caméra) : fenêtres à deux vantaux et petits-bois, volets battants à barres et écharpe de la couleur de la
+  maison, volets roulants avec coffre, portes d'entrée moulurées avec seuil, marquises vitrées, portes de garage
+  sectionnelles, tuiles faîtières sur les faîtages et les arêtiers, mitrons de cheminée, antennes râteau, paraboles ;
+  vitres éclairées la nuit comme les façades.
+
+[v3.7 — autoroutes refaites de fond en comble](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.7.apk)
 
 Nouveautés de la v3.7 — **refonte des autoroutes** (A43, A48 et leurs échangeurs), façon Euro Truck Simulator :
 - **tracé lissé** de bout en bout : plus d'angles ni de cassures, virages de plusieurs centaines de mètres de rayon ;

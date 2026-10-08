@@ -40,9 +40,11 @@
   synthèse), `fetch_power.py`, `build_poles.py` (pylônes, poteaux, fils, lampadaires), `build_cockpit.py` (vue cockpit en pixel art), `build_props.py`
   (voitures garées, poubelles, tracteurs ; après `build_fences.py`, qui fournit les portails), `fetch_shops.py`,
   `build_shops.py` (commerces, marques parodiées), `fetch_sport.py`, `build_sport.py`, `build_animaux.py` (prés pâturés
-  et clôtures), `fetch_autoroute.py`, `build_autoroute.py`, `build_voix.py` (voix du gardien, Piper) ;
+  et clôtures), `fetch_autoroute.py`, `build_autoroute.py`, `build_voix.py` (voix du gardien, Piper), `build_haie_tex.py` (feuilles des touffes de haie),
+  `build_car_sprite.py` (voiture en sprite, après `blender_sprite.py`) ;
   modèles Blender (module bpy dans un venv) : `blender_commerces.py`, `blender_sport.py`, `blender_animaux.py`,
-  `blender_autoroute.py` ; puis
+  `blender_autoroute.py`, `blender_sprite.py` (384 vues de l'Espace, ~45 min), `blender_haies.py` (touffes),
+  `blender_maisons.py` (kit de détails des maisons, posé par `build_buildings.py`) ; puis
   `godot --headless --import`, `godot --headless --script res://tools/prepare_trees.gd`, `godot --headless --import`,
   `xvfb-run godot --path godot res://tools/bake_impostors.tscn`, `impostor_bleed.py`, `build_crop_tex.py`,
   `build_vegetation.py`, `build_crops.py`, `godot --headless --import` et
