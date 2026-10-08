@@ -232,7 +232,7 @@ def _line(out, a, b, hroad):
     I = []
     for j in range(k):
         i0 = 2 * j
-        I += [i0, i0 + 2, i0 + 1, i0 + 1, i0 + 2, i0 + 3]
+        I += [i0, i0 + 1, i0 + 2, i0 + 1, i0 + 3, i0 + 2]          # même sens que les marquages des routes (vus du dessus)
     Nn = np.tile([0, 1, 0], (len(P), 1)).astype(np.float32)
     UV = np.zeros((len(P), 2), np.float32)
     out.add("marking", P, Nn, UV, np.array(I, np.uint32), (a + b) / 2)

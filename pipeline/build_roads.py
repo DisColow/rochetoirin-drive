@@ -665,7 +665,7 @@ def main():
                 G["tile"] = prims
             if dprims:
                 G["detail"] = dprims
-            write_glb("%s/t_%d_%d.glb" % (OUT_ROADS, tx, tz), G)
+            write_glb("%s/t_%d_%d.glb" % (OUT_ROADS, tx, tz), G, fix_winding=True)
     print(len(tiles), "tuiles de routes,", ntri, "triangles")
 
 

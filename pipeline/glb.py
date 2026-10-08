@@ -4,9 +4,21 @@ import json, struct
 import numpy as np
 
 
-def write_glb(path, prims, node_name="tile"):
+def orient(P, Nn, I):
+    """Remet chaque triangle dans le sens de ses normales (face avant vers la normale) : les générateurs n'ont pas
+    tous le même ordre de sommets ; vus de dos, les triangles sont sombres ou invisibles."""
+    T = np.asarray(I, np.uint32).reshape(-1, 3).copy()
+    g = np.cross(P[T[:, 1]] - P[T[:, 0]], P[T[:, 2]] - P[T[:, 0]])
+    n = Nn[T[:, 0]] + Nn[T[:, 1]] + Nn[T[:, 2]]
+    flip = np.einsum("ij,ij->i", g, n) < 0
+    T[flip] = T[flip][:, [0, 2, 1]]
+    return T.ravel(), int(flip.sum())
+
+
+def write_glb(path, prims, node_name="tile", fix_winding=False):
     """prims : [(nom_matériau, positions N×3, normales N×3, uv N×2, indices[, couleurs[, uv2 N×2]])] ou
-    {nom_de_nœud: [prims]} (un nœud / maillage par entrée)."""
+    {nom_de_nœud: [prims]} (un nœud / maillage par entrée). fix_winding : triangles remis dans le sens des normales
+    (orient)."""
     groups = prims if isinstance(prims, dict) else {node_name: prims}
     blob = bytearray(); views, accs, mats = [], [], []
     meshes, nodes = [], []
@@ -30,6 +42,8 @@ def write_glb(path, prims, node_name="tile"):
         COL = pr[5] if len(pr) > 5 else None
         P = np.asarray(P, np.float32); Nn = np.asarray(Nn, np.float32); UV = np.asarray(UV, np.float32)
         I = np.asarray(I, np.uint32)
+        if fix_winding and len(I):
+            I, _ = orient(P, Nn, I)
         ip = add(P, 34962, 5126, "VEC3", True)
         inn = add(Nn, 34962, 5126, "VEC3")
         iu = add(UV, 34962, 5126, "VEC2")

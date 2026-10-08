@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v4.7.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.7.apk)**
+**[RochetoirinSimulator-v4.8.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.8.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,15 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v4.8 :
+- **tracés au sol et bordures cohérents** : près de la moitié des marquages (lignes, passages piétons, places de parking),
+  une partie des bordures de trottoir, les parapets des ponts et les feux tricolores étaient tournés à l'envers (vus de
+  dos : sombres ou invisibles selon l'angle) ; tous les éléments des routes sont désormais orientés correctement, vérifié
+  automatiquement sur les 4,9 millions de triangles de la carte (`check_winding.py`) : les lignes blanches sont blanches
+  partout.
+
+[v4.7 — Bourgoin-Jallieu, commerces d'après Street View, piscines](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.7.apk)
 
 Nouveautés de la v4.7 :
 - **Bourgoin-Jallieu** entre dans la carte (toute la commune : centre-ville, zones commerciales, quartiers), et
