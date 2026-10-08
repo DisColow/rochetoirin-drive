@@ -1,0 +1,132 @@
+# Versions Windows et Steam Deck (Linux x86_64) construites par GitHub (rien à faire à la main) :
+# à chaque nouvelle version (godot/project.godot modifié sur la branche godot) ou à la demande (Actions > Run workflow),
+# on récupère le projet (branche godot) et les données générées par pipeline/ (branche donnees), on importe une fois
+# avec Godot 4.4.1 (textures S3TC/BPTC des PC), on exporte les préréglages « Windows » et « Linux », puis on dépose
+# deux archives en artefacts de l'action (90 jours) :
+#   RochetoirinSimulator-vX.Y-windows.zip     : RochetoirinSimulator.exe + .pck (dézipper, lancer l'exe)
+#   RochetoirinSimulator-vX.Y-steamdeck.tar.gz : binaire Linux + .pck (mode Bureau : extraire, « Ajouter un jeu non
+#                                                Steam » sur RochetoirinSimulator.x86_64, puis jouer en mode Jeu)
+# Pas de dépôt dans releases/ : ces archives (~1 Go) épuiseraient le quota Git LFS, déjà occupé par les APK.
+name: Windows et Steam Deck
+
+on:
+  push:
+    branches: [godot]
+    paths:
+      - "godot/project.godot"
+      - ".github/workflows/desktop.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: desktop
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSION: 4.4.1
+
+jobs:
+  desktop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - name: Place disque (outils inutiles retirés)
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: Projet (branche godot, sans télécharger les APK)
+        uses: actions/checkout@v4
+        with:
+          ref: godot
+          lfs: false
+          fetch-depth: 1
+
+      - name: Données générées (branche donnees)
+        uses: actions/checkout@v4
+        with:
+          ref: donnees
+          path: donnees
+          lfs: false
+          fetch-depth: 1
+
+      - name: Données dans le projet
+        run: |
+          cp -a donnees/. godot/
+          rm -rf godot/.git donnees releases
+          du -sh godot
+
+      - name: Cache de l'import Godot (textures des PC)
+        uses: actions/cache@v4
+        with:
+          path: godot/.godot
+          key: import-desktop-${{ hashFiles('godot/project.godot') }}-${{ github.sha }}
+          restore-keys: |
+            import-desktop-${{ hashFiles('godot/project.godot') }}-
+            import-desktop-
+
+      - name: Godot et modèles d'export
+        run: |
+          cd /tmp
+          base=https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable
+          wget -q $base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
+          wget -q $base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+          unzip -q Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
+          sudo mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 /usr/local/bin/godot
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          unzip -q Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+          # seuls les modèles Windows et Linux servent ici
+          mv templates/windows_* templates/linux_* templates/version.txt ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+          rm -rf templates Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+
+      - name: Import
+        working-directory: godot
+        run: |
+          godot --headless --import || true
+          godot --headless --import || true
+
+      - name: Export Windows et Steam Deck
+        working-directory: godot
+        run: |
+          V=$(sed -n 's/^config\/version="\(.*\)"/\1/p' project.godot)
+          echo "V=$V" >> $GITHUB_ENV
+          mkdir -p ../out/windows ../out/steamdeck
+          godot --headless --export-release "Windows" ../out/windows/RochetoirinSimulator.exe
+          godot --headless --export-release "Linux" ../out/steamdeck/RochetoirinSimulator.x86_64
+          chmod +x ../out/steamdeck/RochetoirinSimulator.x86_64
+          ls -la ../out/windows ../out/steamdeck
+          test -s ../out/windows/RochetoirinSimulator.pck
+          test -s ../out/steamdeck/RochetoirinSimulator.pck
+
+      - name: Archives
+        run: |
+          cat > out/steamdeck/LISEZMOI.txt <<'EOF'
+          Rochetoirin Simulator pour Steam Deck
+          1. En mode Bureau, extraire l'archive (par exemple dans ~/Jeux/RochetoirinSimulator).
+          2. Dans Steam : Jeux > Ajouter un jeu non Steam, choisir RochetoirinSimulator.x86_64.
+          3. Revenir en mode Jeu et lancer « RochetoirinSimulator » depuis la bibliothèque (Non-Steam).
+          Commandes : stick gauche pour tourner, gâchette droite pour accélérer, gauche pour freiner, Y caméra, View (⧉) carte,
+          X replacer sur la route ; l'écran tactile marche aussi (boutons GAZ, FREIN…).
+          EOF
+          sed -i 's/^          //' out/steamdeck/LISEZMOI.txt
+          cd out/windows && zip -q -1 -r ../RochetoirinSimulator-v$V-windows.zip . && cd ../..
+          tar -C out/steamdeck -czf out/RochetoirinSimulator-v$V-steamdeck.tar.gz .
+          ls -la out
+
+      - name: Artefact Windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: RochetoirinSimulator-v${{ env.V }}-windows
+          path: out/RochetoirinSimulator-v${{ env.V }}-windows.zip
+          compression-level: 0
+          retention-days: 90
+
+      - name: Artefact Steam Deck
+        uses: actions/upload-artifact@v4
+        with:
+          name: RochetoirinSimulator-v${{ env.V }}-steamdeck
+          path: out/RochetoirinSimulator-v${{ env.V }}-steamdeck.tar.gz
+          compression-level: 0
+          retention-days: 90

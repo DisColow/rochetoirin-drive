@@ -6,8 +6,22 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v4.4.apk — vrais animaux dans les prés](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.4.apk)**
+**[RochetoirinSimulator-v4.5.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.5.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
+
+**Windows et Steam Deck** : [Actions > Windows et Steam Deck](https://github.com/DisColow/rochetoirin-drive/actions/workflows/desktop.yml),
+ouvrir la dernière exécution réussie, puis télécharger en bas de page (compte GitHub connecté) :
+- `RochetoirinSimulator-vX.Y-windows` : dézipper, lancer `RochetoirinSimulator.exe` (clavier : flèches, C caméra,
+  M carte, R replacer ; manette ; la souris fait office de doigt sur les boutons) ;
+- `RochetoirinSimulator-vX.Y-steamdeck` : en mode Bureau, extraire l'archive, Steam > Jeux > Ajouter un jeu non Steam
+  > `RochetoirinSimulator.x86_64`, puis jouer en mode Jeu (voir `LISEZMOI.txt`).
+Les archives restent 90 jours ; chaque nouvelle version en produit de nouvelles.
+
+Nouveautés de la v4.5 :
+- **versions Windows et Steam Deck** construites automatiquement par GitHub Actions à chaque nouvelle version
+  (textures compressées pour PC, fenêtre agrandie, souris utilisable comme le doigt sur les boutons).
+
+[v4.4 — vrais animaux dans les prés](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.4.apk)
 
 Nouveautés de la v4.4 :
 - **animaux des prés** : les modèles faits main sont remplacés par de jolis modèles gratuits et texturés (Sketchfab,
