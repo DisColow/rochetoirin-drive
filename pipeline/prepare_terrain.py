@@ -95,6 +95,7 @@ def main():
     plan = json.load(open("data/routes_plan.json"))
     ways = pickle.load(open("data/roads.pkl", "rb"))["ways"]
     rf = road_height_fn(samples(ways))
+    rf_edge = road_height_fn(samples(ways, accot=False))       # bord réel des chaussées (sans les accotements)
     forest, farm, grass, resid = landuse()
     fields = arable_fields()
     for g in (forest, farm, grass, resid, fields):
@@ -150,7 +151,7 @@ def main():
         r_ = rock > blend
         over[r_] = 3; blend[r_] = rock[r_]
         # accotements gravillonnés le long des routes (0,8 m fondu)
-        _, sd = rf(X.ravel(), Z.ravel())
+        _, sd = rf_edge(X.ravel(), Z.ravel())
         sd = sd.reshape(H.shape)
         sh = np.clip(1.0 - (sd - 0.2) / 1.0, 0, 1) * 200      # étroit et fondu : l'herbe reste visible
         s_ = sh > 50

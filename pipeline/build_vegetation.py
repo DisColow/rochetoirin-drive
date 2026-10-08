@@ -71,6 +71,10 @@ def main():
     walnut = [(8, g) for v, g in polys_local("data/rpg.json", "code_cultu") if v == "NOX"]
     ways = pickle.load(open("data/roads.pkl", "rb"))["ways"]
     rf = road_height_fn(samples(ways))
+    # emprise autoroutière : ni arbre ni arbuste jusqu'à la clôture (~10 m au-delà de la chaussée)
+    Sm = samples([w for w in ways if w["cls"] in ("motorway", "motorway_link")])
+    Sm[:, 3] += 8.0
+    rfm = road_height_fn(Sm)
     rng = np.random.default_rng(11)
     trees = []
     for (i, j) in regions:
@@ -85,6 +89,7 @@ def main():
         X, Z = np.meshgrid(xs, zs)
         _, sd = rf(X.ravel(), Z.ravel())
         road = sd.reshape(X.shape) < 0.6
+        road |= rfm(X.ravel(), Z.ravel())[1].reshape(X.shape) < 0.0
         chm[road] = 0.0
         sm = ndi.gaussian_filter(chm, 1.0)
         # sommets de couronne : maximum local sur une fenêtre qui grandit avec la hauteur

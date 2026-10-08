@@ -302,7 +302,8 @@ def main():
     for w in ways:
         if len(w["P"]) < 2:
             continue
-        b = LineString(w["P"]).buffer(w["w"] / 2 + (1.6 if any(w["sidewalk"]) else 0.0) + 0.5)
+        b = LineString(w["P"]).buffer(w["w"] / 2 + (1.6 if any(w["sidewalk"]) else 0.0) + 0.5
+                                      + {"motorway": 10.0, "motorway_link": 4.0}.get(w["cls"], 0.0))   # emprise autoroutière
         (drive_z if w["tags"].get("service") in DRIVE else main_z).append(b)
     MAIN, DRV, ALL = Local(main_z), Local(drive_z), Local(main_z + drive_z)
     print("emprise des routes prête")

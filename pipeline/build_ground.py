@@ -96,6 +96,8 @@ def main():
     ways = pickle.load(open("data/roads.pkl", "rb"))["ways"]
     roads = [LineString(w["P"]).buffer(w["w"] / 2 + (1.6 if any(w["sidewalk"]) else 0.0) + 0.4)
              for w in ways if len(w["P"]) > 1]
+    from build_roads import median_strips
+    roads += [g.buffer(0.4) for w in ways if w["cls"] == "motorway" for g in median_strips(w)]   # terre-plein revêtu
     verge_band = [LineString(w["P"]).buffer(w["w"] / 2 + (1.6 if any(w["sidewalk"]) else 0.0) + 3.5)
                   for w in ways if len(w["P"]) > 1 and w["cls"] not in ("service", "track", "pedestrian")]
     CV = np.load("data/eau_carve.npz")["pts"] if os.path.exists("data/eau_carve.npz") else np.zeros((0, 3))

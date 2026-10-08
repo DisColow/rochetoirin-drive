@@ -1,18 +1,25 @@
-## Équipements d'autoroute (build_autoroute.py, modèles blender_autoroute.py) : glissières, bornes d'appel d'urgence,
-## panneaux bleus de sortie, balises à chevrons, gares de péage ; tuiles de 256 m chargées au fil de la route.
+## Équipements d'autoroute (build_autoroute.py, modèles blender_autoroute.py) : glissières, séparateurs en béton,
+## clôtures, bornes d'appel d'urgence, panneaux bleus, potences de sortie, limitations de vitesse, absorbeurs de choc,
+## balises à chevrons, gares de péage ; tuiles de 256 m chargées au fil de la route.
 extends Node3D
 
 const TILE := 256.0
 const VIEW := 700.0
-const MODELS := ["glissiere", "borne_sos", "panneau_bleu", "peage", "pile_peage", "chevron"]
+const MODELS := ["glissiere", "borne_sos", "panneau_bleu", "peage", "pile_peage", "chevron", "gba", "potence", "panneau_haut",
+	"rond", "grillage", "absorbeur"]
+# portée d'affichage par modèle (m)
+const RANGE := {"glissiere": 320.0, "gba": 450.0, "grillage": 160.0, "borne_sos": 250.0, "rond": 450.0}
 const MATS := {
-	"galva": [0, Color(0.62, 0.64, 0.66), 0.35, 0.8], "orange": [0, Color(0.95, 0.42, 0.04), 0.4, 0.0],
+	"galva": [0, Color(0.7, 0.72, 0.73), 0.42, 0.45], "orange": [0, Color(0.95, 0.42, 0.04), 0.4, 0.0],
 	"beton": [0, Color(0.6, 0.6, 0.58), 0.85, 0.0], "sos": [0, Color(0.95, 0.95, 0.95), 0.4, 0.0],
 	"noir": [0, Color(0.05, 0.05, 0.05), 0.5, 0.0], "dos": [0, Color(0.55, 0.57, 0.6), 0.4, 0.6],
 	"panneau": [1, Color(1, 1, 1), 0.3, 0.0], "blanc": [0, Color(0.9, 0.9, 0.88), 0.45, 0.2],
 	"bande": [0, Color(0.1, 0.25, 0.6), 0.4, 0.0], "cabine": [0, Color(0.85, 0.85, 0.82), 0.5, 0.2],
 	"vitre": [6, Color(0.1, 0.15, 0.2), 0.05, 0.3], "ilot": [0, Color(0.95, 0.75, 0.1), 0.6, 0.0],
 	"chevrons": [8, Color(1, 1, 1), 0.4, 0.0],
+	"catadioptre": [5, Color(0.95, 0.55, 0.1), 0.3, 0.0, Color(0.9, 0.45, 0.05)],
+	"gba": [0, Color(0.8, 0.79, 0.76), 0.9, 0.0],
+	"vert": [0, Color(0.16, 0.3, 0.18), 0.6, 0.0], "treillis": [7, Color(0.35, 0.42, 0.36), 0.6, 0.0, Color(0, 0, 0), 0.05],
 }
 
 var target: Node3D
@@ -47,6 +54,10 @@ func _ready() -> void:
 				sm.set_shader_parameter("rough", d[2])
 				sm.set_shader_parameter("metal", d[3])
 				sm.set_shader_parameter("atlas", atlas)
+				if d.size() > 4:
+					sm.set_shader_parameter("glow", d[4])
+				if d.size() > 5:
+					sm.set_shader_parameter("grid", d[5])
 				preload("res://scripts/env.gd").add(sm)
 				cache[nm] = sm
 			mesh.surface_set_material(s, cache[nm])
@@ -108,18 +119,24 @@ func _add(k: Vector2i) -> void:
 		if not by.has(m):
 			by[m] = []
 		by[m].append([xf, Color(f[o + 13], f[o + 14], f[o + 15], f[o + 16])])
+		var nm: String = MODELS[m]
+		if nm in ["peage", "grillage", "panneau_haut"]:
+			continue
 		var cs := CollisionShape3D.new()
 		var bs := BoxShape3D.new()
-		var nm: String = MODELS[m]
-		if nm == "glissiere":
-			var L := b.x.length()
-			bs.size = Vector3(L, 0.8, 0.25)
-			cs.transform = Transform3D(Basis(Vector3.UP, atan2(-b.x.z, b.x.x)), xf * Vector3(0.5, 0.4, 0))
-		elif nm == "peage":
-			continue
+		if nm == "glissiere" or nm == "gba":
+			var L := b.x.length() * 4.0
+			bs.size = Vector3(L, 0.8, 0.25 if nm == "glissiere" else 0.5)
+			cs.transform = Transform3D(Basis(Vector3.UP, atan2(-b.x.z, b.x.x)), xf * Vector3(2.0, 0.4, 0))
+		elif nm == "absorbeur":
+			bs.size = Vector3(3.0, 0.9, 0.7)
+			cs.transform = Transform3D(b.orthonormalized(), xf * Vector3(-1.5, 0.45, 0))
+		elif nm == "potence":
+			bs.size = Vector3(0.5, 7.6, 0.5)
+			cs.transform = xf * Transform3D(Basis.IDENTITY, Vector3(0, 3.8, 0))
 		else:
 			bs.size = {"borne_sos": Vector3(0.5, 1.5, 0.4), "panneau_bleu": Vector3(1.0, 1.0, 0.3), "pile_peage": Vector3(1.6, 5.8, 2.6),
-				"chevron": Vector3(0.2, 1.6, 0.2)}[nm]
+				"chevron": Vector3(0.2, 1.6, 0.2), "rond": Vector3(0.15, 2.3, 0.15)}[nm]
 			if nm == "panneau_bleu":
 				bs.size = Vector3(b.x.length() * 0.75, 2.5, 0.3)
 				cs.transform = Transform3D(b.orthonormalized(), xf.origin + Vector3(0, -1.25, 0))
@@ -138,8 +155,8 @@ func _add(k: Vector2i) -> void:
 			mm.set_instance_custom_data(i, by[m][i][1])
 		var mi := MultiMeshInstance3D.new()
 		mi.multimesh = mm
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if MODELS[m] == "glissiere" else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-		mi.visibility_range_end = 300.0 if MODELS[m] == "glissiere" else 700.0
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if MODELS[m] in ["glissiere", "grillage", "gba"] else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		mi.visibility_range_end = RANGE.get(MODELS[m], 700.0)
 		root.add_child(mi)
 	add_child(root)
 	loaded[k] = root

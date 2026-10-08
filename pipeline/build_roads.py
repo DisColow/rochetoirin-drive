@@ -214,62 +214,108 @@ def round_polyline(P0, keep, R, step=3.0):
     return np.array(P), [idx.get(k, 0) for k in range(n)]
 
 
+def _frame(w, dem):
+    P = w["P"]
+    s = np.r_[0, np.cumsum(np.hypot(*np.diff(P, axis=0).T))]
+    T = np.gradient(P, axis=0); T /= np.maximum(np.linalg.norm(T, axis=1, keepdims=True), 1e-9)
+    Nn = np.c_[-T[:, 1], T[:, 0]]
+    w.update(s=s, T=T, N=Nn)
+    if dem is not None:
+        hw = w["w"] / 2
+        w["ground"] = (dem.h(P[:, 0], P[:, 1]) * 2 + dem.h(*(P + Nn * hw * 0.7).T) + dem.h(*(P - Nn * hw * 0.7).T)) / 4
+
+
+def _shared(ways, use, rank):
+    """Cohérence aux nœuds partagés : altitude de la voie la plus prioritaire (autoroute > bretelle > autres), sinon
+    moyenne ; correction répartie linéairement entre nœuds, jamais sur les profils imposés (autoroutes, bretelles)."""
+    for it in range(4):
+        acc = {}
+        for w in ways:
+            if w["bridge"] and not w.get("fixed_profile"):
+                continue
+            for k, n in zip(w["idx"], w["nodes"]):
+                if use[n] > 1:
+                    acc.setdefault(n, []).append((rank(w), w["y"][k]))
+        target = {}
+        for n, v in acc.items():
+            r = max(a for a, _ in v)
+            target[n] = float(np.mean([y for a, y in v if a == r]))
+        for w in ways:
+            if w["bridge"] or w.get("fixed_profile"):
+                continue
+            ks, cs = [], []
+            for k, n in zip(w["idx"], w["nodes"]):
+                if n in target:
+                    ks.append(k); cs.append(target[n] - w["y"][k])
+            if ks:
+                w["y"] = w["y"] + np.interp(np.arange(len(w["y"])), ks, cs)
+
+
+def _bridges(ways):
+    """Ponts des routes ordinaires : droite (légère courbe) entre les extrémités raccordées."""
+    for w in ways:
+        if not w["bridge"] or w.get("fixed_profile"):
+            continue
+        ends = []
+        for k in (0, -1):
+            n = w["nodes"][k]
+            v = [o["y"][o["idx"][o["nodes"].index(n)]] for o in ways if o is not w and (not o["bridge"] or o.get("fixed_profile"))
+                 and n in o["nodes"]]
+            ends.append(float(np.mean(v)) if v else float(w["ground"][k]))
+        t = w["s"] / max(w["s"][-1], 1e-6)
+        w["y"] = ends[0] + (ends[1] - ends[0]) * t + 0.4 * np.sin(np.pi * t) * min(1.0, w["s"][-1] / 60)
+
+
 def profiles(N, ways, dem):
-    """Profil en long de chaque voie : relief moyen sous la chaussée, lissé ; altitudes communes aux nœuds partagés."""
+    """Profil en long de chaque voie : relief moyen sous la chaussée, lissé ; altitudes communes aux nœuds partagés.
+    Autoroutes et bretelles : géométrie dédiée (autoroute_geom.py)."""
+    import autoroute_geom as AG
+    chains = AG.align(N, ways)
     use = {}
     for w in ways:
         for n in w["nodes"]:
             use[n] = use.get(n, 0) + 1
     for w in ways:
-        P0 = np.array([N[n] for n in w["nodes"]])
-        keep = [k == 0 or k == len(P0) - 1 or use[n] > 1 for k, n in enumerate(w["nodes"])]
-        P, idx = round_polyline(P0, keep, RADIUS.get(w["cls"], 12.0))
-        s = np.r_[0, np.cumsum(np.hypot(*np.diff(P, axis=0).T))]
-        T = np.gradient(P, axis=0); T /= np.maximum(np.linalg.norm(T, axis=1, keepdims=True), 1e-9)
-        Nn = np.c_[-T[:, 1], T[:, 0]]
-        hw = w["w"] / 2
-        g = (dem.h(P[:, 0], P[:, 1]) * 2 + dem.h(*(P + Nn * hw * 0.7).T) + dem.h(*(P - Nn * hw * 0.7).T)) / 4
-        sig = CLS[w["cls"]][1] / 3.0                           # échantillons de 3 m
-        y = gaussian_filter1d(g, sig, mode="nearest") if len(g) > 3 else g
-        w.update(P=P, s=s, T=T, N=Nn, ground=g, y=y, idx=idx)
-    # cohérence aux nœuds partagés : moyenne, puis correction répartie linéairement entre nœuds
-    for it in range(4):
-        acc = {}
-        for w in ways:
-            if w["bridge"]:
-                continue
-            for k, n in zip(w["idx"], w["nodes"]):
-                if use[n] > 1:
-                    acc.setdefault(n, []).append(w["y"][k])
-        target = {n: float(np.mean(v)) for n, v in acc.items()}
-        for w in ways:
-            ks, cs = [], []
-            for k, n in zip(w["idx"], w["nodes"]):
-                if n in target:
-                    ks.append(k); cs.append(target[n] - w["y"][k])
-            if not ks:
-                continue
-            if w["bridge"]:
-                continue
-            corr = np.interp(np.arange(len(w["y"])), ks, cs)
-            w["y"] = w["y"] + corr
-    # ponts : droite (légère courbe) entre les extrémités raccordées
+        if "P_pre" in w:
+            w["P"], w["idx"] = w.pop("P_pre"), w.pop("idx_pre")
+        else:
+            P0 = np.array([N[n] for n in w["nodes"]])
+            keep = [k == 0 or k == len(P0) - 1 or use[n] > 1 for k, n in enumerate(w["nodes"])]
+            w["P"], w["idx"] = round_polyline(P0, keep, RADIUS.get(w["cls"], 12.0))
+        _frame(w, None)
     for w in ways:
-        if not w["bridge"]:
+        if w["cls"] == "motorway_link":
+            w["P"], w["idx"] = AG.uniform(w["P"], w["idx"])
+            _frame(w, None)
+    links, moved = AG.ramps(ways, chains, N)
+    AG.propagate(ways, moved, N)
+    for w in ways:
+        _frame(w, dem)
+        if w.get("fixed_profile"):
             continue
-        ends = []
-        for k in (0, -1):
-            n = w["nodes"][k]
-            v = [o["y"][o["idx"][o["nodes"].index(n)]] for o in ways if o is not w and not o["bridge"] and n in o["nodes"]]
-            ends.append(float(np.mean(v)) if v else float(w["ground"][k]))
-        t = w["s"] / max(w["s"][-1], 1e-6)
-        w["y"] = ends[0] + (ends[1] - ends[0]) * t + 0.4 * np.sin(np.pi * t) * min(1.0, w["s"][-1] / 60)
-    # pentes maximales : rabotage doux des bosses résiduelles (voie par voie)
-    return ways
+        sig = CLS[w["cls"]][1] / 3.0                           # échantillons de 3 m
+        w["y"] = gaussian_filter1d(w["ground"], sig, mode="nearest") if len(w["ground"]) > 3 else w["ground"].copy()
+    rank = lambda w: 2 if w["cls"] == "motorway" else 1 if w["cls"] == "motorway_link" else 0
+    others = [w for w in ways if w["cls"] not in ("motorway", "motorway_link")]
+    _shared(others, use, rank); _bridges(others)
+    X = AG.crossings(ways)
+    AG.vertical(chains, dem, X)
+    mw_node_y = {n: float(w["y"][k]) for w in ways if w["cls"] == "motorway" for k, n in zip(w["idx"], w["nodes"])}
+    AG.link_profiles(links, X, mw_node_y)
+    _shared(ways, use, rank); _bridges(ways)
+    # contrôle des gabarits
+    bad = [(u["cls"], l["cls"], AG.yat(u, su) - AG.yat(l, sl)) for u, su, l, sl in X if AG.yat(u, su) - AG.yat(l, sl) < AG.CLEAR - 0.3]
+    print("croisements dénivelés :", len(X), "; gabarit insuffisant :", len(bad), bad[:8])
+    for c in chains:
+        g = np.abs(np.diff(c.y)) / np.maximum(np.diff(c.s), 1e-6)
+        print("chaussée %6.0f m : pente max %.1f %%, déblai/remblai max %.1f / %.1f m" % (
+            c.s[-1], g.max() * 100, (c.g - c.y)[~c.bridge_mask].max() if (~c.bridge_mask).any() else 0,
+            (c.y - c.g)[~c.bridge_mask].max() if (~c.bridge_mask).any() else 0))
+    return ways, chains
 
 
 # ------------------------------------------------------------------------------------------------ échantillons
-def samples(ways, step=1.0):
+def samples(ways, step=1.0, accot=True):
     """Points d'axe denses (x, z, y, demi-largeur portée par le terrassement) hors ponts."""
     out = []
     for w in ways:
@@ -278,8 +324,11 @@ def samples(ways, step=1.0):
         L = w["s"][-1]
         ss = np.arange(0, L + 0.01, step)
         x = np.interp(ss, w["s"], w["P"][:, 0]); z = np.interp(ss, w["s"], w["P"][:, 1]); y = np.interp(ss, w["s"], w["y"])
-        hw = w["w"] / 2 + (SW_W if any(w["sidewalk"]) else 0.0)
-        out.append(np.c_[x, z, y, np.full(len(ss), hw)])
+        if "hw_arr" in w:          # autoroute : largeur variable + accotement de 2,5 m (berme avant le talus)
+            hw = np.interp(ss, w["s"], w["hw_arr"]) + (2.5 if accot else 0.0)
+        else:
+            hw = np.full(len(ss), w["w"] / 2 + (SW_W if any(w["sidewalk"]) else 0.0) + (1.5 if w["cls"] == "motorway_link" and accot else 0.0))
+        out.append(np.c_[x, z, y, hw])
     return np.vstack(out)
 
 
@@ -308,10 +357,14 @@ def carve(dem, rf, regions):
         X, Z = np.meshgrid(xs, zs)
         y, sd = rf(X.ravel(), Z.ravel())
         y = y.reshape(A.shape); sd = sd.reshape(A.shape)
-        inner, B = 1.0, 9.0
+        inner = 1.0
+        target = y - 0.10
+        # talus : pente d'environ 2/3 (déblai / remblai), au moins 9 m de raccord
+        from scipy.ndimage import gaussian_filter
+        dif = gaussian_filter(np.where(sd < 1e8, np.abs(A - target), 0.0), 5.0)      # lissé (10 m) : talus réguliers
+        B = np.clip(1.5 * dif, 9.0, 38.0)
         t = np.clip((sd - inner) / B, 0, 1)
         t = t * t * (3 - 2 * t)
-        target = y - 0.10
         Ac = np.where(sd < 1e8, target + (A - target) * t, A)
         np.save("%s/r_%d_%d.npy" % (CARVED, i, j), Ac.astype(np.float32))
 
@@ -384,15 +437,29 @@ def surface(mb, poly, hfun, lift, maxlen=2.5):
     for part in getattr(poly, "geoms", [poly]):
         if part.geom_type != "Polygon" or part.area < 0.5:
             continue
-        part = shapely.segmentize(part, maxlen)
-        V, Sg, holes = [], [], []
+        part = shapely.segmentize(shapely.set_precision(part, 0.005), maxlen)
+        if part.is_empty or part.geom_type != "Polygon":
+            continue
+        # sommets dédoublonnés (Triangle plante sur des sommets confondus ou des segments nuls)
+        V, Sg, holes, vid = [], [], [], {}
         for ring in [part.exterior] + list(part.interiors):
             C = np.asarray(ring.coords)[:-1]
             if len(C) < 3:
                 continue
-            b = len(V)
-            V.extend(C.tolist())
-            Sg.extend([(b + k, b + (k + 1) % len(C)) for k in range(len(C))])
+            ids = []
+            for p in C:
+                key = (round(p[0] * 200), round(p[1] * 200))
+                if key not in vid:
+                    vid[key] = len(V); V.append(p.tolist())
+                if not ids or ids[-1] != vid[key]:
+                    ids.append(vid[key])
+            if len(ids) > 1 and ids[0] == ids[-1]:
+                ids.pop()
+            if len(ids) < 3:
+                continue
+            Sg.extend([(ids[k], ids[(k + 1) % len(ids)]) for k in range(len(ids))])
+        if len(V) < 3 or len(Sg) < 3:
+            continue
         for h in part.interiors:
             hp = Polygon(h)
             if hp.area > 0.01:
@@ -434,22 +501,35 @@ def main():
     dem = DEM()
     N, ways, zone, node_tags, towns = load_network()
     print(len(ways), "voies dans la zone")
-    profiles(N, ways, dem)
+    ways, chains = profiles(N, ways, dem)
     S = samples(ways)
     rf = road_height_fn(S)
     regions = [tuple(r) for r in json.load(open("data/routes_plan.json"))["regions"]]
     carve(dem, rf, regions)
     print("terrassement :", len(regions), "régions")
-    pickle.dump(dict(ways=[{k: v for k, v in w.items()} for w in ways]), open("data/roads.pkl", "wb"))
+    import autoroute_geom as AG
+    pickle.dump(dict(ways=[{k: v for k, v in w.items() if k not in ("chain", "att_c")} for w in ways],
+                     chains=AG.export(chains)), open("data/roads.pkl", "wb"))
 
     # emprises
-    paved, unpaved, walk, decks = [], [], [], []
+    paved, unpaved, walk, decks, paved_mw = [], [], [], [], []
     for w in ways:
         ls = LineString(w["P"])
+        if "hw_arr" in w:
+            g = _band(w, -w["hw_arr"], w["hw_arr"])
+            if w["bridge"]:
+                decks.append((w, g)); continue
+            paved.append(g); paved_mw.append(g)
+            # terre-plein central étroit : revêtu jusqu'à l'axe (séparateur en béton posé par build_autoroute.py)
+            for g2 in median_strips(w):
+                paved.append(g2); paved_mw.append(g2)
+            continue
         g = ls.buffer(w["w"] / 2, cap_style="flat" if not w["bridge"] else "flat", join_style="round", quad_segs=4)
         if w["bridge"]:
             decks.append((w, g)); continue
         (paved if w["paved"] else unpaved).append(ls.buffer(w["w"] / 2, cap_style="round", join_style="round", quad_segs=4))
+        if w["cls"] == "motorway_link":
+            paved_mw.append(paved[-1])
         for side, sg in ((0, 1), (1, -1)):
             if w["sidewalk"][side]:
                 off = ls.offset_curve(sg * (w["w"] / 2 + SW_W / 2), join_style="round")
@@ -460,6 +540,8 @@ def main():
     walk = [g.intersection(Zc) for g in walk]
     decks = [(w, g.intersection(Zc)) for w, g in decks if g.intersects(Zc)]
     paved_u = unary_union(paved)
+    mw_u = unary_union([g.intersection(Zc) for g in paved_mw]) if paved_mw else Polygon()
+    other_u = paved_u.difference(mw_u)
     unpaved_u = unary_union(unpaved).difference(paved_u) if unpaved else Polygon()
     walk_u = unary_union(walk).difference(paved_u).difference(unpaved_u.buffer(0.01)) if walk else Polygon()
     shapely.prepare(paved_u); shapely.prepare(walk_u)
@@ -479,7 +561,10 @@ def main():
     hroad_b = lambda x, z: hroad(x, z) + calm.h(x, z)
     bumps = furniture.Out(TILE)
     print("ralentisseurs :", calm.build(bumps, det, hroad))
-    nc, ns = furniture.markings(det, ways_m, use, hroad_b, node_tags, {"uncontrolled", "marked", "zebra", "traffic_signals", None})
+    nc, ns = furniture.markings(det, [w for w in ways_m if w["cls"] not in ("motorway", "motorway_link")], use, hroad_b,
+                                node_tags, {"uncontrolled", "marked", "zebra", "traffic_signals", None})
+    import autoroute_geom as AG
+    print("autoroutes : %d zébras" % AG.markings(det, chains, ways, use, hroad_b))
     st = furniture.signs(det, ways, use, hroad_b, node_tags, city_names, towns)
     print("marquages : %d passages piétons, %d lignes d'arrêt ; panneaux :" % (nc, ns), st)
     tiles = set()
@@ -492,7 +577,8 @@ def main():
     for tx, tz in sorted(tiles):
         bb = (tx * TILE, tz * TILE, (tx + 1) * TILE, (tz + 1) * TILE)
         groups = {}
-        for name, geom, lift in (("asphalt", paved_u, 0.0), ("dirt", unpaved_u, 0.0), ("sidewalk", walk_u, CURB_H)):
+        for name, geom, lift in (("asphalt", other_u, 0.0), ("asphalt_mw", mw_u, 0.0), ("dirt", unpaved_u, 0.0),
+                                 ("sidewalk", walk_u, CURB_H)):
             if geom.is_empty:
                 continue
             g = shapely.clip_by_rect(geom, *bb)
@@ -513,7 +599,7 @@ def main():
             if not mb.empty():
                 groups[name] = mb
         # ponts de la tuile
-        mbd = MeshB(); mbp = MeshB()
+        mbd = MeshB(); mbp = MeshB(); mbdm = MeshB()
         for w, g in decks:
             if not g.intersects(box(*bb)):
                 continue
@@ -521,21 +607,23 @@ def main():
             if not (bb[0] <= mid[0] < bb[2] and bb[1] <= mid[1] < bb[3]):
                 continue
             yb = lambda x, z, w=w: _yb(w, x, z)
-            surface(mbd, g, yb, 0.0, maxlen=3.0)
+            surface(mbdm if w["cls"] in ("motorway", "motorway_link") else mbd, g, yb, 0.0, maxlen=3.0)
             for sg in (1, -1):
-                E = w["P"] + w["N"] * sg * (w["w"] / 2)
+                E = w["P"] + w["N"] * sg * (w["hw_arr"][:, None] if "hw_arr" in w else w["w"] / 2)
                 y = w["y"]
                 walls(mbp, E, y + 1.0, y - 0.9)                     # parapets et rive du tablier
                 walls(mbp, E[::-1], (y + 1.0)[::-1], (y - 0.9)[::-1])
             # piles tous les 25 m si le tablier est haut
             for k in range(0, len(w["P"]), 8):
                 gnd = float(dem.h(*w["P"][k])[0])
-                if w["y"][k] - gnd > 3:
+                if w["y"][k] - gnd > 3 and rf(*w["P"][k])[1][0] > 1.0:       # jamais sur une chaussée
                     c = w["P"][k]; r = 0.6
                     sq = np.array([[c[0] - r, c[1] - r], [c[0] + r, c[1] - r], [c[0] + r, c[1] + r], [c[0] - r, c[1] + r], [c[0] - r, c[1] - r]])
                     walls(mbp, sq, np.full(5, w["y"][k] - 0.9), np.full(5, gnd - 1.0))
         if not mbd.empty():
             groups["asphalt_bridge"] = mbd
+        if not mbdm.empty():
+            groups["asphalt_mw_bridge"] = mbdm
         if not mbp.empty():
             groups["concrete"] = mbp
         dprims = det.prims((tx, tz))
@@ -561,6 +649,36 @@ def main():
                 G["detail"] = dprims
             write_glb("%s/t_%d_%d.glb" % (OUT_ROADS, tx, tz), G)
     print(len(tiles), "tuiles de routes,", ntri, "triangles")
+
+
+def median_strips(w):
+    """Terre-plein central étroit (< 6,5 m) d'une chaussée d'autoroute : polygones revêtus de son bord gauche à l'axe
+    du terre-plein."""
+    tw = w.get("twin_arr")
+    out = []
+    if tw is None:
+        return out
+    m = np.isfinite(tw) & (tw - 2 * w["hw_arr"] < 6.5) & (tw / 2 > w["hw_arr"] + 0.2)
+    k = 0
+    while k < len(m):
+        if not m[k]:
+            k += 1; continue
+        j = k
+        while j + 1 < len(m) and m[j + 1]:
+            j += 1
+        if j - k >= 2:
+            sl = slice(k, j + 1)
+            out.append(_band(w, -tw[sl] / 2 - 0.05, -w["hw_arr"][sl] + 0.05, sl))
+        k = j + 1
+    return out
+
+
+def _band(w, lo, hi, sl=slice(None)):
+    """Polygone entre les décalages lo et hi (à droite, tableaux alignés sur la polyligne de w)."""
+    P = w["P"][sl]; Nn = w["N"][sl]
+    A = P + Nn * np.asarray(lo)[:, None]; B = P + Nn * np.asarray(hi)[:, None]
+    g = Polygon(np.vstack([A, B[::-1]]))
+    return g if g.is_valid else g.buffer(0)
 
 
 def _yb(w, x, z):

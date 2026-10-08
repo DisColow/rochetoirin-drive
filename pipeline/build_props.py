@@ -205,7 +205,8 @@ def main():
     zone = Polygon(plan["zone"]).buffer(150)
     dem = Carved()
     ways = pickle.load(open("data/roads.pkl", "rb"))["ways"]
-    ROAD = Local([LineString(w["P"]).buffer(w["w"] / 2 + (1.6 if any(w["sidewalk"]) else 0.0) + 0.5)
+    ROAD = Local([LineString(w["P"]).buffer(w["w"] / 2 + (1.6 if any(w["sidewalk"]) else 0.0) + 0.5
+                                            + {"motorway": 10.0, "motorway_link": 4.0}.get(w["cls"], 0.0))
                   for w in ways if len(w["P"]) > 1])
     blds = load_buildings()
     BLD = Local([g.buffer(0.4) for _, g in blds])

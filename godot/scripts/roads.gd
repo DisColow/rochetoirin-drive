@@ -29,6 +29,12 @@ func _ready() -> void:
 	am.set_shader_parameter("rough_tex", load("res://assets/tex/asphalt_rough.jpg"))
 	mats["asphalt"] = am
 	mats["asphalt_bridge"] = mats["asphalt"]
+	var amw: ShaderMaterial = am.duplicate()
+	preload("res://scripts/env.gd").add(amw)
+	amw.set_shader_parameter("motorway", true)
+	amw.set_shader_parameter("tint", Color(0.5, 0.5, 0.52))
+	mats["asphalt_mw"] = amw
+	mats["asphalt_mw_bridge"] = amw
 	mats["dirt"] = _mat("dirt", 0.35, Color(1, 1, 1))
 	mats["sidewalk"] = _mat("sidewalk", 0.5, Color(1, 1, 1))
 	mats["concrete"] = _mat("concrete", 0.4, Color(0.92, 0.92, 0.9))

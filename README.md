@@ -6,8 +6,29 @@ Saint-Chef, L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v3.6.apk — panneaux de sortie complets, plaques d'égout](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.6.apk)**
+**[RochetoirinSimulator-v3.7.apk — autoroutes refaites de fond en comble](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.7.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
+
+Nouveautés de la v3.7 — **refonte des autoroutes** (A43, A48 et leurs échangeurs), façon Euro Truck Simulator :
+- **tracé lissé** de bout en bout : plus d'angles ni de cassures, virages de plusieurs centaines de mètres de rayon ;
+- **profil en long d'autoroute** : pentes ≤ 5 % (il y avait des pentes à 20 % et des bosses en montagnes russes),
+  raccordements verticaux de plusieurs kilomètres, déblais et remblais avec de vrais talus, les deux chaussées à la
+  même hauteur ; **gabarit de 5 m sous tous les ponts** (certains tabliers étaient à 1,5 m de la chaussée) ;
+- **terre-plein central** : les deux chaussées ne se chevauchent plus (c'était le cas une fois sur deux) ;
+  séparateur en béton (GBA) quand il est étroit, double glissière sinon ;
+- **profil en travers français** : bande dérasée de 1 m, voies de 3,5 m, bande d'arrêt d'urgence de 3 m, largeur qui
+  varie en biseau quand le nombre de voies change ; enrobé d'autoroute plus sombre et plus uniforme ;
+- **bretelles** : voie de décélération (biseau + voie parallèle) et voie d'accélération (200 m) accolées à droite,
+  au lieu de bretelles qui coupaient les voies en diagonale ; profils sans rupture (pentes ≤ 8 %), bifurcations
+  A48 / A43 propres ;
+- **marquages réglementaires** : rive gauche continue, séparation des voies en tirets de 3 m tous les 13 m, rive de
+  la bande d'arrêt d'urgence en traits de 39 m, ligne épaisse des voies d'entrée et de sortie, **zébras aux musoirs** ;
+- **équipements** : glissières à l'échelle réelle (poteaux fins, catadioptres) qui suivent les vrais bords (voies
+  auxiliaires, bretelles), **potences de sortie** au-dessus des voies, panneaux « SORTIE » et **absorbeurs de choc**
+  aux musoirs, limitations de vitesse, **clôture grillagée d'emprise** ; panneaux et bornes d'appel d'urgence enfin
+  **du bon côté** (ils étaient dans le terre-plein central) ; arbres et cultures écartés de l'emprise.
+
+[v3.6 — panneaux de sortie complets, plaques d'égout](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v3.6.apk)
 
 Nouveautés de la v3.6 :
 - présignalisation de **toutes les sorties d'autoroute** (1 000 m et 500 m, 44 panneaux), cartouche « SORTIE n »

@@ -27,7 +27,8 @@ def main():
     from shapely.geometry import LineString
     from shapely.strtree import STRtree
     ways = pickle.load(open("data/roads.pkl", "rb"))["ways"]
-    roads = [LineString(w["P"]).buffer(w["w"] / 2 + 1.2 + (1.6 if any(w["sidewalk"]) else 0.0), cap_style="flat")
+    roads = [LineString(w["P"]).buffer(w["w"] / 2 + 1.2 + (1.6 if any(w["sidewalk"]) else 0.0)
+                                       + {"motorway": 11.0, "motorway_link": 5.0}.get(w["cls"], 0.0), cap_style="flat")
              for w in ways if len(w["P"]) > 1]
     rtree = STRtree(roads)
     tiles = {}

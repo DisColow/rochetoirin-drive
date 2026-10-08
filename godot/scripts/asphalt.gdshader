@@ -9,6 +9,7 @@ uniform sampler2D normal_tex : hint_normal, filter_linear_mipmap_anisotropic, re
 uniform sampler2D rough_tex : filter_linear_mipmap_anisotropic, repeat_enable;
 uniform vec3 tint : source_color = vec3(0.62, 0.62, 0.63);
 uniform float scale = 0.30;
+uniform bool motorway = false;     // enrobé d'autoroute : plus sombre et plus uniforme, sans regards ni reprises
 
 varying vec3 wpos;
 
@@ -33,13 +34,19 @@ void fragment() {
 	// plaques : reprises plus sombres, zones usées plus claires
 	float big = vnoise(p * 0.018) * 0.6 + vnoise(p * 0.07) * 0.4;
 	float patch = smoothstep(0.62, 0.68, vnoise(p * 0.035 + 7.0));
+	if (motorway) {
+		// enrobé drainant : texture adoucie (moins de fissures), quelques bandes de reprise très étirées
+		a = mix(a, vec3(dot(a, vec3(0.333))), 0.35) * 0.9 + 0.08 * vec3(0.42);
+		big = vnoise(p * 0.006) * 0.7 + vnoise(p * 0.03) * 0.3;
+		patch *= 0.35;
+	}
 	vec3 c = a * tint * (0.86 + 0.28 * big);
 	c *= mix(1.0, 0.72, patch);
 	// plaques d'égout en fonte (une case de 26 m sur cinq), anneau et motif de grille, posées dans l'enrobé
 	vec2 mc = floor(p / 26.0);
 	vec2 mp = (mc + vec2(0.3) + 0.4 * vec2(hash(mc), hash(mc + 7.3))) * 26.0;
 	float md = length(p - mp);
-	if (hash(mc + 3.1) < 0.2 && md < 0.36) {
+	if (!motorway && hash(mc + 3.1) < 0.2 && md < 0.36) {
 		float grid = step(0.5, fract((p.x - mp.x) * 7.0)) * 0.12 + step(0.5, fract((p.y - mp.y) * 7.0)) * 0.12;
 		vec3 iron = vec3(0.16, 0.15, 0.14) * (0.8 + grid) * (md > 0.31 ? 0.75 : 1.0);
 		c = mix(c, iron, smoothstep(0.36, 0.34, md));
