@@ -23,7 +23,7 @@ for n, (lo, la) in N.items():
         pts[n] = tuple(float(v) for v in to_local(lo, la))
 def nearest(x, z):
     return min(pts, key=lambda n: (pts[n][0] - x) ** 2 + (pts[n][1] - z) ** 2)
-T = {"Rochetoirin": (0, 0), "Saint-Chef": (-4387, -5876), "L'Isle-d'Abeau": (-14569, -3778), "Saint-Clair-de-la-Tour": (5482, 1639), "La Tour-du-Pin": (2354, 1318), "Chamont": (-5900, -7680)}
+T = {"Rochetoirin": (0, 0), "Saint-Chef": (-4387, -5876), "L'Isle-d'Abeau": (-14569, -3778), "Saint-Clair-de-la-Tour": (5482, 1639), "La Tour-du-Pin": (2354, 1318), "Chamont": (-5900, -7680), "Bourgoin-Jallieu": (-10960, -940)}
 src = nearest(*T["Rochetoirin"])
 out = {}
 for k, p in T.items():
@@ -38,10 +38,13 @@ json.dump(dict(towns=T, routes=out), open("data/routes_plan.json", "w"))
 # Saint-Clair : par La Tour-du-Pin (itinéraire naturel)
 a = nearest(*T["La Tour-du-Pin"]); b = nearest(*T["Saint-Clair-de-la-Tour"])
 out["Saint-Clair-de-la-Tour"] = out["La Tour-du-Pin"] + [pts[n] for n in nx.shortest_path(G, a, b, weight="w")]
-# zone jouable : ancienne zone + couloirs (450 m) + communes (rayon 1,2 km) ; régions Terrain3D de 1024 m
-from shapely.geometry import LineString, Point, box
+# zone jouable : ancienne zone + couloirs (450 m) + communes (rayon 1,2 km) + communes entières (limites OSM,
+# fetch_communes.py, marge 150 m) ; régions Terrain3D de 1024 m
+from shapely.geometry import LineString, Point, box, shape
 from shapely.ops import unary_union
-parts = [box(-2300, -3100, 2300, 3100)]
+WHOLE = ("Rochetoirin", "Saint-Chef", "Bourgoin-Jallieu")
+C = json.load(open("data/communes.json"))
+parts = [box(-2300, -3100, 2300, 3100)] + [shape(C[k]).buffer(150) for k in WHOLE if k in C]
 for k, p in out.items():
     parts.append(LineString(p).buffer(450))
 for k, p in T.items():
