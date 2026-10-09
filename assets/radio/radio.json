@@ -1,0 +1,222 @@
+{
+ "stations": [
+  {
+   "nom": "Rochetoirin FM",
+   "freq": "88.4",
+   "morceaux": [
+    {
+     "titre": "Sunshine (version 2)",
+     "fichier": "sunshine__version_2",
+     "duree": 225
+    },
+    {
+     "titre": "Sunshine",
+     "fichier": "sunshine",
+     "duree": 202
+    },
+    {
+     "titre": "Disco con Tutti",
+     "fichier": "disco_con_tutti",
+     "duree": 236
+    },
+    {
+     "titre": "Gonna Start v2",
+     "fichier": "gonna_start_v2",
+     "duree": 155
+    },
+    {
+     "titre": "Disco Medusae",
+     "fichier": "disco_medusae",
+     "duree": 221
+    },
+    {
+     "titre": "Pyro Flow",
+     "fichier": "pyro_flow",
+     "duree": 234
+    }
+   ]
+  },
+  {
+   "nom": "Isère Jazz",
+   "freq": "91.2",
+   "morceaux": [
+    {
+     "titre": "Poppers and Prosecco",
+     "fichier": "poppers_and_prosecco",
+     "duree": 194
+    },
+    {
+     "titre": "Opportunity Walks",
+     "fichier": "opportunity_walks",
+     "duree": 162
+    },
+    {
+     "titre": "Study And Relax",
+     "fichier": "study_and_relax",
+     "duree": 223
+    },
+    {
+     "titre": "Cool Vibes",
+     "fichier": "cool_vibes",
+     "duree": 218
+    },
+    {
+     "titre": "Hep Cats",
+     "fichier": "hep_cats",
+     "duree": 251
+    },
+    {
+     "titre": "Rollin at 5",
+     "fichier": "rollin_at_5",
+     "duree": 131
+    }
+   ]
+  },
+  {
+   "nom": "Dauphiné Classique",
+   "freq": "95.7",
+   "morceaux": [
+    {
+     "titre": "Cello Suite #1 in G - Prelude",
+     "fichier": "cello_suite__1_in_g___prelude",
+     "duree": 129
+    },
+    {
+     "titre": "Sheep May Safely Graze - BWV 208",
+     "fichier": "sheep_may_safely_graze___bwv_208",
+     "duree": 238
+    },
+    {
+     "titre": "Minstrel Guild",
+     "fichier": "minstrel_guild",
+     "duree": 186
+    },
+    {
+     "titre": "Habanera",
+     "fichier": "habanera",
+     "duree": 248
+    },
+    {
+     "titre": "Thaxted (Holst)",
+     "fichier": "thaxted__holst",
+     "duree": 153
+    },
+    {
+     "titre": "Wagner Bridal Chorus",
+     "fichier": "wagner_bridal_chorus",
+     "duree": 139
+    }
+   ]
+  },
+  {
+   "nom": "Radio Soleil",
+   "freq": "99.1",
+   "morceaux": [
+    {
+     "titre": "Cuban Sandwich",
+     "fichier": "cuban_sandwich",
+     "duree": 195
+    },
+    {
+     "titre": "BossaBossa",
+     "fichier": "bossabossa",
+     "duree": 167
+    },
+    {
+     "titre": "Funkorama",
+     "fichier": "funkorama",
+     "duree": 201
+    },
+    {
+     "titre": "Funky Chunk",
+     "fichier": "funky_chunk",
+     "duree": 239
+    },
+    {
+     "titre": "Casa Bossa Nova",
+     "fichier": "casa_bossa_nova",
+     "duree": 242
+    },
+    {
+     "titre": "Chee Zee Beach",
+     "fichier": "chee_zee_beach",
+     "duree": 203
+    }
+   ]
+  },
+  {
+   "nom": "Bourgoin Électro",
+   "freq": "104.6",
+   "morceaux": [
+    {
+     "titre": "What Is Love",
+     "fichier": "what_is_love",
+     "duree": 208
+    },
+    {
+     "titre": "Bit Quest",
+     "fichier": "bit_quest",
+     "duree": 192
+    },
+    {
+     "titre": "Bleeping Demo",
+     "fichier": "bleeping_demo",
+     "duree": 214
+    },
+    {
+     "titre": "Special Spotlight",
+     "fichier": "special_spotlight",
+     "duree": 192
+    },
+    {
+     "titre": "Doobly Doo",
+     "fichier": "doobly_doo",
+     "duree": 208
+    },
+    {
+     "titre": "Jerry Five",
+     "fichier": "jerry_five",
+     "duree": 160
+    }
+   ]
+  },
+  {
+   "nom": "Radio Rétro",
+   "freq": "107.3",
+   "morceaux": [
+    {
+     "titre": "Lively Lumpsucker",
+     "fichier": "lively_lumpsucker",
+     "duree": 222
+    },
+    {
+     "titre": "Fig Leaf Rag",
+     "fichier": "fig_leaf_rag",
+     "duree": 209
+    },
+    {
+     "titre": "Merry Go",
+     "fichier": "merry_go",
+     "duree": 120
+    },
+    {
+     "titre": "Mister Exposition",
+     "fichier": "mister_exposition",
+     "duree": 141
+    },
+    {
+     "titre": "Onion Capers",
+     "fichier": "onion_capers",
+     "duree": 135
+    },
+    {
+     "titre": "Batty McFaddin - Slower",
+     "fichier": "batty_mcfaddin___slower",
+     "duree": 244
+    }
+   ]
+  }
+ ],
+ "auteur": "Kevin MacLeod (incompetech.com)",
+ "licence": "CC BY 4.0"
+}
