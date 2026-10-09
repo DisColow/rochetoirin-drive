@@ -116,9 +116,10 @@
   teinte : utiliser des maillages en volume (cubes, sphères basses), la transparence tramée `ALPHA_HASH` et
   `scale_amount_curve` pour le fondu (`scripts/dust.gd`, effets des roues).
 - **Mises à jour incrémentales** (depuis la v5.5) : `scenes/boot.tscn` (`scripts/boot.gd`, jamais mis à jour lui-même)
-  charge `user://maj/maj-X.Y.pck` puis lance `main.tscn` ; `scripts/maj.gd` lit le catalogue
-  `raw.githubusercontent.com/…/maj/catalogue.json` (branche `maj`) et télécharge le paquet de la base de l'APK
-  installé. `apk.yml` : le premier build d'un `version/code` exporte la base (`--export-pack`, release `base-CODE`) ; les
+  écran de démarrage (depuis la v5.8) : lit le catalogue `raw.githubusercontent.com/…/maj/catalogue.json` (branche
+  `maj`), télécharge le paquet de la base de l'APK installé avec barre de progression (bouton « Jouer sans attendre »),
+  charge `user://maj/maj-X.Y.pck` puis lance `main.tscn` ; `scripts/maj.gd` ne fait plus que valider après 40 s
+  (et télécharge en arrière-plan pour les APK d'avant la v5.8). Essai sur PC : `MAJ_ESSAI_BASE=<code> godot --path godot`. `apk.yml` : le premier build d'un `version/code` exporte la base (`--export-pack`, release `base-CODE`) ; les
   suivants exportent un paquet cumulatif (`--export-patch --patches base.pck`) joint à la release `vX.Y` et inscrit
   au catalogue. **Ne changer `version/code` que si un APK complet est nécessaire** (moteur Godot, permissions Android,
   `boot.gd`, réglages du projet : `project.godot` n'est pas pris des paquets) ; sinon ne monter que `config/version`.

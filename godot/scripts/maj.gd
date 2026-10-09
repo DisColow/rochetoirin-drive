@@ -16,7 +16,8 @@ func _ready() -> void:
 	if OS.has_feature("editor") or OS.get_cmdline_user_args().size() > 0 or OS.get_name() != "Android":
 		return                      # essais, éditeur, PC : pas de mise à jour incrémentale (paquets Android)
 	get_tree().create_timer(40.0).timeout.connect(_valide)
-	get_tree().create_timer(6.0).timeout.connect(_verifie)
+	if not Engine.get_meta("maj_verifiee", false):    # APK d'avant la v5.8 : l'écran de démarrage ne télécharge pas
+		get_tree().create_timer(6.0).timeout.connect(_verifie)
 
 func _valide() -> void:
 	var etat := ConfigFile.new()

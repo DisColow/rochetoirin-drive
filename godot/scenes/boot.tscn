@@ -2,5 +2,5 @@
 
 [ext_resource type="Script" path="res://scripts/boot.gd" id="1"]
 
-[node name="Boot" type="Node"]
+[node name="Boot" type="Control"]
 script = ExtResource("1")
