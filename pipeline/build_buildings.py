@@ -670,7 +670,7 @@ def roof_material(ortho_rgb, kind, wall, key):
 
 # structure des bâtiments des commerces relevée sur les photos Street View (sources/shops_bati.txt)
 CREPIS = {"blanc": (0.98, 0.97, 0.95), "creme": (0.98, 0.94, 0.86), "beige": (0.95, 0.89, 0.79), "jaune": (1.0, 0.93, 0.76),
-          "ocre": (0.98, 0.85, 0.68), "rose": (0.99, 0.88, 0.84), "saumon": (0.99, 0.85, 0.76), "gris": (0.88, 0.88, 0.87)}
+          "ocre": (0.98, 0.88, 0.74), "rose": (0.99, 0.90, 0.87), "saumon": (0.99, 0.89, 0.82), "gris": (0.88, 0.88, 0.87)}
 BARDAGES = {"gris": (0.85, 0.86, 0.85), "blanc": (1.0, 1.0, 1.0), "anthracite": (0.45, 0.47, 0.50), "beige": (0.92, 0.86, 0.75),
             "bleu": (0.58, 0.66, 0.78), "vert": (0.66, 0.75, 0.66), "rouge": (0.80, 0.50, 0.46)}
 VOLETS = {"bois": (0.62, 0.42, 0.28), "blanc": (0.97, 0.97, 0.95), "gris": (0.80, 0.80, 0.78), "vert": (0.50, 0.64, 0.52),
@@ -686,6 +686,8 @@ def bati_ov(f, area, kind):
     else:
         ov["H"] = 4.3 + (n - 1) * 2.8          # rez-de-chaussée commercial haut (vitrine, enseigne, éclairage)
     ov["flat"] = toit == "plat"
+    # bâtiment commercial de plain-pied en bardage, béton ou verre : pas de fenêtres de logement, la vitrine seule
+    ov["nowin"] = n == 1 and (fac.startswith("bardage") or fac in ("beton", "verre"))
     if not ov["flat"]:
         ov["hip"] = toit == "4p"
     if fac.startswith("crepi_") and fac != "crepi_ancien":
@@ -898,6 +900,8 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
                         if f == 0 or v0 + whf > eave - 0.15 or v0 < gnd + f * 2.75 + 0.4:
                             break
                     for j, uc in enumerate(slots):
+                        if ov.get("nowin") and not (f == 0 and k == street):
+                            continue
                         if f == 0 and kind == "commerce" and k == street:
                             ops.append((uc - 1.25, uc + 1.25, gnd + 0.08, gnd + 2.6, IDX["vitrine"], 0.08)); continue
                         if f == 0 and j == door_slot:
