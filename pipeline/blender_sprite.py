@@ -18,12 +18,12 @@ N_AZ = 32
 ELS = [6, 20, 38, 60]
 STEERS = [-0.38, 0.0, 0.38]          # rad, + = vers la gauche
 W, H = 768, 654                      # 3 × le sprite final (256 × 218)
-ORTHO = 5.6                          # largeur couverte (m)
-CENTER = mathutils.Vector((0.0, 0.035, 0.88))
+ORTHO = 6.6                          # largeur couverte (m) : Ranger de 5,4 m
+CENTER = mathutils.Vector((0.0, 0.0, 0.9))
 
 COLORS = {  # nom de matériau : (couleur, métal, rugosité, vernis) — teintes de la planche de référence de l'utilisateur
     # (bordeaux, bas de caisse et boucliers gris anthracite, vitres ardoise, enjoliveurs gris clair, phares jaune pâle)
-    "paint": ((0.20, 0.016, 0.028), 0.0, 0.45, 0.12), "beige": ((0.048, 0.051, 0.058), 0.0, 0.62, 0.0),
+    "paint": ((0.012, 0.012, 0.014), 0.0, 0.3, 0.6), "cover": ((0.62, 0.63, 0.63), 0.0, 0.4, 0.1), "beige": ((0.048, 0.051, 0.058), 0.0, 0.62, 0.0),
     "glass": ((0.085, 0.10, 0.12), 0.0, 0.22, 0.0), "chrome": ((0.7, 0.7, 0.72), 1.0, 0.2, 0.0),
     "rubber": ((0.022, 0.022, 0.026), 0.0, 0.9, 0.0), "plastic": ((0.03, 0.03, 0.034), 0.0, 0.6, 0.0),
     "lamp": ((0.95, 0.86, 0.55), 0.0, 0.15, 0.0), "tail": ((0.6, 0.03, 0.03), 0.0, 0.2, 0.0),
@@ -76,7 +76,9 @@ def setup():
     bpy.ops.import_scene.gltf(filepath=os.path.join(CAR, "body.glb"))
     body = [o for o in bpy.context.selected_objects if o.type == "MESH"]
     wheels = []
-    meta_wb, meta_tr, r = 2.58, 1.47, 0.3
+    import json
+    meta = json.load(open(os.path.join(CAR, "meta.json")))
+    meta_wb, meta_tr, r = meta["wheelbase"], meta["track"], meta["radius"]
     for front in (True, False):
         for right in (True, False):
             bpy.ops.import_scene.gltf(filepath=os.path.join(CAR, "wheel.glb"))
@@ -86,7 +88,7 @@ def setup():
             piv = bpy.data.objects.new("pivot", None)
             sc.collection.objects.link(piv)
             # repère glTF du modèle : avant -Z, droite +X  ->  Blender : avant +Y, droite +X
-            piv.location = ((1 if right else -1) * meta_tr / 2, (1 if front else -1) * meta_wb / 2 + 0.035, r)
+            piv.location = ((1 if right else -1) * meta_tr / 2, (1 if front else -1) * meta_wb / 2, r)
             for o in bpy.context.selected_objects:
                 if o.parent is None:
                     o.parent = piv

@@ -15,7 +15,7 @@ OUT = "../godot/assets/car"
 N_AZ, ELS, STEERS = 32, [6, 20, 38, 60], [-0.38, 0.0, 0.38]
 FW, FH, K = 256, 218, 3
 COLS, PAGE_ROWS = 16, 12
-ORTHO = 5.6
+ORTHO = 6.6
 NCOL = 48
 
 
@@ -109,7 +109,7 @@ def main():
         Image.fromarray(feux[pg], "RGB").save(OUT + "/sprite_feux%s.png" % sfx, optimize=True)
     ombre()
     json.dump(dict(cols=COLS, rows=PAGE_ROWS, pages=pages, frame=[FW, FH], n_az=N_AZ, els=ELS, steers=STEERS,
-                   size=[ORTHO, ORTHO * FH / FW], center_y=0.88, rear=rear), open(OUT + "/sprite.json", "w"))
+                   size=[ORTHO, ORTHO * FH / FW], center_y=0.9, rear=rear), open(OUT + "/sprite.json", "w"))
     print("atlas", atlas.shape, len(frames), "vues")
 
 
