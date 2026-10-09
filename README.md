@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v5.2.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v5.2.apk)**
+**[RochetoirinSimulator-v5.3.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v5.3.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,31 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v5.3 :
+- **voiture en pixel art refaite** (⚙ > Voiture > Sprite pixel art) : 384 vues rendues à partir du modèle 3D de
+  l'Espace (32 angles autour, 4 hauteurs de caméra, roues droites ou braquées), rouge de la voiture de ton père et bas
+  de caisse beige doré, palette commune, contour d'un pixel ; toutes les vues sont cohérentes entre elles et la vue ne
+  change plus quand on accélère ou qu'on freine (plus de voiture qui « plonge ») ; **ombre en pixel art** (bord tramé)
+  à la place de l'ombre 3D.
+- **pluie sur la voiture** : gouttes en pixel art qui perlent sur les vitres (et quelques reflets sur la carrosserie),
+  **essuie-glace arrière** qui balaie la lunette et chasse les gouttes.
+- **interface façon planche de bord des années 80** : gros boutons poussoirs en pixel art (cadre de plastique noir,
+  touche bombée, pictogramme rétroéclairé, témoin orange allumé quand la radio joue ou qu'une activité est en cours,
+  bouton rouge des feux de détresse pour la remise sur la route) ; compteur à cristaux liquides (chiffres à 7
+  segments) ; menus, fenêtres et messages dans le même style, police pixel. Les commandes de conduite ne changent pas.
+- **taxi : les clients parlent** : chacun a un prénom, un âge, un métier, une famille, un caractère (jovial, timide,
+  grincheux, pressé, nostalgique, farceur, un peu égocentrique…) ; il parle de sa vie, de sa maison, des nouvelles du
+  coin, de la météo, de l'endroit où il va. On répond d'un toucher (ou touches 1, 2, 3) : chaleureux, drôle, curieux,
+  sobre… ou on se tait. Ses goûts sont cachés : une bonne conversation fait monter le pourboire, une mauvaise le fait
+  fondre. On peut aussi lancer la conversation (bouton bulle, touche P), mais les taiseux n'aiment pas qu'on les
+  dérange. Voix caricaturale façon talkie-walkie (babillage), la radio baisse quand le client parle. Une petite bulle
+  en bas de l'écran, entre les commandes : rien ne gêne la conduite.
+- **éditeur de monde** : dites « Sésame, ouvre-toi » (appui long sur le nom de la rue en haut de l'écran, ou
+  ⚙ > Formule magique, puis le micro du clavier ; on peut aussi l'écrire) ; touchez en roulant un objet du décor qui
+  ne vous plaît pas, puis « Générer depuis Street View » ou « Écrire une remarque » : une demande GitHub toute prête
+  s'ouvre (position, GPS, objet, rue, lien Street View…), il suffit d'appuyer sur « Create ». « Hasta la vista, baby »
+  referme l'éditeur.
 
 Nouveautés de la v5.2 — **le son** (enregistrements réels de la sonothèque de Joseph Sardin, BigSoundBank, CC0) :
 - **moteur** : un vrai 4 cylindres essence enregistré à quatre régimes stables (ralenti, 2 500, 2 800 et

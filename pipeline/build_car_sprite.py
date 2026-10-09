@@ -1,8 +1,11 @@
 """Voiture en sprite pixel art : les rendus de blender_sprite.py (data/sprite_raw, 3 × la taille finale) sont réduits
-à 160 × 136, posterisés sur une palette commune de 40 couleurs (rouge bordeaux, beige doré, chromes, vitres), bordés
-d'un trait sombre d'un pixel et rangés dans un atlas.
-Sorties : ../godot/assets/car/sprite.png (RGBA, 24 colonnes × 16 lignes), sprite_feux.png (R = feux arrière,
-V = phares), sprite.json (grille, angles, hauteurs, braquages, taille en mètres)."""
+à 256 × 218, posterisés sur une palette commune de 48 couleurs (rouge de la voiture du père, beige doré, chromes,
+vitres), bordés d'un trait sombre d'un pixel et rangés dans un atlas de deux pages (4096 px de large au plus : limite
+des téléphones). Toutes les vues viennent du même modèle 3D : angles et tailles cohérents d'une vue à l'autre.
+Sorties : ../godot/assets/car/sprite.png + sprite2.png (RGBA, 16 colonnes × 12 lignes chacune), sprite_feux.png +
+sprite_feux2.png (R = feux arrière, V = phares, B = vitres : gouttes et essuie-glace arrière sous la pluie),
+ombre.png (ombre portée en pixel art, vue de dessus), sprite.json (grille, pages, angles, hauteurs, braquages, taille
+en mètres, cadre de la lunette arrière de chaque vue)."""
 import json, os
 import numpy as np
 from PIL import Image
@@ -10,10 +13,10 @@ from PIL import Image
 RAW = "data/sprite_raw"
 OUT = "../godot/assets/car"
 N_AZ, ELS, STEERS = 32, [6, 20, 38, 60], [-0.38, 0.0, 0.38]
-FW, FH, K = 160, 136, 3
-COLS = 24
+FW, FH, K = 256, 218, 3
+COLS, PAGE_ROWS = 16, 12
 ORTHO = 5.6
-NCOL = 40
+NCOL = 48
 
 
 def down(a):
@@ -42,9 +45,12 @@ def main():
         return np.clip(g + (x - g) * 1.25, 0, 1)
     sample = grade(opaque[np.random.default_rng(1).choice(len(opaque), min(len(opaque), 200000), replace=False)])
     pal_img = Image.fromarray((sample[None] * 255).astype(np.uint8)).quantize(NCOL, method=Image.Quantize.MEDIANCUT)
-    rows = (len(frames) + COLS - 1) // COLS
-    atlas = np.zeros((rows * FH, COLS * FW, 4), np.uint8)
-    feux = np.zeros((rows * FH, COLS * FW, 3), np.uint8)
+    per = COLS * PAGE_ROWS
+    pages = (len(frames) + per - 1) // per
+    atlas = np.zeros((pages, PAGE_ROWS * FH, COLS * FW, 4), np.uint8)
+    feux = np.zeros((pages, PAGE_ROWS * FH, COLS * FW, 3), np.uint8)
+    rear = []                                       # cadre de la lunette arrière (pixels de la case) ou None
+    from scipy import ndimage as ndi
     for i, (c, m) in enumerate(frames):
         rgb = (grade(c[..., :3]) * 255).astype(np.uint8)
         q = Image.fromarray(rgb).quantize(palette=pal_img, dither=Image.Dither.NONE).convert("RGB")
@@ -66,16 +72,51 @@ def main():
         # reflet : un pixel plus clair sous le contour haut des surfaces (lumière venant d'en haut)
         top = al & ~np.roll(al, 1, 0)
         out[top, :3] = np.minimum(255, out[top, :3].astype(np.int32) + 38).astype(np.uint8)
-        r, cl = divmod(i, COLS)
-        atlas[r * FH:(r + 1) * FH, cl * FW:(cl + 1) * FW] = out
+        pg, k = divmod(i, per)
+        r, cl = divmod(k, COLS)
+        atlas[pg, r * FH:(r + 1) * FH, cl * FW:(cl + 1) * FW] = out
         mk = (m[..., :3] * (m[..., 3:4] > 0.3) > 0.35).astype(np.uint8) * 255
-        feux[r * FH:(r + 1) * FH, cl * FW:(cl + 1) * FW] = mk
+        feux[pg, r * FH:(r + 1) * FH, cl * FW:(cl + 1) * FW] = mk
+        # lunette arrière : plus grande vitre des vues de derrière (à moins de 45° de l'arrière)
+        ei_, rest = divmod(i, N_AZ * len(STEERS))
+        a_ = rest // len(STEERS)
+        box = None
+        if (a_ <= 4 or a_ >= N_AZ - 4) and ELS[ei_] < 50:
+            g = mk[..., 2] > 0
+            lab, n = ndi.label(g)
+            if n:
+                sizes = ndi.sum(g, lab, range(1, n + 1))
+                ys, xs = np.where(lab == 1 + int(np.argmax(sizes)))
+                box = [int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())]
+        rear.append(box)
     os.makedirs(OUT, exist_ok=True)
-    Image.fromarray(atlas, "RGBA").save(OUT + "/sprite.png", optimize=True)
-    Image.fromarray(feux, "RGB").save(OUT + "/sprite_feux.png", optimize=True)
-    json.dump(dict(cols=COLS, rows=rows, frame=[FW, FH], n_az=N_AZ, els=ELS, steers=STEERS, size=[ORTHO, ORTHO * FH / FW],
-                   center_y=0.88), open(OUT + "/sprite.json", "w"))
+    for pg in range(pages):
+        sfx = "" if pg == 0 else str(pg + 1)
+        Image.fromarray(atlas[pg], "RGBA").save(OUT + "/sprite%s.png" % sfx, optimize=True)
+        Image.fromarray(feux[pg], "RGB").save(OUT + "/sprite_feux%s.png" % sfx, optimize=True)
+    ombre()
+    json.dump(dict(cols=COLS, rows=PAGE_ROWS, pages=pages, frame=[FW, FH], n_az=N_AZ, els=ELS, steers=STEERS,
+                   size=[ORTHO, ORTHO * FH / FW], center_y=0.88, rear=rear), open(OUT + "/sprite.json", "w"))
     print("atlas", atlas.shape, len(frames), "vues")
+
+
+def ombre():
+    """Ombre portée en pixel art, vue de dessus : empreinte de l'Espace (4,25 × 1,77 m, coins arrondis) à 12 px/m,
+    pleine au centre, bord tramé (damier) ; posée sous la voiture par car.gd en mode sprite."""
+    ppm = 32
+    w, h = int(2.3 * ppm), int(4.9 * ppm)
+    yy, xx = np.mgrid[0:h, 0:w]
+    x = (xx + 0.5) / ppm - 1.15; z = (yy + 0.5) / ppm - 2.45
+    hx, hz, r = 0.92, 2.15, 0.35
+    dx = np.maximum(np.abs(x) - (hx - r), 0); dz = np.maximum(np.abs(z) - (hz - r), 0)
+    d = np.hypot(dx, dz) - r                     # < 0 : dedans
+    a = np.where(d < -0.12, 150, 0)
+    ring = (d >= -0.12) & (d < 0.06)
+    a = np.where(ring & ((xx + yy) % 2 == 0), 105, a)
+    img = np.zeros((h, w, 4), np.uint8)
+    img[..., :3] = (12, 10, 18)
+    img[..., 3] = a
+    Image.fromarray(img.astype(np.uint8), "RGBA").save(OUT + "/ombre.png")
 
 
 if __name__ == "__main__":

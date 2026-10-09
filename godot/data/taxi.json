@@ -1,0 +1,195 @@
+{
+ "_": "Conversations des clients du taxi (scripts/taxi_talk.gd). Caractères : goûts cachés pour chaque ton de réponse (-2 … +2) et envie de parler (bavard, 0 … 1). Tons : chaleureux, drole, curieux, sobre, silence (pas de réponse à temps). Variables : {prenom} {age} {metier} {commune} {dest} {dest_commune} {loisir} {animal} {famille} {e} (accord féminin : « e » ou rien).",
+ "caracteres": [
+  {"id": "jovial", "bavard": 0.9, "gouts": {"chaleureux": 1, "drole": 2, "curieux": 1, "sobre": -1, "silence": -2},
+   "bien": ["Ha ha ! Vous me plaisez, vous !", "Ah, ça c'est envoyé !", "Hé hé, j'adore."],
+   "moyen": ["Ouais, ouais.", "Bon, bon…", "Si vous le dites !"],
+   "mal": ["Vous êtes pas drôle, vous, hein…", "Bon. Ambiance.", "Ouh là, quel enthousiasme…"]},
+  {"id": "timide", "bavard": 0.2, "gouts": {"chaleureux": 1, "drole": 0, "curieux": -1, "sobre": 1, "silence": 1},
+   "bien": ["Oh… merci, c'est gentil.", "Hm, oui… c'est ça.", "C'est… agréable de parler un peu."],
+   "moyen": ["Ah… d'accord.", "Hm.", "Oui… peut-être."],
+   "mal": ["Euh… je préfère ne pas en parler.", "…", "Je… je vais regarder par la fenêtre."]},
+  {"id": "grincheux", "bavard": 0.5, "gouts": {"chaleureux": -1, "drole": -2, "curieux": 0, "sobre": 2, "silence": 1},
+   "bien": ["Enfin quelqu'un de raisonnable.", "Voilà. Exactement.", "Hmpf. Pour une fois."],
+   "moyen": ["Mouais.", "Si vous voulez.", "Hmpf."],
+   "mal": ["Épargnez-moi vos blagues.", "Regardez la route, plutôt.", "C'est pas un salon de thé, ici."]},
+  {"id": "egocentrique", "bavard": 0.8, "gouts": {"chaleureux": 1, "drole": -1, "curieux": 2, "sobre": -1, "silence": -2},
+   "bien": ["Ah, vous au moins vous écoutez !", "Excellente question, vraiment.", "On voit que vous vous intéressez aux gens."],
+   "moyen": ["Bref, je disais…", "Oui enfin, bon.", "Hm. Passons."],
+   "mal": ["Vous m'écoutez, au moins ?", "Ce n'est pas le sujet.", "Je vois que ça ne vous intéresse pas."]},
+  {"id": "presse", "bavard": 0.25, "gouts": {"chaleureux": 0, "drole": -1, "curieux": -1, "sobre": 1, "silence": 2},
+   "bien": ["Parfait. On avance.", "Merci. Vous êtes efficace.", "Bien."],
+   "moyen": ["Oui oui.", "D'accord.", "Hm, l'heure tourne."],
+   "mal": ["Je n'ai vraiment pas le temps pour ça.", "On peut se concentrer sur la route ?", "Abrégeons, voulez-vous."]},
+  {"id": "nostalgique", "bavard": 0.7, "gouts": {"chaleureux": 2, "drole": 0, "curieux": 1, "sobre": 0, "silence": -1},
+   "bien": ["Ah, vous avez bon cœur.", "C'était le bon temps, vous voyez.", "Ça me rappelle des souvenirs, tout ça."],
+   "moyen": ["Enfin… les temps changent.", "Oui… sans doute.", "Hm, c'est la vie."],
+   "mal": ["Les jeunes, de nos jours…", "Vous ne pouvez pas comprendre.", "Bon. N'en parlons plus."]},
+  {"id": "farceur", "bavard": 0.75, "gouts": {"chaleureux": 0, "drole": 2, "curieux": 0, "sobre": -2, "silence": -1},
+   "bien": ["Hi hi ! Celle-là je la ressortirai.", "Ah, un connaisseur !", "Excellent ! Tope là… non, gardez les mains sur le volant."],
+   "moyen": ["Mouais, j'ai connu mieux.", "Bof, bof.", "Pas mal… pas terrible non plus."],
+   "mal": ["Oh là là, quel sérieux…", "Vous rigolez jamais, vous ?", "Ça manque de fantaisie, tout ça."]}
+ ],
+ "prenoms": {
+  "f": ["Josiane", "Martine", "Chantal", "Nathalie", "Sandrine", "Léa", "Camille", "Inès", "Monique", "Brigitte", "Sophie", "Manon", "Odette", "Yvette", "Clara", "Fatima", "Aurélie", "Ginette"],
+  "m": ["Gérard", "Michel", "Patrick", "Thierry", "Kévin", "Lucas", "Hugo", "Mohamed", "Bernard", "Jean-Pierre", "Christophe", "Théo", "Marcel", "Raymond", "Julien", "Didier", "Yannick", "Roger"]
+ },
+ "metiers": [
+  {"m": "boulanger", "f": "boulangère", "detail": "Debout à trois heures tous les matins. Le pain n'attend pas !"},
+  {"m": "infirmier", "f": "infirmière", "detail": "Je fais les tournées à domicile dans tous les villages du coin."},
+  {"m": "agriculteur", "f": "agricultrice", "detail": "Des vaches, du maïs, et pas un jour de repos."},
+  {"m": "professeur", "f": "professeure", "detail": "Trente gamins par classe, et ils ont tous un téléphone."},
+  {"m": "retraité", "f": "retraitée", "detail": "J'ai travaillé quarante-deux ans au tissage, à Bourgoin."},
+  {"m": "étudiant", "f": "étudiante", "detail": "Je prépare mes examens. Enfin… je devrais."},
+  {"m": "maçon", "f": "maçonne", "detail": "La moitié des murets du coin, c'est moi qui les ai montés."},
+  {"m": "facteur", "f": "factrice", "detail": "Je connais chaque boîte aux lettres d'ici à Saint-Chef."},
+  {"m": "coiffeur", "f": "coiffeuse", "detail": "On entend tout, dans un salon. Absolument tout."},
+  {"m": "garagiste", "f": "garagiste", "detail": "D'ailleurs votre voiture, là, elle a un petit bruit à l'avant."},
+  {"m": "comptable", "f": "comptable", "detail": "Des chiffres toute la journée. J'adore ça, en vrai."},
+  {"m": "musicien", "f": "musicienne", "detail": "Je joue de l'accordéon dans les bals du dimanche."},
+  {"m": "pharmacien", "f": "pharmacienne", "detail": "Les gens me racontent leurs maux de dos du matin au soir."},
+  {"m": "cuisinier", "f": "cuisinière", "detail": "Mon gratin dauphinois, on vient de loin pour le goûter."},
+  {"m": "routier", "f": "routière", "detail": "L'A43, je la connais virage par virage."},
+  {"m": "apiculteur", "f": "apicultrice", "detail": "Quarante ruches sur les collines. Le miel de châtaignier, c'est le meilleur."}
+ ],
+ "loisirs": ["la pétanque", "la randonnée sur les collines", "le jardinage", "la pêche à l'étang", "le vélo", "les mots croisés", "la chorale", "le rugby", "la belote", "la danse de salon", "les champignons", "la photo"],
+ "animaux": ["un chat qui s'appelle Moustache", "un vieux chien, Pistache", "trois poules", "un perroquet qui parle trop", "deux lapins", "un poisson rouge, Bulle", "un âne, Cadichon"],
+ "familles": ["deux petits-enfants", "un fils à Lyon", "une fille qui vit au Canada", "des jumeaux de six ans", "une grande famille, on est onze à Noël", "personne, et c'est très bien comme ça", "un frère qui ne m'appelle jamais"],
+ "sujets": {
+  "vie": [
+   {"dit": "Je suis {metier}. {metier_detail}", "rep": [
+    {"t": "Ça doit être passionnant !", "ton": "chaleureux"}, {"t": "Et ça vous plaît toujours ?", "ton": "curieux"},
+    {"t": "Moi je conduis, c'est déjà du sport.", "ton": "drole"}, {"t": "Je vois.", "ton": "sobre"}]},
+   {"dit": "Le week-end, c'est {loisir}. Rien d'autre ne compte.", "rep": [
+    {"t": "Vous avez bien raison.", "ton": "chaleureux"}, {"t": "Vous en faites depuis longtemps ?", "ton": "curieux"},
+    {"t": "Et la semaine, c'est quoi ? Le taxi ?", "ton": "drole"}, {"t": "Chacun son truc.", "ton": "sobre"}]},
+   {"dit": "J'ai {famille}. On ne choisit pas, hein.", "rep": [
+    {"t": "C'est précieux, la famille.", "ton": "chaleureux"}, {"t": "Vous les voyez souvent ?", "ton": "curieux"},
+    {"t": "On choisit ses amis, pas sa famille !", "ton": "drole"}, {"t": "C'est comme ça.", "ton": "sobre"}]},
+   {"dit": "À la maison j'ai {animal}. C'est le vrai chef de la famille.", "rep": [
+    {"t": "Oh, ça doit être adorable.", "ton": "chaleureux"}, {"t": "Il a quel âge ?", "ton": "curieux"},
+    {"t": "Chez moi c'est pareil, c'est la voiture qui commande.", "ton": "drole"}, {"t": "Hm.", "ton": "sobre"}]},
+   {"dit": "J'ai {age} ans, vous savez. On ne dirait pas, hein ?", "rep": [
+    {"t": "Pas du tout, vous faites bien plus jeune !", "ton": "chaleureux"}, {"t": "Et quel est votre secret ?", "ton": "curieux"},
+    {"t": "Moi j'aurais dit {age} et demi.", "ton": "drole"}, {"t": "Si vous le dites.", "ton": "sobre"}]},
+   {"dit": "Si c'était à refaire, j'aurais été pilote de rallye. Comme vous, quoi.", "rep": [
+    {"t": "Il n'est jamais trop tard !", "ton": "chaleureux"}, {"t": "Qu'est-ce qui vous en a empêché ?", "ton": "curieux"},
+    {"t": "Accrochez-vous, je vous fais une démonstration.", "ton": "drole"}, {"t": "Je respecte les limitations.", "ton": "sobre"}]}
+  ],
+  "maison": [
+   {"dit": "J'habite à {commune} depuis toujours. Ici, tout le monde se connaît.", "rep": [
+    {"t": "C'est un coin magnifique.", "ton": "chaleureux"}, {"t": "Ça a beaucoup changé ?", "ton": "curieux"},
+    {"t": "Donc tout le monde sait que vous prenez un taxi !", "ton": "drole"}, {"t": "Je connais.", "ton": "sobre"}]},
+   {"dit": "Ma maison est au bout du chemin, avec le portail vert. Mon père l'a construite de ses mains.", "rep": [
+    {"t": "Quel beau souvenir.", "ton": "chaleureux"}, {"t": "Il était maçon ?", "ton": "curieux"},
+    {"t": "Et le portail, c'est vous qui l'avez repeint ?", "ton": "drole"}, {"t": "Bien.", "ton": "sobre"}]},
+   {"dit": "Mes voisins ont mis une piscine. Depuis, j'ai des amis que je ne connaissais pas !", "rep": [
+    {"t": "Ha, c'est ça, la vie de village.", "ton": "chaleureux"}, {"t": "Vous y allez, vous ?", "ton": "curieux"},
+    {"t": "Il me faut leur adresse, du coup.", "ton": "drole"}, {"t": "Classique.", "ton": "sobre"}]},
+   {"dit": "Dans mon jardin j'ai des tomates, des courgettes… et des limaces, beaucoup de limaces.", "rep": [
+    {"t": "Rien ne vaut les légumes du jardin.", "ton": "chaleureux"}, {"t": "Vous avez une astuce contre les limaces ?", "ton": "curieux"},
+    {"t": "Les limaces aussi, elles aiment le bio.", "ton": "drole"}, {"t": "C'est la saison.", "ton": "sobre"}]},
+   {"dit": "Le soir, de chez moi, on voit les lumières de Bourgoin dans la vallée. C'est joli.", "rep": [
+    {"t": "Ça doit être très apaisant.", "ton": "chaleureux"}, {"t": "Et par temps clair, on voit les Alpes ?", "ton": "curieux"},
+    {"t": "Comme à Las Vegas, en plus petit.", "ton": "drole"}, {"t": "Hm.", "ton": "sobre"}]},
+   {"dit": "Le clocher sonne toutes les heures à côté de chez moi. Même la nuit. Surtout la nuit.", "rep": [
+    {"t": "On finit par s'y habituer, non ?", "ton": "chaleureux"}, {"t": "Vous avez essayé les bouchons d'oreille ?", "ton": "curieux"},
+    {"t": "Au moins vous n'avez pas besoin de réveil.", "ton": "drole"}, {"t": "C'est la campagne.", "ton": "sobre"}]}
+  ],
+  "nouvelles": [
+   {"dit": "Vous avez entendu ? La vogue de {commune} est reportée à cause de la pluie.", "rep": [
+    {"t": "Dommage, c'est un beau moment.", "ton": "chaleureux"}, {"t": "Reportée à quand ?", "ton": "curieux"},
+    {"t": "La pluie aussi voulait faire un tour de manège.", "ton": "drole"}, {"t": "C'est la météo.", "ton": "sobre"}]},
+   {"dit": "Ils refont encore la route de Saint-Chef. Ça fait trois fois en deux ans !", "rep": [
+    {"t": "Au moins elle sera belle.", "ton": "chaleureux"}, {"t": "Pourquoi tant de travaux, d'après vous ?", "ton": "curieux"},
+    {"t": "Ils cherchent un trésor, c'est sûr.", "ton": "drole"}, {"t": "Ça arrive.", "ton": "sobre"}]},
+   {"dit": "Le club de rugby de Bourgoin a gagné dimanche. Toute la ville klaxonnait !", "rep": [
+    {"t": "Bravo à eux, ça fait plaisir.", "ton": "chaleureux"}, {"t": "Vous étiez au stade ?", "ton": "curieux"},
+    {"t": "J'ai klaxonné aussi, mais c'était un bouchon.", "ton": "drole"}, {"t": "Tant mieux.", "ton": "sobre"}]},
+   {"dit": "Il paraît qu'on a vu une soucoupe volante au-dessus des champs, l'autre nuit. Une soucoupe !", "rep": [
+    {"t": "Ça alors… vous l'avez vue ?", "ton": "curieux"}, {"t": "Elle cherchait peut-être son chemin, la pauvre.", "ton": "chaleureux"},
+    {"t": "Ah, c'était moi, elle m'a remorqué.", "ton": "drole"}, {"t": "Les gens racontent n'importe quoi.", "ton": "sobre"}]},
+   {"dit": "Le marché de Bourgoin a un nouveau fromager. Son saint-marcellin, une merveille.", "rep": [
+    {"t": "Ah, j'irai goûter !", "ton": "chaleureux"}, {"t": "Il est là quels jours ?", "ton": "curieux"},
+    {"t": "Pas dans mon taxi, par contre, l'odeur…", "ton": "drole"}, {"t": "Noté.", "ton": "sobre"}]},
+   {"dit": "La boulangerie du bourg ferme en août. Tout le village est en deuil.", "rep": [
+    {"t": "Ils méritent bien leurs vacances.", "ton": "chaleureux"}, {"t": "Et vous ferez comment pour le pain ?", "ton": "curieux"},
+    {"t": "Un mois sans croissant, c'est un drame national.", "ton": "drole"}, {"t": "Ça arrive tous les ans.", "ton": "sobre"}]},
+   {"dit": "La mairie veut installer des ralentisseurs partout. Partout !", "rep": [
+    {"t": "C'est pour la sécurité des enfants.", "ton": "chaleureux"}, {"t": "Vous êtes pour ou contre ?", "ton": "curieux"},
+    {"t": "Mes amortisseurs ont déjà démissionné.", "ton": "drole"}, {"t": "Je ralentirai.", "ton": "sobre"}]}
+  ],
+  "meteo": [
+   {"dit": "Quel temps, hein ! On ne sait plus s'habiller.", "rep": [
+    {"t": "Heureusement, il fait bon dans la voiture.", "ton": "chaleureux"}, {"t": "Vous avez vu la météo pour demain ?", "ton": "curieux"},
+    {"t": "Moi je m'habille en voiture, c'est plus simple.", "ton": "drole"}, {"t": "C'est la saison.", "ton": "sobre"}]},
+   {"dit": "Avec ce soleil, les vaches vont faire du lait à la fraise.", "rep": [
+    {"t": "Ha, j'adore l'image !", "ton": "chaleureux"}, {"t": "C'est vrai que la chaleur les gêne ?", "ton": "curieux"},
+    {"t": "Et le chocolat, c'est en hiver ?", "ton": "drole"}, {"t": "Hm.", "ton": "sobre"}]}
+  ],
+  "meteo_pluie": [
+   {"dit": "Encore de la pluie… Vos essuie-glaces, ils ne chôment pas.", "rep": [
+    {"t": "Au moins, la campagne est bien verte.", "ton": "chaleureux"}, {"t": "Ça va durer toute la semaine ?", "ton": "curieux"},
+    {"t": "Je les fais travailler, ils sont payés à l'heure.", "ton": "drole"}, {"t": "Je fais attention.", "ton": "sobre"}]}
+  ],
+  "destination": {
+   "ecole": [{"dit": "Je vais chercher les enfants à {dest}. Ils sortent dans dix minutes !", "rep": [
+     {"t": "On sera à l'heure, promis.", "ton": "chaleureux"}, {"t": "Ils sont en quelle classe ?", "ton": "curieux"},
+     {"t": "Accrochez-vous, mode rallye activé.", "ton": "drole"}, {"t": "Compris.", "ton": "sobre"}]}],
+   "sante": [{"dit": "J'ai rendez-vous à {dest}. Rien de grave… j'espère.", "rep": [
+     {"t": "Je vous souhaite que ce soit rien du tout.", "ton": "chaleureux"}, {"t": "Un simple contrôle ?", "ton": "curieux"},
+     {"t": "Je conduis doucement, pas de risque d'en rajouter.", "ton": "drole"}, {"t": "On y va.", "ton": "sobre"}]}],
+   "culte": [{"dit": "Je vais à {dest}. Il y a un mariage, ma nièce se marie !", "rep": [
+     {"t": "Oh, félicitations à elle !", "ton": "chaleureux"}, {"t": "Avec qui se marie-t-elle ?", "ton": "curieux"},
+     {"t": "Je klaxonnerai en arrivant, c'est la tradition.", "ton": "drole"}, {"t": "Entendu.", "ton": "sobre"}]}],
+   "sport": [{"dit": "Direction {dest}, j'ai entraînement. On a un match important samedi.", "rep": [
+     {"t": "Je vous souhaite de gagner !", "ton": "chaleureux"}, {"t": "Contre qui vous jouez ?", "ton": "curieux"},
+     {"t": "L'échauffement, c'est le trajet en taxi ?", "ton": "drole"}, {"t": "Bien.", "ton": "sobre"}]}],
+   "mairie": [{"dit": "Je vais à {dest} pour des papiers. Les papiers, toujours les papiers…", "rep": [
+     {"t": "Courage, ce sera vite fait.", "ton": "chaleureux"}, {"t": "C'est pour quoi, si ce n'est pas indiscret ?", "ton": "curieux"},
+     {"t": "Prenez un stylo, ils en manquent toujours.", "ton": "drole"}, {"t": "Je comprends.", "ton": "sobre"}]}],
+   "poste": [{"dit": "Je dois envoyer un colis à {dest}. C'est un cadeau, c'est une surprise !", "rep": [
+     {"t": "Quelle gentille attention.", "ton": "chaleureux"}, {"t": "Pour qui, ce cadeau ?", "ton": "curieux"},
+     {"t": "Si c'est un gâteau, je ne prends pas les virages.", "ton": "drole"}, {"t": "D'accord.", "ton": "sobre"}]}],
+   "culture": [{"dit": "Je vais à {dest}. Il paraît qu'il y a une belle exposition en ce moment.", "rep": [
+     {"t": "Profitez bien, c'est important, la culture.", "ton": "chaleureux"}, {"t": "Une expo sur quoi ?", "ton": "curieux"},
+     {"t": "S'il y a des tableaux de voitures, je viens.", "ton": "drole"}, {"t": "Très bien.", "ton": "sobre"}]}],
+   "parc": [{"dit": "Déposez-moi à {dest}, je vais marcher un peu. Ça me fera du bien.", "rep": [
+     {"t": "Bonne idée, profitez-en.", "ton": "chaleureux"}, {"t": "Vous y allez souvent ?", "ton": "curieux"},
+     {"t": "Vous prenez un taxi pour aller marcher ? J'adore.", "ton": "drole"}, {"t": "Entendu.", "ton": "sobre"}]}],
+   "place": [{"dit": "Je retrouve des amis à {dest}. On se fait une terrasse !", "rep": [
+     {"t": "Passez une bonne soirée !", "ton": "chaleureux"}, {"t": "Ce sont des amis d'enfance ?", "ton": "curieux"},
+     {"t": "Une terrasse sans moi ? Je suis vexé.", "ton": "drole"}, {"t": "Bien.", "ton": "sobre"}]}],
+   "chateau": [{"dit": "{dest}… Vous saviez qu'il y a un souterrain qui part de là ? C'est mon grand-père qui le disait.", "rep": [
+     {"t": "Quelle belle histoire.", "ton": "chaleureux"}, {"t": "Il mène où, ce souterrain ?", "ton": "curieux"},
+     {"t": "S'il mène à une cave à vin, je veux l'adresse.", "ton": "drole"}, {"t": "Il y en a partout, des légendes.", "ton": "sobre"}]}],
+   "hameau": [{"dit": "Je rentre à {dest}. C'est perdu dans les collines, vous verrez, c'est le paradis.", "rep": [
+     {"t": "J'ai hâte de voir ça.", "ton": "chaleureux"}, {"t": "Il y a combien d'habitants ?", "ton": "curieux"},
+     {"t": "Le paradis a un code postal, alors !", "ton": "drole"}, {"t": "D'accord.", "ton": "sobre"}]}],
+   "gare": [{"dit": "{dest}, vite ! Mon train part dans un quart d'heure !", "rep": [
+     {"t": "Pas de panique, on va y arriver.", "ton": "chaleureux"}, {"t": "Vous partez loin ?", "ton": "curieux"},
+     {"t": "Je ne peux pas doubler un train, mais je peux essayer.", "ton": "drole"}, {"t": "Je fais au mieux.", "ton": "sobre"}]}],
+   "service": [{"dit": "Je vais à {dest}. J'ai un problème à régler, ça va être long.", "rep": [
+     {"t": "Bon courage, j'espère que ça s'arrangera.", "ton": "chaleureux"}, {"t": "Quel genre de problème ?", "ton": "curieux"},
+     {"t": "Si c'est une contravention, je n'y suis pour rien.", "ton": "drole"}, {"t": "On y va.", "ton": "sobre"}]}],
+   "autre": [{"dit": "{dest}, c'est là que j'ai rencontré l'amour de ma vie. Il y a bien longtemps.", "rep": [
+     {"t": "Oh, c'est très beau.", "ton": "chaleureux"}, {"t": "Racontez-moi !", "ton": "curieux"},
+     {"t": "Je vous dépose au même endroit, par superstition ?", "ton": "drole"}, {"t": "Hm.", "ton": "sobre"}]}]
+  }
+ },
+ "questions": [
+  {"t": "Vous faites quoi dans la vie ?", "sujet": "vie"},
+  {"t": "Vous habitez dans le coin ?", "sujet": "maison"},
+  {"t": "Quoi de neuf par chez vous ?", "sujet": "nouvelles"},
+  {"t": "Qu'est-ce qui vous amène là-bas ?", "sujet": "destination"},
+  {"t": "Drôle de temps, non ?", "sujet": "meteo"}
+ ],
+ "bonjour": ["Bonjour ! {dest}, à {dest_commune}, s'il vous plaît.", "Bonsoir… {dest}, {dest_commune}. Merci.", "Salut ! Vous m'emmenez à {dest} ? C'est à {dest_commune}.", "{dest}, {dest_commune}. Et pas de détour, hein !"],
+ "derange": ["Je préfère le calme, si ça ne vous dérange pas.", "Désolé, je ne suis pas très bavard aujourd'hui.", "Hm. Pas maintenant."],
+ "trop": ["On vient d'en parler, non ?", "Laissez-moi souffler un peu !", "Vous êtes bien curieux…"],
+ "fin": {
+  "bien": ["Quelle course agréable ! Gardez la monnaie… et un peu plus.", "J'ai passé un très bon moment. Merci, vraiment !", "Ah, si tous les chauffeurs étaient comme vous !"],
+  "moyen": ["Merci, au revoir.", "Bonne journée.", "Voilà pour vous."],
+  "mal": ["Je ne vous recommanderai pas.", "Enfin arrivé…", "La prochaine fois, je prends le bus."]
+ }
+}

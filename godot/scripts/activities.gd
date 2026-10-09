@@ -64,6 +64,7 @@ var _stop_t := 0.0
 var _prev_v := Vector3.ZERO
 var _shock_cd := 0.0
 var _phase := ""
+var _talk: CanvasLayer             # conversations des clients (taxi_talk.gd)
 var _status_t := 0.0            # > 0 : le message de fin s'efface au bout de ce temps
 
 
@@ -74,10 +75,7 @@ func _ready() -> void:
 	if FileAccess.file_exists("res://world/places.json"):
 		places = JSON.parse_string(FileAccess.get_file_as_string("res://world/places.json"))
 	_status = PanelContainer.new()
-	var sb := StyleBoxFlat.new(); sb.bg_color = Color(0.05, 0.06, 0.08, 0.82); sb.set_corner_radius_all(18)
-	sb.content_margin_left = 26; sb.content_margin_right = 26; sb.content_margin_top = 8; sb.content_margin_bottom = 8
-	sb.border_color = Color(1, 0.8, 0.2, 0.9); sb.set_border_width_all(3)
-	_status.add_theme_stylebox_override("panel", sb)
+	_status.add_theme_stylebox_override("panel", preload("res://scripts/ui.gd").panel(30, 14))
 	_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_status_l = Label.new(); _status_l.add_theme_font_size_override("font_size", 30)
 	_status_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -93,6 +91,10 @@ func _ready() -> void:
 		var k := InputEventKey.new(); k.physical_keycode = KEY_T
 		InputMap.action_add_event("activites", k)
 	map.picked.connect(_on_pick)
+	_talk = preload("res://scripts/taxi_talk.gd").new()
+	_talk.main = main
+	_talk.hud = hud
+	add_child(_talk)
 
 
 # ================================================================ outils
@@ -212,6 +214,7 @@ func _clear_world() -> void:
 
 func _stop() -> void:
 	_clear_world()
+	_talk.stop()
 	mode = ""
 	_phase = ""
 	map.locked = false
@@ -222,9 +225,7 @@ func _panel(title: String) -> VBoxContainer:
 	_close_menu()
 	hud._show_drive(false)
 	var pc := PanelContainer.new()
-	var sb := StyleBoxFlat.new(); sb.bg_color = Color(0.08, 0.09, 0.11, 0.95); sb.set_corner_radius_all(22)
-	sb.content_margin_left = 40; sb.content_margin_right = 40; sb.content_margin_top = 22; sb.content_margin_bottom = 22
-	pc.add_theme_stylebox_override("panel", sb)
+	pc.add_theme_stylebox_override("panel", preload("res://scripts/ui.gd").panel(44, 28))
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 14)
 	pc.add_child(v)
 	var t := Label.new(); t.text = title; t.add_theme_font_size_override("font_size", 44); v.add_child(t)
@@ -642,18 +643,23 @@ func _taxi_pickup() -> void:
 	_beacon(_r3(_dest), Color(0.2, 0.95, 0.4), 8.0, 60.0)
 	marks = [{p = _rp(_dest), col = Color(0.2, 0.95, 0.4), txt = "Dépôt", gps = true}]
 	_bip.play()
-	hud.toast("« Bonjour ! %s, %s, s'il vous plaît. »" % [p.n, p.c], 5.0)
+	_talk.start_ride(hud.names.commune_at(car.global_position), p.n, p.c, str(p.get("k", "autre")))
 
 func _taxi_drop() -> void:
 	var fare := 3.5 + 1.6 * _fare_d / 1000.0
 	var stars := _stars()
-	var tip: float = fare * [0.0, 0.0, 0.05, 0.1, 0.15, 0.25][stars]
+	var talk: Dictionary = _talk.end_ride(stars)
+	# conversation : jusqu'à +24 % de pourboire si le client a apprécié, jusqu'à -18 % s'il a été agacé
+	var tip: float = maxf(0.0, fare * ([0.0, 0.0, 0.05, 0.1, 0.15, 0.25][stars] + 0.06 * float(talk.sat)))
 	_rides += 1
 	_total += fare + tip
 	_bip.play()
-	var mood: String = ["", "« Plus jamais ! »", "« Bon… on est arrivés. »", "« Merci. »", "« Très bien, merci ! »",
-		"« Parfait, quel chauffeur ! »"][stars]
-	hud.toast("%s  Course : %s + pourboire %s" % [mood, _euros(fare), _euros(tip)], 5.0)
+	var conv := ""
+	if float(talk.sat) >= 1.5:
+		conv = "\nLe client a aimé discuter avec vous."
+	elif float(talk.sat) <= -1.5:
+		conv = "\nLa conversation n'a pas plu au client."
+	hud.toast("Course : %s + pourboire %s%s" % [_euros(fare), _euros(tip), conv], 5.0)
 	if _client and is_instance_valid(_client):
 		_client.queue_free()
 	_client = null

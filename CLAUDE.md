@@ -39,7 +39,7 @@
   `fetch_water.py`, `build_water.py` (eau ; à lancer avant `prepare_terrain.py`, qui creuse le terrain dessous),
   `build_ground.py` (carte de l'herbe, après `prepare_terrain.py` ; les ombres douces du terrain viennent de son
   `ao_region`), `build_grass_tex.py`, `build_zone.py` (limite de la carte pour le gardien), `fetch_ufo.py` + `blender_ufo.py` (soucoupe du gardien),
-  `build_sfx.py` (sons de synthèse : pluie, bip), `fetch_sons.py` + `build_sons.py` (sons d'après enregistrements réels : BigSoundBank / Joseph Sardin, CC0, et Kenney CC0 ; catalogue `SONS` de `build_sons.py`, boucles sans couture, Ogg), `build_ambiance.py` (carte sonore `world/ambiance.bin/json` : bâti, bois, eau, autoroute, points des ruisseaux, églises, troupeaux), `fetch_radio.py` (autoradio : Kevin MacLeod, CC BY 4.0), `fetch_power.py`, `build_poles.py` (pylônes, poteaux, fils, lampadaires), `build_cockpit.py` (vue cockpit en pixel art), `build_props.py`
+  `build_sfx.py` (sons de synthèse : pluie, bip), `build_ui.py` (interface pixel art, polices), `fetch_sons.py` + `build_sons.py` (sons d'après enregistrements réels : BigSoundBank / Joseph Sardin, CC0, et Kenney CC0 ; catalogue `SONS` de `build_sons.py`, boucles sans couture, Ogg), `build_ambiance.py` (carte sonore `world/ambiance.bin/json` : bâti, bois, eau, autoroute, points des ruisseaux, églises, troupeaux), `fetch_radio.py` (autoradio : Kevin MacLeod, CC BY 4.0), `fetch_power.py`, `build_poles.py` (pylônes, poteaux, fils, lampadaires), `build_cockpit.py` (vue cockpit en pixel art), `build_props.py`
   (voitures garées, poubelles, tracteurs ; après `build_fences.py`, qui fournit les portails ; voitures : modèles
   Sketchfab de `fetch_voitures.py` + `blender_voitures.py`, sans logo de vraie marque), `fetch_shops.py`,
   `fetch_sv_shops.py` (photos Street View des devantures, cache privé `streetview/shops` ; structure des bâtiments relevée sur ces photos dans `sources/shops_bati.txt` — niveaux, toit, façade, volets — appliquée par `build_buildings.py`), `build_shops.py` (commerces
@@ -47,8 +47,7 @@
   enseignes sur trois pages d'atlas), `fetch_ortho_hd.py` (orthophoto 0,5 m) + `build_pools.py` (piscines des jardins ;
   avant `build_ground.py` et `build_props.py`), `fetch_sport.py`, `build_sport.py`, `fetch_animaux.py` + `blender_animaux_import.py` (vache, mouton, cheval : modèles Sketchfab CC BY, crédits dans ⚙), `build_animaux.py` (prés pâturés
   et clôtures), `fetch_autoroute.py`, `build_autoroute.py`, `build_haie_tex.py` (feuilles des touffes de haie),
-  `build_car_sprite_ia.py` (voiture en sprite d'après la planche de l'utilisateur `sources/espace_sprites.jpg` ;
-  l'ancien `build_car_sprite.py` + `blender_sprite.py` reste possible) ; sons enregistrés dans `pipeline/sources/` ;
+  `blender_sprite.py` + `build_car_sprite.py` (voiture en sprite pixel art : 384 vues rendues du modèle 3D de l'Espace, atlas sur deux pages, masques feux/vitres pour gouttes et essuie-glace arrière, ombre pixel art `ombre.png` ; l'ancien `build_car_sprite_ia.py` d'après la planche `sources/espace_sprites.jpg` n'est plus utilisé) ; sons enregistrés dans `pipeline/sources/` ;
   modèles Blender (module bpy dans un venv) : `blender_commerces.py`, `blender_sport.py`, `blender_animaux.py`,
   `blender_autoroute.py`, `blender_sprite.py` (384 vues de l'Espace, ~45 min), `blender_haies.py` (touffes),
   `blender_maisons.py` (kit de détails des maisons, posé par `build_buildings.py`) ; puis
@@ -100,5 +99,17 @@
   roulement selon `meta « surface »` des corps de collision des routes (`roads.gd`, un corps par matériau), ambiances
   d'après `world/ambiance.bin`, sons ponctuels positionnés ; autoradio `scripts/radio.gd` (bus « Radio »). Essai :
   `-- --drive-test [--radio]` affiche régime, rapport, surface et ambiances dans le journal.
+- **Interface** (`pipeline/build_ui.py` -> `assets/ui/`, thème du projet `assets/ui/theme.tres`, aide `scripts/ui.gd`) :
+  planche de bord des années 80 en pixel art (boutons poussoirs avec témoin, bouton rouge « feux de détresse » pour la
+  remise sur la route, cadres et touches des menus, police Pixelify Sans, afficheur LCD DSEG7 du compteur). Les
+  commandes de conduite (◀ ▶ FREIN GAZ) restent des disques translucides. Toute nouvelle fenêtre : `UI.panel()`.
+- **Taxi : conversations** (`scripts/taxi_talk.gd`, textes `data/taxi.json`, versionné) : caractères aux goûts
+  cachés, réponses par ton (chaleureux, drôle, curieux, sobre, silence), pourboire selon la satisfaction ; voix en
+  babillage synthétisé façon talkie-walkie (bus « Voix ») ; la radio baisse quand le client parle.
+- **Éditeur de monde** (`scripts/editeur_monde.gd`) : « Sésame, ouvre-toi » / « Hasta la vista, baby » dans le champ
+  « Formule magique » (appui long sur le nom de la rue, F2, ou ⚙) ; on touche un objet, puis « Générer depuis Street
+  View » ou une remarque -> issue GitHub pré-remplie (étiquette `editeur-monde` : position, GPS, objet, caméra, lien
+  Street View, capture `--shots`). **Traiter ces issues comme des demandes de l'utilisateur.** Essai : capture
+  `{"act": "editeur"}`.
 - **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
   souples, pas d'à-coups de chargement).

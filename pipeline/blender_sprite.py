@@ -17,20 +17,20 @@ OUT = os.path.join(HERE, "data", "sprite_raw")
 N_AZ = 32
 ELS = [6, 20, 38, 60]
 STEERS = [-0.38, 0.0, 0.38]          # rad, + = vers la gauche
-W, H = 480, 408                      # 3 × le sprite final (160 × 136)
+W, H = 768, 654                      # 3 × le sprite final (256 × 218)
 ORTHO = 5.6                          # largeur couverte (m)
 CENTER = mathutils.Vector((0.0, 0.035, 0.88))
 
 COLORS = {  # nom de matériau : (couleur, métal, rugosité, vernis)
-    "paint": ((0.40, 0.025, 0.03), 0.0, 0.3, 0.8), "beige": ((0.58, 0.50, 0.35), 0.3, 0.42, 0.0),
-    "glass": ((0.03, 0.04, 0.05), 0.2, 0.05, 0.0), "chrome": ((0.8, 0.8, 0.82), 1.0, 0.15, 0.0),
+    "paint": ((0.56, 0.022, 0.014), 0.0, 0.32, 0.6), "beige": ((0.42, 0.34, 0.18), 0.2, 0.45, 0.0),
+    "glass": ((0.03, 0.038, 0.05), 0.0, 0.12, 0.0), "chrome": ((0.8, 0.8, 0.82), 1.0, 0.15, 0.0),
     "rubber": ((0.03, 0.03, 0.035), 0.0, 0.9, 0.0), "plastic": ((0.05, 0.05, 0.055), 0.0, 0.6, 0.0),
     "lamp": ((0.85, 0.88, 0.9), 0.5, 0.1, 0.0), "tail": ((0.7, 0.03, 0.03), 0.0, 0.2, 0.0),
     "orange": ((0.95, 0.42, 0.04), 0.0, 0.2, 0.0), "fog": ((0.95, 0.78, 0.1), 0.0, 0.15, 0.0),
     "hubcap": ((0.72, 0.73, 0.75), 0.45, 0.35, 0.0), "interior": ((0.09, 0.09, 0.1), 0.0, 0.85, 0.0),
     "plate_front": ((0.9, 0.9, 0.88), 0.0, 0.5, 0.0), "plate_rear": ((0.9, 0.78, 0.15), 0.0, 0.5, 0.0),
 }
-MASK = {"lamp": (0.0, 1.0, 0.0), "tail": (1.0, 0.0, 0.0)}
+MASK = {"lamp": (0.0, 1.0, 0.0), "tail": (1.0, 0.0, 0.0), "glass": (0.0, 0.0, 1.0)}
 
 
 def material(name, col, metal, rough, coat):
@@ -103,14 +103,26 @@ def setup():
                 mats_m[nm] = emission(nm, MASK.get(nm, (0.0, 0.0, 0.0)))
     # éclairage : soleil principal (au-dessus, à gauche de la caméra), contre-jour, ciel bleuté
     w = bpy.data.worlds.new("ciel"); sc.world = w; w.use_nodes = True
-    bg = w.node_tree.nodes["Background"]; bg.inputs["Color"].default_value = (0.55, 0.65, 0.85, 1); bg.inputs["Strength"].default_value = 0.55
+    nt = w.node_tree
+    bg = nt.nodes["Background"]; bg.inputs["Strength"].default_value = 0.6
+    # dégradé de studio : ciel clair en haut, sol sombre en bas (reflets francs dans les vitres, comme en pixel art)
+    tc = nt.nodes.new("ShaderNodeTexCoord"); sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    ramp = nt.nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].position = 0.45; ramp.color_ramp.elements[0].color = (0.06, 0.06, 0.07, 1)
+    ramp.color_ramp.elements[1].position = 0.62; ramp.color_ramp.elements[1].color = (0.75, 0.82, 0.95, 1)
+    mr = nt.nodes.new("ShaderNodeMapRange"); mr.inputs["From Min"].default_value = -1.0; mr.inputs["From Max"].default_value = 1.0
+    nt.links.new(tc.outputs["Generated"], sep.inputs[0])
+    nt.links.new(sep.outputs["Z"], mr.inputs["Value"]); nt.links.new(mr.outputs["Result"], ramp.inputs["Fac"])
+    nt.links.new(ramp.outputs["Color"], bg.inputs["Color"])
     key = bpy.data.objects.new("key", bpy.data.lights.new("key", "SUN")); sc.collection.objects.link(key)
     key.data.energy = 2.7; key.data.angle = math.radians(6)
     rim = bpy.data.objects.new("rim", bpy.data.lights.new("rim", "SUN")); sc.collection.objects.link(rim)
     rim.data.energy = 1.1; rim.data.angle = math.radians(15)
+    fill = bpy.data.objects.new("fill", bpy.data.lights.new("fill", "SUN")); sc.collection.objects.link(fill)
+    fill.data.energy = 0.9; fill.data.angle = math.radians(30)
     camd = bpy.data.cameras.new("cam"); camd.type = "ORTHO"; camd.ortho_scale = ORTHO
     cam = bpy.data.objects.new("cam", camd); sc.collection.objects.link(cam); sc.camera = cam
-    return sc, meshes, mats_c, mats_m, wheels, cam, key, rim
+    return sc, meshes, mats_c, mats_m, wheels, cam, key, rim, fill
 
 
 def assign(meshes, mats):
@@ -129,7 +141,7 @@ def look(obj, target):
 def main():
     test = "--test" in sys.argv
     os.makedirs(OUT, exist_ok=True)
-    sc, meshes, mats_c, mats_m, wheels, cam, key, rim = setup()
+    sc, meshes, mats_c, mats_m, wheels, cam, key, rim, fill = setup()
     # noms d'origine des matériaux pour pouvoir permuter
     for o in meshes:
         for slot in o.material_slots:
@@ -157,6 +169,8 @@ def main():
         key.location = CENTER + kd * 10; look(key, CENTER)
         rd = (-d * 0.8 + right * 0.5 + mathutils.Vector((0, 0, 0.6))).normalized()
         rim.location = CENTER + rd * 10; look(rim, CENTER)
+        fd = (d * 0.9 + right * 0.6 + mathutils.Vector((0, 0, 0.3))).normalized()   # appoint côté ombre
+        fill.location = CENTER + fd * 10; look(fill, CENTER)
         for piv, front in wheels:
             piv.rotation_euler = (0, 0, st if front else 0.0)
         sc.cycles.samples = 24

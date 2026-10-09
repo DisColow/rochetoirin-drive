@@ -21,6 +21,11 @@ var _hp: AudioEffectHighPassFilter
 var _cockpit := 0.0
 var _cur := -1                     # indice du morceau en cours dans le programme de la station
 var _lap := -1
+var _duck := 0.0                   # baisse du volume quand un client du taxi parle
+
+## 1 : quelqu'un parle dans la voiture (la radio baisse), 0 : volume normal.
+func set_duck(on: float) -> void:
+	_duck = move_toward(_duck, on, get_process_delta_time() * (6.0 if on > _duck else 1.5))
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -71,7 +76,7 @@ func _process(dt: float) -> void:
 	_cockpit = move_toward(_cockpit, inside, dt * 3.0)
 	if _lp:
 		_lp.cutoff_hz = lerpf(2600.0, 7000.0, _cockpit)
-	AudioServer.set_bus_volume_db(_bus, lerpf(-9.0, -1.0, _cockpit))
+	AudioServer.set_bus_volume_db(_bus, lerpf(-9.0, -1.0, _cockpit) - 9.0 * _duck)
 	# en pause (carte, menus) la radio continue, un peu plus bas
 	_player.volume_db = -6.0 if get_tree().paused else 0.0
 

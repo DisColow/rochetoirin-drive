@@ -4,6 +4,8 @@
 ## et accélérateur à droite). La manette et le clavier passent par les mêmes actions.
 extends CanvasLayer
 
+const UI := preload("res://scripts/ui.gd")
+
 var car: VehicleBody3D
 var speed: Label
 var buttons := []
@@ -63,9 +65,10 @@ Animaux (Sketchfab, licence CC BY 4.0) : « Cow » par JosueBoisvert, « Sheep �
 Voitures garées (Sketchfab, licence CC BY 4.0) : « Generic 80s european car » par henryviii, « Low Poly Small car » et « Low-Poly Sedan car » par scailman, « Blue Sedan | Stylized Low Poly » par R3indeer.
 Clients du taxi : « Low Poly Characters (PACK) » par micaelsampaio (Sketchfab, licence CC BY 4.0).
 Musiques de la radio : Kevin MacLeod (incompetech.com), licence Creative Commons Attribution 4.0 — voir assets/radio/radio.json pour les titres.
+Polices de l'interface : « Pixelify Sans » (Stefie Justprince) et « DSEG » (Keshikan), licence SIL Open Font License 1.1.
 Textures : Poly Haven et ambientCG (CC0).
 Données : © les contributeurs d'OpenStreetMap (ODbL) ; IGN (BD TOPO, RGE ALTI, LiDAR HD, BD ORTHO, Licence Ouverte Etalab).
-Modèles des commerces, équipements, haies, maisons, clôtures et sprite de la voiture : faits avec Blender pour le jeu."""
+Modèles des commerces, équipements, haies, maisons, clôtures et sprite de la voiture : faits avec Blender pour le jeu ; boutons de la planche de bord dessinés pixel par pixel pour le jeu."""
 
 ## Message bref au centre de l'écran (péage…), qui s'efface tout seul.
 var _toast: PanelContainer
@@ -73,10 +76,7 @@ var _toast_t := 0.0
 func toast(text: String, secs := 3.5) -> void:
 	if _toast == null:
 		_toast = PanelContainer.new()
-		var sb := StyleBoxFlat.new(); sb.bg_color = Color(0.06, 0.12, 0.3, 0.88); sb.set_corner_radius_all(18)
-		sb.content_margin_left = 34; sb.content_margin_right = 34; sb.content_margin_top = 14; sb.content_margin_bottom = 14
-		sb.border_color = Color(1, 1, 1, 0.8); sb.set_border_width_all(3)
-		_toast.add_theme_stylebox_override("panel", sb)
+		_toast.add_theme_stylebox_override("panel", UI.panel(40, 18))
 		_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var l := Label.new(); l.add_theme_font_size_override("font_size", 34)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -97,9 +97,7 @@ func _open_settings() -> void:
 	var veg = get_parent().vegetation
 	_show_drive(false)
 	settings = PanelContainer.new()
-	var sb := StyleBoxFlat.new(); sb.bg_color = Color(0.08, 0.09, 0.11, 0.94); sb.set_corner_radius_all(22)
-	sb.content_margin_left = 40; sb.content_margin_right = 40; sb.content_margin_top = 22; sb.content_margin_bottom = 22
-	settings.add_theme_stylebox_override("panel", sb)
+	settings.add_theme_stylebox_override("panel", UI.panel(44, 26))
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 12)
 	settings.add_child(v)
 	var t := Label.new(); t.text = "Réglages"; t.add_theme_font_size_override("font_size", 44); v.add_child(t)
@@ -178,6 +176,15 @@ func _open_settings() -> void:
 		hc.add_child(b)
 	var note := Label.new(); note.text = "Moins de végétation = jeu plus fluide sur les téléphones modestes."
 	note.add_theme_font_size_override("font_size", 22); note.modulate = Color(1, 1, 1, 0.7); v.add_child(note)
+	# éditeur de monde : champ de la formule magique (dictée au micro du clavier, ou saisie)
+	var fm := Button.new(); fm.text = "Formule magique…"; fm.custom_minimum_size = Vector2(0, 64)
+	fm.add_theme_font_size_override("font_size", 28)
+	fm.pressed.connect(func():
+		settings.queue_free(); settings = null
+		_show_drive(true)
+		if main_node.get("editeur"):
+			main_node.editeur.open_formula())
+	v.add_child(fm)
 	# crédits (licences des modèles, sons et données)
 	var cb := Button.new(); cb.text = "Crédits"; cb.custom_minimum_size = Vector2(0, 64)
 	cb.add_theme_font_size_override("font_size", 28)
@@ -209,8 +216,17 @@ func is_ui_point(p: Vector2) -> bool:
 	for b in buttons:
 		if not b.visible:
 			continue
-		var r: float = b.shape.radius
-		if p.distance_to(b.position + Vector2(r, r)) < r + 28.0:
+		if b.shape is CircleShape2D:
+			var r: float = b.shape.radius
+			if p.distance_to(b.position + Vector2(r, r)) < r + 28.0:
+				return true
+		elif Rect2(b.position, b.shape.size).grow(20.0).has_point(p):
+			return true
+	# autres zones d'interface (bulle de conversation du taxi…)
+	for n in get_tree().get_nodes_in_group("ui_zone"):
+		if n is Control and n.is_visible_in_tree() and n.get_global_rect().grow(16.0).has_point(p):
+			return true
+		if n is TouchScreenButton and n.visible and Rect2(n.position, n.shape.size).grow(20.0).has_point(p):
 			return true
 	return Rect2(gps.position, gps.size).has_point(p) or Rect2(speed_panel.position, speed_panel.size).has_point(p)
 
@@ -219,12 +235,11 @@ func _open_map() -> void:
 		_show_drive(false)
 		map.open()
 
-func _panel(ci: CanvasItem, r: Rect2, radius: float, col := Color(0.08, 0.09, 0.11, 0.78)) -> void:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = col
-	sb.set_corner_radius_all(int(radius))
-	sb.anti_aliasing = true
-	ci.draw_style_box(sb, r)
+var _panel_sb: StyleBox
+func _panel(ci: CanvasItem, r: Rect2) -> void:
+	if _panel_sb == null:
+		_panel_sb = UI.panel()
+	ci.draw_style_box(_panel_sb, r)
 
 func _draw_pill() -> void:
 	if _road_text == "":
@@ -232,26 +247,38 @@ func _draw_pill() -> void:
 	var f := pill.get_theme_default_font()
 	var w := maxf(f.get_string_size(_road_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 32).x, f.get_string_size(_where_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 19).x) + 56
 	var r := Rect2(pill.size.x / 2 - w / 2, 0, w, 84)
-	_panel(pill, r, 30)
+	_panel(pill, r)
 	pill.draw_string(f, Vector2(r.position.x, 38), _road_text, HORIZONTAL_ALIGNMENT_CENTER, w, 32, Color.WHITE)
 	pill.draw_string(f, Vector2(r.position.x, 70), _where_text, HORIZONTAL_ALIGNMENT_CENTER, w, 19, Color(0.75, 0.77, 0.8))
 
+## Compteur : panneau de limitation, puis afficheur à cristaux liquides (vitesse en 7 segments, segments éteints en
+## filigrane comme sur les tableaux de bord numériques des années 80).
+var _lcd: Font
 func _draw_speed() -> void:
 	var r := Rect2(Vector2.ZERO, speed_panel.size)
-	_panel(speed_panel, r, 18)
+	_panel(speed_panel, r)
 	var f := speed_panel.get_theme_default_font()
 	var cy := r.size.y / 2
 	if _limit > 0:
-		var c := Vector2(58, cy)
-		speed_panel.draw_circle(c, 38, Color.WHITE)
-		speed_panel.draw_arc(c, 33, 0, TAU, 48, Color8(205, 30, 30), 9.0, true)
-		var fs := 28 if _limit >= 100 else 32
+		var c := Vector2(62, cy)
+		speed_panel.draw_circle(c, 36, Color.WHITE)
+		speed_panel.draw_arc(c, 31, 0, TAU, 48, Color8(205, 30, 30), 9.0, true)
+		var fs := 26 if _limit >= 100 else 30
 		speed_panel.draw_string(f, c + Vector2(-40, fs * 0.36), str(_limit), HORIZONTAL_ALIGNMENT_CENTER, 80, fs, Color.BLACK)
+	if _lcd == null:
+		_lcd = UI.lcd_font()
 	var kmh := int(round(car.kmh())) if car else 0
 	var over := _limit > 0 and kmh > _limit + 5
-	speed_panel.draw_string(f, Vector2(120, cy + 22), str(kmh), HORIZONTAL_ALIGNMENT_RIGHT, 200, 62,
-		Color8(255, 90, 80) if over else Color.WHITE)
-	speed_panel.draw_string(f, Vector2(330, cy + 20), "km/h", HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color(0.75, 0.77, 0.8))
+	var win := Rect2(120, 14, r.size.x - 134, r.size.y - 28)
+	speed_panel.draw_rect(win, Color8(14, 26, 20))
+	speed_panel.draw_rect(Rect2(win.position, Vector2(win.size.x, 3)), Color8(4, 8, 6))
+	var lit := Color8(255, 96, 70) if over else Color8(120, 255, 190)
+	var fs2 := 50
+	var x := win.position.x + 14
+	var w := win.size.x - 116
+	speed_panel.draw_string(_lcd, Vector2(x, cy + fs2 * 0.5), "888", HORIZONTAL_ALIGNMENT_RIGHT, w, fs2, Color(lit, 0.08))
+	speed_panel.draw_string(_lcd, Vector2(x, cy + fs2 * 0.5), str(kmh), HORIZONTAL_ALIGNMENT_RIGHT, w, fs2, lit)
+	speed_panel.draw_string(f, Vector2(win.end.x - 92, cy + 12), "km/h", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color(lit, 0.75))
 
 func _disc(r: int, col: Color, text_col: Color) -> ImageTexture:
 	var img := Image.create(r * 2, r * 2, false, Image.FORMAT_RGBA8)
@@ -263,14 +290,31 @@ func _disc(r: int, col: Color, text_col: Color) -> ImageTexture:
 			img.set_pixel(x, y, Color(col.r, col.g, col.b, col.a * a).lerp(Color(1, 1, 1, 0.55 * a), edge * 0.6))
 	return ImageTexture.create_from_image(img)
 
+## Boutons : les commandes de conduite restent de grands disques translucides ; les autres sont des boutons poussoirs
+## de planche de bord en pixel art (build_ui.py), avec témoin orange pour la radio et les activités.
+const DASH := {"camera": "camera", "replacer": "replacer", "carte": "carte", "reglages": "reglages",
+	"activites": "activites", "radio": "radio"}
+var _leds := {}                       # action -> [bouton, état du témoin]
+
 func _add_button(action: String, label: String, idx: int) -> void:
 	var big := idx < 4
-	var r := 92 if big else 46
 	var b := TouchScreenButton.new()
-	b.texture_normal = _disc(r, Color(0.08, 0.09, 0.1, 0.38), Color.WHITE)
-	b.texture_pressed = _disc(r, Color(0.9, 0.9, 0.9, 0.45), Color.WHITE)
 	b.action = action
 	b.passby_press = true
+	var icon: String = DASH.get(action, "")
+	if not big and icon != "" and ResourceLoader.exists("res://assets/ui/btn_%s.png" % icon):
+		b.texture_normal = load("res://assets/ui/btn_%s.png" % icon)
+		b.texture_pressed = load("res://assets/ui/btn_%s_p.png" % icon)
+		var rs := RectangleShape2D.new(); rs.size = b.texture_normal.get_size()
+		b.shape = rs; b.shape_centered = true
+		if ResourceLoader.exists("res://assets/ui/btn_%s_on.png" % icon):
+			_leds[action] = [b, false, icon]
+		add_child(b)
+		buttons.append(b)
+		return
+	var r := 92 if big else 46
+	b.texture_normal = _disc(r, Color(0.08, 0.09, 0.1, 0.38), Color.WHITE)
+	b.texture_pressed = _disc(r, Color(0.9, 0.9, 0.9, 0.45), Color.WHITE)
 	var sh := CircleShape2D.new(); sh.radius = r
 	b.shape = sh; b.shape_centered = true
 	var l := Label.new()
@@ -284,6 +328,23 @@ func _add_button(action: String, label: String, idx: int) -> void:
 	add_child(b)
 	buttons.append(b)
 
+## Témoins des boutons : radio allumée, activité en cours.
+func _update_leds() -> void:
+	var m = get_parent()
+	for action in _leds:
+		var e: Array = _leds[action]
+		var on := false
+		if action == "radio":
+			on = m.get("radio") != null and m.radio.station >= 0
+		elif action == "activites":
+			var acts := get_tree().get_nodes_in_group("activites")
+			on = not acts.is_empty() and str(acts[0].mode) != ""
+		if on != e[1]:
+			e[1] = on
+			var b: TouchScreenButton = e[0]
+			b.texture_normal = load("res://assets/ui/btn_%s%s.png" % [e[2], "_on" if on else ""])
+			b.texture_pressed = load("res://assets/ui/btn_%s_p%s.png" % [e[2], "_on" if on else ""])
+
 func _layout() -> void:
 	var s := get_viewport().get_visible_rect().size
 	var gw := minf(s.x * 0.28, 540.0); var gh := minf(s.y * 0.36, 310.0)
@@ -291,7 +352,7 @@ func _layout() -> void:
 	speed_panel.position = Vector2(s.x - gw - 24, 24 + gh + 14); speed_panel.size = Vector2(gw, 96)
 	pill.position = Vector2(0, 20); pill.size = Vector2(s.x, 90)
 	var pos := [Vector2(60, s.y - 230), Vector2(290, s.y - 230), Vector2(s.x - 470, s.y - 230), Vector2(s.x - 240, s.y - 260),
-		Vector2(150, 24), Vector2(270, 24), Vector2(30, 24), Vector2(390, 24), Vector2(510, 24), Vector2(630, 24)]
+		Vector2(146, 22), Vector2(270, 22), Vector2(22, 22), Vector2(394, 22), Vector2(518, 22), Vector2(642, 22)]
 	for i in buttons.size():
 		buttons[i].position = pos[i]
 
@@ -304,6 +365,7 @@ func _show_drive(on: bool) -> void:
 	get_tree().paused = not on
 
 func _process(_dt: float) -> void:
+	_update_leds()
 	if _toast and _toast.visible:
 		_toast_t -= _dt
 		_toast.modulate.a = clampf(_toast_t / 0.6, 0.0, 1.0)

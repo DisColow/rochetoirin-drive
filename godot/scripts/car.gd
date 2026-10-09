@@ -104,6 +104,16 @@ var _sprite: MeshInstance3D
 var _sprite_mat: ShaderMaterial
 var _sp := {}
 
+var _pages := []                     # pages de l'atlas : [couleurs, feux]
+var _page := -1
+var _ai := -1                        # vue en cours (angle, hauteur, braquage) : hystérésis contre le papillotement
+var _ei := -1
+var _si := 1
+var _blob_soft: Material
+var _blob_px: Material
+## Pluie qui tombe (main.gd) : gouttes sur les vitres du sprite, essuie-glace arrière.
+var rain := 0.0
+
 func _make_sprite() -> void:
 	if not FileAccess.file_exists("res://assets/car/sprite.json"):
 		sprite_mode = false
@@ -111,11 +121,15 @@ func _make_sprite() -> void:
 	_sp = JSON.parse_string(FileAccess.get_file_as_string("res://assets/car/sprite.json"))
 	var qm := QuadMesh.new()
 	qm.size = Vector2(_sp.size[0], _sp.size[1])
+	for pg in int(_sp.get("pages", 1)):
+		var sfx := "" if pg == 0 else str(pg + 1)
+		_pages.append([load("res://assets/car/sprite%s.png" % sfx), load("res://assets/car/sprite_feux%s.png" % sfx)])
 	_sprite_mat = ShaderMaterial.new()
 	_sprite_mat.shader = preload("res://scripts/car_sprite.gdshader")
-	_sprite_mat.set_shader_parameter("atlas", load("res://assets/car/sprite.png"))
-	_sprite_mat.set_shader_parameter("feux", load("res://assets/car/sprite_feux.png"))
 	_sprite_mat.set_shader_parameter("grid", Vector2(_sp.cols, _sp.rows))
+	if _sp.has("frame"):
+		_sprite_mat.set_shader_parameter("frame", Vector2(_sp.frame[0], _sp.frame[1]))
+	_set_page(0)
 	preload("res://scripts/env.gd").add(_sprite_mat)
 	_sprite = MeshInstance3D.new()
 	_sprite.mesh = qm
@@ -124,10 +138,27 @@ func _make_sprite() -> void:
 	_sprite.extra_cull_margin = 6.0
 	_sprite.position = Vector3(0, float(_sp.center_y), 0)
 	add_child(_sprite)
+	# ombre en pixel art (vue de dessus, bord tramé) à la place de l'ombre douce et de l'ombre portée de la caisse
+	_blob_soft = _blob.material_override
+	if ResourceLoader.exists("res://assets/car/ombre.png"):
+		var om := StandardMaterial3D.new()
+		om.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		om.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		om.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		om.albedo_texture = load("res://assets/car/ombre.png")
+		om.render_priority = -1
+		_blob_px = om
 	var cfg := ConfigFile.new()
 	if cfg.load("user://reglages.cfg") == OK:
 		sprite_mode = str(cfg.get_value("affichage", "voiture_v4", "3d")) == "sprite"
 	_apply_sprite()
+
+func _set_page(pg: int) -> void:
+	if pg == _page or pg >= _pages.size():
+		return
+	_page = pg
+	_sprite_mat.set_shader_parameter("atlas", _pages[pg][0])
+	_sprite_mat.set_shader_parameter("feux", _pages[pg][1])
 
 func set_sprite_mode(on: bool) -> void:
 	sprite_mode = on and _sprite != null
@@ -142,14 +173,19 @@ func _apply_sprite() -> void:
 		return
 	var on := sprite_mode and view_mode == 0 and not blown
 	_sprite.visible = on
+	# en sprite, la caisse 3D disparaît tout à fait (ombre comprise) : l'ombre est celle, en pixel art, du sol
+	if not blown:
+		_body.visible = not on
+		for w in wheels:
+			for n in w.get_children():
+				if n is Node3D:
+					n.visible = not on
+	if _blob_px:
+		_blob.material_override = _blob_px if on else _blob_soft
 	if view_mode == 1:
 		return                       # vue conducteur : set_cockpit gère la caisse
-	var mode := GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY if on else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	for n in _body.find_children("*", "MeshInstance3D", true, false):
-		n.cast_shadow = mode
-	for w in wheels:
-		for n in w.find_children("*", "MeshInstance3D", true, false):
-			n.cast_shadow = mode
+		n.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	if _wheel_node:
 		_wheel_node.visible = not on
 
@@ -160,27 +196,44 @@ func _process(_dt: float) -> void:
 	if cam == null:
 		return
 	var c := _sprite.global_position
-	var rel := global_basis.inverse() * (cam.global_position - c)
+	# direction de la caméra dans le repère de la voiture réduit à son cap : le tangage (accélération, freinage) ne
+	# change pas de vue, la caisse ne « plonge » pas ; le roulis est rendu en tournant le sprite
+	var zh := Vector3(global_basis.z.x, 0.0, global_basis.z.z).normalized()
+	var xh := Vector3.UP.cross(zh)
+	var v := cam.global_position - c
+	var rel := Vector3(v.dot(xh), v.y, v.dot(zh))
 	var az := atan2(rel.x, -rel.z)
 	var el := rad_to_deg(atan2(rel.y, Vector2(rel.x, rel.z).length()))
 	var n_az := int(_sp.n_az)
-	var ai := posmod(int(round(az / TAU * n_az)), n_az)
+	var fa := az / TAU * n_az
+	if _ai < 0 or absf(wrapf(fa - _ai, -n_az * 0.5, n_az * 0.5)) > 0.62:
+		_ai = posmod(int(round(fa)), n_az)
 	var els: Array = _sp.els
-	var ei := 0
+	var best := 0
 	for i in els.size():
-		if absf(el - float(els[i])) < absf(el - float(els[ei])):
-			ei = i
+		if absf(el - float(els[i])) < absf(el - float(els[best])):
+			best = i
+	if _ei < 0 or absf(el - float(els[best])) + 3.0 < absf(el - float(els[_ei])):
+		_ei = best
 	var n_st: int = (_sp.steers as Array).size()
-	var si := 0
 	if n_st == 3:
-		si = 1
-		if steer_value > 0.12:
-			si = 2
-		elif steer_value < -0.12:
-			si = 0
-	var idx := (ei * n_az + ai) * n_st + si
+		if steer_value > 0.16:
+			_si = 2
+		elif steer_value < -0.16:
+			_si = 0
+		elif absf(steer_value) < 0.08:
+			_si = 1
+	else:
+		_si = 0
+	var idx := (_ei * n_az + _ai) * n_st + _si
 	var cols := int(_sp.cols)
-	_sprite_mat.set_shader_parameter("cell", Vector2(idx % cols, idx / cols))
+	var per := cols * int(_sp.rows)
+	_set_page(idx / per)
+	var k := idx % per
+	_sprite_mat.set_shader_parameter("cell", Vector2(k % cols, k / cols))
+	var rb = (_sp.rear as Array)[idx] if _sp.has("rear") else null
+	_sprite_mat.set_shader_parameter("rear", Vector4(rb[0], rb[1], rb[2] + 1, rb[3] + 1) if rb is Array else Vector4.ZERO)
+	_sprite_mat.set_shader_parameter("rain", rain)
 	# roulis / tangage de la caisse vus de la caméra
 	var up_v := cam.global_basis.inverse() * global_basis.y
 	_sprite_mat.set_shader_parameter("roll", atan2(up_v.x, up_v.y))

@@ -228,8 +228,8 @@ def details(B):
         # antibrouillards jaunes sous le bouclier
         B.box("fog", (sx * 0.55, 0.30, ZF - 0.008), (0.085, 0.03, 0.01))
         # rétroviseurs
-        B.box("plastic", (sx * 0.95, 1.12, -1.30), (0.04, 0.07, 0.10))
-        B.box("plastic", (sx * 0.91, 1.08, -1.32), (0.04, 0.02, 0.03))
+        B.box("plastic", (sx * 0.935, 1.10, -1.30), (0.03, 0.05, 0.075))
+        B.box("plastic", (sx * 0.90, 1.07, -1.32), (0.03, 0.014, 0.025))
         # poignées de portes
         for zh in (-0.62, 0.62):
             B.box("plastic", (sx * (0.888), 0.99, zh), (0.006, 0.015, 0.07))

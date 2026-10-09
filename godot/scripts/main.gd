@@ -29,6 +29,7 @@ var rain: Node3D
 var cockpit: CanvasLayer
 var sound: Node                   # moteur sonore (scripts/audio.gd)
 var radio: Node                   # autoradio (scripts/radio.gd)
+var editeur: CanvasLayer          # éditeur de monde (scripts/editeur_monde.gd)
 
 ## Mode sûr : si le démarrage précédent n'est pas allé jusqu'au bout (plantage pendant le chargement ou les
 ## premières images), on démarre sans le shader remplaçant du relief et avec moins d'anticrénelage.
@@ -196,6 +197,9 @@ func _ready() -> void:
 	add_child(activities)
 	hud.teleport.connect(_teleport)
 	cam_rig.hud = hud
+	editeur = preload("res://scripts/editeur_monde.gd").new()
+	editeur.main = self; editeur.hud = hud
+	add_child(editeur)
 	var cr = preload("res://scripts/crash_report.gd").new()
 	cr.car = car; cr.hud = hud; cr.names = hud.names
 	add_child(cr)
@@ -438,6 +442,8 @@ func _apply_weather() -> void:
 		rain.set_night(_night)
 	if cockpit:
 		cockpit.rain = 1.0 if w == 2 else 0.0
+	if car and "rain" in car:
+		car.rain = 1.0 if w == 2 else 0.0
 	_apply_ambience()
 	if birds:
 		birds.day = time_of_day < 3 and w < 2
@@ -533,6 +539,8 @@ func _shots(path: String) -> void:
 			car.freeze = false
 			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; pools.target = car; shops.target = car; sport.target = car; animaux.target = car; autoroute.target = car; vegetation.target = car; crops.target = car; grass.target = car
 			cam_rig.set_mode(int(s.cam))
+			if s.has("sprite"):
+				car.set_sprite_mode(bool(s.sprite))
 			car.touch_throttle = 0.5
 			car.touch_steer = float(s.get("steer", 0.0))
 			for i in 240:
@@ -542,6 +550,19 @@ func _shots(path: String) -> void:
 			print("capture ", s.name, " : objets ", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
 				", appels de dessin ", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
 				", primitives ", Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
+			# "views": [[lacet, tangage], …] (rad) : autres angles de caméra autour de la voiture arrêtée (sprite)
+			if s.has("views"):
+				car.freeze = true
+				for k in (s.views as Array).size():
+					cam_rig.yaw_off = float(s.views[k][0]); cam_rig.pitch_off = float(s.views[k][1])
+					cam_rig._idle = -1e9
+					for i in 6:
+						await get_tree().process_frame
+					get_viewport().get_texture().get_image().save_png("user://shots/%s_%d.png" % [s.name, k])
+					print("capture ", s.name, "_", k)
+				cam_rig._idle = 0.0; cam_rig.yaw_off = 0.0; cam_rig.pitch_off = 0.0
+				car.freeze = false
+				continue
 			for n in [roads, buildings, fences, water, vegetation, crops, grass, terrain]:
 				if n == null:
 					continue
@@ -713,6 +734,19 @@ func _act_shot(s: Dictionary) -> void:
 			await run.call(90)
 			print("  arrivé : phase ", a._phase, " temps ", a._t)
 			await snap.call(s.name + "_trouve")
+		"editeur":
+			print("formules : ", editeur.match_formula("Sésame, ouvre-toi !"), " ", editeur.match_formula("sesame ouvre toi"),
+				" ", editeur.match_formula("Hasta la vista baby"), " ", editeur.match_formula("bonjour"))
+			editeur._on_formula("Sésame ouvre-toi", false)
+			await run.call(200)
+			var vs := get_viewport().get_visible_rect().size
+			editeur._pick(Vector2(vs.x * float(s.get("tx", 0.3)), vs.y * float(s.get("ty", 0.45))))
+			print("éditeur : ", editeur._sel)
+			await snap.call(s.name)
+			editeur._open_remark()
+			await snap.call(s.name + "_remarque")
+			editeur._on_formula("hasta la vista, baby", true)
+			print("éditeur actif : ", editeur.active)
 		"taxi":
 			a._taxi_start()
 			var cp: Vector2 = a._cl_pos
@@ -737,6 +771,14 @@ func _act_shot(s: Dictionary) -> void:
 			await run.call(200)
 			print("taxi : phase ", a._phase, " destination ", a._dest_name)
 			await snap.call(s.name + "_course")
+			# conversation : le client lance un sujet, on répond
+			a._talk._client_starts("vie")
+			await run.call(240)
+			print("taxi : client ", a._talk.client.prenom, " (", a._talk.client.car.id, ") « ", a._talk._full, " » réponses ", a._talk._choices.get_child_count())
+			await snap.call(s.name + "_conversation")
+			a._talk._answer("drole")
+			await run.call(120)
+			print("  réaction « ", a._talk._full, " » satisfaction ", a._talk.client.sat)
 			var d: int = a._dest
 			car.place(Vector3(a.pts[d], a.pts[d + 2] + 0.3, a.pts[d + 1]), a.pts[d + 3])
 			car.hold(1.5)
