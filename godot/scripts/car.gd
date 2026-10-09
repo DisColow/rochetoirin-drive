@@ -36,6 +36,7 @@ func _ready() -> void:
 	angular_damp = 0.6
 	continuous_cd = true
 	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/car/meta.json"))
+	_meta = meta
 	var body: Node3D = load("res://assets/car/body.glb").instantiate()
 	_body = body
 	body.rotation.y = PI          # modèle : avant vers -Z ; véhicule Godot : avant vers +Z
@@ -43,9 +44,10 @@ func _ready() -> void:
 	_materials(body)
 	var cs := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(1.76, 1.15, 4.24)
+	var bx: Array = meta.get("box", [1.76, 1.15, 4.24])
+	box.size = Vector3(bx[0], bx[1], bx[2])
 	cs.shape = box
-	cs.position = Vector3(0, 0.95, 0)
+	cs.position = Vector3(0, float(meta.get("box_y", 0.95)), 0)
 	add_child(cs)
 	var wb: float = meta.wheelbase; var tr: float = meta.track; var r: float = meta.radius
 	var wheel_scene: PackedScene = load("res://assets/car/wheel.glb")
@@ -324,7 +326,7 @@ func _steering_wheel(meta: Dictionary) -> void:
 
 func _materials(root: Node) -> void:
 	var paint := StandardMaterial3D.new()
-	paint.albedo_color = Color(0.40, 0.025, 0.03)            # rouge foncé, peinture opaque des années 80
+	paint.albedo_color = Color(0.015, 0.015, 0.018)           # noir verni
 	paint.metallic = 0.0; paint.roughness = 0.32
 	paint.clearcoat_enabled = true; paint.clearcoat = 0.8; paint.clearcoat_roughness = 0.1
 	var glass := StandardMaterial3D.new()
@@ -357,13 +359,16 @@ func _materials(root: Node) -> void:
 	fog.albedo_color = Color(0.95, 0.78, 0.1); fog.roughness = 0.15
 	for m in [beige, orange, fog]:
 		m.next_pass = inner
+	var cover := StandardMaterial3D.new()                    # couvercle de benne blanc
+	cover.albedo_color = Color(0.86, 0.87, 0.87); cover.roughness = 0.35
+	cover.next_pass = inner
 	var hub := StandardMaterial3D.new()                      # enjoliveurs argentés
 	hub.albedo_color = Color(0.72, 0.73, 0.75); hub.metallic = 0.45; hub.roughness = 0.35
 	if _lamp_mat == null:
 		_lamp_mat = lamp; _tail_mat = tail
 	if _paint_mat == null:
 		_paint_mat = paint
-	var by_name := {"hubcap": hub, "paint": paint, "beige": beige, "orange": orange, "fog": fog, "glass": glass, "chrome": chrome, "rubber": rubber, "plastic": plastic,
+	var by_name := {"cover": cover, "hubcap": hub, "paint": paint, "beige": beige, "orange": orange, "fog": fog, "glass": glass, "chrome": chrome, "rubber": rubber, "plastic": plastic,
 		"lamp": lamp, "tail": tail, "interior": vcol, "plate_front": vcol, "plate_rear": vcol}
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
 		for s in mi.mesh.get_surface_count():
@@ -436,13 +441,15 @@ func set_wet(w: float) -> void:
 		_paint_mat.clearcoat_roughness = lerpf(0.1, 0.02, w)
 var _tail_mat: StandardMaterial3D
 var _beams := []
+var _meta := {}
 
 ## Phares (soir, nuit) : deux faisceaux, optiques et feux arrière lumineux.
 func set_lights(on: bool) -> void:
 	if _beams.is_empty() and on:
-		for sx in [-0.585, 0.585]:
+		var bm: Array = _meta.get("beams", [0.585, 0.69, 2.2])
+		for sx in [-float(bm[0]), float(bm[0])]:
 			var s := SpotLight3D.new()
-			s.position = Vector3(sx, 0.69, 2.2)
+			s.position = Vector3(sx, float(bm[1]), float(bm[2]))
 			s.rotation = Vector3(deg_to_rad(-4.0), PI, 0)        # vers l'avant (+Z) et un peu vers le bas
 			s.spot_range = 45.0
 			s.spot_angle = 28.0

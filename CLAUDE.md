@@ -32,7 +32,7 @@
   ralentisseurs), `fetch_vegetation.py` (LiDAR HD MNH, zones de végétation, haies, RPG), `fetch_parking.py` (parkings OSM), `build_roads.py`
   (autoroutes : `autoroute_geom.py` — tracé, profil, terre-plein, voies auxiliaires, marquages ; parkings :
   `parking.py` — enrobé nivelé, places, marquage, `data/parkings.pkl` pour les clôtures et les voitures garées),
-  `prepare_terrain.py`, `build_assets.py`, `build_espace.py` (voiture : Espace I procédural), `fetch_communes.py`, `build_map.py`, `fetch_landmarks.py`,
+  `prepare_terrain.py`, `build_assets.py`, `fetch_ranger.py` + `blender_ranger.py` (voiture du joueur depuis la v5.9 : Ford Ranger Raptor noir, couvercle de benne blanc ; `meta.json` : empattement, voies, rayon, boîte de collision, phares ; l'ancien `build_espace.py` n'est plus utilisé), `fetch_communes.py`, `build_map.py`, `fetch_landmarks.py`,
   `fetch_sv_landmarks.py` (cache Street View privé d'abord), `fetch_building_tex.py`, `build_bld_tex.py`,
   `build_buildings.py`, `build_gps.py`, `fetch_trees.py` (Sketchfab, SKETCHFAB_TOKEN), `fetch_cadastre.py`, `build_fence_tex.py`,
   `build_fences.py` (clôtures : relevé `clotures_bourg.json` ; contrôle « rien sur la route » doit donner 0),

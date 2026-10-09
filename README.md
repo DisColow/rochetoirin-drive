@@ -16,6 +16,11 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v5.9 (mise à jour automatique) :
+- **nouvelle voiture : Ford Ranger Raptor noir avec couvercle de benne blanc** (modèle « Ford Ranger Raptor 2019 »
+  de David_Holiday, Sketchfab, CC BY 4.0), en sprite pixel art comme en modèle 3D (⚙ > Voiture). La vue cockpit
+  garde pour l'instant l'habitacle de l'Espace.
+
 Nouveautés de la v5.8 — **APK à installer à la main** (le dernier, normalement) :
 - **mise à jour sur l'écran de démarrage** : au lancement, le jeu cherche une nouvelle version, la télécharge en
   montrant sa progression puis démarre directement dessus (plus besoin de relancer). Hors ligne, il démarre tout de
