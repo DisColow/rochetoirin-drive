@@ -1,1 +1,1 @@
-{"steer": [-0.37, 1.0, -0.98], "eye": [-0.37, 1.32, -0.42], "wheelbase": 2.58, "track": 1.47, "radius": 0.3, "wheel_center": [0.0, 0.0, 0.0], "model": "Renault Espace I (1984-1988)"}
+{"steer": [-0.4, 1.22, -0.55], "eye": [-0.4, 1.52, -0.05], "wheelbase": 3.36, "track": 1.777, "radius": 0.267, "wheel_center": [0.0, 0.0, 0.0], "box": [1.9, 1.25, 5.2], "box_y": 1.0, "beams": [0.72, 0.95, 2.62], "model": "Ford Ranger Raptor 2019 (David_Holiday, CC BY 4.0), noir, couvercle de benne blanc"}
