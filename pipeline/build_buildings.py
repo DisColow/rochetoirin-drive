@@ -682,9 +682,9 @@ def bati_ov(f, area, kind):
     n, toit, fac, vol = f
     ov = {"nf": n, "kind": "commerce" if kind in ("maison", "collectif", "annexe", "commerce") else kind}
     if n == 1:
-        ov["H"] = 4.0 if area < 250 else (6.5 if fac.startswith("bardage") else 5.0)
+        ov["H"] = 4.6 if area < 250 else (6.5 if fac.startswith("bardage") else 5.2)
     else:
-        ov["H"] = 3.8 + (n - 1) * 2.8
+        ov["H"] = 4.3 + (n - 1) * 2.8          # rez-de-chaussée commercial haut (vitrine, enseigne, éclairage)
     ov["flat"] = toit == "plat"
     if not ov["flat"]:
         ov["hip"] = toit == "4p"
@@ -763,6 +763,8 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
     gmin, gmax = float(g.min()), float(g.max())
     base = gmin - 0.6
     eave = max(gmin + H, gmax + (2.2 if kind == "annexe" else 2.6))
+    if "nf" in ov:
+        eave = max(eave, gmax + 4.3)            # commerce relevé sur photo : place pour la devanture même en pente
     wall = wall_material(p, kind, key)
     wl = IDX[wall]
     wtint = srgb(pick(key, "wt", WALL_TINTS)) if wall in ("crepi", "crepi_ancien") else srgb((1, 1, 1))

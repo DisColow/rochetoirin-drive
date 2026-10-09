@@ -453,7 +453,10 @@ def main():
             H = f * 2.8 + 0.6 if f else 5.0
         ring = np.asarray(g.exterior.coords)
         gr = dem.h(ring[:, 0], ring[:, 1])
-        return float(gr.min()), max(float(gr.min()) + H, float(gr.max()) + 2.6)
+        e = max(float(gr.min()) + H, float(gr.max()) + 2.6)
+        if ov:
+            e = max(e, float(gr.max()) + 4.3)       # comme build_buildings.py
+        return float(gr.min()), e
 
     def free_box(c, d_, L, W, margin=0.0):
         d_ = np.asarray(d_) / np.linalg.norm(d_); n = np.array([-d_[1], d_[0]])
@@ -581,6 +584,8 @@ def main():
         yb = float(dem.h(np.array([c0[0] + tdir[0] * w / 2]), np.array([c0[1] + tdir[1] * w / 2]))[0]) - 0.05
         if eave - yb < 4.1:
             stats["mur trop bas"] += 1
+            if fi and typ:
+                stats["mur trop bas (photo)"] += 1
             used[bi].pop()
             continue
         # menuiseries, bandeau peint, rideau, store, terrasse : d'après la photo, sinon selon le métier
