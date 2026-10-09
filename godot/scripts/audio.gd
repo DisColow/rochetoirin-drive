@@ -97,6 +97,8 @@ func _ready() -> void:
 ## musique (« Radio »). Mémorisés dans user://reglages.cfg, section [audio].
 static var volumes := {"ambiance": 1.0, "effets": 1.0, "musique": 1.0}
 static var _vol_loaded := false
+## 0 … 1 : un client du taxi parle (taxi_talk.gd) ; moteur et ambiance baissent de quelques décibels.
+static var talk_duck := 0.0
 
 static func volume_db(cat: String) -> float:
 	if not _vol_loaded:
@@ -381,11 +383,11 @@ func _process(dt: float) -> void:
 		_lp_world.cutoff_hz = lerpf(20000.0, 650.0, pow(_cockpit, 0.5))
 	if _lp_car:
 		_lp_car.cutoff_hz = lerpf(20000.0, 3200.0, _cockpit)
-	AudioServer.set_bus_volume_db(_bus_world, lerpf(0.0, -9.0, _cockpit) + volume_db("ambiance"))
-	AudioServer.set_bus_volume_db(_bus_car, lerpf(0.0, -2.0, _cockpit) + volume_db("effets"))
+	AudioServer.set_bus_volume_db(_bus_world, lerpf(0.0, -9.0, _cockpit) + volume_db("ambiance") - 8.0 * talk_duck)
+	AudioServer.set_bus_volume_db(_bus_car, lerpf(0.0, -2.0, _cockpit) + volume_db("effets") - 7.0 * talk_duck)
 	var bv := AudioServer.get_bus_index("Voix")
 	if bv >= 0:
-		AudioServer.set_bus_volume_db(bv, -3.0 + volume_db("effets"))
+		AudioServer.set_bus_volume_db(bv, volume_db("effets"))
 	_rain_inside(dt)
 	_amb_t -= dt
 	if _amb_t <= 0.0:

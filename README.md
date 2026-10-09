@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v5.3.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v5.3.apk)**
+**[RochetoirinSimulator-v5.4.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v5.4.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,11 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v5.4 :
+- **voix des clients du taxi enfin audibles** : elles étaient environ 20 dB trop faibles, noyées sous le moteur. Babillage
+  plus fort (gain et limiteur sur la voie « talkie-walkie »), syllabes un peu plus longues, et pendant que le client
+  parle, le moteur et l'ambiance s'effacent de quelques décibels (comme la radio), même à pleine vitesse.
 
 Nouveautés de la v5.3 :
 - **voiture en pixel art refaite d'après ta planche** (affichée par défaut ; modèle 3D au choix dans ⚙ > Voiture) :

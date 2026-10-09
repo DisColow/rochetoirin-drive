@@ -141,6 +141,10 @@ func _process(dt: float) -> void:
 		_talk_btn.position = Vector2((vs.x - _talk_btn.shape.size.x) / 2.0, vs.y - _talk_btn.shape.size.y - 22.0)
 	if main and main.get("radio") != null and main.radio.has_method("set_duck"):
 		main.radio.set_duck(1.0 if (_box.visible and _shown < _full.length()) else 0.0)
+	# moteur et ambiance s'effacent un peu pendant que le client parle (on l'entend même à pleine vitesse)
+	var AU := preload("res://scripts/audio.gd")
+	var talking := 1.0 if (_box.visible and _shown < _full.length() + 6.0) else 0.0
+	AU.talk_duck = move_toward(AU.talk_duck, talking, get_process_delta_time() * (5.0 if talking > AU.talk_duck else 1.2))
 	if paused:
 		return
 	_layout()
@@ -297,14 +301,18 @@ func _make_voice() -> void:
 		bus = AudioServer.bus_count - 1
 		AudioServer.set_bus_name(bus, "Voix")
 		AudioServer.set_bus_send(bus, "Master")
-		var hp := AudioEffectHighPassFilter.new(); hp.cutoff_hz = 480.0
-		var lp := AudioEffectLowPassFilter.new(); lp.cutoff_hz = 2700.0
-		var ds := AudioEffectDistortion.new(); ds.mode = AudioEffectDistortion.MODE_OVERDRIVE; ds.drive = 0.35
-		ds.post_gain = -4.0
+		# talkie-walkie : bande étroite, légère saturation, puis gain et limiteur pour passer au-dessus du moteur
+		var hp := AudioEffectHighPassFilter.new(); hp.cutoff_hz = 380.0
+		var lp := AudioEffectLowPassFilter.new(); lp.cutoff_hz = 3200.0
+		var ds := AudioEffectDistortion.new(); ds.mode = AudioEffectDistortion.MODE_OVERDRIVE; ds.drive = 0.25
+		var amp := AudioEffectAmplify.new(); amp.volume_db = 9.0
+		var lim := AudioEffectHardLimiter.new(); lim.ceiling_db = -1.0
 		AudioServer.add_bus_effect(bus, hp)
 		AudioServer.add_bus_effect(bus, ds)
 		AudioServer.add_bus_effect(bus, lp)
-		AudioServer.set_bus_volume_db(bus, -3.0)
+		AudioServer.add_bus_effect(bus, amp)
+		AudioServer.add_bus_effect(bus, lim)
+		AudioServer.set_bus_volume_db(bus, 0.0)
 	var sr := 22050
 	var formants := [[780, 1250], [480, 1850], [300, 2250], [500, 900], [300, 1750], [330, 800]]
 	for f in formants:
@@ -326,7 +334,7 @@ func _make_voice() -> void:
 		_players.append(p)
 
 func _syllable(sr: int, f0: float, f1: float, f2: float) -> AudioStreamWAV:
-	var n := int(sr * 0.085)
+	var n := int(sr * 0.11)
 	var buf := PackedFloat32Array(); buf.resize(n)
 	var period := int(sr / f0)
 	var bw1 := 90.0; var bw2 := 130.0
@@ -342,7 +350,7 @@ func _syllable(sr: int, f0: float, f1: float, f2: float) -> AudioStreamWAV:
 		peak = maxf(peak, absf(buf[i]))
 	for i in n:
 		var env := minf(1.0, i / (sr * 0.008)) * minf(1.0, (n - i) / (sr * 0.03))
-		pcm.encode_s16(i * 2, int(buf[i] / peak * env * 0.8 * 32767.0))
+		pcm.encode_s16(i * 2, int(buf[i] / peak * env * 0.97 * 32767.0))
 	var s := AudioStreamWAV.new()
 	s.format = AudioStreamWAV.FORMAT_16_BITS; s.mix_rate = sr; s.data = pcm
 	return s
@@ -371,7 +379,7 @@ func _blip(ch: String, rising: bool) -> void:
 	p.stream = _voice[v]
 	var base: float = client.get("pitch", 1.0)
 	p.pitch_scale = base * _rng.randf_range(0.93, 1.07) * (1.18 if rising else 1.0)
-	p.volume_db = -6.0
+	p.volume_db = 0.0
 	p.play()
 
 func _squelch() -> void:
@@ -381,5 +389,5 @@ func _squelch() -> void:
 	_pi += 1
 	p.stream = _noise
 	p.pitch_scale = 1.0
-	p.volume_db = -14.0
+	p.volume_db = -10.0
 	p.play()
