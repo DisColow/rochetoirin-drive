@@ -1,15 +1,10 @@
-## Gardien des limites : une soucoupe volante (« UFO » de sebslom, Sketchfab, CC BY 4.0) plane au-delà de la limite de
-## la carte la plus proche de la voiture, en tournant lentement sur elle-même. Quand la voiture s'approche de la limite,
-## elle vient à sa rencontre et ses feux s'allument (on l'entend vrombir) ; on peut rouler au-delà tant qu'il y a du
-## relief, elle suit la voiture. Dès que la voiture commence à tomber hors de la carte (plus de relief dessous), elle la
-## saisit dans son rayon tracteur, la soulève, l'emporte au-dessus du pays et la repose doucement sur la route la plus
-## proche, dans le sens qui ramène vers l'intérieur de la carte.
+## Gardien des limites : une soucoupe volante (« UFO » de sebslom, Sketchfab, CC BY 4.0), invisible et silencieuse tant
+## qu'on ne tombe pas : on peut rouler au-delà de la limite tant qu'il y a du relief. Dès que la voiture commence à
+## tomber hors de la carte (plus de relief dessous), elle surgit du ciel, la saisit dans son rayon tracteur, la soulève, l'emporte au-dessus du pays et la repose doucement sur la route la plus
+## proche, dans le sens qui ramène vers l'intérieur de la carte, puis repart vers le ciel et disparaît.
 ## Pas de cinématique : la caméra suit la voiture, le joueur reprend la main dès qu'elle touche la route.
 extends Node3D
 
-const OUT_DIST := 65.0          # distance au-delà de la limite en veille (m)
-const ALT := 30.0               # altitude de veille au-dessus du sol (m)
-const CHARGE_DIST := 220.0      # la soucoupe se réveille quand la voiture est à moins de 220 m de la limite
 const RESPAWN_MARGIN := 40.0    # dépôt à au moins 40 m de la limite
 const BEAM_H := 10.0            # hauteur de la soucoupe au-dessus de la voiture portée (m)
 const CRUISE := 28.0            # marge de vol au-dessus du relief pendant le transport (m)
@@ -25,7 +20,9 @@ var under_light: OmniLight3D
 var sparks: CPUParticles3D
 var snd_hum: AudioStreamPlayer3D
 var snd_beam: AudioStreamPlayer3D
-var state := "veille"           # veille, charge, saisie, levage, transport, depose, repos
+var snd_in: AudioStreamPlayer3D     # passage en piqué à l'arrivée
+var snd_out: AudioStreamPlayer3D    # départ en flèche
+var state := "veille"           # veille (cachée), saisie, levage, transport, depose, depart
 var _t := 0.0
 var _st := 0.0                  # temps passé dans l'état courant
 var _charge := 0.0              # éveil de la soucoupe (0 à 1)
@@ -49,6 +46,8 @@ func _ready() -> void:
 	_build_beam()
 	snd_hum = _sound("soucoupe", 60.0)
 	snd_beam = _sound("rayon", 40.0)
+	snd_in = _sound("soucoupe_arrivee", 90.0, false)
+	snd_out = _sound("soucoupe_depart", 90.0, false)
 
 # ---------------------------------------------------------------- soucoupe et rayon
 func _build_saucer() -> void:
@@ -152,12 +151,11 @@ void fragment() {
 	sparks.material_override = mat
 	add_child(sparks)
 
-func _sound(name: String, unit: float) -> AudioStreamPlayer3D:
+## Sons de la soucoupe : enregistrements BigSoundBank (CC0, build_sons.py) ; `loop` : boucle sans couture.
+func _sound(name: String, unit: float, loop := true) -> AudioStreamPlayer3D:
 	var s := AudioStreamPlayer3D.new()
-	var st: AudioStreamWAV = (load("res://assets/sfx/%s.wav" % name) as AudioStreamWAV).duplicate()
-	st.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	st.loop_begin = 0
-	st.loop_end = st.data.size() / 2
+	var st: AudioStreamOggVorbis = (load("res://assets/sfx/%s.ogg" % name) as AudioStreamOggVorbis).duplicate()
+	st.loop = loop
 	s.stream = st
 	s.unit_size = unit
 	s.max_distance = 1200.0
@@ -197,23 +195,23 @@ func _process(dt: float) -> void:
 	var q: Vector2 = nr[0]; var d: float = nr[1]
 	var prev := global_position
 	match state:
-		"veille", "charge", "repos":
+		"veille":
+			# cachée : aucun aperçu de l'engin avant qu'on en ait besoin
 			if d > 0.5:
 				_out_dir = ((q - p) if inside else (p - q)).normalized()
-			var want := clampf(1.0 - (d - 20.0) / (CHARGE_DIST - 20.0), 0.0, 1.0) if inside else 1.0
-			_charge = move_toward(_charge, want, dt * 0.8)
-			if state != "repos" or _st > 4.0:
-				state = "charge" if _charge > 0.02 else "veille"
-			# au-delà de la limite ; elle s'avance vers la voiture quand celle-ci approche
-			var target2 := q + _out_dir * lerpf(OUT_DIST, 25.0, _charge)
-			if not inside:
-				target2 = p + _out_dir * 25.0          # la voiture roule hors de la zone : la soucoupe la suit
-			var gy := _ground(target2.x, target2.y, cp.y)
-			var target := Vector3(target2.x, gy + lerpf(ALT, ALT - 6.0, _charge) + sin(_t * 1.1) * 1.2, target2.y)
-			_fly_to(target, dt, 60.0)
-			_beam = move_toward(_beam, 0.0, dt * 1.5)
+			visible = false
+			_charge = 0.0
+			_beam = 0.0
 			if not inside and not car.blown and _in_void(cp):
 				_seize()
+				return
+		"depart":
+			# repart en flèche vers le ciel, au-delà de la limite, puis disparaît
+			_beam = move_toward(_beam, 0.0, dt * 2.0)
+			_charge = move_toward(_charge, 0.0, dt * 0.35)
+			_fly_to(_dest + Vector3(-_out_dir.x * 260.0, 160.0, -_out_dir.y * 260.0) * _ease(minf(_st / 3.0, 1.0)), dt, 160.0)
+			if _st > 3.2:
+				_go("veille")
 		"saisie":
 			# la voiture est figée dans le rayon ; la soucoupe vient se placer au-dessus
 			_charge = 1.0
@@ -303,7 +301,7 @@ func _effects(dt: float) -> void:
 	var a := global_position + Vector3(0, -0.5, 0)
 	var cp := car.global_position
 	var foot := Vector3(cp.x, cp.y - 1.5, cp.z)
-	if state in ["veille", "charge", "repos"]:
+	if state in ["veille", "depart"]:
 		foot = a + (foot - a).normalized() * a.distance_to(foot) * _beam
 	var L := a.distance_to(foot)
 	beam.visible = _beam > 0.01 and L > 0.5
@@ -312,10 +310,10 @@ func _effects(dt: float) -> void:
 		var x := y.cross(Vector3.FORWARD if absf(y.z) < 0.95 else Vector3.RIGHT).normalized()
 		var z := x.cross(y)
 		beam.global_transform = Transform3D(Basis(x, y * L, z), (a + foot) * 0.5)
-	sparks.emitting = _beam > 0.5 and state != "veille"
+	sparks.emitting = _beam > 0.5 and state != "depart"
 	sparks.global_position = cp
 	# sons : vrombissement selon l'éveil, rayon pendant le portage
-	var hum := maxf(_charge, _beam)
+	var hum := maxf(_charge, _beam) if visible else 0.0
 	if hum > 0.02:
 		if not snd_hum.playing:
 			snd_hum.play()
@@ -331,6 +329,8 @@ func _effects(dt: float) -> void:
 	elif snd_beam.playing:
 		snd_beam.stop()
 	snd_hum.global_position = global_position
+	snd_in.global_position = global_position
+	snd_out.global_position = global_position
 
 ## La voiture tombe hors de la carte : plus de relief dessous (au-delà des régions du relief), ou passée sous le sol.
 func _in_void(cp: Vector3) -> bool:
@@ -344,6 +344,13 @@ func _in_void(cp: Vector3) -> bool:
 # ---------------------------------------------------------------- saisie et dépôt
 func _seize() -> void:
 	_go("saisie")
+	# surgit du ciel, au-delà de la limite, et fond sur la voiture
+	var cp := car.global_position
+	global_position = cp + Vector3(_out_dir.x * 90.0, 70.0, _out_dir.y * 90.0)
+	visible = true
+	_charge = 1.0
+	snd_in.global_position = global_position
+	snd_in.play()
 	car.carried = true
 	car.freeze = true
 	_p0 = car.global_position
@@ -397,5 +404,5 @@ func _pick_dest() -> void:
 func _release() -> void:
 	car.carried = false
 	car.respawn_at(_dest, _dest_h)
-	_go("repos")
-	_charge = 0.6
+	_go("depart")
+	snd_out.play()

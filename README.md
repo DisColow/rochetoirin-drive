@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v5.0.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v5.0.apk)**
+**[RochetoirinSimulator-v5.1.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v5.1.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,17 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v5.1 :
+- **course** : un départ A et une arrivée B suffisent ; les étapes sont facultatives, autant qu'on veut.
+- **repères lumineux** (portes de course, clients et destinations du taxi, lieu trouvé) : colonnes de lumière qui
+  traversent le sol, avec un anneau vif au ras du sol ; plus d'écart entre le sol et la lumière, même en pente.
+- **soucoupe volante** : invisible et silencieuse tant qu'on ne tombe pas de la carte ; elle surgit alors du ciel en
+  piqué, rattrape la voiture, la ramène sur une route, puis repart en flèche et disparaît. Nouveaux sons d'après des
+  enregistrements réels (soucoupe tournante, passage en piqué, rayon tracteur électrique), de Joseph Sardin
+  (BigSoundBank, licence CC0).
+- **plantages** : après un arrêt brutal, le bandeau propose « Envoyer le rapport » (ouvre un ticket GitHub déjà rempli
+  avec l'état du jeu et la fin du journal, il n'y a plus qu'à valider) ou « Copier ».
 
 Nouveautés de la v5.0 — **les bâtiments des commerces refaits d'après leurs photos Street View** : pour chacun des
 615 commerces photographiés, on a relevé à la main le nombre de niveaux, la forme du toit (terrasse, deux pans, quatre

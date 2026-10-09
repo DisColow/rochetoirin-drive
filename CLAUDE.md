@@ -39,7 +39,7 @@
   `fetch_water.py`, `build_water.py` (eau ; à lancer avant `prepare_terrain.py`, qui creuse le terrain dessous),
   `build_ground.py` (carte de l'herbe, après `prepare_terrain.py` ; les ombres douces du terrain viennent de son
   `ao_region`), `build_grass_tex.py`, `build_zone.py` (limite de la carte pour le gardien), `fetch_ufo.py` + `blender_ufo.py` (soucoupe du gardien),
-  `build_sfx.py` (sons de synthèse), `fetch_power.py`, `build_poles.py` (pylônes, poteaux, fils, lampadaires), `build_cockpit.py` (vue cockpit en pixel art), `build_props.py`
+  `build_sfx.py` (sons de synthèse : pluie, bip), `fetch_sons.py` + `build_sons.py` (sons d'après enregistrements réels : BigSoundBank / Joseph Sardin, CC0, et Kenney CC0 ; catalogue `SONS` de `build_sons.py`, boucles sans couture, Ogg), `fetch_power.py`, `build_poles.py` (pylônes, poteaux, fils, lampadaires), `build_cockpit.py` (vue cockpit en pixel art), `build_props.py`
   (voitures garées, poubelles, tracteurs ; après `build_fences.py`, qui fournit les portails ; voitures : modèles
   Sketchfab de `fetch_voitures.py` + `blender_voitures.py`, sans logo de vraie marque), `fetch_shops.py`,
   `fetch_sv_shops.py` (photos Street View des devantures, cache privé `streetview/shops` ; structure des bâtiments relevée sur ces photos dans `sources/shops_bati.txt` — niveaux, toit, façade, volets — appliquée par `build_buildings.py`), `build_shops.py` (commerces
@@ -87,10 +87,13 @@
 - Rendu Mobile (Vulkan) essayé en v2.8 : moins joli que Compatibility sur le téléphone de l'utilisateur, abandonné.
 - Captures de contrôle : `xvfb-run godot --path godot -- --shots=<json>` ; essai de conduite : `-- --drive-test`.
 - Gardien des limites (`scripts/guardian.gd`) : soucoupe volante « UFO » de sebslom (Sketchfab, CC BY 4.0 ;
-  `fetch_ufo.py` + `blender_ufo.py` -> `assets/ufo/ufo.glb`), rayon tracteur qui ramène la voiture sur la route
-  (`car.carried`) ; essai : `-- --drive-test --void-test [--snap]`. Crédits dans ⚙ > Crédits (`hud.gd`, `CREDITS`) : y ajouter toute nouvelle ressource sous licence.
+  `fetch_ufo.py` + `blender_ufo.py` -> `assets/ufo/ufo.glb`), invisible jusqu'à ce que la voiture tombe hors de la carte,
+  rayon tracteur qui la ramène sur la route (`car.carried`), puis repart ; essai : `-- --drive-test --void-test --void-drop [--snap]`. Crédits dans ⚙ > Crédits (`hud.gd`, `CREDITS`) : y ajouter toute nouvelle ressource sous licence.
 - **Modèles 3D : toujours privilégier les modèles gratuits trouvables en ligne** (Sketchfab CC BY/CC0 via
   SKETCHFAB_TOKEN, Poly Haven, Kenney, Quaternius…, crédités dans ⚙ > Crédits) plutôt que de modéliser soi-même ; ne
   modéliser (Blender, procédural) qu'à défaut de modèle convenable.
+- **Viser les canons du genre** : à chaque demande, s'inspirer des meilleures références du genre (jeux de conduite,
+  simulateurs, jeux en pixel art…) pour la qualité du résultat et l'ingéniosité des solutions, dans les limites du
+  moteur graphique et du téléphone ; chercher l'astuce qui donne un rendu de grand jeu plutôt que la solution minimale.
 - **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
   souples, pas d'à-coups de chargement).

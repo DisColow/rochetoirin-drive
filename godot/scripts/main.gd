@@ -774,6 +774,15 @@ func _physics_process(_dt: float) -> void:
 				p += out * 4.0
 			p -= out * 40.0
 			h = terrain.data.get_height(Vector3(p.x, 0, p.y))
+			if OS.get_cmdline_user_args().has("--void-drop"):
+				# lâchée directement au-dessus du vide, loin de tout relief : la soucoupe doit surgir et la rattraper
+				p = q
+				for k in 600:
+					if is_nan(terrain.data.get_height(Vector3(p.x, 0, p.y))):
+						break
+					p += out * 50.0
+				p += out * 300.0
+				h = car.global_position.y + 10.0
 			car.place(Vector3(p.x, h + 1.0, p.y), rad_to_deg(atan2(out.x, -out.y)))
 			car.hold(2.0)                               # collisions du relief générées autour de la caméra
 			if cam_rig and cam_rig.has_method("snap"):

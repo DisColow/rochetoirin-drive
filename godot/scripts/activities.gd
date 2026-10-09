@@ -154,39 +154,44 @@ func _ground(x: float, z: float, fallback: float) -> float:
 
 ## Colonne de lumière (porte de course, client, destination) : cylindre additif qui s'efface vers le haut + anneau au sol.
 func _beacon(p: Vector3, col: Color, r: float, h := 70.0) -> Node3D:
+	# colonne de lumière qui traverse le sol (10 m dessous) : aucun écart visible entre le sol et la lumière,
+	# même en pente ; sa base, la plus vive, forme le cercle lumineux au ras du sol
+	const DEPTH := 10.0
 	var root := Node3D.new()
-	var mi := MeshInstance3D.new()
-	var cy := CylinderMesh.new(); cy.top_radius = r; cy.bottom_radius = r; cy.height = h
-	cy.cap_top = false; cy.cap_bottom = false; cy.radial_segments = 32; cy.rings = 1
-	mi.mesh = cy
 	var sm := ShaderMaterial.new()
 	sm.shader = Shader.new()
 	sm.shader.code = """
 shader_type spatial;
 render_mode unshaded, blend_add, cull_disabled, depth_draw_never, shadows_disabled;
 uniform vec3 col : source_color;
+uniform float h = 70.0;
+uniform float base = 0.0;
+uniform float r = 10.0;
+varying float y;
+void vertex() { y = VERTEX.y + base; }
 void fragment() {
-	float up = 1.0 - UV.y;
-	float edge = 0.35 + 0.65 * pow(1.0 - abs(dot(NORMAL, VIEW)), 1.5);
-	float bands = 0.75 + 0.25 * sin(UV.y * 60.0 - TIME * 4.0);
-	ALBEDO = col * edge * bands * (1.0 - up) * 0.9;
+	float edge = 0.06 + 0.94 * pow(1.0 - abs(dot(NORMAL, VIEW)), 2.2);   // bords lumineux, centre transparent
+	float bands = 0.75 + 0.25 * sin(y * 0.86 - TIME * 4.0);
+	float up = clamp(y / h, 0.0, 1.0);
+	float foot = exp(-max(y, 0.0) * 3.5);          // anneau vif au ras du sol (et dessous), surtout vu de biais
+	// caméra dans la colonne (on y entre en voiture) : elle s'efface, sinon sa paroi voile tout le paysage
+	float d = length(CAMERA_POSITION_WORLD.xz - NODE_POSITION_WORLD.xz);
+	float fade = smoothstep(r * 0.7, r * 1.6, d);
+	ALBEDO = col * (edge * bands * (1.0 - up) * 0.9 + foot * (0.15 + 0.55 * edge)) * fade;
 }
 """
 	sm.set_shader_parameter("col", col)
+	sm.set_shader_parameter("h", h)
+	sm.set_shader_parameter("base", (h - DEPTH) / 2.0)
+	sm.set_shader_parameter("r", r)
+	var mi := MeshInstance3D.new()
+	var cy := CylinderMesh.new(); cy.top_radius = r; cy.bottom_radius = r; cy.height = h + DEPTH
+	cy.cap_top = false; cy.cap_bottom = false; cy.radial_segments = 48; cy.rings = 1
+	mi.mesh = cy
 	mi.material_override = sm
-	mi.position = Vector3(0, h / 2, 0)
+	mi.position = Vector3(0, (h - DEPTH) / 2.0, 0)
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
-	var ring := MeshInstance3D.new()
-	var tm := TorusMesh.new(); tm.inner_radius = r - 0.5; tm.outer_radius = r; tm.rings = 48
-	ring.mesh = tm
-	var rm := StandardMaterial3D.new()
-	rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED; rm.albedo_color = col
-	ring.material_override = rm
-	ring.position = Vector3(0, 0.15, 0)
-	ring.scale = Vector3(1, 0.3, 1)
-	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	root.add_child(ring)
 	root.position = p
 	main.add_child(root)
 	_beacons.append(root)
@@ -253,7 +258,7 @@ func _close_menu(resume := false) -> void:
 
 func open_menu() -> void:
 	var v := _panel("Activités")
-	_btn(v, "Course : créer un tracé (départ, étapes, arrivée)", _course_setup)
+	_btn(v, "Course : créer un tracé (départ, étapes facultatives, arrivée)", _course_setup)
 	if not _last_route.is_empty():
 		_btn(v, "Recommencer le dernier tracé" + ("" if _best == INF else "  (record " + _fmt(_best) + ")"), _course_again)
 	_btn(v, "Chasse au lieu (un joueur cache, l'autre cherche)", _hunt_menu)
@@ -314,7 +319,7 @@ func _on_pick(w: Vector2) -> void:
 func _course_setup() -> void:
 	_stop()
 	_route = []
-	_pick_on_map("Course : touchez le départ A, puis les étapes, puis l'arrivée B", _course_pick,
+	_pick_on_map("Course : touchez le départ A, puis les étapes éventuelles, puis l'arrivée B", _course_pick,
 		[["Effacer le dernier point", _course_undo], ["Lancer la course", _course_start], ["Annuler", _course_cancel]])
 	_course_marks()
 
@@ -343,23 +348,23 @@ func _course_marks() -> void:
 	marks = []
 	join_marks = true
 	for k in _route.size():
-		var txt := "A" if k == 0 else ("B" if k == _route.size() - 1 and k >= 2 else str(k))
+		var txt := "A" if k == 0 else ("B" if k == _route.size() - 1 else str(k))
 		var col := Color(0.2, 0.85, 0.3) if k == 0 else (Color(0.95, 0.25, 0.2) if txt == "B" else Color(1, 0.8, 0.15))
 		marks.append({p = _rp(_route[k]), col = col, txt = txt, gps = true})
 	var n := _route.size()
 	if map.pick_mode:
-			map.set_hint(["Course : touchez le départ A", "Touchez une étape (au moins une), puis l'arrivée B",
-			"Touchez l'arrivée B (le dernier point posé sera l'arrivée)"][mini(n, 2)] if n < 3 else
-			"%d points : A, %d étape(s), B. Ajoutez des points ou lancez la course" % [n, n - 2])
+			map.set_hint(["Course : touchez le départ A", "Touchez l'arrivée B, ou des étapes (le dernier point posé est l'arrivée)"][n]
+			if n < 2 else ("A → B : lancez la course, ou ajoutez des étapes (le dernier point posé est l'arrivée)" if n == 2 else
+			"%d points : A, %d étape(s), B. Ajoutez des points ou lancez la course" % [n, n - 2]))
 	if _bar and is_instance_valid(_bar):
 		for b in _bar.get_children():
 			if b.get_meta("id") == "Lancer la course":
-				b.disabled = n < 3
+				b.disabled = n < 2
 	map.queue_redraw()
 
 func _course_start() -> void:
-	if _route.size() < 3:
-		hud.toast("Il faut un départ, au moins une étape et une arrivée")
+	if _route.size() < 2:
+		hud.toast("Il faut un départ et une arrivée")
 		return
 	_end_pick()
 	_close_menu()
@@ -398,7 +403,7 @@ func _course_process(dt: float) -> void:
 		_count -= dt
 		car.hold(0.15)
 		var n := int(ceil(_count))
-		_set_status("Course : %d étape(s)\n%s" % [_route.size() - 2, str(n) if n >= 1 else "Partez !"])
+		_set_status("Course : %s\n%s" % ["A → B" if _route.size() == 2 else "%d étape(s)" % (_route.size() - 2), str(n) if n >= 1 else "Partez !"])
 		if _count <= 0.0:
 			_phase = "course"
 			_bip.play()

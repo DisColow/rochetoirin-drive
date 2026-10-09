@@ -56,6 +56,7 @@ var settings: Control
 
 const CREDITS := """Soucoupe du gardien : « UFO » par sebslom (sketchfab.com/3d-models), licence CC BY 4.0.
 Pluie et orage : Sound Effect by Premankur Adhikary from Pixabay.
+Sons (soucoupe…) : enregistrements de Joseph SARDIN - BigSoundBank.com (licence CC0).
 Arbres : modèles Sketchfab (licences CC BY / CC0, auteurs listés dans le dépôt).
 Animaux (Sketchfab, licence CC BY 4.0) : « Cow » par JosueBoisvert, « Sheep » par kenchoo, « Horse Rigged (Game Ready) » par abhayexe.
 Voitures garées (Sketchfab, licence CC BY 4.0) : « Generic 80s european car » par henryviii, « Low Poly Small car » et « Low-Poly Sedan car » par scailman, « Blue Sedan | Stylized Low Poly » par R3indeer.
