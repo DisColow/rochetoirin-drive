@@ -62,7 +62,7 @@ def main():
     # bâti : part du sol couverte dans un disque de ~100 m
     bld = raster([g for _, g in load_buildings()], x0, z0, fx, fz, res)
     bati = ndi.uniform_filter(bld, size=int(200 / res))
-    bati = np.clip((bati - 0.015) / 0.16, 0, 1)
+    bati = np.clip((bati - 0.02) / 0.40, 0, 1)     # bourg ≈ 0,4 ; centre-ville de Bourgoin ≈ 0,8 à 1
     # bois
     veg = json.load(open("data/vegetation_zones.json"))["features"]
     woods = [local(shape(f["geometry"])) for f in veg

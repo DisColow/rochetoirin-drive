@@ -177,15 +177,34 @@ func _update_collisions() -> void:
 		var d := Vector2((k.x + 0.5) * TILE - p.x, (k.y + 0.5) * TILE - p.z).length()
 		var need := d < COLL + TILE * 0.71
 		if need and not bodies.has(k):
-			var sb := StaticBody3D.new()
+			# un corps par matériau (meta « surface » : asphalt, dirt, sidewalk, concrete…) : le son de roulement
+			# sait sur quoi roule chaque roue (VehicleWheel3D.get_contact_body)
+			var holder := Node3D.new()
+			var by_mat := {}
 			for mi in loaded[k].find_children("*", "MeshInstance3D", true, false):
 				if mi.name.begins_with("detail"):
 					continue
+				var mesh: Mesh = mi.mesh
+				for si in mesh.get_surface_count():
+					var mat := mesh.surface_get_material(si)
+					var mn := String(mat.resource_name if mat else "asphalt").trim_suffix("_bridge")
+					if not by_mat.has(mn):
+						by_mat[mn] = ArrayMesh.new()
+					var arr := mesh.surface_get_arrays(si)
+					var keep := []
+					keep.resize(Mesh.ARRAY_MAX)
+					keep[Mesh.ARRAY_VERTEX] = arr[Mesh.ARRAY_VERTEX]
+					keep[Mesh.ARRAY_INDEX] = arr[Mesh.ARRAY_INDEX]
+					(by_mat[mn] as ArrayMesh).add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, keep)
+			for mn in by_mat:
+				var sb := StaticBody3D.new()
+				sb.set_meta("surface", mn)
 				var cs := CollisionShape3D.new()
-				cs.shape = mi.mesh.create_trimesh_shape()
+				cs.shape = (by_mat[mn] as ArrayMesh).create_trimesh_shape()
 				sb.add_child(cs)
-			loaded[k].add_child(sb)
-			bodies[k] = sb
+				holder.add_child(sb)
+			loaded[k].add_child(holder)
+			bodies[k] = holder
 		elif not need and bodies.has(k):
 			bodies[k].queue_free()
 			bodies.erase(k)

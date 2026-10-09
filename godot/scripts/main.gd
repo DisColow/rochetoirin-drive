@@ -27,6 +27,8 @@ var autoroute: Node3D
 var dust: Node3D
 var rain: Node3D
 var cockpit: CanvasLayer
+var sound: Node                   # moteur sonore (scripts/audio.gd)
+var radio: Node                   # autoradio (scripts/radio.gd)
 
 ## Mode sûr : si le démarrage précédent n'est pas allé jusqu'au bout (plantage pendant le chargement ou les
 ## premières images), on démarre sans le shader remplaçant du relief et avec moins d'anticrénelage.
@@ -154,6 +156,17 @@ func _ready() -> void:
 	rain.cam_rig = cam_rig
 	rain.car = car
 	add_child(rain)
+	sound = preload("res://scripts/audio.gd").new()
+	sound.name = "Audio"
+	sound.car = car
+	sound.cam_rig = cam_rig
+	sound.main = self
+	add_child(sound)
+	radio = preload("res://scripts/radio.gd").new()
+	radio.name = "Radio"
+	radio.main = self
+	radio.cam_rig = cam_rig
+	add_child(radio)
 	set_time(time_of_day)
 	# étalonnage de l'image finale (calque 2D sous l'interface)
 	var gl := CanvasLayer.new()
@@ -177,6 +190,8 @@ func _ready() -> void:
 	add_child(hud)
 	activities = preload("res://scripts/activities.gd").new()
 	activities.main = self; activities.car = car; activities.hud = hud; activities.map = hud.map
+	if radio:
+		radio.hud = hud
 	activities.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(activities)
 	hud.teleport.connect(_teleport)
@@ -817,6 +832,8 @@ func _physics_process(_dt: float) -> void:
 		print("  snap %d gardien=%s éveil=%.2f portée=%s pos=%s" % [t / 60, guardian.state, guardian._charge, car.carried, car.global_position.snapped(Vector3.ONE)])
 	if t % 120 == 0:
 		print("t=%.0fs pos=%s v=%.0f km/h avant=%.1f roues au sol=%d" % [t / 120.0, car.global_position.snapped(Vector3(0.1, 0.1, 0.1)), car.kmh(), car.forward_speed(), car.wheels.filter(func(w): return w.is_in_contact()).size()])
+		if sound:
+			print("  son : ", sound.debug(), (" ; radio %s « %s » à %.0f s" % [radio.lcd_text(), radio.title, radio._player.get_playback_position()]) if radio and radio.station >= 0 else "")
 	if t > dur + 600:
 		get_tree().quit()
 

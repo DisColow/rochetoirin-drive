@@ -44,6 +44,7 @@ func _ready() -> void:
 	_add_button("carte", "CARTE", 6)
 	_add_button("reglages", "⚙", 7)
 	_add_button("activites", "★", 8)
+	_add_button("radio", "♪", 9)
 	map = preload("res://scripts/map.gd").new()
 	map.car = car
 	map.visible = false
@@ -56,11 +57,12 @@ var settings: Control
 
 const CREDITS := """Soucoupe du gardien : « UFO » par sebslom (sketchfab.com/3d-models), licence CC BY 4.0.
 Pluie et orage : Sound Effect by Premankur Adhikary from Pixabay.
-Sons (soucoupe…) : enregistrements de Joseph SARDIN - BigSoundBank.com (licence CC0).
+Sons (moteur, roulement, ambiances, oiseaux, animaux, cloches, essuie-glaces, soucoupe…) : enregistrements de Joseph SARDIN - BigSoundBank.com (licence CC0) ; chocs : « Impact Sounds » de Kenney (CC0).
 Arbres : modèles Sketchfab (licences CC BY / CC0, auteurs listés dans le dépôt).
 Animaux (Sketchfab, licence CC BY 4.0) : « Cow » par JosueBoisvert, « Sheep » par kenchoo, « Horse Rigged (Game Ready) » par abhayexe.
 Voitures garées (Sketchfab, licence CC BY 4.0) : « Generic 80s european car » par henryviii, « Low Poly Small car » et « Low-Poly Sedan car » par scailman, « Blue Sedan | Stylized Low Poly » par R3indeer.
 Clients du taxi : « Low Poly Characters (PACK) » par micaelsampaio (Sketchfab, licence CC BY 4.0).
+Musiques de la radio : Kevin MacLeod (incompetech.com), licence Creative Commons Attribution 4.0 — voir assets/radio/radio.json pour les titres.
 Textures : Poly Haven et ambientCG (CC0).
 Données : © les contributeurs d'OpenStreetMap (ODbL) ; IGN (BD TOPO, RGE ALTI, LiDAR HD, BD ORTHO, Licence Ouverte Etalab).
 Modèles des commerces, équipements, haies, maisons, clôtures et sprite de la voiture : faits avec Blender pour le jeu."""
@@ -289,7 +291,7 @@ func _layout() -> void:
 	speed_panel.position = Vector2(s.x - gw - 24, 24 + gh + 14); speed_panel.size = Vector2(gw, 96)
 	pill.position = Vector2(0, 20); pill.size = Vector2(s.x, 90)
 	var pos := [Vector2(60, s.y - 230), Vector2(290, s.y - 230), Vector2(s.x - 470, s.y - 230), Vector2(s.x - 240, s.y - 260),
-		Vector2(150, 24), Vector2(270, 24), Vector2(30, 24), Vector2(390, 24), Vector2(510, 24)]
+		Vector2(150, 24), Vector2(270, 24), Vector2(30, 24), Vector2(390, 24), Vector2(510, 24), Vector2(630, 24)]
 	for i in buttons.size():
 		buttons[i].position = pos[i]
 

@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v5.1.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v5.1.apk)**
+**[RochetoirinSimulator-v5.2.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v5.2.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,28 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v5.2 — **le son** (enregistrements réels de la sonothèque de Joseph Sardin, BigSoundBank, CC0) :
+- **moteur** : un vrai 4 cylindres essence enregistré à quatre régimes stables (ralenti, 2 500, 2 800 et
+  3 300 tr/min), bouclés sans couture et fondus selon le régime d'une boîte 5 vitesses simulée (passages de rapports,
+  embrayage qui patine au démarrage, marche arrière) ; version « en charge » quand on accélère, plus sourde au frein
+  moteur ; démarreur au lancement ; le compte-tours du cockpit suit le régime entendu.
+- **roulement** selon ce qu'il y a sous chaque roue : asphalte, gravier des chemins, herbe ; **vent** qui monte avec
+  la vitesse ; **crissement des pneus** en dérapage et au freinage appuyé ; **chocs** différents selon ce qu'on heurte
+  (métal pour les murs et les voitures, bois pour les arbres et les clôtures, plastique pour les poubelles) ;
+  retombée sourde après un saut.
+- **ambiances** dosées d'après une carte sonore du pays (bâti, bois, eaux, autoroute) et l'heure : campagne aux
+  oiseaux le jour, oiseaux du soir, grillons et grenouilles la nuit, village, centre-ville, vent dans les arbres,
+  rumeur de l'autoroute ; **ruisseaux** qu'on entend là où l'eau coule vraiment ; merles, rouge-gorge et corneilles
+  dans les arbres, rossignol et chouette la nuit ; **vaches** qui meuglent près des troupeaux ; chiens dans les
+  villages ; les **cloches** de l'église la plus proche sonnent l'heure réelle (et un coup à la demie).
+- **mixage** façon grands jeux de conduite : la vitesse couvre peu à peu l'ambiance (à l'arrêt on entend tout) ; vue
+  extérieure = fenêtre ouverte ; vue conducteur = sons du dehors étouffés, pluie qui tambourine sur le toit,
+  **essuie-glaces** qu'on entend balayer en rythme avec ceux du cockpit.
+- **autoradio** (bouton ♪, touche N) : six stations à thème (Rochetoirin FM pop-rock, Isère Jazz, Dauphiné Classique,
+  Radio Soleil funk et latino, Bourgoin Électro, Radio Rétro ragtime), musiques de Kevin MacLeod (incompetech.com,
+  CC BY 4.0) ; chaque station émet en continu, on tombe en cours de morceau ; grésillement entre deux stations ; son
+  d'autoradio dans l'habitacle, plus lointain fenêtre ouverte ; la fréquence s'affiche sur l'autoradio du cockpit.
 
 Nouveautés de la v5.1 :
 - **course** : un départ A et une arrivée B suffisent ; les étapes sont facultatives, autant qu'on veut.

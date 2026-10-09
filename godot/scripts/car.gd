@@ -15,6 +15,8 @@ var touch_brake := 0.0
 var touch_steer := 0.0
 var steer_value := 0.0
 var reversing := false
+var thr_in := 0.0                # pédales lues à ce pas (moteur sonore)
+var brk_in := 0.0
 var safe := []                  # positions sûres récentes : [Transform3D]
 var _safe_t := 0.0
 var _stuck_t := 0.0
@@ -395,6 +397,7 @@ func _physics_process(dt: float) -> void:
 		return
 	var thr := clampf(Input.get_action_strength("accelerer") + touch_throttle, 0.0, 1.0)
 	var brk := clampf(Input.get_action_strength("freiner") + touch_brake, 0.0, 1.0)
+	thr_in = thr; brk_in = brk
 	var st := clampf(Input.get_action_strength("gauche") - Input.get_action_strength("droite") + touch_steer, -1.0, 1.0)
 	var v := forward_speed()
 	# sens de marche « jeu » : la pédale opposée au mouvement freine, puis la voiture repart dans l'autre sens dès

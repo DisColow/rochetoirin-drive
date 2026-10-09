@@ -44,6 +44,7 @@ func _ready() -> void:
 		zone.append(Vector2(float(p[0]), float(p[1])))
 	_build_saucer()
 	_build_beam()
+	preload("res://scripts/audio.gd").ensure_buses()
 	snd_hum = _sound("soucoupe", 60.0)
 	snd_beam = _sound("rayon", 40.0)
 	snd_in = _sound("soucoupe_arrivee", 90.0, false)
@@ -157,6 +158,7 @@ func _sound(name: String, unit: float, loop := true) -> AudioStreamPlayer3D:
 	var st: AudioStreamOggVorbis = (load("res://assets/sfx/%s.ogg" % name) as AudioStreamOggVorbis).duplicate()
 	st.loop = loop
 	s.stream = st
+	s.bus = "Monde"
 	s.unit_size = unit
 	s.max_distance = 1200.0
 	s.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE

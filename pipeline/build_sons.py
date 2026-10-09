@@ -28,6 +28,10 @@ SONS = {
     "vent": dict(bsb=595, calme=20, loop=True, xf=2.0, hp=120, db=-20),
     "crissement": dict(bsb=2371, calme=2.0, loop=True, xf=0.4, hp=300, db=-17),
     "pluie_toit": dict(bsb=1293, calme=30, loop=True, xf=2.0, db=-22),
+    "radio_gresil": dict(bsb=312, t0=0.0, t1=0.9, db=-24, fi=0.02, fo=0.25),
+    # essuie-glaces (vitesse lente, enregistrés dans l'habitacle) : un cycle aller-retour de 1,75 s, joué au début
+    # de chaque balayage des essuie-glaces en pixel art du cockpit (même période)
+    "essuie_glace": dict(bsb=3112, t0=3.0, t1=4.75, db=-20, fi=0.03, fo=0.08),
     # ambiances (fonds en boucle, fenêtre la plus régulière de l'enregistrement)
     "amb_jour": dict(bsb=97, calme=50, loop=True, xf=4.0, db=-24, q=3),
     "amb_jour2": dict(bsb=1911, calme=50, loop=True, xf=4.0, db=-24, q=3),

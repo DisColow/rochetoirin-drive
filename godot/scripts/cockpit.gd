@@ -160,7 +160,9 @@ func _process(dt: float) -> void:
 	var want := 850.0 + clampf(kmh / tops[g], 0.0, 1.0) * 5000.0 + thr * 700.0
 	if kmh < 3.0:
 		want = 850.0 + thr * 1800.0
-	_rpm = lerpf(_rpm, want, 1.0 - exp(-dt * 5.0))
+	if main and main.get("sound") and main.sound.get("rpm") != null:
+		want = main.sound.rpm                                  # compte-tours = régime du moteur sonore
+	_rpm = lerpf(_rpm, want, 1.0 - exp(-dt * 12.0))
 	# accélérations ressenties (repère de la voiture) : sapin et secousses
 	var v := car.linear_velocity
 	var acc := (v - _prev_v) / maxf(dt, 0.001)
@@ -183,6 +185,7 @@ func _process(dt: float) -> void:
 	for n in [back, lit, glow, front]:
 		n.queue_redraw()
 
+const WIPE_T := 1.75       # période d'un balayage aller-retour (celle de l'enregistrement des essuie-glaces)
 const WIPERS := [[Vector2(62, 0), 96.0], [Vector2(252, 0), 92.0]]     # pivot (y : pied du pare-brise), longueur
 
 func _wiper_angle(ph: float) -> float:
@@ -207,9 +210,9 @@ func _rain_update(dt: float, kmh: float) -> void:
 		d[0] += (float(d[0]) - 240.0) * 0.6 * up * dt
 	# essuie-glaces : balayage qui efface les gouttes
 	if rain > 0.01:
-		_wipe += dt / 1.3
+		_wipe += dt / WIPE_T
 	elif fposmod(_wipe, 1.0) > 0.01:
-		_wipe = minf(_wipe + dt / 1.3, ceil(_wipe))
+		_wipe = minf(_wipe + dt / WIPE_T, ceil(_wipe))
 	var a0 := _wiper_angle(_wipe_prev); var a1 := _wiper_angle(_wipe)
 	_wipe_prev = _wipe
 	var lo := minf(a0, a1) - 0.03; var hi := maxf(a0, a1) + 0.03
@@ -326,6 +329,8 @@ func _draw_glow() -> void:
 	var hm: Array = [[12, 0], [17, 30], [20, 45], [23, 10]][_tod()]
 	var mins := int(hm[0]) * 60 + int(hm[1]) + int(_clock / 60.0)
 	var txt := "%2d:%02d" % [(mins / 60) % 24, mins % 60]
+	if main and main.get("radio") and main.radio.lcd_text() != "" and int(_clock / 4.0) % 3 != 0:
+		txt = main.radio.lcd_text()                       # fréquence de la station (l'heure revient de temps en temps)
 	var lc := Color(0.3, 0.85, 0.45).lerp(Color(0.45, 1.0, 0.6), night)
 	if night == 0.0:
 		lc = lc * amb * 0.8
