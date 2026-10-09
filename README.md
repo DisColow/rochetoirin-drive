@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v4.9.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.9.apk)**
+**[RochetoirinSimulator-v5.0.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v5.0.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,17 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v5.0 — **les bâtiments des commerces refaits d'après leurs photos Street View** : pour chacun des
+615 commerces photographiés, on a relevé à la main le nombre de niveaux, la forme du toit (terrasse, deux pans, quatre
+pans), la façade (crépi blanc, crème, beige, jaune, ocre, rose, saumon ou gris, crépi ancien, pierre, pierre de taille,
+brique, béton, mur-rideau vitré, bardage métallique gris, blanc, anthracite, beige, bleu, vert ou rouge, bardage bois)
+et les volets (bois, couleurs, roulants ou aucun). Le bâtiment de chaque commerce (462 bâtiments) est reconstruit
+d'après ce relevé : hauteur d'après les étages vus sur la photo, vitrines au rez-de-chaussée, fenêtres aux étages,
+toit en tuiles quand la photo en montre, couleur de façade et de volets ; la devanture et l'enseigne s'y adaptent.
+Les immeubles de centre-ville à trois ou quatre niveaux, les maisons de bourg en pierre, les résidences récentes et les
+grandes surfaces en bardage (sans fenêtres de logement) ressemblent désormais davantage à la réalité. Pas encore
+reproduits : les arcades, balcons et autres détails de façade.
 
 Nouveautés de la v4.9 — **activités** (bouton ★ en haut à gauche, touche T au clavier) :
 - **course** : sur la carte, touchez le départ A, une ou plusieurs étapes puis l'arrivée B (« Effacer le dernier
