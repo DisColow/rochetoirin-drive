@@ -21,14 +21,15 @@ W, H = 768, 654                      # 3 × le sprite final (256 × 218)
 ORTHO = 5.6                          # largeur couverte (m)
 CENTER = mathutils.Vector((0.0, 0.035, 0.88))
 
-COLORS = {  # nom de matériau : (couleur, métal, rugosité, vernis)
-    "paint": ((0.56, 0.022, 0.014), 0.0, 0.32, 0.6), "beige": ((0.42, 0.34, 0.18), 0.2, 0.45, 0.0),
-    "glass": ((0.03, 0.038, 0.05), 0.0, 0.12, 0.0), "chrome": ((0.8, 0.8, 0.82), 1.0, 0.15, 0.0),
-    "rubber": ((0.03, 0.03, 0.035), 0.0, 0.9, 0.0), "plastic": ((0.05, 0.05, 0.055), 0.0, 0.6, 0.0),
-    "lamp": ((0.85, 0.88, 0.9), 0.5, 0.1, 0.0), "tail": ((0.7, 0.03, 0.03), 0.0, 0.2, 0.0),
-    "orange": ((0.95, 0.42, 0.04), 0.0, 0.2, 0.0), "fog": ((0.95, 0.78, 0.1), 0.0, 0.15, 0.0),
-    "hubcap": ((0.72, 0.73, 0.75), 0.45, 0.35, 0.0), "interior": ((0.09, 0.09, 0.1), 0.0, 0.85, 0.0),
-    "plate_front": ((0.9, 0.9, 0.88), 0.0, 0.5, 0.0), "plate_rear": ((0.9, 0.78, 0.15), 0.0, 0.5, 0.0),
+COLORS = {  # nom de matériau : (couleur, métal, rugosité, vernis) — teintes de la planche de référence de l'utilisateur
+    # (bordeaux, bas de caisse et boucliers gris anthracite, vitres ardoise, enjoliveurs gris clair, phares jaune pâle)
+    "paint": ((0.20, 0.016, 0.028), 0.0, 0.45, 0.12), "beige": ((0.048, 0.051, 0.058), 0.0, 0.62, 0.0),
+    "glass": ((0.085, 0.10, 0.12), 0.0, 0.22, 0.0), "chrome": ((0.7, 0.7, 0.72), 1.0, 0.2, 0.0),
+    "rubber": ((0.022, 0.022, 0.026), 0.0, 0.9, 0.0), "plastic": ((0.03, 0.03, 0.034), 0.0, 0.6, 0.0),
+    "lamp": ((0.95, 0.86, 0.55), 0.0, 0.15, 0.0), "tail": ((0.6, 0.03, 0.03), 0.0, 0.2, 0.0),
+    "orange": ((0.95, 0.42, 0.04), 0.0, 0.2, 0.0), "fog": ((0.95, 0.86, 0.55), 0.0, 0.15, 0.0),
+    "hubcap": ((0.55, 0.57, 0.6), 0.3, 0.4, 0.0), "interior": ((0.05, 0.05, 0.055), 0.0, 0.85, 0.0),
+    "plate_front": ((0.12, 0.12, 0.13), 0.0, 0.5, 0.0), "plate_rear": ((0.12, 0.12, 0.13), 0.0, 0.5, 0.0),
 }
 MASK = {"lamp": (0.0, 1.0, 0.0), "tail": (1.0, 0.0, 0.0), "glass": (0.0, 0.0, 1.0)}
 
@@ -109,7 +110,7 @@ def setup():
     tc = nt.nodes.new("ShaderNodeTexCoord"); sep = nt.nodes.new("ShaderNodeSeparateXYZ")
     ramp = nt.nodes.new("ShaderNodeValToRGB")
     ramp.color_ramp.elements[0].position = 0.45; ramp.color_ramp.elements[0].color = (0.06, 0.06, 0.07, 1)
-    ramp.color_ramp.elements[1].position = 0.62; ramp.color_ramp.elements[1].color = (0.75, 0.82, 0.95, 1)
+    ramp.color_ramp.elements[1].position = 0.62; ramp.color_ramp.elements[1].color = (0.5, 0.54, 0.62, 1)
     mr = nt.nodes.new("ShaderNodeMapRange"); mr.inputs["From Min"].default_value = -1.0; mr.inputs["From Max"].default_value = 1.0
     nt.links.new(tc.outputs["Generated"], sep.inputs[0])
     nt.links.new(sep.outputs["Z"], mr.inputs["Value"]); nt.links.new(mr.outputs["Result"], ramp.inputs["Fac"])

@@ -17,11 +17,27 @@ fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.ta
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
 Nouveautés de la v5.3 :
-- **voiture en pixel art refaite** (⚙ > Voiture > Sprite pixel art) : 384 vues rendues à partir du modèle 3D de
-  l'Espace (32 angles autour, 4 hauteurs de caméra, roues droites ou braquées), rouge de la voiture de ton père et bas
-  de caisse beige doré, palette commune, contour d'un pixel ; toutes les vues sont cohérentes entre elles et la vue ne
-  change plus quand on accélère ou qu'on freine (plus de voiture qui « plonge ») ; **ombre en pixel art** (bord tramé)
-  à la place de l'ombre 3D.
+- **voiture en pixel art refaite d'après ta planche** (affichée par défaut ; modèle 3D au choix dans ⚙ > Voiture) :
+  bordeaux, bas de caisse et boucliers gris anthracite, vitres ardoise, enjoliveurs gris clair ; 384 vues rendues à
+  partir du modèle 3D de l'Espace (32 angles autour, 4 hauteurs de caméra, roues droites ou braquées), donc toutes les
+  vues de ta planche (face, arrière, profils, trois-quarts, dessus) et toutes celles qui manquaient entre elles,
+  cohérentes entre elles ; contour d'un pixel, palette commune. La voiture ne monte plus et ne plonge plus quand on
+  accélère ou qu'on freine en ligne droite (vue choisie d'après le seul cap, hauteur prise sur les roues au sol).
+  **Ombre en pixel art** (bord tramé).
+- **sprite vivant** : il penche vers l'extérieur des virages, s'écrase sur les bosses et à la réception d'un saut puis
+  rebondit, tressaute sur l'herbe et les chemins. **Caméra plus proche** de la voiture, à toutes les vitesses.
+- **effets des roues** selon le sol : brins d'herbe et mottes qui volent dans l'herbe, poussière et mottes sur les
+  chemins de terre, cailloux qui giclent, gerbes d'eau sur route mouillée, fumée de pneus quand ça glisse.
+- **vitesse maximale : 230 km/h** (et la 5e allongée pour que le moteur ne hurle pas).
+- **volumes réglables** (⚙ > Son) : ambiance, effets, musique, de 0 à 150 % ; la radio est plus forte qu'avant, avec
+  le charme de la FM : petits crachotements de temps en temps et creux de réception passagers.
+- **stations-service** refaites et toutes posées (16) : grand auvent au bandeau de la marque (parodiée) et plafond
+  lumineux, îlots à butoirs jaunes, distributeurs détaillés (écrans, pistolets, flexibles), boutique vitrée, station
+  de lavage à rouleaux, borne de gonflage, totem avec le panneau des prix en chiffres lumineux ; plus petites là où la
+  place manque.
+- **cinéma** de Bourgoin-Jallieu (« Kinopolix », 12 salles) : grande enseigne lumineuse, marquise à ampoules au-dessus
+  de l'entrée, caissons d'affiches de films parodiques (« La soucoupe de Rochetoirin », « Espace 85 », « Les vaches de
+  Saint-Chef »…), éclairés la nuit.
 - **pluie sur la voiture** : gouttes en pixel art qui perlent sur les vitres (et quelques reflets sur la carrosserie),
   **essuie-glace arrière** qui balaie la lunette et chasse les gouttes.
 - **interface façon planche de bord des années 80** : gros boutons poussoirs en pixel art (cadre de plastique noir,

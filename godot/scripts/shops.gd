@@ -1,5 +1,6 @@
 ## Commerces (build_shops.py, modèles blender_commerces.py) : devantures, enseignes parodiques, stores, croix de
-## pharmacie, carottes de tabac, terrasses, supermarchés et stations-service. Tuiles de 256 m chargées au fil de la
+## pharmacie, carottes de tabac, terrasses, supermarchés, stations-service (auvent, pompes, boutique, lavage, totem et
+## prix) et cinémas (marquise à ampoules, affiches). Tuiles de 256 m chargées au fil de la
 ## route, un MultiMesh par modèle et par tuile ; enseignes, intérieurs et croix éclairés la nuit.
 extends Node3D
 
@@ -7,7 +8,8 @@ const TILE := 256.0
 const Cells := preload("res://scripts/cells.gd")
 const VIEW := 600.0
 const MODELS := ["vitrine", "porte", "enseigne", "lampes", "banne", "croix", "carotte", "totem", "ombriere", "pompe",
-	"abri_caddies", "terrasse", "auvent", "bandeau", "pilastre", "coffre_rideau", "porte_sectionnelle", "bardage"]
+	"abri_caddies", "terrasse", "auvent", "bandeau", "pilastre", "coffre_rideau", "porte_sectionnelle", "bardage",
+	"boutique_station", "gonfleur", "lavage", "panneau_prix", "affiche", "marquise"]
 # collisions (boîtes locales : centre, taille) des objets posés au sol
 const COLL := {
 	"totem": [[Vector3(0, 2.9, 0), Vector3(2.0, 5.8, 0.8)]],
@@ -15,6 +17,9 @@ const COLL := {
 	"ombriere": [[Vector3(-5, 2.6, -2), Vector3(0.4, 5.2, 0.4)], [Vector3(5, 2.6, -2), Vector3(0.4, 5.2, 0.4)],
 		[Vector3(-5, 2.6, 2), Vector3(0.4, 5.2, 0.4)], [Vector3(5, 2.6, 2), Vector3(0.4, 5.2, 0.4)]],
 	"abri_caddies": [[Vector3(0, 1.1, 0), Vector3(4.1, 2.2, 2.1)]],
+	"boutique_station": [[Vector3(0, 1.8, -3.5), Vector3(12.0, 3.6, 7.0)]],
+	"lavage": [[Vector3(-2.5, 1.9, 0), Vector3(0.24, 3.8, 9.0)], [Vector3(2.5, 1.9, 0), Vector3(0.24, 3.8, 9.0)]],
+	"gonfleur": [[Vector3(0, 0.8, 0), Vector3(0.4, 1.6, 0.35)]],
 }
 # matériau Blender -> [kind, couleur, rugosité, métal, lueur]
 const MATS := {
@@ -27,6 +32,8 @@ const MATS := {
 	"carotte": [5, Color(0.8, 0.08, 0.06), 0.35, 0.0, Color(0.9, 0.12, 0.08)], "blanc": [0, Color(0.88, 0.88, 0.87), 0.45, 0.2],
 	"bande": [3, Color(0.8, 0.1, 0.1), 0.4, 0.0], "ecran": [5, Color(0.1, 0.2, 0.15), 0.2, 0.0, Color(0.2, 0.5, 0.3)],
 	"caoutchouc": [0, Color(0.03, 0.03, 0.03), 0.8, 0.0], "rotin": [0, Color(0.55, 0.38, 0.2), 0.8, 0.0],
+	"neon": [5, Color(0.95, 0.95, 0.92), 0.3, 0.0, Color(1.0, 0.98, 0.9)], "jaune": [0, Color(0.95, 0.75, 0.05), 0.5, 0.0],
+	"bleu": [0, Color(0.1, 0.3, 0.7), 0.5, 0.0],
 }
 
 var target: Node3D
@@ -139,7 +146,8 @@ func _add(k: Vector2i) -> void:
 				cs.transform = xf * Transform3D(Basis.IDENTITY, c[0])
 				body.add_child(cs)
 	for m in by:
-		var big: bool = MODELS[m] in ["totem", "ombriere", "enseigne", "auvent", "bardage", "porte_sectionnelle"]
+		var big: bool = MODELS[m] in ["totem", "ombriere", "enseigne", "auvent", "bardage", "porte_sectionnelle",
+			"boutique_station", "lavage", "panneau_prix", "affiche", "marquise"]
 		Cells.add(root, meshes[m], by[m], 550.0 if big else 300.0, big)
 	add_child(root)
 	loaded[k] = root

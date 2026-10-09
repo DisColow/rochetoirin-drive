@@ -22,6 +22,11 @@ var _cockpit := 0.0
 var _cur := -1                     # indice du morceau en cours dans le programme de la station
 var _lap := -1
 var _duck := 0.0                   # baisse du volume quand un client du taxi parle
+var _fm: AudioStreamPlayer         # grésillement FM : souffle léger et petits crachotements de temps en temps
+var _fm_t := 6.0
+var _fm_len := 0.0
+var _fade := 0.0                   # creux de réception (trajets multiples) : la musique baisse un instant
+var _rng := RandomNumberGenerator.new()
 
 ## 1 : quelqu'un parle dans la voiture (la radio baisse), 0 : volume normal.
 func set_duck(on: float) -> void:
@@ -55,6 +60,12 @@ func _ready() -> void:
 	if ResourceLoader.exists("res://assets/sfx/radio_gresil.ogg"):
 		_noise.stream = load("res://assets/sfx/radio_gresil.ogg")
 	add_child(_noise)
+	_fm = AudioStreamPlayer.new()
+	_fm.bus = "Radio"
+	_fm.stream = _noise.stream
+	_fm.volume_db = -80.0
+	add_child(_fm)
+	_rng.randomize()
 	if not InputMap.has_action("radio"):
 		InputMap.add_action("radio")
 		var k := InputEventKey.new(); k.physical_keycode = KEY_N
@@ -76,9 +87,33 @@ func _process(dt: float) -> void:
 	_cockpit = move_toward(_cockpit, inside, dt * 3.0)
 	if _lp:
 		_lp.cutoff_hz = lerpf(2600.0, 7000.0, _cockpit)
-	AudioServer.set_bus_volume_db(_bus, lerpf(-9.0, -1.0, _cockpit) - 9.0 * _duck)
-	# en pause (carte, menus) la radio continue, un peu plus bas
-	_player.volume_db = -6.0 if get_tree().paused else 0.0
+	AudioServer.set_bus_volume_db(_bus, lerpf(-4.0, 2.0, _cockpit) - 9.0 * _duck
+		+ preload("res://scripts/audio.gd").volume_db("musique"))
+	_fm_crackle(dt)
+
+## Charme de la FM : de temps en temps un crachotement (grésillement bref, plus ou moins fort) et un petit creux de
+## réception où la musique faiblit, comme sur un autoradio en roulant dans les collines.
+func _fm_crackle(dt: float) -> void:
+	if station < 0 or _fm.stream == null or not _player.playing:
+		_fm.volume_db = -80.0
+		return
+	_fm_t -= dt
+	if _fm_t <= 0.0:
+		_fm_t = _rng.randf_range(7.0, 26.0)
+		_fm_len = _rng.randf_range(0.15, 1.1)
+		_fm.pitch_scale = _rng.randf_range(0.8, 1.3)
+		_fm.play(_rng.randf_range(0.0, maxf(_fm.stream.get_length() - 1.5, 0.0)))
+		if _rng.randf() < 0.5:
+			_fade = 1.0
+	if _fm_len > 0.0:
+		_fm_len -= dt
+		_fm.volume_db = -22.0 + _rng.randf_range(-6.0, 3.0)
+	else:
+		_fm.volume_db = move_toward(_fm.volume_db, -80.0, dt * 120.0)
+		if _fm.volume_db <= -79.0 and _fm.playing:
+			_fm.stop()
+	_fade = move_toward(_fade, 0.0, dt * 1.6)
+	_player.volume_db = (-6.0 if get_tree().paused else 0.0) - 7.0 * sin(_fade * PI)
 
 ## Station suivante ; après la dernière, arrêt.
 func next() -> void:

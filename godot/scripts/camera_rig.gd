@@ -78,7 +78,8 @@ func _process(dt: float) -> void:
 	var fwd := t.basis.z
 	if mode == 0:
 		var flat := Vector3(fwd.x, 0, fwd.z).normalized().rotated(Vector3.UP, yaw_off)
-		var want := t.origin - flat * 7.2 * cos(pitch_off) + Vector3(0, 2.6 + 7.2 * sin(pitch_off), 0)
+		# caméra proche de la voiture (souhait du joueur), à toutes les vitesses
+		var want := t.origin - flat * 5.3 * cos(pitch_off) + Vector3(0, 2.05 + 5.3 * sin(pitch_off), 0)
 		# voiture portée par la soucoupe : plan large, un peu en contrebas, voiture et soucoupe dans le cadre
 		_carry = move_toward(_carry, 1.0 if target.carried else 0.0, dt * 0.8)
 		var c := _carry * _carry * (3.0 - 2.0 * _carry)
@@ -98,7 +99,7 @@ func _process(dt: float) -> void:
 		_look = _look.lerp(look_at, 1.0 - exp(-dt * 10.0)) if _look != Vector3.ZERO else t.origin
 		cam.global_position = _pos
 		cam.look_at(_look, Vector3.UP)
-		cam.fov = lerpf(cam.fov, 62.0 + clampf(target.kmh() / 8.0, 0.0, 12.0), 1.0 - exp(-dt * 2.0))
+		cam.fov = lerpf(cam.fov, 62.0 + clampf(target.kmh() / 20.0, 0.0, 7.0), 1.0 - exp(-dt * 2.0))
 	else:
 		var p := t * (eye if mode == 1 else Vector3(0, 1.45, 1.2))
 		cam.global_position = p

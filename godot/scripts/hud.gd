@@ -156,6 +156,27 @@ func _open_settings() -> void:
 			for c in hw.get_children():
 				c.button_pressed = c == b)
 		hw.add_child(b)
+	# son : volumes de l'ambiance, des effets (voiture, voix) et de la musique (radio), de 0 à 150 %
+	var ls := Label.new(); ls.text = "Son"; ls.add_theme_font_size_override("font_size", 30); v.add_child(ls)
+	var hs := HBoxContainer.new(); hs.add_theme_constant_override("separation", 24); v.add_child(hs)
+	var AU := preload("res://scripts/audio.gd")
+	AU.volume_db("ambiance")
+	for cat in [["ambiance", "Ambiance"], ["effets", "Effets"], ["musique", "Musique"]]:
+		var col := VBoxContainer.new(); col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var cl := Label.new(); cl.add_theme_font_size_override("font_size", 24)
+		col.add_child(cl)
+		var sl := HSlider.new()
+		sl.min_value = 0.0; sl.max_value = 1.5; sl.step = 0.05
+		sl.value = float(AU.volumes[cat[0]])
+		sl.custom_minimum_size = Vector2(220, 48)
+		var upd := func(x: float):
+			cl.text = "%s  %d %%" % [cat[1], int(round(x * 100.0))]
+		upd.call(sl.value)
+		sl.value_changed.connect(func(x: float):
+			upd.call(x)
+			AU.set_volume(cat[0], x))
+		col.add_child(sl)
+		hs.add_child(col)
 	# voiture : sprite pixel art ou modèle 3D
 	var lc := Label.new(); lc.text = "Voiture"; lc.add_theme_font_size_override("font_size", 30); v.add_child(lc)
 	var hc := HBoxContainer.new(); hc.add_theme_constant_override("separation", 16); v.add_child(hc)
@@ -170,7 +191,7 @@ func _open_settings() -> void:
 		b.pressed.connect(func():
 			car_node.set_sprite_mode(opt[0] == "sprite")
 			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
-			cfg.set_value("affichage", "voiture_v4", opt[0]); cfg.save("user://reglages.cfg")
+			cfg.set_value("affichage", "voiture_v53", opt[0]); cfg.save("user://reglages.cfg")
 			for c in hc.get_children():
 				c.button_pressed = c == b)
 		hc.add_child(b)

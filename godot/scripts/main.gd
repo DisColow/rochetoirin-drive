@@ -541,6 +541,11 @@ func _shots(path: String) -> void:
 			cam_rig.set_mode(int(s.cam))
 			if s.has("sprite"):
 				car.set_sprite_mode(bool(s.sprite))
+			if s.has("side"):
+				# décalage latéral (m, + à droite) : rouler hors de la route (effets des roues dans l'herbe)
+				var pp: Vector3 = car.global_position - car.global_basis.x * float(s.side)
+				car.place(pp + Vector3(0, 1.0, 0), rad_to_deg(PI - atan2(car.global_basis.z.x, car.global_basis.z.z)))
+				car.hold(0.5)
 			car.touch_throttle = 0.5
 			car.touch_steer = float(s.get("steer", 0.0))
 			for i in 240:
@@ -631,6 +636,8 @@ func _shots(path: String) -> void:
 			print("capture ", s.name)
 			continue
 		var c: Camera3D = cam_rig.cam
+		cam_rig.set_process(false)                 # (après une capture « tp », la caméra suivait encore la voiture)
+		car.freeze = true
 		var p := Vector3(s.pos[0], s.pos[1], s.pos[2])
 		car.global_position = p + Vector3(0, -50, 0) if not s.get("car", false) else car.global_position
 		roads.target = c

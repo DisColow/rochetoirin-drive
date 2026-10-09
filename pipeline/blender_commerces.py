@@ -5,6 +5,7 @@ Repère des modèles (après export glTF) : x le long de la façade, y en haut, 
 Sorties : ../godot/assets/shops/<nom>.glb
  - vitrine (module de 1 m), porte (1 m), enseigne (bandeau 1 × 1, face avant UV 0..1 -> case de l'atlas),
    banne (store de 1 m), croix (pharmacie), carotte (tabac), totem, ombriere (station-service), pompe,
+   boutique_station, gonfleur, lavage, panneau_prix (stations-service), affiche, marquise (cinémas),
    abri_caddies, terrasse (table, chaises, parasol), auvent (entrée de supermarché) ;
  - habillage des devantures d'après les photos Street View (couleur d'instance, matériau « bande ») : bandeau (planche
    de 1 × 0,8 m au-dessus des vitrines), pilastre (montant de 3,8 m), coffre_rideau (coffre de rideau métallique de
@@ -228,33 +229,152 @@ def totem():
 
 
 def ombriere():
-    """Auvent de station-service (14 × 8 m, 5 m sous plafond) : 4 poteaux, plafond blanc, bandeau coloré (« bande »)
-    et enseigne (atlas) sur les deux grands côtés."""
+    """Auvent de station-service (16 × 9 m, 5 m sous plafond), façon grandes enseignes : épais bandeau à la couleur de
+    la marque (« bande ») souligné de deux filets blancs, enseigne (atlas) sur les deux grands côtés, plafond blanc
+    piqué de pavés lumineux (« neon », allumés la nuit), poteaux habillés de la couleur de la marque en pied, îlots en
+    béton à bordure, butoirs jaunes aux extrémités."""
     reset()
     w = mat("blanc", (0.88, 0.88, 0.87), 0.2, 0.45)
-    for x in (-5.0, 5.0):
-        for y in (-2.0, 2.0):
-            box("poteau", (x, y, 2.6), (0.4, 0.4, 5.2), w, bevel=0.04)
-    box("toit", (0, 0, 5.55), (14.0, 8.0, 0.7), w, bevel=0.06)
-    box("bande", (0, 0, 5.35), (14.06, 8.06, 0.25), mat("bande", (0.8, 0.1, 0.1), rough=0.4), bevel=0.02)
-    plane("enseigne", (4.5, -4.035, 5.68), 4.0, 0.42, mat("enseigne", (1, 1, 1), rough=0.35), facing=-1)
-    plane("enseigne_dos", (-4.5, 4.035, 5.68), 4.0, 0.42, mat("enseigne", (1, 1, 1), rough=0.35), facing=1)
-    # îlots sous l'auvent
-    for x in (-2.5, 2.5):
-        box("ilot", (x, 0, 0.1), (1.2, 4.5, 0.2), mat("socle", (0.55, 0.53, 0.5), rough=0.8), bevel=0.04)
+    band = mat("bande", (0.8, 0.1, 0.1), rough=0.4)
+    for x in (-5.2, 5.2):
+        for y in (-2.2, 2.2):
+            box("poteau", (x, y, 2.6), (0.42, 0.42, 5.2), w, bevel=0.04)
+            box("pied", (x, y, 0.75), (0.48, 0.48, 1.5), band, bevel=0.03)
+    box("toit", (0, 0, 5.75), (16.0, 9.0, 1.1), w, bevel=0.06)
+    box("bande", (0, 0, 5.75), (16.06, 9.06, 0.62), band, bevel=0.02)
+    for z in (5.37, 6.13):
+        box("filet", (0, 0, z), (16.08, 9.08, 0.06), w)
+    plane("enseigne", (4.8, -4.545, 5.75), 4.6, 0.56, mat("enseigne", (1, 1, 1), rough=0.35), facing=-1)
+    plane("enseigne_dos", (-4.8, 4.545, 5.75), 4.6, 0.56, mat("enseigne", (1, 1, 1), rough=0.35), facing=1)
+    neon = mat("neon", (1.0, 1.0, 0.97), rough=0.3)
+    for x in (-6.0, -3.0, 0.0, 3.0, 6.0):
+        for y in (-2.8, 0.0, 2.8):
+            box("lumiere", (x, y, 5.19), (1.2, 0.6, 0.03), neon)
+    # îlots en béton : bordure, butoirs jaunes, poubelle et distributeur d'essuie-tout au bout
+    for x in (-2.6, 2.6):
+        box("ilot", (x, 0, 0.12), (1.3, 6.2, 0.24), mat("socle", (0.6, 0.58, 0.55), rough=0.8), bevel=0.05)
+        for y in (-3.25, 3.25):
+            cyl("butoir", (x, y, 0.55), 0.11, 1.1, mat("jaune", (0.95, 0.75, 0.05), rough=0.5), n=10)
+            box("bande_butoir", (x, y, 0.85), (0.24, 0.24, 0.12), mat("caoutchouc", (0.03, 0.03, 0.03), rough=0.8))
+        box("poubelle", (x, 2.6, 0.62), (0.5, 0.4, 0.8), band, bevel=0.03)
+        box("essuie", (x + 0.35, -2.6, 0.9), (0.18, 0.3, 0.5), w, bevel=0.02)
     export("ombriere")
 
 
 def pompe():
+    """Distributeur double face : socle, corps blanc à bandeau de la marque, deux écrans (montant, litres, prix), quatre
+    pistolets dans leurs étuis, flexibles qui retombent en boucle."""
     reset()
     w = mat("blanc", (0.88, 0.88, 0.87), 0.2, 0.45)
-    box("corps", (0, 0, 0.95), (0.9, 0.45, 1.7), w, bevel=0.04)
-    box("bande", (0, 0, 1.55), (0.92, 0.47, 0.18), mat("bande", (0.8, 0.1, 0.1), rough=0.4), bevel=0.01)
-    plane("ecran", (0, -0.231, 1.2), 0.38, 0.22, mat("ecran", (0.1, 0.2, 0.15), rough=0.2))
-    for x in (-0.3, 0.3):
-        cyl("pistolet", (x, -0.25, 0.95), 0.03, 0.18, mat("metal", (0.1, 0.1, 0.11), 0.4, 0.4), n=8)
-        box("tuyau", (x, -0.26, 0.6), (0.03, 0.03, 0.55), mat("caoutchouc", (0.03, 0.03, 0.03), rough=0.8))
+    band = mat("bande", (0.8, 0.1, 0.1), rough=0.4)
+    box("socle", (0, 0, 0.08), (1.0, 0.55, 0.16), mat("metal", (0.35, 0.36, 0.38), 0.6, 0.4), bevel=0.02)
+    box("corps", (0, 0, 1.0), (0.92, 0.48, 1.7), w, bevel=0.05)
+    box("tete", (0, 0, 2.05), (0.96, 0.52, 0.42), band, bevel=0.04)
+    box("filet", (0, 0, 1.82), (0.97, 0.53, 0.04), w)
+    for sgn in (-1, 1):
+        y = sgn * 0.245
+        plane("ecran", (0, y, 1.45), 0.5, 0.3, mat("ecran", (0.1, 0.2, 0.15), rough=0.2), facing=sgn)
+        box("cadre_ecran", (0, y, 1.45), (0.56, 0.01, 0.36), mat("cadre", (0.16, 0.17, 0.18), 0.6, 0.4))
+        plane("clavier", (0.0, y * 1.01, 1.12), 0.22, 0.16, mat("caisson", (0.12, 0.12, 0.13), rough=0.4), facing=sgn)
+        for x in (-0.36, 0.36):
+            box("etui", (x, y + sgn * 0.06, 0.95), (0.14, 0.12, 0.22), mat("caisson", (0.12, 0.12, 0.13), rough=0.4))
+            box("pistolet", (x, y + sgn * 0.12, 1.02), (0.06, 0.14, 0.2), mat("metal", (0.1, 0.1, 0.11), 0.4, 0.4))
+            # flexible : boucle qui descend vers le sol et remonte au corps
+            for k in range(6):
+                t = k / 5.0
+                zz = 1.25 - 0.95 * math.sin(math.pi * t) ** 0.8
+                box("flexible", (x * 0.9, y + sgn * (0.12 + 0.08 * math.sin(math.pi * t)), zz), (0.035, 0.035, 0.2),
+                    mat("caoutchouc", (0.03, 0.03, 0.03), rough=0.8))
     export("pompe")
+
+
+def boutique_station():
+    """Boutique de station (12 × 7 × 3,6 m) : murs blancs, façade vitrée et porte, bandeau de la marque avec enseigne,
+    toit plat à acrotère, intérieur éclairé (« interieur »). Façade vers -y (vers les pompes)."""
+    reset()
+    w = mat("blanc", (0.88, 0.88, 0.87), 0.2, 0.45)
+    fr = mat("cadre", **FRAME)
+    box("murs", (0, 3.5, 1.8), (12.0, 7.0, 3.6), w, bevel=0.04)
+    box("acrotere", (0, 3.5, 3.75), (12.2, 7.2, 0.3), w, bevel=0.03)
+    box("bandeau", (0, -0.06, 3.3), (12.1, 0.14, 0.75), mat("bande", (0.8, 0.1, 0.1), rough=0.4), bevel=0.02)
+    plane("enseigne", (0, -0.14, 3.3), 4.4, 0.6, mat("enseigne", (1, 1, 1), rough=0.35))
+    for i in range(10):
+        x = -4.5 + i
+        plane("verre", (x, -0.02, 1.45), 0.92, 2.5, mat("verre", (0.05, 0.06, 0.07), 0.2, 0.05))
+        plane("interieur", (x, 0.6, 1.4), 1.0, 2.4, mat("interieur", (0.75, 0.72, 0.65), rough=0.9))
+        box("montant", (x - 0.5, -0.05, 1.45), (0.07, 0.1, 2.6), fr)
+    box("montant", (5.0, -0.05, 1.45), (0.07, 0.1, 2.6), fr)
+    box("traverse", (0, -0.05, 2.75), (10.1, 0.1, 0.08), fr)
+    box("seuil", (0, -0.25, 0.05), (12.0, 0.5, 0.1), mat("socle", (0.6, 0.58, 0.55), rough=0.8))
+    # bouteilles de gaz en cage et bac à glace devant la façade
+    box("cage_gaz", (-5.2, -0.6, 0.75), (1.0, 0.7, 1.5), mat("metal", (0.35, 0.36, 0.38), 0.6, 0.4))
+    for k in range(3):
+        cyl("bouteille", (-5.5 + k * 0.3, -0.6, 0.35), 0.13, 0.6, mat("bande", (0.8, 0.1, 0.1), rough=0.4), n=10)
+    box("glace", (5.2, -0.6, 0.55), (1.2, 0.7, 1.1), w, bevel=0.04)
+    plane("glace_face", (5.2, -0.96, 0.6), 1.0, 0.7, mat("ecran", (0.1, 0.2, 0.15), rough=0.2))
+    export("boutique_station")
+
+
+def gonfleur():
+    """Borne air et eau : fût bleu, manomètre, tuyau enroulé."""
+    reset()
+    bl = mat("bleu", (0.1, 0.3, 0.7), rough=0.4)
+    box("socle", (0, 0, 0.05), (0.6, 0.6, 0.1), mat("socle", (0.6, 0.58, 0.55), rough=0.8))
+    box("fut", (0, 0, 0.8), (0.36, 0.3, 1.5), bl, bevel=0.04)
+    cyl("manometre", (0, -0.16, 1.25), 0.1, 0.04, mat("blanc", (0.88, 0.88, 0.87), 0.2, 0.45), n=14, axis="Y")
+    cyl("enrouleur", (0.2, -0.05, 0.9), 0.16, 0.08, mat("caoutchouc", (0.03, 0.03, 0.03), rough=0.8), n=14, axis="X")
+    export("gonfleur")
+
+
+def lavage():
+    """Station de lavage (portique, 5 × 9 × 4,2 m) : piliers, toit, cloisons latérales colorées, deux rouleaux bleus."""
+    reset()
+    w = mat("blanc", (0.88, 0.88, 0.87), 0.2, 0.45)
+    band = mat("bande", (0.8, 0.1, 0.1), rough=0.4)
+    for x in (-2.5, 2.5):
+        box("cloison", (x, 0, 1.9), (0.2, 9.0, 3.8), w, bevel=0.03)
+        box("bas", (x, 0, 0.5), (0.24, 9.04, 1.0), band)
+    box("toit", (0, 0, 4.0), (5.4, 9.2, 0.4), w, bevel=0.04)
+    box("bandeau", (0, -4.62, 3.9), (5.4, 0.06, 0.6), band)
+    plane("enseigne", (0, -4.66, 3.9), 2.6, 0.5, mat("enseigne", (1, 1, 1), rough=0.35))
+    box("portique", (0, 0.5, 3.4), (4.6, 0.5, 0.4), mat("metal", (0.35, 0.36, 0.38), 0.6, 0.4))
+    for x in (-1.3, 1.3):
+        cyl("rouleau", (x, 0.5, 1.8), 0.42, 3.0, mat("bleu", (0.1, 0.3, 0.7), rough=0.9), n=16)
+    box("sol", (0, 0, 0.03), (4.8, 9.0, 0.06), mat("socle", (0.6, 0.58, 0.55), rough=0.8))
+    export("lavage")
+
+
+def panneau_prix():
+    """Panneau des prix sous le totem (2,0 × 1,5 m, double face, atlas : prix en chiffres lumineux)."""
+    reset()
+    box("caisson", (0, 0, 0.75), (2.0, 0.36, 1.5), mat("caisson", (0.12, 0.12, 0.13), rough=0.4), bevel=0.03)
+    plane("face", (0, -0.182, 0.75), 1.86, 1.36, mat("enseigne", (1, 1, 1), rough=0.35))
+    plane("dos", (0, 0.182, 0.75), 1.86, 1.36, mat("enseigne", (1, 1, 1), rough=0.35), facing=1)
+    export("panneau_prix")
+
+
+def affiche():
+    """Caisson lumineux d'affiche de cinéma (1,6 × 2,2 m) : cadre noir, affiche (atlas), éclairée la nuit."""
+    reset()
+    box("caisson", (0, 0.08, 1.1), (1.75, 0.16, 2.35), mat("cadre", **FRAME), bevel=0.02)
+    plane("affiche", (0, -0.005, 1.1), 1.6, 2.2, mat("enseigne", (1, 1, 1), rough=0.35))
+    export("affiche")
+
+
+def marquise():
+    """Marquise d'entrée de cinéma (8 × 3 m, à 3,4 m) : dalle à bandeau de la couleur de l'enseigne, sous-face
+    constellée d'ampoules, deux tirants vers la façade."""
+    reset()
+    band = mat("bande", (0.8, 0.1, 0.1), rough=0.4)
+    box("dalle", (0, -1.5, 3.55), (8.0, 3.0, 0.3), mat("blanc", (0.88, 0.88, 0.87), 0.2, 0.45), bevel=0.03)
+    box("bandeau", (0, -1.5, 3.55), (8.06, 3.06, 0.22), band, bevel=0.02)
+    for x in range(-7, 8, 2):
+        for y in (-0.6, -1.5, -2.4):
+            cyl("ampoule", (x * 0.5, y, 3.38), 0.06, 0.06, mat("ampoule", (1, 0.95, 0.85), rough=0.3), n=8)
+    for x in (-3.6, 3.6):
+        box("tirant", (x, -1.5, 4.3), (0.06, 3.0, 0.06), mat("metal", (0.35, 0.36, 0.38), 0.6, 0.4))
+        box("tirant_v", (x, -0.05, 4.1), (0.06, 0.06, 1.0), mat("metal", (0.35, 0.36, 0.38), 0.6, 0.4))
+    export("marquise")
 
 
 def abri_caddies():
@@ -364,7 +484,8 @@ def bardage():
 def main():
     os.makedirs(OUT, exist_ok=True)
     for f in (vitrine, porte, enseigne, lampes, banne, croix, carotte, totem, ombriere, pompe, abri_caddies, terrasse, auvent,
-              bandeau, pilastre, coffre_rideau, porte_sectionnelle, bardage):
+              bandeau, pilastre, coffre_rideau, porte_sectionnelle, bardage, boutique_station, gonfleur, lavage,
+              panneau_prix, affiche, marquise):
         f()
 
 

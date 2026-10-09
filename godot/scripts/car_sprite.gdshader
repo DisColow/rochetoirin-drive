@@ -18,6 +18,10 @@ uniform float head = 0.0;               // phares 0 … 1
 uniform float tail = 0.0;               // feux arrière 0 … 1 (2 = frein)
 uniform float night = 0.0;
 uniform float rain = 0.0;               // pluie qui tombe 0 … 1 (gouttes, essuie-glace en marche)
+// déformations « dessin animé » (car.gd) : penché vers l'extérieur des virages, écrasé / étiré par les bosses
+uniform float shear = 0.0;              // décalage du haut par rapport au bas (fraction de la hauteur)
+uniform float squash = 0.0;             // > 0 : écrasé (plus bas, plus large), < 0 : étiré
+uniform float half_h = 2.4;             // demi-hauteur du quad (m)
 uniform vec4 rear = vec4(0.0);          // cadre de la lunette arrière (pixels de la case : x0, y0, x1, y1) ; vide : z <= x
 
 const float WIPE_T = 2.6;               // aller-retour de l'essuie-glace arrière (s)
@@ -35,6 +39,10 @@ void vertex() {
 	float d = length(c);
 	float k = max(d - min(push, d * 0.6), 0.3) / max(d, 0.001);
 	vec2 q = VERTEX.xy;
+	// déformations ancrées au bas de l'image (les roues restent au sol)
+	float hb = q.y + half_h;
+	q.y = -half_h + hb * (1.0 - squash);
+	q.x = q.x * (1.0 + squash * 0.6) + shear * hb;
 	float cr = cos(roll), sr = sin(roll);
 	q = vec2(q.x * cr + q.y * sr, -q.x * sr + q.y * cr);
 	vec3 v = c * k + vec3(q * k, 0.0);
@@ -75,7 +83,7 @@ void fragment() {
 		float t = TIME * DROP_RATE + seed * 7.0;
 		float slot = floor(t);
 		float age = fract(t) / DROP_RATE;                              // âge de la goutte (s)
-		float dens = glass > 0.5 ? 0.30 : 0.05;
+		float dens = glass > 0.5 ? 0.15 : 0.03;
 		float there = step(h21(b + slot * 13.17), dens * rain);
 		vec2 o = floor(vec2(h21(b + slot + 3.3), h21(b + slot + 5.7)) * (sz - 1.0));
 		vec2 d = px - (b * sz + o);
@@ -87,7 +95,7 @@ void fragment() {
 			there *= step(age, since);
 		}
 		if (d == vec2(0.0)) {
-			col = mix(col, vec3(0.86, 0.92, 1.0), 0.8 * there);           // reflet de la goutte
+			col = mix(col, vec3(0.78, 0.85, 0.95), 0.6 * there);          // reflet de la goutte
 		} else if (glass > 0.5 && d == vec2(0.0, 1.0)) {
 			col = mix(col, col * 0.45, there);                              // son ombre, juste dessous
 		}

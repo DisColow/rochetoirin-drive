@@ -3,8 +3,8 @@
 ## chute, retournement, blocage), aides à la stabilité.
 extends VehicleBody3D
 
-const MAX_KMH := 185.0
-const POWER := 72000.0         # puissance aux roues (W) : 130 km/h atteints franchement, pointe vers 185
+const MAX_KMH := 230.0
+const POWER := 98000.0         # puissance aux roues (W) : 130 km/h atteints franchement, pointe à 230 (souhait du joueur)
 const ENGINE := 4800.0          # force max (N) au démarrage (limitée par l'adhérence)
 const BRAKE := 60.0
 const STEER_LOW := 0.55         # braquage max à l'arrêt (rad)
@@ -113,6 +113,12 @@ var _blob_soft: Material
 var _blob_px: Material
 ## Pluie qui tombe (main.gd) : gouttes sur les vitres du sprite, essuie-glace arrière.
 var rain := 0.0
+var _sprite_y := 0.0
+var _prev_v := Vector3.ZERO
+var _lat := 0.0                       # accélération latérale vue de la caméra (lissée)
+var _sq := 0.0                        # ressort de l'écrasement (bosses, réceptions)
+var _sq_v := 0.0
+var _jolt := RandomNumberGenerator.new()
 
 func _make_sprite() -> void:
 	if not FileAccess.file_exists("res://assets/car/sprite.json"):
@@ -127,6 +133,7 @@ func _make_sprite() -> void:
 	_sprite_mat = ShaderMaterial.new()
 	_sprite_mat.shader = preload("res://scripts/car_sprite.gdshader")
 	_sprite_mat.set_shader_parameter("grid", Vector2(_sp.cols, _sp.rows))
+	_sprite_mat.set_shader_parameter("half_h", float(_sp.size[1]) * 0.5)
 	if _sp.has("frame"):
 		_sprite_mat.set_shader_parameter("frame", Vector2(_sp.frame[0], _sp.frame[1]))
 	_set_page(0)
@@ -150,7 +157,9 @@ func _make_sprite() -> void:
 		_blob_px = om
 	var cfg := ConfigFile.new()
 	if cfg.load("user://reglages.cfg") == OK:
-		sprite_mode = str(cfg.get_value("affichage", "voiture_v4", "3d")) == "sprite"
+		sprite_mode = str(cfg.get_value("affichage", "voiture_v53", "sprite")) == "sprite"
+	else:
+		sprite_mode = true                   # v5.3 : nouveau sprite pixel art par défaut (modèle 3D au choix dans ⚙)
 	_apply_sprite()
 
 func _set_page(pg: int) -> void:
@@ -195,6 +204,17 @@ func _process(_dt: float) -> void:
 	var cam := get_viewport().get_camera_3d()
 	if cam == null:
 		return
+	# hauteur du sprite prise sur le sol (points de contact des roues), pas sur la caisse suspendue : la voiture ne
+	# monte ni ne descend à l'écran quand elle accélère ou freine
+	var gy := 0.0
+	var nc := 0
+	for w in wheels:
+		if w.is_in_contact():
+			gy += w.get_contact_point().y
+			nc += 1
+	var want_y := gy / nc + float(_sp.center_y) if nc >= 3 else (global_basis * Vector3(0, float(_sp.center_y), 0) + global_position).y
+	_sprite_y = want_y if absf(_sprite_y - want_y) > 1.5 else lerpf(_sprite_y, want_y, 0.25)
+	_sprite.global_position = Vector3(global_position.x, _sprite_y, global_position.z)
 	var c := _sprite.global_position
 	# direction de la caméra dans le repère de la voiture réduit à son cap : le tangage (accélération, freinage) ne
 	# change pas de vue, la caisse ne « plonge » pas ; le roulis est rendu en tournant le sprite
@@ -237,9 +257,36 @@ func _process(_dt: float) -> void:
 	# roulis / tangage de la caisse vus de la caméra
 	var up_v := cam.global_basis.inverse() * global_basis.y
 	_sprite_mat.set_shader_parameter("roll", atan2(up_v.x, up_v.y))
+	_squash_stretch(cam, get_process_delta_time())
 	var lights_on: bool = not _beams.is_empty() and _beams[0].visible
 	_sprite_mat.set_shader_parameter("head", 1.0 if lights_on else 0.0)
 	_sprite_mat.set_shader_parameter("tail", (0.8 if lights_on else 0.0) + (1.2 if brake > 1.0 else 0.0))
+
+## Le sprite vit un peu (comme dans les jeux de course en pixel art) : il penche vers l'extérieur des virages selon
+## l'accélération latérale vue de la caméra, s'écrase sur les bosses et à la réception d'un saut puis rebondit, et
+## tressaute sur l'herbe et les chemins. Jamais d'effet de l'accélération en ligne droite (pas de « plongée »).
+func _squash_stretch(cam: Camera3D, dt: float) -> void:
+	if dt <= 0.0:
+		return
+	var v := linear_velocity
+	var acc := (v - _prev_v) / dt
+	_prev_v = v
+	var lat_w := global_basis.x * acc.dot(global_basis.x)            # composante latérale (virage, dérapage)
+	var target := clampf(-lat_w.dot(cam.global_basis.x) * 0.012, -0.16, 0.16)
+	_lat = lerpf(_lat, target, 1.0 - exp(-dt * 6.0))
+	# ressort vertical : choc de l'accélération verticale, plus des à-coups sur les surfaces irrégulières
+	var kick := clampf(acc.y * 0.004, -0.25, 0.25)
+	var rough := 0.0
+	for w in wheels:
+		if w.is_in_contact():
+			var b: Node3D = w.get_contact_body()
+			if b == null or not b.has_meta("surface") or String(b.get_meta("surface")) == "dirt":
+				rough += 0.25
+	var spd := clampf(kmh() / 60.0, 0.0, 1.0)
+	_sq_v += (-140.0 * _sq - 9.0 * _sq_v) * dt + kick * 22.0 * dt + _jolt.randf_range(-1.0, 1.0) * rough * spd * 0.9
+	_sq = clampf(_sq + _sq_v * dt, -0.12, 0.18)
+	_sprite_mat.set_shader_parameter("shear", _lat)
+	_sprite_mat.set_shader_parameter("squash", _sq)
 
 var _wheel_node: Node3D
 var _wheel_rim: Node3D

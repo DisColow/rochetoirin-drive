@@ -207,10 +207,11 @@ func _client_starts(subject: String) -> void:
 		var b := Button.new()
 		b.text = "%d. %s" % [k + 1, _fill(r.t)]
 		b.set_meta("ton", r.ton)
-		b.add_theme_font_size_override("font_size", 22)
+		b.add_theme_font_size_override("font_size", 21)
 		b.custom_minimum_size = Vector2(0, 62)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.clip_text = true
+		b.size_flags_stretch_ratio = 1.0
+		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		b.focus_mode = Control.FOCUS_NONE
 		b.pressed.connect(func(): _answer(r.ton))
 		_choices.add_child(b)

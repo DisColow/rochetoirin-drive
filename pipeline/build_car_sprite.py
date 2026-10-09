@@ -29,6 +29,38 @@ def down(a):
     return np.concatenate([rgb / np.maximum(al, 1e-6), al], -1)
 
 
+def grade(x):
+    """Contraste léger, saturation à peine relevée et un peu assombri : le bordeaux de la planche de référence."""
+    x = np.clip((x - 0.5) * 1.08 + 0.5, 0, 1) * 0.9
+    g = x.mean(-1, keepdims=True)
+    return np.clip(g + (x - g) * 1.04, 0, 1)
+
+
+def pixelize(c, pal_img):
+    """Une vue réduite -> pixel art : palette commune, contour sombre d'un pixel, reflet sous le contour haut."""
+    rgb = (grade(c[..., :3]) * 255).astype(np.uint8)
+    q = Image.fromarray(rgb).quantize(palette=pal_img, dither=Image.Dither.NONE).convert("RGB")
+    rgb = np.asarray(q).copy()
+    al = c[..., 3] > 0.45
+    # trait de contour : pixels transparents qui touchent la voiture -> teinte voisine très assombrie
+    nb = np.zeros_like(al)
+    acc = np.zeros(rgb.shape, np.float32); cnt = np.zeros(al.shape, np.float32)
+    for dy, dx in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+        sh = np.roll(al, (dy, dx), (0, 1))
+        shc = np.roll(rgb, (dy, dx), (0, 1)).astype(np.float32)
+        nb |= sh
+        acc += shc * sh[..., None]; cnt += sh
+    edge = nb & ~al
+    out = np.zeros((c.shape[0], c.shape[1], 4), np.uint8)
+    out[al, :3] = rgb[al]; out[al, 3] = 255
+    ec = acc[edge] / np.maximum(cnt[edge, None], 1)
+    out[edge, :3] = (ec * 0.28 + np.array([8, 4, 10])).clip(0, 255).astype(np.uint8); out[edge, 3] = 255
+    # reflet : un pixel plus clair sous le contour haut des surfaces (lumière venant d'en haut)
+    top = al & ~np.roll(al, 1, 0)
+    out[top, :3] = np.minimum(255, out[top, :3].astype(np.int32) + 38).astype(np.uint8)
+    return out
+
+
 def main():
     frames = []
     for ei in range(len(ELS)):
@@ -36,13 +68,13 @@ def main():
             for si in range(len(STEERS)):
                 c = down(np.asarray(Image.open("%s/c_%d_%02d_%d.png" % (RAW, ei, a, si)).convert("RGBA")))
                 m = down(np.asarray(Image.open("%s/m_%d_%02d_%d.png" % (RAW, ei, a, si)).convert("RGBA")))
+                # vitres : reflets gardés dans les tons ardoise (le ciel rasant les rendait beiges une fois quantifiés)
+                g = (m[..., 2] * (m[..., 3] > 0.3)) > 0.35
+                lum = c[..., :3][g].mean(-1, keepdims=True)
+                c[..., :3][g] = np.minimum(np.array([0.30, 0.35, 0.42]) * (0.55 + 0.9 * lum), [0.62, 0.68, 0.78])
                 frames.append((c, m))
     # palette commune : contraste et saturation relevés façon pixel art, puis quantification
     opaque = np.concatenate([c[..., :3][c[..., 3] > 0.5] for c, _ in frames])
-    def grade(x):
-        x = np.clip((x - 0.5) * 1.12 + 0.5, 0, 1)
-        g = x.mean(-1, keepdims=True)
-        return np.clip(g + (x - g) * 1.25, 0, 1)
     sample = grade(opaque[np.random.default_rng(1).choice(len(opaque), min(len(opaque), 200000), replace=False)])
     pal_img = Image.fromarray((sample[None] * 255).astype(np.uint8)).quantize(NCOL, method=Image.Quantize.MEDIANCUT)
     per = COLS * PAGE_ROWS
@@ -52,26 +84,7 @@ def main():
     rear = []                                       # cadre de la lunette arrière (pixels de la case) ou None
     from scipy import ndimage as ndi
     for i, (c, m) in enumerate(frames):
-        rgb = (grade(c[..., :3]) * 255).astype(np.uint8)
-        q = Image.fromarray(rgb).quantize(palette=pal_img, dither=Image.Dither.NONE).convert("RGB")
-        rgb = np.asarray(q).copy()
-        al = c[..., 3] > 0.45
-        # trait de contour : pixels transparents qui touchent la voiture -> teinte voisine très assombrie
-        nb = np.zeros_like(al)
-        acc = np.zeros(rgb.shape, np.float32); cnt = np.zeros(al.shape, np.float32)
-        for dy, dx in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-            sh = np.roll(al, (dy, dx), (0, 1))
-            shc = np.roll(rgb, (dy, dx), (0, 1)).astype(np.float32)
-            nb |= sh
-            acc += shc * sh[..., None]; cnt += sh
-        edge = nb & ~al
-        out = np.zeros((FH, FW, 4), np.uint8)
-        out[al, :3] = rgb[al]; out[al, 3] = 255
-        ec = acc[edge] / np.maximum(cnt[edge, None], 1)
-        out[edge, :3] = (ec * 0.28 + np.array([8, 4, 10])).clip(0, 255).astype(np.uint8); out[edge, 3] = 255
-        # reflet : un pixel plus clair sous le contour haut des surfaces (lumière venant d'en haut)
-        top = al & ~np.roll(al, 1, 0)
-        out[top, :3] = np.minimum(255, out[top, :3].astype(np.int32) + 38).astype(np.uint8)
+        out = pixelize(c, pal_img)
         pg, k = divmod(i, per)
         r, cl = divmod(k, COLS)
         atlas[pg, r * FH:(r + 1) * FH, cl * FW:(cl + 1) * FW] = out

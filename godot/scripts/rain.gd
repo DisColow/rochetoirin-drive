@@ -44,6 +44,7 @@ func _ready() -> void:
 		og.loop = true
 		sound.stream = og
 		sound.volume_db = -60.0
+		sound.bus = "Monde"
 		add_child(sound)
 	elif ResourceLoader.exists("res://assets/sfx/pluie.wav"):
 		sound = AudioStreamPlayer.new()

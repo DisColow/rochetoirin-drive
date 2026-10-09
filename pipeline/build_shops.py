@@ -28,7 +28,8 @@ OUT_A = "../godot/assets/shops"
 OUT_W = "../godot/world/shops"
 TILE = 256.0
 MODELS = ["vitrine", "porte", "enseigne", "lampes", "banne", "croix", "carotte", "totem", "ombriere", "pompe",
-          "abri_caddies", "terrasse", "auvent", "bandeau", "pilastre", "coffre_rideau", "porte_sectionnelle", "bardage"]
+          "abri_caddies", "terrasse", "auvent", "bandeau", "pilastre", "coffre_rideau", "porte_sectionnelle", "bardage",
+          "boutique_station", "gonfleur", "lavage", "panneau_prix", "affiche", "marquise"]
 MID = {n: i for i, n in enumerate(MODELS)}
 
 F_SANS = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
@@ -364,6 +365,21 @@ class Atlas:
         self.wide[key] = r
         return r
 
+    def drawn_cell(self, key, draw):
+        """Case carrée dessinée par draw(image 256 × 256) : panneau des prix, affiches de cinéma."""
+        if key in self.sq:
+            return self.sq[key]
+        i = len(self.sq)
+        if i >= 64:
+            return self.sq[next(iter(self.sq))]
+        cx, cy = (i % 16) * self.SQ, self.ROWS[0] * self.CH + (i // 16) * self.SQ
+        cell = Image.new("RGB", (self.SQ, self.SQ), (0, 0, 0))
+        draw(cell)
+        self.img.paste(cell, (cx, cy))
+        r = (cx / self.W, cy / self.W, self.SQ / self.W, self.SQ / self.W)
+        self.sq[key] = r
+        return r
+
     def square_cell(self, key, title, bg, fg, font, style=None):
         if key in self.sq:
             return self.sq[key]
@@ -461,7 +477,9 @@ def main():
     def free_box(c, d_, L, W, margin=0.0):
         d_ = np.asarray(d_) / np.linalg.norm(d_); n = np.array([-d_[1], d_[0]])
         poly = Polygon([c + d_ * L / 2 + n * W / 2, c - d_ * L / 2 + n * W / 2, c - d_ * L / 2 - n * W / 2, c + d_ * L / 2 - n * W / 2])
-        return not WALK.near(poly, margin) and not BLD.near(poly, 0.3), poly
+        w_, b_ = WALK.near(poly, margin), BLD.near(poly, 0.3)
+        free_box.why = "route" if w_ else ("bâtiment" if b_ else "")
+        return not w_ and not b_, poly
 
     def sign_for(tags, kind, key):
         brand = tags.get("brand") or ""
@@ -495,7 +513,7 @@ def main():
     stats["commerces BD TOPO sans OSM"] = len(synth)
     for e in list(d["elements"]) + synth:
         t = e.get("tags", {})
-        kind = t.get("shop") or t.get("amenity") or t.get("craft")
+        kind = "fuel" if t.get("amenity") == "fuel" else (t.get("shop") or t.get("amenity") or t.get("craft"))
         if kind in ("vacant", None):
             continue
         if "xz" in e:
@@ -664,6 +682,10 @@ def main():
                         inst.append(xf("terrasse", (m[0], ym, m[1]), tdir, custom=(col[0], col[1], col[2], 1.0)))
                         stats["terrasse"] += 1
         stats["devanture"] += 1
+    # cinémas (fetch_cinemas.py)
+    if os.path.exists("data/osm_cinemas.json"):
+        for e in json.load(open("data/osm_cinemas.json"))["elements"]:
+            stats["cinéma"] += cinema(e, blds, BT, MAINL, atlas, inst, dem, free_box, used, height_info)
     # écriture
     atlas.imgs[0].save(OUT_A + "/enseignes.png")
     atlas.imgs[1].save(OUT_A + "/enseignes2.png")
@@ -720,8 +742,34 @@ def supermarket(k, a, b, L, tdir, nrm, gmin, eave, title, sub, bg, fg, font, sty
     return 1
 
 
+def draw_prices(seed):
+    """Panneau des prix d'une station : carburants en chiffres orange lumineux sur fond noir (prix vraisemblables)."""
+    def f(cell):
+        d = ImageDraw.Draw(cell)
+        rng = np.random.default_rng(seed)
+        d.rectangle([3, 3, 252, 252], outline=(90, 90, 95), width=4)
+        base = 1.70 + rng.uniform(0.0, 0.12)
+        rows = [("SP95-E10", base + 0.06), ("SP98", base + 0.13), ("GAZOLE", base - 0.04), ("E85", 0.82 + rng.uniform(0, 0.08))]
+        fl = ImageFont.truetype(F_COND, 26)
+        fd = ImageFont.truetype(F_SANS, 40)
+        for k, (nm, pr) in enumerate(rows):
+            y = 14 + k * 60
+            d.rectangle([10, y, 245, y + 54], fill=(14, 14, 16))
+            d.text((16, y + 14), nm, font=fl, fill=(235, 235, 235))
+            d.text((132, y + 5), ("%.3f" % pr).replace(".", ","), font=fd, fill=(255, 150, 20))
+    return f
+
+
+STATIONS = []
+
+
 def station(P, t, title, bg, fg, font, style, atlas, inst, dem, MAINL, free_box):
-    """Station-service : auvent parallèle à la route avec 2 îlots de 2 pompes, totem au bord, sans toucher la route."""
+    """Station-service façon grandes enseignes : auvent parallèle à la route (bandeau à la couleur de la marque,
+    plafond lumineux) sur deux îlots de deux distributeurs, boutique vitrée derrière, station de lavage et borne de
+    gonflage à côté quand la place le permet, totem au bord de la route avec son panneau des prix ; rien sur la
+    route ni sur les bâtiments, et les éléments ne se chevauchent pas."""
+    if any(P.distance(o) < 70.0 for o in STATIONS):
+        return 0                                         # même station saisie deux fois dans OSM
     q = MAINL.near(P, 60.0)
     if not q:
         return 0
@@ -735,26 +783,204 @@ def station(P, t, title, bg, fg, font, style, atlas, inst, dem, MAINL, free_box)
     if np.dot(away, nrm) < 0:
         nrm = -nrm
     col = (bg[0] / 255, bg[1] / 255, bg[2] / 255, 1.0)
-    for dd in np.arange(10.0, 30.0, 2.0):
-        c = foot + nrm * dd
-        ok, _ = free_box(c, tdir, 14.5, 8.5, 0.5)
-        if not ok:
+    placed = []
+    STATIONS.append(P)
+
+    def put(c, d_, L, W, margin=0.3):
+        ok, poly = free_box(c, d_, L, W, margin)
+        if ok and not any(poly.intersects(o) for o in placed):
+            placed.append(poly)
+            return True
+        return False
+
+    def gy(c):
+        return float(dem.h(np.array([c[0]]), np.array([c[1]]))[0])
+
+    why = defaultdict(int)
+    # grand auvent si la place le permet, sinon plus petit (petites stations de village, stations de supermarché)
+    cands = [(sc, along, dd) for sc in (1.0, 0.8, 0.62) for dd in np.arange(8.0, 36.0, 2.0) for along in (0.0, 6.0, -6.0, 12.0, -12.0)]
+    for sc, along, dd in cands:
+        c = foot + nrm * dd + tdir * along
+        if not put(c, tdir, 16.5 * sc, 9.5 * sc, 0.5):
+            why[getattr(free_box, "why", "?")] += 1
             continue
-        y = float(dem.h(np.array([c[0]]), np.array([c[1]]))[0])
+        y = gy(c)
         rect = atlas.wide_cell((title, None, bg, fg), title, None, bg, fg, font, style)
-        inst.append(xf("ombriere", (c[0], y, c[1]), tdir, custom=rect + ()))
-        for dx in (-2.5, 2.5):
-            for dz in (-1.2, 1.2):
-                m = c + tdir * dx + nrm * dz
-                inst.append(xf("pompe", (m[0], y + 0.2, m[1]), tdir if dz < 0 else -tdir, custom=col))
-        tc = foot + nrm * (dd - 6.0) + tdir * 9.0
-        ok2, _ = free_box(tc, tdir, 2.4, 1.0, 0.8)
-        if ok2:
-            sq = atlas.square_cell((title, bg, fg), title, bg, fg, font, style)
-            yt = float(dem.h(np.array([tc[0]]), np.array([tc[1]]))[0])
-            inst.append(xf("totem", (tc[0], yt - 0.05, tc[1]), tdir, custom=sq))
+        inst.append(xf("ombriere", (c[0], y, c[1]), tdir, (sc, 1.0, sc), rect + ()))
+        # distributeurs : sur les îlots (perpendiculaires à la route), écrans tournés vers les voitures
+        for dx in (-2.6, 2.6):
+            for dz in ((-1.4, 1.4) if sc > 0.7 else (0.0,)):
+                m = c + tdir * dx * sc + nrm * dz * sc
+                inst.append(xf("pompe", (m[0], y + 0.24, m[1]), nrm, custom=col))
+        # boutique derrière l'auvent, façade vers les pompes
+        bc = c + nrm * (4.5 + 6.0)
+        if put(bc + nrm * 3.5, tdir, 12.5, 7.5):
+            rb = atlas.wide_cell((title, None, bg, fg), title, None, bg, fg, font, style)
+            inst.append(xf("boutique_station", (bc[0], gy(bc), bc[1]), tdir, custom=rb + ()))
+        # station de lavage d'un côté, borne de gonflage de l'autre
+        for side in (1, -1):
+            lc = c + tdir * side * 12.0 + nrm * 6.0
+            if put(lc, tdir, 5.5, 9.5):
+                rl = atlas.wide_cell(("LAVAGE", None, bg, fg), "LAVAGE", None, bg, fg, F_SANS, None)
+                inst.append(xf("lavage", (lc[0], gy(lc), lc[1]), tdir, custom=rl + ()))
+                break
+        for side in (-1, 1):
+            gc = c + tdir * side * 9.6
+            if put(gc, tdir, 0.9, 0.9, 0.2):
+                inst.append(xf("gonfleur", (gc[0], gy(gc), gc[1]), tdir))
+                break
+        # totem et panneau des prix au bord de la route
+        for along in (9.0, -9.0, 12.0, -12.0):
+            tc = foot + nrm * (dd - 6.0) + tdir * along
+            if put(tc, tdir, 2.4, 1.0, 0.8):
+                sq = atlas.square_cell((title, bg, fg), title, bg, fg, font, style)
+                yt = gy(tc)
+                inst.append(xf("totem", (tc[0], yt - 0.05, tc[1]), tdir, custom=sq))
+                rp = atlas.drawn_cell(("prix", int(rnd(title, "prix") * 3)), draw_prices(int(rnd(title, "prix") * 3)))
+                inst.append(xf("panneau_prix", (tc[0], yt + 2.15, tc[1]), tdir, custom=rp))
+                break
         return 1
+    print("station non posée :", title, int(P.x), int(P.y), dict(why))
     return 0
+
+
+# ---------------------------------------------------------------- cinémas
+FILMS = [  # affiches parodiques : titre, fond, motif
+    ("LA SOUCOUPE DE ROCHETOIRIN", (20, 24, 60), "soucoupe"),
+    ("ESPACE 85", (180, 40, 30), "voiture"),
+    ("LES VACHES DE SAINT-CHEF", (60, 120, 50), "vache"),
+    ("BOURGOIN EXPRESS", (30, 30, 34), "train"),
+    ("LE RETOUR DU TAXI", (230, 180, 30), "taxi"),
+    ("NUIT SUR L'A43", (10, 14, 30), "route"),
+]
+
+
+def draw_poster(title, bg, motif):
+    """Affiche de film (dessinée en 186 × 256 puis étirée en carré : le caisson est en portrait) : ciel en dégradé,
+    motif en aplats, titre en capitales, « AU CINÉMA » en bas."""
+    def f(cell):
+        W, H = 186, 256
+        im = Image.new("RGB", (W, H), bg)
+        d = ImageDraw.Draw(im)
+        for y in range(H):
+            k = y / H
+            d.line([(0, y), (W, y)], fill=tuple(int(c * (0.55 + 0.6 * k)) if c * (0.55 + 0.6 * k) < 255 else 255 for c in bg))
+        cx, cy = W // 2, 104
+        if motif == "soucoupe":
+            d.polygon([(cx - 26, cy + 10), (cx + 26, cy + 10), (cx + 60, cy + 120), (cx - 60, cy + 120)], fill=(150, 255, 160))
+            d.ellipse([cx - 60, cy - 8, cx + 60, cy + 18], fill=(190, 195, 205))
+            d.ellipse([cx - 24, cy - 30, cx + 24, cy + 4], fill=(120, 200, 255))
+        elif motif == "voiture":
+            d.polygon([(30, 150), (60, 110), (150, 108), (160, 150)], fill=(120, 20, 30))
+            d.rectangle([24, 148, 166, 172], fill=(120, 20, 30))
+            d.polygon([(66, 114), (100, 112), (100, 140), (52, 140)], fill=(60, 70, 90))
+            for x in (52, 140):
+                d.ellipse([x - 14, 160, x + 14, 188], fill=(20, 20, 20))
+            d.ellipse([cx - 40, 30, cx + 40, 90], fill=(255, 200, 80))
+        elif motif == "vache":
+            d.ellipse([40, 110, 150, 170], fill=(240, 240, 235))
+            d.ellipse([70, 120, 100, 145], fill=(30, 30, 30)); d.ellipse([115, 140, 140, 160], fill=(30, 30, 30))
+            d.ellipse([130, 92, 172, 132], fill=(240, 240, 235))
+            for x in (55, 80, 115, 135):
+                d.rectangle([x, 160, x + 9, 195], fill=(240, 240, 235))
+            d.rectangle([0, 192, W, H], fill=(70, 140, 60))
+        elif motif == "train":
+            d.rectangle([0, 170, W, 176], fill=(160, 160, 170))
+            d.polygon([(20, 168), (20, 110), (140, 110), (170, 150), (170, 168)], fill=(200, 40, 40))
+            for x in (35, 65, 95):
+                d.rectangle([x, 120, x + 20, 140], fill=(255, 230, 150))
+        elif motif == "taxi":
+            d.rectangle([40, 120, 150, 170], fill=(30, 30, 30))
+            d.rectangle([70, 96, 120, 120], fill=(255, 255, 255))
+            d.text((74, 98), "TAXI", font=ImageFont.truetype(F_SANS, 18), fill=(0, 0, 0))
+            for x in (60, 130):
+                d.ellipse([x - 12, 160, x + 12, 184], fill=(15, 15, 15))
+        elif motif == "route":
+            d.polygon([(cx - 10, 100), (cx + 10, 100), (W, H - 40), (0, H - 40)], fill=(40, 40, 50))
+            for k in range(5):
+                y0 = 110 + k * 22
+                d.rectangle([cx - 2 - k, y0, cx + 2 + k, y0 + 10], fill=(240, 240, 240))
+            d.ellipse([cx - 40, 160, cx - 20, 176], fill=(255, 250, 200)); d.ellipse([cx + 20, 160, cx + 40, 176], fill=(255, 250, 200))
+        words = title.split(" ")
+        lines, cur = [], ""
+        for w_ in words:
+            if len(cur + " " + w_) > 13 and cur:
+                lines.append(cur); cur = w_
+            else:
+                cur = (cur + " " + w_).strip()
+        lines.append(cur)
+        fnt = ImageFont.truetype(F_COND, 22)
+        y = 8
+        for ln_ in lines:
+            bx = fnt.getbbox(ln_)
+            d.text(((W - (bx[2] - bx[0])) // 2, y), ln_, font=fnt, fill=(255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0))
+            y += 26
+        fs = ImageFont.truetype(F_COND, 15)
+        bx = fs.getbbox("AU CINÉMA")
+        d.rectangle([0, H - 30, W, H], fill=(0, 0, 0))
+        d.text(((W - (bx[2] - bx[0])) // 2, H - 25), "AU CINÉMA", font=fs, fill=(255, 210, 60))
+        cell.paste(im.resize((256, 256), Image.LANCZOS))
+    return f
+
+
+CINEMAS = {  # nom OSM -> nom parodié, sous-titre
+    "Kinepolis Bourgoin-Jallieu": ("KINOPOLIX", "12 SALLES"),
+    "L'Équinoxe": ("LE SOLSTICE", "CINÉMA"),
+}
+
+
+def cinema(e, blds, BT, MAINL, atlas, inst, dem, free_box, used, height_info):
+    """Cinéma sur son bâtiment : façade en bardage sombre, grande enseigne lumineuse, entrée vitrée sous une marquise à
+    ampoules, caissons lumineux d'affiches de part et d'autre."""
+    c = e.get("center") or e
+    x, z = geo.to_local(c["lon"], c["lat"])
+    P = Point(float(x), float(z))
+    cand = list(BT.query(P.buffer(40)))
+    if not cand:
+        return 0
+    bi = min(cand, key=lambda i: blds[i][1].distance(P))
+    if blds[bi][1].distance(P) > 40:
+        return 0
+    p, g = blds[bi]
+    ring = np.asarray(g.exterior.coords)
+    best = None
+    for k in range(len(ring) - 1):
+        a, b = ring[k], ring[k + 1]
+        L = float(np.linalg.norm(b - a))
+        if L < 10.0:
+            continue
+        tdir = (b - a) / L
+        nrm = np.array([tdir[1], -tdir[0]])
+        m = (a + b) / 2
+        dr = MAINL.dist(Point(m + nrm * 1.0), 120.0)
+        if dr > MAINL.dist(Point(m - nrm * 1.0), 120.0) + 0.5:
+            continue
+        sc = dr - 0.05 * L
+        if best is None or sc < best[0]:
+            best = (sc, k, a, b, L, tdir, nrm)
+    if best is None:
+        return 0
+    _, k, a, b, L, tdir, nrm = best
+    gmin, eave = height_info(p, g)
+    name, sub = CINEMAS.get(e["tags"].get("name"), ("CINÉMA", None))
+    bg, fg = (20, 18, 30), (255, 200, 60)
+    supermarket(k, a, b, L, tdir, nrm, gmin, eave, name, sub, bg, fg, F_SANS, None, atlas, inst, dem, free_box, used[bi],
+                (52, 48, 64), (40, 40, 44), market=False)
+    cen = a + tdir * (L / 2) + nrm * 0.05
+    yb = float(dem.h(np.array([cen[0]]), np.array([cen[1]]))[0]) - 0.05
+    inst.append(xf("marquise", (cen[0], yb, cen[1]), tdir, custom=(0.85, 0.12, 0.15, 1.0)))
+    n = 0
+    for i in range(6):
+        off = (6.2 + 2.3 * (i // 2)) * (1 if i % 2 == 0 else -1)
+        if abs(off) > L / 2 - 1.2:
+            continue
+        m = a + tdir * (L / 2 + off) + nrm * 0.1
+        ym = float(dem.h(np.array([m[0]]), np.array([m[1]]))[0]) + 0.35
+        title, fbg, motif = FILMS[(i + int(rnd(name, "films") * 6)) % len(FILMS)]
+        r = atlas.drawn_cell(("film", title), draw_poster(title, fbg, motif))
+        inst.append(xf("affiche", (m[0], ym, m[1]), tdir, custom=r))
+        n += 1
+    return 1
 
 
 if __name__ == "__main__":

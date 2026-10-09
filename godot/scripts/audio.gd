@@ -14,7 +14,7 @@ var car: VehicleBody3D
 var cam_rig: Node
 var main: Node
 
-const GEARS := [3.42, 1.95, 1.3, 0.97, 0.78]     # boîte 5 vitesses (Espace I 2,0 l)
+const GEARS := [3.42, 1.95, 1.3, 0.97, 0.72]     # boîte 5 vitesses (Espace I 2,0 l ; 5e allongée : 230 km/h sous la zone rouge)
 const FINAL := 3.89
 const WHEEL_R := 0.31
 const IDLE := 850.0
@@ -92,6 +92,28 @@ func _ready() -> void:
 	st.play()
 	st.finished.connect(st.queue_free)
 	_start_t = 1.1
+
+## Volumes réglés par le joueur (⚙ > Son), 0 … 1,5 : ambiance (bus « Monde »), effets (« Voiture », « Voix »),
+## musique (« Radio »). Mémorisés dans user://reglages.cfg, section [audio].
+static var volumes := {"ambiance": 1.0, "effets": 1.0, "musique": 1.0}
+static var _vol_loaded := false
+
+static func volume_db(cat: String) -> float:
+	if not _vol_loaded:
+		_vol_loaded = true
+		var cfg := ConfigFile.new()
+		if cfg.load("user://reglages.cfg") == OK:
+			for k in volumes:
+				volumes[k] = float(cfg.get_value("audio", "vol_" + k, 1.0))
+	return linear_to_db(maxf(float(volumes[cat]), 0.0005))
+
+static func set_volume(cat: String, v: float) -> void:
+	volume_db(cat)
+	volumes[cat] = v
+	var cfg := ConfigFile.new()
+	cfg.load("user://reglages.cfg")
+	cfg.set_value("audio", "vol_" + cat, v)
+	cfg.save("user://reglages.cfg")
 
 ## Bus « Voiture » et « Monde » (avec leur filtre passe-bas), créés une seule fois ; appelable avant le moteur sonore.
 static func ensure_buses() -> void:
@@ -359,8 +381,11 @@ func _process(dt: float) -> void:
 		_lp_world.cutoff_hz = lerpf(20000.0, 650.0, pow(_cockpit, 0.5))
 	if _lp_car:
 		_lp_car.cutoff_hz = lerpf(20000.0, 3200.0, _cockpit)
-	AudioServer.set_bus_volume_db(_bus_world, lerpf(0.0, -9.0, _cockpit))
-	AudioServer.set_bus_volume_db(_bus_car, lerpf(0.0, -2.0, _cockpit))
+	AudioServer.set_bus_volume_db(_bus_world, lerpf(0.0, -9.0, _cockpit) + volume_db("ambiance"))
+	AudioServer.set_bus_volume_db(_bus_car, lerpf(0.0, -2.0, _cockpit) + volume_db("effets"))
+	var bv := AudioServer.get_bus_index("Voix")
+	if bv >= 0:
+		AudioServer.set_bus_volume_db(bv, -3.0 + volume_db("effets"))
 	_rain_inside(dt)
 	_amb_t -= dt
 	if _amb_t <= 0.0:
