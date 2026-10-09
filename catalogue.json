@@ -1,10 +1,10 @@
 {
  "bases": {
   "56": {
-   "version": "5.6",
-   "url": "https://github.com/DisColow/rochetoirin-drive/releases/download/v5.6/maj-5.6.pck",
-   "sha256": "c3044bceed325a4657cb776c87b17ebed7a45b40f717fc07fbce1a865254134c",
-   "taille": 7296
+   "version": "5.7",
+   "url": "https://github.com/DisColow/rochetoirin-drive/releases/download/v5.7/maj-5.7.pck",
+   "sha256": "ebd0de792630224ce875e036bdffae7579d70350b73f4a257d2b3f305dd82956",
+   "taille": 63472
   }
  }
 }
