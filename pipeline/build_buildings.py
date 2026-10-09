@@ -668,6 +668,75 @@ def roof_material(ortho_rgb, kind, wall, key):
     return tex, t
 
 
+# structure des bâtiments des commerces relevée sur les photos Street View (sources/shops_bati.txt)
+CREPIS = {"blanc": (0.98, 0.97, 0.95), "creme": (0.98, 0.93, 0.82), "beige": (0.92, 0.84, 0.70), "jaune": (1.0, 0.88, 0.62),
+          "ocre": (0.95, 0.75, 0.50), "rose": (0.98, 0.80, 0.74), "saumon": (0.98, 0.74, 0.62), "gris": (0.80, 0.80, 0.79)}
+BARDAGES = {"gris": (0.85, 0.86, 0.85), "blanc": (1.0, 1.0, 1.0), "anthracite": (0.35, 0.37, 0.40), "beige": (0.88, 0.80, 0.66),
+            "bleu": (0.45, 0.55, 0.70), "vert": (0.55, 0.65, 0.55), "rouge": (0.70, 0.35, 0.30)}
+VOLETS = {"bois": (0.62, 0.42, 0.28), "blanc": (0.97, 0.97, 0.95), "gris": (0.80, 0.80, 0.78), "vert": (0.50, 0.64, 0.52),
+          "bleu": (0.50, 0.62, 0.74), "marron": (0.45, 0.30, 0.20), "rouge": (0.60, 0.26, 0.24), "creme": (0.93, 0.89, 0.78)}
+
+
+def bati_ov(f, area, kind):
+    """Réglages imposés à un bâtiment d'après le relevé « niveaux toit façade volets » d'un de ses commerces."""
+    n, toit, fac, vol = f
+    ov = {"nf": n, "kind": "commerce" if kind in ("maison", "collectif", "annexe", "commerce") else kind}
+    if n == 1:
+        ov["H"] = 4.0 if area < 250 else (6.5 if fac.startswith("bardage") else 5.0)
+    else:
+        ov["H"] = 3.8 + (n - 1) * 2.8
+    ov["flat"] = toit == "plat"
+    if not ov["flat"]:
+        ov["hip"] = toit == "4p"
+    if fac.startswith("crepi_") and fac != "crepi_ancien":
+        ov["wall"], ov["wtint"] = "crepi", CREPIS[fac[6:]]
+    elif fac == "bardage_bois":
+        ov["wall"], ov["wtint"] = "bardage_bois", (1, 1, 1)
+    elif fac.startswith("bardage_"):
+        ov["wall"], ov["wtint"] = "bardage_metal", BARDAGES[fac[8:]]
+    elif fac == "verre":
+        ov["wall"], ov["wtint"] = "beton", (0.42, 0.50, 0.58)       # mur-rideau : panneaux sombres bleutés
+    else:
+        ov["wall"], ov["wtint"] = fac, (1, 1, 1)
+    ov["modern"] = vol in ("-", "roulant")
+    if not ov["modern"]:
+        ov["shutters"] = VOLETS[vol]
+    return ov
+
+
+def bati_overrides(blds):
+    """{cleabs du bâtiment : réglages} : chaque commerce relevé sur photo (sources/shops_bati.txt) est rattaché au
+    bâtiment le plus proche à moins de 25 m (comme dans build_shops.py) ; plusieurs commerces dans un même bâtiment :
+    le relevé le plus haut l'emporte (la photo la plus complète)."""
+    fiches = {}
+    for ln in open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "sources/shops_bati.txt")):
+        f = ln.split()
+        if f and not ln.startswith("#") and len(f) == 5:
+            fiches[f[0]] = (int(f[1]), f[2], f[3], f[4])
+    polys = [g for _, g in blds]
+    tree = STRtree(polys)
+    best = {}
+    for e in json.load(open("data/osm_shops.json"))["elements"]:
+        f = fiches.get("%s%d" % (e["type"][0], e["id"]))
+        if not f:
+            continue
+        lon, lat = (e["lon"], e["lat"]) if "lon" in e else (e["center"]["lon"], e["center"]["lat"])
+        P = Point(*geo.to_local(lon, lat))
+        cand = list(tree.query(P.buffer(25)))
+        if not cand:
+            continue
+        bi = min(cand, key=lambda i: polys[i].distance(P))
+        if polys[bi].distance(P) > 25:
+            continue
+        if bi not in best or f[0] > best[bi][0]:
+            best[bi] = f
+    out = {}
+    for bi, f in best.items():
+        p, g = blds[bi]
+        out[p.get("cleabs") or str(bi)] = bati_ov(f, g.area, classify(p, g))
+    return out
+
+
 def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, others, my_i, ov=None):
     """Construit un bâtiment ; ov : réglages imposés (bâtiments emblématiques : mairies, châteaux) — wall, wtint, roof,
     roof_tint, hip, modern, shutters. Retourne un résumé (forme, hauteurs, côté rue) pour les ajouts éventuels."""
@@ -682,6 +751,8 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
     if not H or H <= 0:
         f = p.get("nombre_d_etages")
         H = (f * 2.8 + 0.6) if f else {"annexe": 2.6, "maison": 5.5, "collectif": 12.0, "commerce": 5.0, "activite": 6.5}[kind]
+    if "H" in ov:
+        H = ov["H"]
     H = float(np.clip(max(H, ov.get("min_h", 0.0)), 2.2, 45.0))
     rise_data = None
     if p.get("altitude_maximale_toit") and p.get("altitude_minimale_sol"):
@@ -719,6 +790,11 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
     # commerces : toit-terrasse, sauf les bâtiments anciens (centres de bourg)
     if kind == "commerce" and wall not in ("pierre", "pierre_taillee", "crepi_ancien") and "roof" not in ov:
         flat = True
+    if "flat" in ov:
+        flat = ov["flat"]
+        if not flat and rtex in ("toit_plat", "bardage_metal") and kind != "activite":
+            rtex, rtint = "tuile_meca", srgb(np.array([1.0, 0.97, 0.95]))     # toit à pans relevé : tuiles
+            rl = IDX[rtex]
     if dec is None and not flat:
         # forme quelconque : rectangle orienté si l'emprise le remplit à peu près, sinon terrasse
         a, c, r = obb_frame(poly)
@@ -751,6 +827,8 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
     order = np.argsort(dists + np.where(Ls < 2.5, 1e3, 0))
     street = int(order[0])
     floors = max(1, int((eave - gmax - 0.2) / 2.75))
+    if "nf" in ov:
+        floors = min(floors, ov["nf"] - 1)          # niveaux relevés sur la photo : pas de rangée de fenêtres en trop
     KIT_DOOR[0] = pick(key, "door", DOOR_TINTS); KIT_DOOR[1] = rnd(key, "marq") < 0.35
     GABLE_WIN[0] = kind in ("maison", "collectif") and not modern or (kind == "maison" and rnd(key, "gw") < 0.5)
     GABLE_WIN[1] = sh_tint
@@ -973,6 +1051,8 @@ def main():
     # bâtiments emblématiques : modèles dédiés (remplacent les bâtiments BD TOPO recouverts) et habillages
     import landmarks
     LM = landmarks.Landmarks(polys, blds, road_tree, dem)
+    BOV = bati_overrides(blds)
+    print(len(BOV), "bâtiments de commerces d'après les photos Street View")
     for kind, n in LM.build(tiles, TILE, Mesh).items():
         stats["monument:" + kind] = n
     for i, (p, g) in enumerate(blds):
@@ -985,12 +1065,15 @@ def main():
             continue
         nL = len(M.L)
         try:
-            info = build_one(M, C, p, g, dem, ortho, road_tree, rp, tree, polys, i, LM.override.get(i))
+            ov = LM.override.get(i) or BOV.get(p.get("cleabs") or str(i))
+            info = build_one(M, C, p, g, dem, ortho, road_tree, rp, tree, polys, i, ov)
             if info:
                 # sol du bâtiment (UV2.y) : le shader assombrit le pied des murs (ombre douce)
                 for a in M.L[nL:]:
                     a[:, 1] = info["gmin"]
             k = info["kind"] if info else None
+            if info and i not in LM.override and (p.get("cleabs") or str(i)) in BOV:
+                k = "commerce d'après photo"
             if info and i in LM.override:
                 LM.extras(M, C, i, info)
                 k = "habillé:" + LM.override[i].get("label", "?")

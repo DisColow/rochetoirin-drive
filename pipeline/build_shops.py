@@ -440,8 +440,14 @@ def main():
     used = defaultdict(list)          # bâtiment -> intervalles (arête, t0, t1) occupés
     stats = defaultdict(int)
 
+    from build_buildings import bati_overrides
+    BOV = bati_overrides(blds)
+
     def height_info(p, g):
         H = p.get("hauteur")
+        ov = BOV.get(p.get("cleabs"))
+        if ov:
+            H = ov["H"]
         if not H or H <= 0:
             f = p.get("nombre_d_etages")
             H = f * 2.8 + 0.6 if f else 5.0
