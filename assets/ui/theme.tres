@@ -1,0 +1,93 @@
+[gd_resource type="Theme" load_steps=12 format=3]
+
+[ext_resource type="FontFile" path="res://assets/ui/pixel.ttf" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/panneau.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/ui/touche_normal.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/touche_hover.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/ui/touche_pressed.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/ui/touche_on.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/ui/touche_disabled.png" id="7"]
+
+[sub_resource type="StyleBoxTexture" id="panel"]
+texture = ExtResource("2")
+texture_margin_left = 15
+texture_margin_top = 15
+texture_margin_right = 15
+texture_margin_bottom = 15
+content_margin_left = 38
+content_margin_top = 24
+content_margin_right = 38
+content_margin_bottom = 24
+
+[sub_resource type="StyleBoxTexture" id="k_n"]
+texture = ExtResource("3")
+texture_margin_left = 15
+texture_margin_top = 15
+texture_margin_right = 15
+texture_margin_bottom = 15
+content_margin_left = 22
+content_margin_top = 10
+content_margin_right = 22
+content_margin_bottom = 14
+
+[sub_resource type="StyleBoxTexture" id="k_h"]
+texture = ExtResource("4")
+texture_margin_left = 15
+texture_margin_top = 15
+texture_margin_right = 15
+texture_margin_bottom = 15
+content_margin_left = 22
+content_margin_top = 10
+content_margin_right = 22
+content_margin_bottom = 14
+
+[sub_resource type="StyleBoxTexture" id="k_p"]
+texture = ExtResource("5")
+texture_margin_left = 15
+texture_margin_top = 15
+texture_margin_right = 15
+texture_margin_bottom = 15
+content_margin_left = 22
+content_margin_top = 12
+content_margin_right = 22
+content_margin_bottom = 12
+
+[sub_resource type="StyleBoxTexture" id="k_on"]
+texture = ExtResource("6")
+texture_margin_left = 15
+texture_margin_top = 15
+texture_margin_right = 15
+texture_margin_bottom = 15
+content_margin_left = 22
+content_margin_top = 10
+content_margin_right = 22
+content_margin_bottom = 16
+
+[sub_resource type="StyleBoxTexture" id="k_d"]
+texture = ExtResource("7")
+texture_margin_left = 15
+texture_margin_top = 15
+texture_margin_right = 15
+texture_margin_bottom = 15
+content_margin_left = 22
+content_margin_top = 10
+content_margin_right = 22
+content_margin_bottom = 14
+
+[resource]
+default_font = ExtResource("1")
+Button/colors/font_color = Color(0.91, 0.87, 0.78, 1)
+Button/colors/font_hover_color = Color(1, 0.96, 0.86, 1)
+Button/colors/font_pressed_color = Color(1, 0.75, 0.32, 1)
+Button/colors/font_hover_pressed_color = Color(1, 0.8, 0.4, 1)
+Button/colors/font_focus_color = Color(0.91, 0.87, 0.78, 1)
+Button/colors/font_disabled_color = Color(0.5, 0.48, 0.44, 1)
+Button/styles/normal = SubResource("k_n")
+Button/styles/hover = SubResource("k_h")
+Button/styles/pressed = SubResource("k_on")
+Button/styles/hover_pressed = SubResource("k_on")
+Button/styles/disabled = SubResource("k_d")
+Button/styles/focus = SubResource("k_h")
+Label/colors/font_color = Color(0.93, 0.9, 0.83, 1)
+PanelContainer/styles/panel = SubResource("panel")
+Panel/styles/panel = SubResource("panel")
