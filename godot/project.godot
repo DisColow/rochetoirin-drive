@@ -2,14 +2,14 @@ config_version=5
 
 [application]
 
-config/version="5.4"
+config/version="5.5"
 
 run/flush_stdout_on_print=true
 run/flush_stdout_on_print.debug=true
 
 config/name="Rochetoirin Simulator"
 config/description="Conduite en Espace IV dans le Nord-Isère (Rochetoirin, La Tour-du-Pin, Saint-Chef, L'Isle-d'Abeau, Saint-Clair-de-la-Tour)."
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/boot.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 boot_splash/bg_color=Color(0.06, 0.07, 0.09, 1)
 

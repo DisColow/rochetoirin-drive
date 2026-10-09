@@ -115,5 +115,14 @@
   alpha ignorent la position, la taille et la couleur de chaque particule (CPUParticles3D), et `color_ramp` écrase la
   teinte : utiliser des maillages en volume (cubes, sphères basses), la transparence tramée `ALPHA_HASH` et
   `scale_amount_curve` pour le fondu (`scripts/dust.gd`, effets des roues).
+- **Mises à jour incrémentales** (depuis la v5.5) : `scenes/boot.tscn` (`scripts/boot.gd`, jamais mis à jour lui-même)
+  charge `user://maj/maj-X.Y.pck` puis lance `main.tscn` ; `scripts/maj.gd` lit le catalogue
+  `raw.githubusercontent.com/…/maj/catalogue.json` (branche `maj`) et télécharge le paquet de la base de l'APK
+  installé. `apk.yml` : le premier build d'un `version/code` exporte la base (`--export-pack`, release `base-CODE`) ; les
+  suivants exportent un paquet cumulatif (`--export-patch --patches base.pck`) joint à la release `vX.Y` et inscrit
+  au catalogue. **Ne changer `version/code` que si un APK complet est nécessaire** (moteur Godot, permissions Android,
+  `boot.gd`, réglages du projet : `project.godot` n'est pas pris des paquets) ; sinon ne monter que `config/version`.
+- **Éditeur de monde** : bâtiments refaits sur demande dans `pipeline/sources/bati_editeur.txt` (cleabs + relevé
+  Street View, photos dans le cache privé `streetview/editeur/`), appliqués par `build_buildings.py`.
 - **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
   souples, pas d'à-coups de chargement).

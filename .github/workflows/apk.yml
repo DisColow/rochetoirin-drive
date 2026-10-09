@@ -105,6 +105,10 @@ jobs:
         run: |
           V=$(sed -n 's/^config\/version="\(.*\)"/\1/p' project.godot)
           echo "V=$V" >> $GITHUB_ENV
+          # identité de l'APK pour les mises à jour incrémentales (lue par scripts/boot.gd avant tout paquet)
+          CODE=$(sed -n 's/^version\/code=\(.*\)/\1/p' export_presets.cfg | head -1)
+          echo "CODE=$CODE" >> $GITHUB_ENV
+          echo "{\"code\": \"$CODE\"}" > data/base.json
           mkdir -p ../out
           godot --headless --export-release "Android" ../out/RochetoirinSimulator-v$V.apk
           ls -la ../out
@@ -122,7 +126,39 @@ jobs:
           gh release edit "v$V" --notes-file /tmp/notes.md || true
           gh release upload "v$V" out/RochetoirinSimulator-v$V.apk --clobber
 
+      - name: "Mise à jour incrémentale : paquet des seuls fichiers modifiés depuis l'APK n° CODE"
+        working-directory: godot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # Base = paquet .pck exporté avec le premier APK de chaque n° de version Android (release « base-CODE ») ;
+          # chaque nouvelle version produit un paquet cumulatif par rapport à cette base, publié avec sa release, et
+          # le catalogue (branche « maj ») indique au jeu installé ce qu'il doit télécharger (scripts/maj.gd).
+          if gh release download "base-$CODE" -p base.pck -D /tmp/base 2>/dev/null; then
+            godot --headless --export-patch "Android" ../out/maj-$V.pck --patches /tmp/base/base.pck
+            ls -la ../out/maj-$V.pck
+            gh release upload "v$V" ../out/maj-$V.pck --clobber
+            echo "PATCHED=1" >> $GITHUB_ENV
+            SHA=$(sha256sum ../out/maj-$V.pck | cut -d' ' -f1)
+            SIZE=$(stat -c%s ../out/maj-$V.pck)
+            URL="https://github.com/$GH_REPO/releases/download/v$V/maj-$V.pck"
+            OLD=$(gh api "repos/$GH_REPO/contents/catalogue.json?ref=maj" --jq .content 2>/dev/null | base64 -d || echo '{"bases":{}}')
+            FSHA=$(gh api "repos/$GH_REPO/contents/catalogue.json?ref=maj" --jq .sha 2>/dev/null || true)
+            NEW=$(echo "$OLD" | python3 -c "import json,sys; c=json.load(sys.stdin); c.setdefault('bases',{})['$CODE']={'version':'$V','url':'$URL','sha256':'$SHA','taille':$SIZE}; print(json.dumps(c,indent=1))")
+            gh api -X PUT "repos/$GH_REPO/contents/catalogue.json" -f message="Catalogue des mises à jour : v$V pour l'APK n° $CODE [skip ci]" \
+              -f branch=maj -f content="$(echo "$NEW" | base64 -w0)" ${FSHA:+-f sha=$FSHA}
+          else
+            godot --headless --export-pack "Android" /tmp/base.pck
+            ls -la /tmp/base.pck
+            gh release view "base-$CODE" >/dev/null 2>&1 || gh release create "base-$CODE" --target "$GITHUB_SHA" --prerelease \
+              --title "Base des mises à jour (APK n° $CODE, v$V)" --notes "Paquet de référence des mises à jour incrémentales : ne pas supprimer."
+            gh release upload "base-$CODE" /tmp/base.pck --clobber
+            rm -f /tmp/base.pck
+          fi
+
       - name: "Dépôt de l'APK dans releases/ (premier build de la version seulement, quota Git LFS)"
+        if: env.PATCHED != '1'
         run: |
           if git ls-files --error-unmatch releases/RochetoirinSimulator-v$V.apk >/dev/null 2>&1; then
             echo "APK v$V déjà dans releases/ : la release GitHub porte la version à jour."

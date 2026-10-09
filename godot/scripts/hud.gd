@@ -195,7 +195,8 @@ func _open_settings() -> void:
 			for c in hc.get_children():
 				c.button_pressed = c == b)
 		hc.add_child(b)
-	var note := Label.new(); note.text = "Moins de végétation = jeu plus fluide sur les téléphones modestes."
+	var note := Label.new()
+	note.text = "Moins de végétation = jeu plus fluide sur les téléphones modestes.\nVersion %s (mises à jour automatiques au lancement)" % str(Engine.get_meta("version_jeu", ProjectSettings.get_setting("application/config/version", "")))
 	note.add_theme_font_size_override("font_size", 22); note.modulate = Color(1, 1, 1, 0.7); v.add_child(note)
 	# éditeur de monde : champ de la formule magique (dictée au micro du clavier, ou saisie)
 	var fm := Button.new(); fm.text = "Formule magique…"; fm.custom_minimum_size = Vector2(0, 64)

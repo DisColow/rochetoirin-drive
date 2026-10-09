@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v5.4.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v5.4.apk)**
+**[RochetoirinSimulator-v5.5.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v5.5/RochetoirinSimulator-v5.5.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,14 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v5.5 — **dernier APK à installer à la main** :
+- **mises à jour automatiques** : au lancement, le jeu regarde s'il existe une version plus récente et ne télécharge
+  que ce qui a changé depuis l'APK installé (quelques centaines de Ko pour une correction, au lieu de 1,2 Go) ; elle
+  s'applique au lancement suivant. Hors ligne, rien ne change. Si une mise à jour faisait planter le jeu deux fois de
+  suite, il revient tout seul à la version installée. La version en cours s'affiche dans ⚙.
+- **éditeur de monde, issue n° 2** : la maison moderne de la route de Montcarra (Rochetoirin) refaite d'après Street
+  View : plain-pied, toit plat à large acrotère, crépi sable, sans volets.
 
 Nouveautés de la v5.4 :
 - **voix des clients du taxi enfin audibles** : elles étaient environ 20 dB trop faibles, noyées sous le moteur. Babillage

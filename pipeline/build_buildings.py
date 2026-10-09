@@ -706,6 +706,29 @@ def bati_ov(f, area, kind):
     return ov
 
 
+def editeur_overrides(blds):
+    """{cleabs : réglages} des bâtiments refaits à la demande de l'éditeur de monde (sources/bati_editeur.txt) :
+    même relevé que les commerces, mais le bâtiment garde son usage (maison, collectif…) et une hauteur de logement."""
+    out = {}
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sources/bati_editeur.txt")
+    if not os.path.exists(path):
+        return out
+    by = {p.get("cleabs"): (p, g) for p, g in blds}
+    for ln in open(path):
+        f = ln.split("#")[0].split()
+        if len(f) != 5 or f[0] not in by:
+            continue
+        p, g = by[f[0]]
+        n = int(f[1])
+        kind = classify(p, g)
+        ov = bati_ov((n, f[2], f[3], f[4]), g.area, kind)
+        ov["kind"] = kind
+        ov["nowin"] = False
+        ov["H"] = max(float(p.get("hauteur") or 0.0), 3.6) if n == 1 else 0.6 + n * 2.8
+        out[f[0]] = ov
+    return out
+
+
 def bati_overrides(blds):
     """{cleabs du bâtiment : réglages} : chaque commerce relevé sur photo (sources/shops_bati.txt) est rattaché au
     bâtiment le plus proche à moins de 25 m (comme dans build_shops.py) ; plusieurs commerces dans un même bâtiment :
@@ -1059,6 +1082,9 @@ def main():
     LM = landmarks.Landmarks(polys, blds, road_tree, dem)
     BOV = bati_overrides(blds)
     print(len(BOV), "bâtiments de commerces d'après les photos Street View")
+    EOV = editeur_overrides(blds)
+    BOV.update(EOV)
+    print(len(EOV), "bâtiments refaits à la demande de l'éditeur de monde")
     for kind, n in LM.build(tiles, TILE, Mesh).items():
         stats["monument:" + kind] = n
     for i, (p, g) in enumerate(blds):
