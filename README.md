@@ -16,6 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v5.6 (première mise à jour arrivée toute seule, sans réinstaller) :
+- vérification du nouveau système : si tu as installé la v5.5, le jeu télécharge cette version au lancement et
+  l'applique au lancement suivant ; ⚙ affiche alors « Version 5.6 ».
+
 Nouveautés de la v5.5 — **dernier APK à installer à la main** :
 - **mises à jour automatiques** : au lancement, le jeu regarde s'il existe une version plus récente et ne télécharge
   que ce qui a changé depuis l'APK installé (quelques centaines de Ko pour une correction, au lieu de 1,2 Go) ; elle
