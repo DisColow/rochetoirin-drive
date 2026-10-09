@@ -98,8 +98,13 @@ func _open_settings() -> void:
 	_show_drive(false)
 	settings = PanelContainer.new()
 	settings.add_theme_stylebox_override("panel", UI.panel(44, 26))
+	# contenu défilant (glisser au doigt, molette) : le menu tient sur les petits écrans
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	settings.add_child(sc)
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 12)
-	settings.add_child(v)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(v)
 	var t := Label.new(); t.text = "Réglages"; t.add_theme_font_size_override("font_size", 44); v.add_child(t)
 	var l := Label.new(); l.text = "Densité de la végétation"; l.add_theme_font_size_override("font_size", 30); v.add_child(l)
 	var h := HBoxContainer.new(); h.add_theme_constant_override("separation", 16); v.add_child(h)
@@ -218,10 +223,35 @@ func _open_settings() -> void:
 	cr.visible = false
 	cb.pressed.connect(func():
 		cr.visible = not cr.visible
-		settings.reset_size()
-		settings.position = (get_viewport().get_visible_rect().size - settings.get_combined_minimum_size()) / 2)
+		_fit_settings.call_deferred())
 	v.add_child(cb)
 	v.add_child(cr)
+	# signaler un bug : ticket GitHub pré-rempli (version, appareil, position, journal) ouvert dans le navigateur
+	var bb := Button.new(); bb.text = "Signaler un bug…"; bb.custom_minimum_size = Vector2(0, 64)
+	bb.add_theme_font_size_override("font_size", 28)
+	var bug_box := VBoxContainer.new(); bug_box.visible = false
+	bug_box.add_theme_constant_override("separation", 8)
+	var bug_txt := TextEdit.new()
+	bug_txt.placeholder_text = "Que s'est-il passé ? (ce que vous faisiez, ce que vous avez vu)"
+	bug_txt.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	bug_txt.custom_minimum_size = Vector2(900, 180)
+	bug_txt.add_theme_font_size_override("font_size", 26)
+	bug_box.add_child(bug_txt)
+	var bug_send := Button.new(); bug_send.text = "Envoyer le signalement"; bug_send.custom_minimum_size = Vector2(0, 64)
+	bug_send.add_theme_font_size_override("font_size", 28)
+	bug_send.pressed.connect(func():
+		send_bug_report(bug_txt.text)
+		bug_txt.text = ""
+		bug_box.visible = false
+		_fit_settings.call_deferred())
+	bug_box.add_child(bug_send)
+	bb.pressed.connect(func():
+		bug_box.visible = not bug_box.visible
+		if bug_box.visible:
+			bug_txt.grab_focus()
+		_fit_settings.call_deferred())
+	v.add_child(bb)
+	v.add_child(bug_box)
 	var close := Button.new(); close.text = "Fermer"; close.custom_minimum_size = Vector2(0, 76)
 	close.add_theme_font_size_override("font_size", 32)
 	close.pressed.connect(func():
@@ -229,7 +259,47 @@ func _open_settings() -> void:
 		_show_drive(true))
 	v.add_child(close)
 	add_child(settings)
-	settings.position = (get_viewport().get_visible_rect().size - settings.get_combined_minimum_size()) / 2
+	_fit_settings()
+
+## Taille du menu des réglages : tout le contenu s'il tient, sinon 90 % de la hauteur de l'écran (le reste défile).
+func _fit_settings() -> void:
+	if not (settings and is_instance_valid(settings)):
+		return
+	var sc: ScrollContainer = settings.get_child(0)
+	var v: Control = sc.get_child(0)
+	var vs := get_viewport().get_visible_rect().size
+	var need := v.get_combined_minimum_size()
+	var pad := settings.get_combined_minimum_size() - sc.get_combined_minimum_size()
+	sc.custom_minimum_size = Vector2(need.x + 24.0, minf(need.y, vs.y * 0.9 - pad.y))
+	settings.reset_size()
+	settings.position = (vs - settings.size) / 2
+
+## Signalement de bug : ouvre un ticket GitHub pré-rempli dans le navigateur (il n'y a plus qu'à appuyer sur
+## « Create »). Pas de jeton dans le jeu : un jeton d'écriture embarqué dans l'APK serait public.
+func send_bug_report(text: String) -> void:
+	var main_node = get_parent()
+	var p: Vector3 = main_node.car.global_position
+	var ver := str(Engine.get_meta("version_jeu", ProjectSettings.get_setting("application/config/version", "?")))
+	var first := text.strip_edges().split("\n")[0]
+	var title := "Bug : %s" % (first.left(70) if first != "" else "(sans description)")
+	var body := "**Description** :\n%s\n\n| | |\n|---|---|\n" % (text.strip_edges() if text.strip_edges() != "" else "_(vide)_")
+	body += "| Version | %s |\n" % ver
+	body += "| Appareil | %s (%s %s) |\n" % [OS.get_model_name(), OS.get_name(), OS.get_version()]
+	body += "| Rendu | %s, %s |\n" % [RenderingServer.get_video_adapter_name(), str(get_viewport().get_visible_rect().size)]
+	body += "| Voiture | x %.1f, y %.1f, z %.1f |\n" % [p.x, p.y, p.z]
+	body += "| Images/s | %d |\n" % Engine.get_frames_per_second()
+	var st := "user://etat.txt"
+	if FileAccess.file_exists(st):
+		body += "\nÉtat :\n```\n%s\n```\n" % FileAccess.get_file_as_string(st).strip_edges().right(800)
+	var lg := "user://logs/godot.log"
+	if FileAccess.file_exists(lg):
+		var lines := FileAccess.get_file_as_string(lg).split("\n")
+		var tail := "\n".join(lines.slice(maxi(0, lines.size() - 40)))
+		body += "\nJournal (fin) :\n```\n%s\n```\n" % tail.right(2500)
+	body += "\n_Signalement envoyé depuis le jeu (⚙ > Signaler un bug)._"
+	var url := "https://github.com/DisColow/rochetoirin-drive/issues/new?title=%s&labels=bug&body=%s" % [title.uri_encode(), body.uri_encode()]
+	OS.shell_open(url)
+	toast("Signalement prêt dans le navigateur :\nappuyez sur « Create » pour l'envoyer.", 4.0)
 
 ## Point de l'écran occupé par l'interface (boutons, GPS, compteur, carte, réglages) : pas de rotation de caméra.
 func is_ui_point(p: Vector2) -> bool:

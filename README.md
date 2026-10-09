@@ -16,6 +16,12 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v5.7 (mise à jour automatique) :
+- **signaler un bug depuis le jeu** : ⚙ > « Signaler un bug… », décrire le problème, « Envoyer le signalement » ;
+  le navigateur ouvre une issue GitHub déjà remplie (version, téléphone, position, fin du journal) : appuyer sur
+  « Create ».
+- **menu des réglages défilant** : il tient sur tous les écrans, on le fait glisser au doigt.
+
 Nouveautés de la v5.6 (première mise à jour arrivée toute seule, sans réinstaller) :
 - vérification du nouveau système : si tu as installé la v5.5, le jeu télécharge cette version au lancement et
   l'applique au lancement suivant ; ⚙ affiche alors « Version 5.6 ».

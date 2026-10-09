@@ -623,6 +623,23 @@ func _shots(path: String) -> void:
 		if s.has("act"):
 			await _act_shot(s)
 			continue
+		if s.get("reglages", false):          # menu ⚙ (défilement : "scroll" en pixels ; "bug" : zone de signalement ouverte)
+			var hud := get_node("HUD")
+			hud._open_settings()
+			await get_tree().process_frame
+			if s.get("bug", false):
+				for b in hud.settings.find_children("*", "Button", true, false):
+					if b.text == "Signaler un bug…":
+						b.pressed.emit()
+			for i in 6:
+				await get_tree().process_frame
+			hud.settings.get_child(0).scroll_vertical = int(s.get("scroll", 0))
+			for i in 4:
+				await get_tree().process_frame
+			get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % s.name)
+			hud.settings.queue_free(); hud.settings = null
+			print("capture ", s.name)
+			continue
 		if s.get("map", false):
 			var hud := get_node("HUD")
 			hud._show_drive(false)
