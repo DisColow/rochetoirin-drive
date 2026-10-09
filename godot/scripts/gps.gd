@@ -10,6 +10,7 @@ var layers := []
 var overlay: Control
 var _ppm := 0.9
 var _th := 0.0
+var _xf := Transform2D.IDENTITY
 
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
@@ -42,6 +43,7 @@ func _process(_dt: float) -> void:
 	var anchor := Vector2(size.x * 0.5, size.y * 0.66)
 	_th = -PI / 2 - f.angle()
 	var xf := Transform2D.IDENTITY.translated(-p).rotated(_th).scaled(Vector2(_ppm, _ppm)).translated(anchor)
+	_xf = xf
 	var r := size.length() / _ppm
 	data.draw_layers(layers, xf, _ppm, Rect2(p - Vector2(r, r), Vector2(r, r) * 2.0), 1.0)
 	overlay.queue_redraw()
@@ -53,4 +55,32 @@ func _draw_overlay() -> void:
 	var nc := Vector2(size.x - 34, 34)
 	overlay.draw_circle(nc, 20, Color(0, 0, 0, 0.55))
 	overlay.draw_string(get_theme_default_font(), nc + north * 11 - Vector2(8, -8), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color8(255, 90, 80))
+	_draw_activity(anchor)
 	overlay.draw_rect(Rect2(Vector2.ZERO, size), Color(1, 1, 1, 0.55), false, 3.0)
+
+## Repères des activités : point visé (ou flèche au bord du GPS s'il est hors champ) et cercle de la chasse au lieu.
+func _draw_activity(anchor: Vector2) -> void:
+	var act = get_tree().get_first_node_in_group("activites")
+	if act == null:
+		return
+	if not act.circle.is_empty():
+		overlay.draw_arc(_xf * act.circle.c, act.circle.r * _ppm, 0, TAU, 96, Color(1.0, 0.45, 0.25, 0.95), 3.0, true)
+	var inner := Rect2(Vector2(16, 16), size - Vector2(32, 32))
+	for m in act.marks:
+		if not m.get("gps", true):
+			continue
+		var sp: Vector2 = _xf * m.p
+		if inner.has_point(sp):
+			overlay.draw_circle(sp, 12, Color.BLACK)
+			overlay.draw_circle(sp, 9, m.col)
+		else:
+			var d := (sp - anchor).normalized()
+			var t := INF
+			for k in 2:
+				if absf(d[k]) > 1e-4:
+					var lim := (inner.position[k] if d[k] < 0 else inner.end[k])
+					t = minf(t, (lim - anchor[k]) / d[k])
+			var e := anchor + d * t
+			var n := Vector2(-d.y, d.x)
+			overlay.draw_colored_polygon(PackedVector2Array([e + d * 12, e - d * 10 + n * 11, e - d * 10 - n * 11]), Color.BLACK)
+			overlay.draw_colored_polygon(PackedVector2Array([e + d * 9, e - d * 7 + n * 8, e - d * 7 - n * 8]), m.col)

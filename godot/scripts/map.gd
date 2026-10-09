@@ -5,6 +5,12 @@ extends Control
 
 signal teleport(pos: Vector3, heading: float)
 signal closed
+signal picked(w: Vector2)          # mode choix (activités) : endroit touché, en mètres (x, z)
+
+const HINT := "Touchez un endroit pour vous y rendre"
+var pick_mode := false             # activités : un toucher choisit un point au lieu de téléporter
+var locked := false                # activité en cours : pas de téléportation
+var hint: Label
 
 var data
 var layers := []
@@ -42,8 +48,8 @@ func _ready() -> void:
 		bt.pressed.connect(spec[2])
 		bt.set_meta("dx", spec[1].x)
 		add_child(bt)
-	var hint := Label.new()
-	hint.text = "Touchez un endroit pour vous y rendre"
+	hint = Label.new()
+	hint.text = HINT
 	hint.add_theme_font_size_override("font_size", 30)
 	hint.add_theme_color_override("font_outline_color", Color.BLACK)
 	hint.add_theme_constant_override("outline_size", 8)
@@ -56,7 +62,12 @@ func _layout() -> void:
 		if c is Button:
 			c.position.x = size.x + float(c.get_meta("dx"))
 
+func set_hint(t: String) -> void:
+	hint.text = t
+
 func open() -> void:
+	if not pick_mode:
+		hint.text = "Téléportation désactivée pendant l'activité (★ pour l'arrêter)" if locked else HINT
 	position = Vector2.ZERO
 	size = get_viewport_rect().size
 	visible = true
@@ -106,6 +117,7 @@ func _draw_overlay() -> void:
 	var c := world_to_screen(Vector2(car.global_position.x, car.global_position.z))
 	var fwd: Vector3 = car.global_transform.basis.z
 	data.arrow(overlay, c, Vector2(fwd.x, fwd.z), 22.0)
+	_draw_activity(f)
 	overlay.draw_string(f, Vector2(size.x - 24, size.y - 18), "Données : © contributeurs OpenStreetMap, IGN (RGE ALTI, BD TOPO, RPG, LiDAR HD)",
 		HORIZONTAL_ALIGNMENT_RIGHT, -1, 18, Color(0.7, 0.72, 0.75))
 
@@ -144,8 +156,38 @@ func _gui_input(e: InputEvent) -> void:
 	elif e is InputEventMagnifyGesture:
 		_zoom_at(e.factor, e.position)
 
+## Repères des activités (points du tracé, client, destination) et cercle de la chasse au lieu.
+func _draw_activity(f: Font) -> void:
+	var act = get_tree().get_first_node_in_group("activites")
+	if act == null:
+		return
+	if not act.circle.is_empty():
+		var cc := world_to_screen(act.circle.c)
+		var rr: float = act.circle.r / _mpp()
+		overlay.draw_circle(cc, rr, Color(1.0, 0.35, 0.2, 0.12))
+		overlay.draw_arc(cc, rr, 0, TAU, 96, Color(1.0, 0.45, 0.25, 0.95), 4.0, true)
+	var prev := Vector2.INF
+	for m in act.marks:
+		var sp := world_to_screen(m.p)
+		if act.join_marks and prev != Vector2.INF:
+			overlay.draw_line(prev, sp, Color(1, 0.85, 0.2, 0.8), 4.0, true)
+		prev = sp
+	for m in act.marks:
+		var sp := world_to_screen(m.p)
+		overlay.draw_circle(sp, 17, Color.BLACK)
+		overlay.draw_circle(sp, 14, m.col)
+		overlay.draw_string_outline(f, sp + Vector2(-40, -24), m.txt, HORIZONTAL_ALIGNMENT_CENTER, 80, 26, 7, Color.BLACK)
+		overlay.draw_string(f, sp + Vector2(-40, -24), m.txt, HORIZONTAL_ALIGNMENT_CENTER, 80, 26, Color.WHITE)
+
 func _pick(s: Vector2) -> void:
 	var w := screen_to_world(s)
+	if pick_mode:
+		picked.emit(w)
+		queue_redraw()
+		return
+	if locked:
+		hint.text = "Téléportation désactivée pendant l'activité (★ pour l'arrêter)"
+		return
 	var best := -1
 	var bd := 1e18
 	for i in range(0, pts.size(), 4):

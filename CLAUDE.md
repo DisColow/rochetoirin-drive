@@ -65,6 +65,11 @@
   Compatibility et supprime la marge anti-clignotement : ne pas l'utiliser. Objets posés par lots :
   `scripts/cells.gd` (MultiMesh par cases de 64 m, matériaux effacés en fondu tramé jusqu'à la portée via
   `fade_far`/`env_fade_keep` d'`env.gdshaderinc`, position de caméra `env_cam` tenue à jour par `env.gd`).
+- **Activités** (`scripts/activities.gd`, bouton ★ / touche T) : course (A, étapes, B posés sur la carte en mode
+  choix `map.pick_mode`, portes lumineuses, chrono), chasse au lieu (même appareil ; lieu nommé, touché sur la carte
+  ou au hasard ; zone `circle` qui rétrécit, dessinée par `map.gd` et `gps.gd` avec les repères `marks`), taxi
+  (clients `assets/clients/` de `fetch_clients.py` + `blender_clients.py`, destinations `world/places.json` de
+  `fetch_places.py` + `build_places.py` : lieux publics seulement). Essai : captures `{"act": "menu|course|chasse|taxi"}`.
 - **Orientation des faces** : `glb.write_glb(..., fix_winding=True)` remet chaque triangle dans le sens de ses normales
   (tuiles de routes) ; contrôle : `python3 pipeline/check_winding.py godot/world/roads` doit donner 0 % partout.
 - **Rien ne déborde sur la route** (arbres : couronne hors chaussée, champs arrêtés avant, bâtiments découpés).

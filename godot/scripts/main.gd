@@ -19,6 +19,7 @@ var cam_rig: Node3D
 var birds: Node3D
 var props: Node3D
 var pools: Node3D
+var activities: CanvasLayer
 var shops: Node3D
 var sport: Node3D
 var animaux: Node3D
@@ -174,6 +175,10 @@ func _ready() -> void:
 		autoroute.hud = hud
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS          # la carte reste utilisable jeu en pause
 	add_child(hud)
+	activities = preload("res://scripts/activities.gd").new()
+	activities.main = self; activities.car = car; activities.hud = hud; activities.map = hud.map
+	activities.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(activities)
 	hud.teleport.connect(_teleport)
 	cam_rig.hud = hud
 	var cr = preload("res://scripts/crash_report.gd").new()
@@ -574,6 +579,9 @@ func _shots(path: String) -> void:
 			get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % s.name)
 			print("capture ", s.name)
 			continue
+		if s.has("act"):
+			await _act_shot(s)
+			continue
 		if s.get("map", false):
 			var hud := get_node("HUD")
 			hud._show_drive(false)
@@ -626,6 +634,101 @@ func _shots(path: String) -> void:
 		get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % s.name)
 		print("capture ", s.name)
 	get_tree().quit()
+
+## Essai des activités (captures « act ») : menu, tracé posé sur la carte, course jouée (voiture déplacée de porte
+## en porte), chasse au lieu (carte avec la zone, puis lieu atteint), taxi (client, prise en charge, dépôt).
+func _act_shot(s: Dictionary) -> void:
+	var a = activities
+	var hud := get_node("HUD")
+	var snap := func(n: String):
+		for i in 8:
+			await get_tree().process_frame
+		get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % n)
+		print("capture ", n)
+	var run := func(frames: int):
+		for i in frames:
+			await get_tree().physics_frame
+	car.freeze = false
+	set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; pools.target = car; shops.target = car; sport.target = car; animaux.target = car; autoroute.target = car; vegetation.target = car; crops.target = car; grass.target = car
+	get_tree().paused = false
+	var c0 := Vector2(car.global_position.x, car.global_position.z)
+	match s.act:
+		"menu":
+			a.open_menu()
+			await snap.call(s.name)
+			a._resume()
+		"course":
+			a._course_setup()
+			for off in s.get("route", [[0, 0], [250, -150], [520, -40]]):
+				a._on_pick(a._rp(a._nearest(c0 + Vector2(off[0], off[1]))))
+			hud.map.center = c0 + Vector2(260, -80); hud.map.zoom = 1.6; hud.map.queue_redraw()
+			await snap.call(s.name + "_trace")
+			a._course_start()
+			await run.call(150)
+			await snap.call(s.name + "_depart")
+			await run.call(400)
+			print("course : phase ", a._phase, " prochain ", a._next, " t=", a._t)
+			for k in range(1, a._route.size()):
+				var i: int = a._route[k]
+				car.place(Vector3(a.pts[i], a.pts[i + 2] + 0.3, a.pts[i + 1]), a.pts[i + 3])
+				car.hold(0.3)
+				await run.call(60)
+				print("  porte ", k, " : phase ", a._phase, " prochain ", a._next, " temps ", a._t)
+			await snap.call(s.name + "_arrivee")
+		"chasse":
+			var k := 0
+			for j in a.places.size():
+				if a.places[j].k == s.get("kind", "gare"):
+					k = j; break
+			a._hunt_place(k)
+			a._hunt_begin()
+			await run.call(240)
+			hud._show_drive(false)
+			hud.map.open()
+			hud.map.zoom = 0.35
+			hud.map.center = a.circle.c
+			hud.map.queue_redraw()
+			await snap.call(s.name + "_carte")
+			hud.map._close()
+			print("chasse : cible ", a._target, " ", a._target_name, " zone ", a.circle)
+			var t: Vector2 = a._target
+			var i: int = a._nearest(t)
+			car.place(Vector3(a.pts[i], a.pts[i + 2] + 0.3, a.pts[i + 1]), a.pts[i + 3])
+			car.hold(0.3)
+			await run.call(90)
+			print("  arrivé : phase ", a._phase, " temps ", a._t)
+			await snap.call(s.name + "_trouve")
+		"taxi":
+			a._taxi_start()
+			var cp: Vector2 = a._cl_pos
+			var i: int = a._nearest(cp)
+			# voiture arrêtée à 25 m du client, client dans le champ
+			var h := deg_to_rad(a.pts[i + 3])
+			var back := cp - Vector2(sin(h), -cos(h)) * 25.0
+			var j: int = a._nearest(back)
+			car.place(Vector3(a.pts[j], a.pts[j + 2] + 0.3, a.pts[j + 1]), a.pts[j + 3])
+			car.hold(1.0)
+			await run.call(200)
+			print("taxi : client ", a._client.get_class(), " enfants ", a._client.get_child_count(), " en ", a._client.global_position)
+			cam_rig.set_process(false)
+			var cc: Camera3D = cam_rig.cam
+			var cl: Vector3 = a._client.global_position
+			cc.global_position = cl + a._client.global_transform.basis.z * 4.0 + Vector3(1.5, 1.6, 0)
+			cc.look_at(cl + Vector3(0, 1.0, 0), Vector3.UP)
+			await snap.call(s.name + "_client")
+			cam_rig.set_process(true)
+			car.place(Vector3(a.pts[i], a.pts[i + 2] + 0.3, a.pts[i + 1]), a.pts[i + 3])
+			car.hold(1.5)
+			await run.call(200)
+			print("taxi : phase ", a._phase, " destination ", a._dest_name)
+			await snap.call(s.name + "_course")
+			var d: int = a._dest
+			car.place(Vector3(a.pts[d], a.pts[d + 2] + 0.3, a.pts[d + 1]), a.pts[d + 3])
+			car.hold(1.5)
+			await run.call(200)
+			print("  dépôt : phase ", a._phase, " courses ", a._rides, " total ", a._total)
+			await snap.call(s.name + "_paye")
+	a._stop()
 
 # ---------------------------------------------------------------- essai de conduite (pipeline) : --drive-test
 func _physics_process(_dt: float) -> void:

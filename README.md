@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v4.8.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.8.apk)**
+**[RochetoirinSimulator-v4.9.apk — Android](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.9.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,23 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v4.9 — **activités** (bouton ★ en haut à gauche, touche T au clavier) :
+- **course** : sur la carte, touchez le départ A, une ou plusieurs étapes puis l'arrivée B (« Effacer le dernier
+  point » pour corriger), puis « Lancer la course » : la voiture est posée au départ, tournée vers la première étape,
+  compte à rebours 3-2-1, portes lumineuses jaunes (la prochaine en vif, la suivante en pâle) et arrivée rouge, chrono
+  et temps à chaque étape ; « Recommencer le dernier tracé » pour battre son record (le tracé n'est pas enregistré).
+- **chasse au lieu** (à deux sur le même appareil, ou seul) : le joueur 1 choisit un lieu dans la liste des lieux
+  nommés (gare de Bourgoin-Jallieu, mairies, églises, écoles, stades, hameaux… avec recherche), en touchant la carte,
+  ou au hasard pour jouer seul ; il passe l'appareil au joueur 2, qui doit le trouver au plus vite : la carte et le GPS
+  montrent une zone orange qui contient le lieu et rétrécit avec le temps ; chrono, « Trouvé ! » à l'arrivée.
+  Pas de téléportation pendant la partie.
+- **taxi** : un client attend au bord d'une route (repère bleu, personnage), arrêtez-vous à côté ; il annonce sa
+  destination (un vrai lieu public de la carte, repère vert) ; compteur, note de 1 à 5 étoiles selon le temps et les
+  chocs, prix de la course et pourboire ; les courses s'enchaînent et les gains s'additionnent.
+- crédits : clients « Low Poly Characters (PACK) » de micaelsampaio (Sketchfab, CC BY 4.0).
+
+[v4.8 — tracés au sol cohérents](https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/RochetoirinSimulator-v4.8.apk)
 
 Nouveautés de la v4.8 :
 - **tracés au sol et bordures cohérents** : près de la moitié des marquages (lignes, passages piétons, places de parking),
