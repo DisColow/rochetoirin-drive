@@ -47,7 +47,7 @@
   enseignes sur trois pages d'atlas), `fetch_ortho_hd.py` (orthophoto 0,5 m) + `build_pools.py` (piscines des jardins ;
   avant `build_ground.py` et `build_props.py`), `fetch_sport.py`, `build_sport.py`, `fetch_animaux.py` + `blender_animaux_import.py` (vache, mouton, cheval : modèles Sketchfab CC BY, crédits dans ⚙), `build_animaux.py` (prés pâturés
   et clôtures), `fetch_autoroute.py`, `build_autoroute.py`, `build_haie_tex.py` (feuilles des touffes de haie),
-  `blender_sprite.py` + `build_car_sprite.py` (voiture en sprite pixel art : 384 vues rendues du modèle 3D de l'Espace, atlas sur deux pages, masques feux/vitres pour gouttes et essuie-glace arrière, ombre pixel art `ombre.png` ; l'ancien `build_car_sprite_ia.py` d'après la planche `sources/espace_sprites.jpg` n'est plus utilisé) ; sons enregistrés dans `pipeline/sources/` ;
+  `blender_sprite.py` + `build_car_sprite.py` (option masquée depuis la v6.0 ; voiture en sprite pixel art : 384 vues rendues du modèle 3D de l'Espace, atlas sur deux pages, masques feux/vitres pour gouttes et essuie-glace arrière, ombre pixel art `ombre.png` ; l'ancien `build_car_sprite_ia.py` d'après la planche `sources/espace_sprites.jpg` n'est plus utilisé) ; sons enregistrés dans `pipeline/sources/` ;
   modèles Blender (module bpy dans un venv) : `blender_commerces.py`, `blender_sport.py`, `blender_animaux.py`,
   `blender_autoroute.py`, `blender_sprite.py` (384 vues de l'Espace, ~45 min), `blender_haies.py` (touffes),
   `blender_maisons.py` (kit de détails des maisons, posé par `build_buildings.py`) ; puis
@@ -91,6 +91,12 @@
 - **Modèles 3D : toujours privilégier les modèles gratuits trouvables en ligne** (Sketchfab CC BY/CC0 via
   SKETCHFAB_TOKEN, Poly Haven, Kenney, Quaternius…, crédités dans ⚙ > Crédits) plutôt que de modéliser soi-même ; ne
   modéliser (Blender, procédural) qu'à défaut de modèle convenable.
+- **Modèles d'après Street View : au pixel près.** Quand l'utilisateur demande de bâtir un modèle 3D d'après Street
+  View, analyser le bâtiment avec précision sur les photos (plusieurs angles si possible) et le reproduire fidèlement
+  dans le moindre détail : gabarit et proportions mesurés (largeur, profondeur, hauteur d'égout et de faîtage, pente et
+  débords du toit), nombre, position, taille et forme exactes des ouvertures, menuiseries, volets, portes, balcons,
+  cheminées, gouttières, enduit et couleurs relevés sur la photo, annexes et clôtures. Comparer ensuite une capture
+  du jeu prise du même point de vue que la photo et corriger jusqu'à ce qu'elles se superposent.
 - **Viser les canons du genre** : à chaque demande, s'inspirer des meilleures références du genre (jeux de conduite,
   simulateurs, jeux en pixel art…) pour la qualité du résultat et l'ingéniosité des solutions, dans les limites du
   moteur graphique et du téléphone ; chercher l'astuce qui donne un rendu de grand jeu plutôt que la solution minimale.
@@ -103,9 +109,15 @@
   planche de bord des années 80 en pixel art (boutons poussoirs avec témoin, bouton rouge « feux de détresse » pour la
   remise sur la route, cadres et touches des menus, police Pixelify Sans, afficheur LCD DSEG7 du compteur). Les
   commandes de conduite (◀ ▶ FREIN GAZ) restent des disques translucides. Toute nouvelle fenêtre : `UI.panel()`.
-- **Taxi : conversations** (`scripts/taxi_talk.gd`, textes `data/taxi.json`, versionné) : caractères aux goûts
-  cachés, réponses par ton (chaleureux, drôle, curieux, sobre, silence), pourboire selon la satisfaction ; voix en
-  babillage synthétisé façon talkie-walkie (bus « Voix ») ; la radio baisse quand le client parle.
+- **Taxi : conversations** (`scripts/taxi_talk.gd`, textes `data/taxi.json` générés par `pipeline/taxi_dialogues.py`,
+  versionnés) : caractères aux goûts cachés, fils de trois échanges (le client parle, on répond sur un ton —
+  chaleureux, drôle, curieux, sobre, ou silence —, il réagit), indicateurs ♥ / • / ✗ et jauge d'humeur, indices
+  (allure du client, préférences apprises en lui posant des questions avec le bouton « bulle »), pourboire selon la
+  satisfaction. **Voix intelligibles** : chaque réplique (client et joueur) enregistrée par `pipeline/build_voix.py`
+  (Piper, voix libres choisies d'après un test de reconnaissance vocale Vosk après effet talkie-walkie ; morceaux
+  fixes + valeurs des variables, clés md5, `assets/voix/index.json`), jouée par le bus « Voix » (hauteur du client,
+  bande étroite, saturation). Toute nouvelle réplique : relancer `taxi_dialogues.py` puis `build_voix.py`
+  (incrémental), puis `publier_donnees.sh`. La radio baisse quand quelqu'un parle.
 - **Éditeur de monde** (`scripts/editeur_monde.gd`) : « Sésame, ouvre-toi » / « Hasta la vista, baby » dans le champ
   « Formule magique » (appui long sur le nom de la rue, F2, ou ⚙) ; on touche un objet, puis « Générer depuis Street
   View » ou une remarque -> issue GitHub pré-remplie (étiquette `editeur-monde` : position, GPS, objet, caméra, lien

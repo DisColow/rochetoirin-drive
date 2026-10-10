@@ -16,6 +16,17 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v6.0 — **APK à installer à la main** (l'écran de démarrage change) :
+- **mise à jour au démarrage, sans écran figé** : après le téléchargement, une barre montre l'installation puis le
+  chargement du monde, au lieu de rester bloquée sur « installée » pendant que le jeu charge.
+- **voix compréhensibles** : fini le babillage façon Animal Crossing ; clients et chauffeur parlent avec de vraies
+  voix de synthèse françaises, toujours passées dans l'effet talkie-walkie, chaque client avec sa hauteur de voix.
+- **conversations du taxi refaites** : chaque fois que le client parle, trois échanges s'enchaînent ; après chaque
+  réponse, un indicateur (♥ apprécié, • bof, ✗ agacé) et une jauge d'humeur ; des indices (son allure, ce qu'il
+  dit aimer) ; le bouton « bulle » permet de lui poser des questions (métier, famille, goûts…) ; 54 fils de
+  conversation, 8 caractères, des centaines de répliques.
+- voiture : le sprite pixel art est masqué pour l'instant, le Ranger s'affiche toujours en 3D.
+
 Nouveautés de la v5.9 (mise à jour automatique) :
 - **nouvelle voiture : Ford Ranger Raptor noir avec couvercle de benne blanc** (modèle « Ford Ranger Raptor 2019 »
   de David_Holiday, Sketchfab, CC BY 4.0), en sprite pixel art comme en modèle 3D (⚙ > Voiture). La vue cockpit
