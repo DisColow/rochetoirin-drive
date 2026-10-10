@@ -157,11 +157,7 @@ func _make_sprite() -> void:
 		om.albedo_texture = load("res://assets/car/ombre.png")
 		om.render_priority = -1
 		_blob_px = om
-	var cfg := ConfigFile.new()
-	if cfg.load("user://reglages.cfg") == OK:
-		sprite_mode = str(cfg.get_value("affichage", "voiture_v53", "sprite")) == "sprite"
-	else:
-		sprite_mode = true                   # v5.3 : nouveau sprite pixel art par défaut (modèle 3D au choix dans ⚙)
+	sprite_mode = false                      # v6.0 : sprite pixel art masqué, modèle 3D seulement
 	_apply_sprite()
 
 func _set_page(pg: int) -> void:

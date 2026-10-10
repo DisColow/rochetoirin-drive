@@ -1,195 +1,2391 @@
 {
- "_": "Conversations des clients du taxi (scripts/taxi_talk.gd). Caractères : goûts cachés pour chaque ton de réponse (-2 … +2) et envie de parler (bavard, 0 … 1). Tons : chaleureux, drole, curieux, sobre, silence (pas de réponse à temps). Variables : {prenom} {age} {metier} {commune} {dest} {dest_commune} {loisir} {animal} {famille} {e} (accord féminin : « e » ou rien).",
+ "version": 6,
+ "tons": [
+  "chaleureux",
+  "drole",
+  "curieux",
+  "sobre"
+ ],
  "caracteres": [
-  {"id": "jovial", "bavard": 0.9, "gouts": {"chaleureux": 1, "drole": 2, "curieux": 1, "sobre": -1, "silence": -2},
-   "bien": ["Ha ha ! Vous me plaisez, vous !", "Ah, ça c'est envoyé !", "Hé hé, j'adore."],
-   "moyen": ["Ouais, ouais.", "Bon, bon…", "Si vous le dites !"],
-   "mal": ["Vous êtes pas drôle, vous, hein…", "Bon. Ambiance.", "Ouh là, quel enthousiasme…"]},
-  {"id": "timide", "bavard": 0.2, "gouts": {"chaleureux": 1, "drole": 0, "curieux": -1, "sobre": 1, "silence": 1},
-   "bien": ["Oh… merci, c'est gentil.", "Hm, oui… c'est ça.", "C'est… agréable de parler un peu."],
-   "moyen": ["Ah… d'accord.", "Hm.", "Oui… peut-être."],
-   "mal": ["Euh… je préfère ne pas en parler.", "…", "Je… je vais regarder par la fenêtre."]},
-  {"id": "grincheux", "bavard": 0.5, "gouts": {"chaleureux": -1, "drole": -2, "curieux": 0, "sobre": 2, "silence": 1},
-   "bien": ["Enfin quelqu'un de raisonnable.", "Voilà. Exactement.", "Hmpf. Pour une fois."],
-   "moyen": ["Mouais.", "Si vous voulez.", "Hmpf."],
-   "mal": ["Épargnez-moi vos blagues.", "Regardez la route, plutôt.", "C'est pas un salon de thé, ici."]},
-  {"id": "egocentrique", "bavard": 0.8, "gouts": {"chaleureux": 1, "drole": -1, "curieux": 2, "sobre": -1, "silence": -2},
-   "bien": ["Ah, vous au moins vous écoutez !", "Excellente question, vraiment.", "On voit que vous vous intéressez aux gens."],
-   "moyen": ["Bref, je disais…", "Oui enfin, bon.", "Hm. Passons."],
-   "mal": ["Vous m'écoutez, au moins ?", "Ce n'est pas le sujet.", "Je vois que ça ne vous intéresse pas."]},
-  {"id": "presse", "bavard": 0.25, "gouts": {"chaleureux": 0, "drole": -1, "curieux": -1, "sobre": 1, "silence": 2},
-   "bien": ["Parfait. On avance.", "Merci. Vous êtes efficace.", "Bien."],
-   "moyen": ["Oui oui.", "D'accord.", "Hm, l'heure tourne."],
-   "mal": ["Je n'ai vraiment pas le temps pour ça.", "On peut se concentrer sur la route ?", "Abrégeons, voulez-vous."]},
-  {"id": "nostalgique", "bavard": 0.7, "gouts": {"chaleureux": 2, "drole": 0, "curieux": 1, "sobre": 0, "silence": -1},
-   "bien": ["Ah, vous avez bon cœur.", "C'était le bon temps, vous voyez.", "Ça me rappelle des souvenirs, tout ça."],
-   "moyen": ["Enfin… les temps changent.", "Oui… sans doute.", "Hm, c'est la vie."],
-   "mal": ["Les jeunes, de nos jours…", "Vous ne pouvez pas comprendre.", "Bon. N'en parlons plus."]},
-  {"id": "farceur", "bavard": 0.75, "gouts": {"chaleureux": 0, "drole": 2, "curieux": 0, "sobre": -2, "silence": -1},
-   "bien": ["Hi hi ! Celle-là je la ressortirai.", "Ah, un connaisseur !", "Excellent ! Tope là… non, gardez les mains sur le volant."],
-   "moyen": ["Mouais, j'ai connu mieux.", "Bof, bof.", "Pas mal… pas terrible non plus."],
-   "mal": ["Oh là là, quel sérieux…", "Vous rigolez jamais, vous ?", "Ça manque de fantaisie, tout ça."]}
+  {
+   "id": "jovial",
+   "nom": "jovial",
+   "bavard": 0.9,
+   "gouts": {
+    "chaleureux": 1,
+    "drole": 2,
+    "curieux": 1,
+    "sobre": -1,
+    "silence": -2
+   },
+   "allure": [
+    "{Il|Elle} sourit jusqu'aux oreilles.",
+    "{Il|Elle} fredonne en s'installant.",
+    "{Il|Elle} a l'air d'excellente humeur."
+   ],
+   "bien": [
+    "Ha ha ! Vous me plaisez, vous !",
+    "Ah, ça c'est envoyé !",
+    "Hé hé, j'adore.",
+    "Vous êtes impayable !",
+    "Ha ! Je la ressortirai, celle-là.",
+    "On va bien s'entendre, tous les deux.",
+    "Voilà un chauffeur qui a de l'humour !",
+    "Ah, ça fait du bien de rigoler un peu.",
+    "Vous, vous avez le sens de la répartie !",
+    "Excellent, excellent !",
+    "Je sens que la course va passer vite.",
+    "Ha ha, arrêtez, j'ai mal aux côtes !"
+   ],
+   "moyen": [
+    "Ouais, ouais.",
+    "Bon, bon…",
+    "Si vous le dites !",
+    "Ah. D'accord.",
+    "Mouais.",
+    "Hm, pourquoi pas.",
+    "C'est vous qui voyez.",
+    "Bon, passons."
+   ],
+   "mal": [
+    "Vous êtes pas drôle, vous, hein…",
+    "Bon. Ambiance.",
+    "Ouh là, quel enthousiasme…",
+    "Allez, déridez-vous un peu !",
+    "C'est un taxi ou un corbillard, ici ?",
+    "Vous avez mangé un citron ce matin ?",
+    "Pfff, vous êtes un rabat-joie.",
+    "Bon, je vais rigoler tout seul, alors.",
+    "Eh ben, c'est pas la fête.",
+    "Quelle conversation passionnante…"
+   ],
+   "reponses": {
+    "aime": [
+     "Moi, ce que j'aime, c'est rigoler ! Une bonne blague et je suis le plus heureux du monde.",
+     "Rire, mon vieux ! Rire, c'est la santé. Les gens trop sérieux, ça me fatigue."
+    ],
+    "humeur": [
+     "Excellente journée ! Comme toujours. Faut pas se laisser abattre, hein !",
+     "Super ! J'ai fait rire toute la boulangerie ce matin."
+    ],
+    "musique": [
+     "Tout ce qui fait danser ! Mettez-moi un bon vieux tube, et je chante avec vous.",
+     "Les chansons à boire, les trucs qu'on chante en chœur. Plus c'est bête, plus j'aime."
+    ]
+   }
+  },
+  {
+   "id": "timide",
+   "nom": "timide",
+   "bavard": 0.2,
+   "gouts": {
+    "chaleureux": 1,
+    "drole": 0,
+    "curieux": -1,
+    "sobre": 1,
+    "silence": 1
+   },
+   "allure": [
+    "{Il|Elle} regarde ses chaussures.",
+    "{Il|Elle} parle tout bas.",
+    "{Il|Elle} serre son sac contre lui."
+   ],
+   "bien": [
+    "Oh… merci. C'est gentil.",
+    "Hm. Oui… c'est vrai.",
+    "Merci… vraiment.",
+    "Vous êtes aimable.",
+    "Ça me rassure, ce que vous dites.",
+    "Oh, c'est… c'est gentil de dire ça.",
+    "Oui… je crois aussi.",
+    "Merci de ne pas me brusquer.",
+    "C'est agréable, de parler comme ça, doucement."
+   ],
+   "moyen": [
+    "Oh… d'accord.",
+    "Hm.",
+    "Je… je vois.",
+    "Ah… oui.",
+    "Peut-être…",
+    "Euh… oui."
+   ],
+   "mal": [
+    "Je… je préfère ne pas en parler.",
+    "…",
+    "Excusez-moi, je suis fatigué{e}.",
+    "C'est un peu personnel, ça…",
+    "Je… on peut parler d'autre chose ?",
+    "Vous posez beaucoup de questions…",
+    "Euh… je ne sais pas quoi répondre.",
+    "Je n'aime pas trop qu'on me fasse remarquer, vous savez."
+   ],
+   "reponses": {
+    "aime": [
+     "J'aime bien… le calme. Qu'on ne me pose pas trop de questions. Juste… être tranquille.",
+     "Les gens doux. Ceux qui ne parlent pas trop fort."
+    ],
+    "humeur": [
+     "Ça va… un peu fatigué{e}. Mais ça va.",
+     "Oh… normale. Calme. C'est bien."
+    ],
+    "musique": [
+     "Du piano. Quelque chose de doux, sans paroles.",
+     "Je n'écoute pas grand-chose… un peu de classique, le soir."
+    ]
+   }
+  },
+  {
+   "id": "grincheux",
+   "nom": "grincheux",
+   "bavard": 0.5,
+   "gouts": {
+    "chaleureux": -1,
+    "drole": -2,
+    "curieux": 0,
+    "sobre": 2,
+    "silence": 1
+   },
+   "allure": [
+    "{Il|Elle} soupire bruyamment.",
+    "{Il|Elle} fronce les sourcils.",
+    "{Il|Elle} claque la portière."
+   ],
+   "bien": [
+    "Enfin quelqu'un de raisonnable.",
+    "Hm. Pour une fois.",
+    "Voilà. Ça, c'est parler.",
+    "Vous au moins, vous ne racontez pas de bêtises.",
+    "C'est bien, vous allez droit au but.",
+    "Hmpf. Pas mal.",
+    "Bon. Vous n'êtes pas comme les autres.",
+    "Ça me change des bavards.",
+    "Exactement ce que je pense."
+   ],
+   "moyen": [
+    "Hmpf.",
+    "Si vous voulez.",
+    "Mouais.",
+    "Bof.",
+    "Ça m'est égal.",
+    "On verra."
+   ],
+   "mal": [
+    "Gardez vos blagues pour vous.",
+    "Conduisez, on vous demande pas de faire le clown.",
+    "Pfff. Épargnez-moi ça.",
+    "Ah non, pas un rigolo, pas aujourd'hui.",
+    "Vous êtes payé pour conduire, pas pour faire la causette.",
+    "Ce que vous pouvez être agaçant.",
+    "Ça, ça ne me fait pas rire du tout.",
+    "Je n'ai pas demandé votre avis.",
+    "Bon sang, quelle journée…",
+    "Vous n'allez pas vous y mettre aussi ?"
+   ],
+   "reponses": {
+    "aime": [
+     "Ce que j'aime ? Qu'on me fiche la paix. Et les gens qui parlent peu, mais bien.",
+     "Le silence. Les choses simples. Pas les rigolos, en tout cas."
+    ],
+    "humeur": [
+     "Mauvaise. Comme d'habitude. Tout augmente, rien ne marche.",
+     "Ne m'en parlez pas. Une catastrophe."
+    ],
+    "musique": [
+     "De la musique ? Du vrai, de l'ancien. Pas ce boucan qu'ils passent à la radio.",
+     "Rien. Le silence, c'est la meilleure musique."
+    ]
+   }
+  },
+  {
+   "id": "egocentrique",
+   "nom": "bavard",
+   "bavard": 0.85,
+   "gouts": {
+    "chaleureux": 1,
+    "drole": -1,
+    "curieux": 2,
+    "sobre": -1,
+    "silence": -2
+   },
+   "allure": [
+    "{Il|Elle} est déjà au téléphone en montant.",
+    "{Il|Elle} parle avant même de s'asseoir.",
+    "{Il|Elle} se recoiffe dans le rétroviseur."
+   ],
+   "bien": [
+    "Ah, vous, vous savez écouter !",
+    "Excellente question, je vais vous raconter.",
+    "Vous êtes quelqu'un d'intéressant, vous.",
+    "Oui ! Et attendez, ce n'est pas tout.",
+    "Ah, enfin quelqu'un qui s'intéresse !",
+    "Je savais que vous comprendriez.",
+    "Vous avez l'œil, vous.",
+    "C'est exactement ça, et d'ailleurs…",
+    "Vous me plaisez, on voit que vous êtes curieux."
+   ],
+   "moyen": [
+    "Bref.",
+    "Oui, enfin bon.",
+    "Ah, oui, si on veut.",
+    "Hm. Où j'en étais ?",
+    "Passons."
+   ],
+   "mal": [
+    "Vous m'écoutez, au moins ?",
+    "Je ne vois pas ce qu'il y a de drôle.",
+    "Bon, je vous ennuie, c'est ça ?",
+    "Ah. Vous n'êtes pas très causant.",
+    "C'est dommage, j'avais une histoire formidable.",
+    "Vous pourriez faire un effort.",
+    "On ne m'avait jamais coupé comme ça.",
+    "Je parle tout seul, on dirait."
+   ],
+   "reponses": {
+    "aime": [
+     "Qu'on s'intéresse à moi, pardi ! Posez-moi des questions, j'ai mille histoires à raconter.",
+     "Les gens curieux. Ceux qui veulent savoir. Ça tombe bien, j'ai beaucoup à dire."
+    ],
+    "humeur": [
+     "Formidable ! J'ai eu une idée géniale ce matin, je vous raconte ?",
+     "Très bonne, j'ai été brillant{e} en réunion."
+    ],
+    "musique": [
+     "Oh, j'ai fait du saxophone, vous savez. J'étais très {bon|bonne}, d'ailleurs.",
+     "Du jazz. J'ai même rencontré un grand jazzman, une fois. Une histoire incroyable."
+    ]
+   }
+  },
+  {
+   "id": "presse",
+   "nom": "pressé",
+   "bavard": 0.25,
+   "gouts": {
+    "chaleureux": 0,
+    "drole": -1,
+    "curieux": -1,
+    "sobre": 1,
+    "silence": 2
+   },
+   "allure": [
+    "{Il|Elle} regarde sa montre toutes les dix secondes.",
+    "{Il|Elle} tapote nerveusement son téléphone.",
+    "{Il|Elle} est en retard, ça se voit."
+   ],
+   "bien": [
+    "Parfait. Efficace.",
+    "Oui. Bien.",
+    "Merci. On peut accélérer ?",
+    "Voilà, c'est clair.",
+    "Exactement.",
+    "Bien. Continuez comme ça.",
+    "C'est tout ce que je demande."
+   ],
+   "moyen": [
+    "Hm.",
+    "Oui, oui.",
+    "D'accord.",
+    "Si vous voulez.",
+    "Mm."
+   ],
+   "mal": [
+    "Je n'ai pas le temps pour ça.",
+    "Concentrez-vous sur la route, s'il vous plaît.",
+    "On ne pourrait pas éviter les bavardages ?",
+    "Écoutez, je suis pressé{e}.",
+    "Ce n'est vraiment pas le moment.",
+    "Je dois passer un appel, là.",
+    "Vous avez vu l'heure ?",
+    "Moins de paroles, plus de kilomètres."
+   ],
+   "reponses": {
+    "aime": [
+     "Ce que j'aime ? Arriver à l'heure. Et qu'on ne me fasse pas perdre de temps.",
+     "L'efficacité. Les réponses courtes. Comme celle-ci."
+    ],
+    "humeur": [
+     "Chargée. Très chargée. Je n'ai pas le temps d'en parler.",
+     "Trois réunions, deux retards. Voilà."
+    ],
+    "musique": [
+     "Je n'ai pas le temps d'écouter de la musique.",
+     "Des podcasts, en vitesse rapide."
+    ]
+   }
+  },
+  {
+   "id": "nostalgique",
+   "nom": "nostalgique",
+   "bavard": 0.7,
+   "gouts": {
+    "chaleureux": 2,
+    "drole": 0,
+    "curieux": 1,
+    "sobre": 0,
+    "silence": -1
+   },
+   "allure": [
+    "{Il|Elle} regarde le paysage avec tendresse.",
+    "{Il|Elle} serre une vieille photo.",
+    "{Il|Elle} a les yeux un peu brillants."
+   ],
+   "bien": [
+    "Vous avez bon cœur, vous.",
+    "Merci… ça me touche.",
+    "Ah, vous me rappelez quelqu'un.",
+    "C'est gentil de penser à ça.",
+    "Oui… vous avez raison, on n'oublie pas.",
+    "Ça fait du bien de parler d'avant.",
+    "Vous êtes une belle personne.",
+    "Ah, mon petit, vous comprenez les choses.",
+    "Merci. Ça me réchauffe."
+   ],
+   "moyen": [
+    "Ah oui…",
+    "C'est ainsi.",
+    "Peut-être bien.",
+    "Hm, oui.",
+    "On verra bien."
+   ],
+   "mal": [
+    "Oh… vous êtes bien froid.",
+    "Les jeunes, ça ne comprend plus rien.",
+    "Ce n'était pas pour rire, vous savez.",
+    "Ça me fait de la peine que vous disiez ça.",
+    "On ne se moque pas des souvenirs.",
+    "Vous ne m'écoutez pas vraiment…",
+    "Avant, les gens étaient plus aimables."
+   ],
+   "reponses": {
+    "aime": [
+     "Ce que j'aime ? Les souvenirs, les gens chaleureux. Qu'on m'écoute raconter le temps d'avant.",
+     "La gentillesse. Un mot doux, ça vaut tout l'or du monde."
+    ],
+    "humeur": [
+     "Douce. J'ai repensé à ma jeunesse toute la matinée.",
+     "Un peu mélancolique… mais c'est une jolie mélancolie."
+    ],
+    "musique": [
+     "Les chansons d'autrefois, l'accordéon, le bal du samedi soir…",
+     "Ce qui passait au bal quand j'avais vingt ans."
+    ]
+   }
+  },
+  {
+   "id": "farceur",
+   "nom": "farceur",
+   "bavard": 0.75,
+   "gouts": {
+    "chaleureux": 0,
+    "drole": 2,
+    "curieux": 0,
+    "sobre": -2,
+    "silence": -1
+   },
+   "allure": [
+    "{Il|Elle} a un sourire en coin.",
+    "{Il|Elle} vous fait un clin d'œil.",
+    "{Il|Elle} se retient de rire."
+   ],
+   "bien": [
+    "Ha ! Bien joué !",
+    "Ah, je vous ai sous-estimé.",
+    "Touché !",
+    "Vous avez de la repartie !",
+    "Ha ha, celle-là je la note.",
+    "Un partout, la balle au centre !",
+    "Vous êtes des nôtres !",
+    "Ah, enfin un adversaire à ma taille.",
+    "Excellent, je ris encore."
+   ],
+   "moyen": [
+    "Bon.",
+    "Ouais.",
+    "Bof, bof.",
+    "Hm.",
+    "Pas terrible."
+   ],
+   "mal": [
+    "Pfff. Quel sérieux.",
+    "Vous êtes de la police ?",
+    "Vous rigolez jamais, vous ?",
+    "Allez, un petit effort d'humour !",
+    "Oh là là, quel tombeau.",
+    "Ça manque de fantaisie, tout ça.",
+    "Vous êtes aussi drôle qu'un parcmètre.",
+    "Je m'ennuie, là."
+   ],
+   "reponses": {
+    "aime": [
+     "Les blagues, les farces, les répliques qui fusent ! Les gens trop sérieux, je ne supporte pas.",
+     "Qu'on me renvoie la balle. Une bonne vanne, et je suis votre ami pour la vie."
+    ],
+    "humeur": [
+     "Excellente ! J'ai caché le dentier de mon beau-père, il le cherche encore.",
+     "Très bonne, j'ai fait croire à mon voisin que sa voiture avait été volée. Il a ri… un peu."
+    ],
+    "musique": [
+     "Les chansons paillardes ! Et les génériques de dessins animés.",
+     "Tout ce qui se chante faux, très fort."
+    ]
+   }
+  },
+  {
+   "id": "anxieux",
+   "nom": "inquiet",
+   "bavard": 0.55,
+   "gouts": {
+    "chaleureux": 2,
+    "drole": -1,
+    "curieux": 0,
+    "sobre": 1,
+    "silence": -1
+   },
+   "allure": [
+    "{Il|Elle} s'agrippe à la poignée.",
+    "{Il|Elle} vérifie trois fois sa ceinture.",
+    "{Il|Elle} a l'air tendu{e}."
+   ],
+   "bien": [
+    "Ah… ça me rassure, merci.",
+    "Oui, vous avez raison, ça va aller.",
+    "Merci, vous êtes calme, ça aide.",
+    "Pfiou. Merci de dire ça.",
+    "D'accord… je respire.",
+    "Vous êtes rassurant, vous savez.",
+    "Merci, j'avais besoin d'entendre ça."
+   ],
+   "moyen": [
+    "Ah… oui.",
+    "Si vous le dites.",
+    "J'espère.",
+    "Hm… d'accord.",
+    "Peut-être."
+   ],
+   "mal": [
+    "Ce n'est pas drôle, je suis {inquiet|inquiète} !",
+    "Vous me stressez, là.",
+    "Oh non, ne dites pas ça…",
+    "Vous plaisantez, mais moi je m'inquiète vraiment.",
+    "Ça ne m'aide pas du tout.",
+    "Arrêtez, vous me faites peur.",
+    "Je n'aurais pas dû prendre ce taxi."
+   ],
+   "reponses": {
+    "aime": [
+     "J'aime qu'on me rassure. Les gens calmes, gentils. Les blagues, ça me met mal à l'aise quand je suis tendu{e}.",
+     "Qu'on me parle doucement. Un mot gentil et je me détends."
+    ],
+    "humeur": [
+     "Stressante. Je m'inquiète pour un rien, vous savez.",
+     "Pas terrible, j'ai un rendez-vous important."
+    ],
+    "musique": [
+     "De la musique douce, pour me calmer.",
+     "Les bruits de la nature. La pluie, la mer."
+    ]
+   }
+  }
  ],
  "prenoms": {
-  "f": ["Josiane", "Martine", "Chantal", "Nathalie", "Sandrine", "Léa", "Camille", "Inès", "Monique", "Brigitte", "Sophie", "Manon", "Odette", "Yvette", "Clara", "Fatima", "Aurélie", "Ginette"],
-  "m": ["Gérard", "Michel", "Patrick", "Thierry", "Kévin", "Lucas", "Hugo", "Mohamed", "Bernard", "Jean-Pierre", "Christophe", "Théo", "Marcel", "Raymond", "Julien", "Didier", "Yannick", "Roger"]
+  "f": [
+   "Josiane",
+   "Martine",
+   "Chantal",
+   "Nathalie",
+   "Sandrine",
+   "Léa",
+   "Camille",
+   "Inès",
+   "Monique",
+   "Brigitte",
+   "Sophie",
+   "Manon",
+   "Odette",
+   "Yvette",
+   "Clara",
+   "Fatima",
+   "Aurélie",
+   "Ginette"
+  ],
+  "m": [
+   "Gérard",
+   "Michel",
+   "Patrick",
+   "Thierry",
+   "Kévin",
+   "Lucas",
+   "Hugo",
+   "Mohamed",
+   "Bernard",
+   "Jean-Pierre",
+   "Christophe",
+   "Théo",
+   "Marcel",
+   "Raymond",
+   "Julien",
+   "Didier",
+   "Yannick",
+   "Roger"
+  ]
  },
  "metiers": [
-  {"m": "boulanger", "f": "boulangère", "detail": "Debout à trois heures tous les matins. Le pain n'attend pas !"},
-  {"m": "infirmier", "f": "infirmière", "detail": "Je fais les tournées à domicile dans tous les villages du coin."},
-  {"m": "agriculteur", "f": "agricultrice", "detail": "Des vaches, du maïs, et pas un jour de repos."},
-  {"m": "professeur", "f": "professeure", "detail": "Trente gamins par classe, et ils ont tous un téléphone."},
-  {"m": "retraité", "f": "retraitée", "detail": "J'ai travaillé quarante-deux ans au tissage, à Bourgoin."},
-  {"m": "étudiant", "f": "étudiante", "detail": "Je prépare mes examens. Enfin… je devrais."},
-  {"m": "maçon", "f": "maçonne", "detail": "La moitié des murets du coin, c'est moi qui les ai montés."},
-  {"m": "facteur", "f": "factrice", "detail": "Je connais chaque boîte aux lettres d'ici à Saint-Chef."},
-  {"m": "coiffeur", "f": "coiffeuse", "detail": "On entend tout, dans un salon. Absolument tout."},
-  {"m": "garagiste", "f": "garagiste", "detail": "D'ailleurs votre voiture, là, elle a un petit bruit à l'avant."},
-  {"m": "comptable", "f": "comptable", "detail": "Des chiffres toute la journée. J'adore ça, en vrai."},
-  {"m": "musicien", "f": "musicienne", "detail": "Je joue de l'accordéon dans les bals du dimanche."},
-  {"m": "pharmacien", "f": "pharmacienne", "detail": "Les gens me racontent leurs maux de dos du matin au soir."},
-  {"m": "cuisinier", "f": "cuisinière", "detail": "Mon gratin dauphinois, on vient de loin pour le goûter."},
-  {"m": "routier", "f": "routière", "detail": "L'A43, je la connais virage par virage."},
-  {"m": "apiculteur", "f": "apicultrice", "detail": "Quarante ruches sur les collines. Le miel de châtaignier, c'est le meilleur."}
+  {
+   "m": "boulanger",
+   "f": "boulangère",
+   "detail": "Debout à trois heures tous les matins."
+  },
+  {
+   "m": "infirmier",
+   "f": "infirmière",
+   "detail": "Je fais les tournées à domicile dans les villages."
+  },
+  {
+   "m": "agriculteur",
+   "f": "agricultrice",
+   "detail": "Des vaches laitières, du maïs, et pas de vacances."
+  },
+  {
+   "m": "professeur",
+   "f": "professeure",
+   "detail": "J'enseigne l'histoire au collège."
+  },
+  {
+   "m": "retraité",
+   "f": "retraitée",
+   "detail": "Après quarante ans à l'usine."
+  },
+  {
+   "m": "étudiant",
+   "f": "étudiante",
+   "detail": "En deuxième année, à Lyon."
+  },
+  {
+   "m": "maçon",
+   "f": "maçonne",
+   "detail": "J'ai monté la moitié des murets du coin."
+  },
+  {
+   "m": "facteur",
+   "f": "factrice",
+   "detail": "Je connais toutes les boîtes aux lettres de la vallée."
+  },
+  {
+   "m": "coiffeur",
+   "f": "coiffeuse",
+   "detail": "J'ai mon salon près de la place."
+  },
+  {
+   "m": "garagiste",
+   "f": "garagiste",
+   "detail": "Je répare surtout des tracteurs et des vieilles voitures."
+  },
+  {
+   "m": "comptable",
+   "f": "comptable",
+   "detail": "Des chiffres toute la journée."
+  },
+  {
+   "m": "musicien",
+   "f": "musicienne",
+   "detail": "Je joue dans les mariages et les fêtes de village."
+  },
+  {
+   "m": "pharmacien",
+   "f": "pharmacienne",
+   "detail": "On me raconte tous les bobos du canton."
+  },
+  {
+   "m": "cuisinier",
+   "f": "cuisinière",
+   "detail": "Au restaurant, en bas de la côte."
+  },
+  {
+   "m": "routier",
+   "f": "routière",
+   "detail": "Toute la semaine sur l'autoroute."
+  },
+  {
+   "m": "apiculteur",
+   "f": "apicultrice",
+   "detail": "Quarante ruches sur les collines."
+  }
  ],
- "loisirs": ["la pétanque", "la randonnée sur les collines", "le jardinage", "la pêche à l'étang", "le vélo", "les mots croisés", "la chorale", "le rugby", "la belote", "la danse de salon", "les champignons", "la photo"],
- "animaux": ["un chat qui s'appelle Moustache", "un vieux chien, Pistache", "trois poules", "un perroquet qui parle trop", "deux lapins", "un poisson rouge, Bulle", "un âne, Cadichon"],
- "familles": ["deux petits-enfants", "un fils à Lyon", "une fille qui vit au Canada", "des jumeaux de six ans", "une grande famille, on est onze à Noël", "personne, et c'est très bien comme ça", "un frère qui ne m'appelle jamais"],
- "sujets": {
-  "vie": [
-   {"dit": "Je suis {metier}. {metier_detail}", "rep": [
-    {"t": "Ça doit être passionnant !", "ton": "chaleureux"}, {"t": "Et ça vous plaît toujours ?", "ton": "curieux"},
-    {"t": "Moi je conduis, c'est déjà du sport.", "ton": "drole"}, {"t": "Je vois.", "ton": "sobre"}]},
-   {"dit": "Le week-end, c'est {loisir}. Rien d'autre ne compte.", "rep": [
-    {"t": "Vous avez bien raison.", "ton": "chaleureux"}, {"t": "Vous en faites depuis longtemps ?", "ton": "curieux"},
-    {"t": "Et la semaine, c'est quoi ? Le taxi ?", "ton": "drole"}, {"t": "Chacun son truc.", "ton": "sobre"}]},
-   {"dit": "J'ai {famille}. On ne choisit pas, hein.", "rep": [
-    {"t": "C'est précieux, la famille.", "ton": "chaleureux"}, {"t": "Vous les voyez souvent ?", "ton": "curieux"},
-    {"t": "On choisit ses amis, pas sa famille !", "ton": "drole"}, {"t": "C'est comme ça.", "ton": "sobre"}]},
-   {"dit": "À la maison j'ai {animal}. C'est le vrai chef de la famille.", "rep": [
-    {"t": "Oh, ça doit être adorable.", "ton": "chaleureux"}, {"t": "Il a quel âge ?", "ton": "curieux"},
-    {"t": "Chez moi c'est pareil, c'est la voiture qui commande.", "ton": "drole"}, {"t": "Hm.", "ton": "sobre"}]},
-   {"dit": "J'ai {age} ans, vous savez. On ne dirait pas, hein ?", "rep": [
-    {"t": "Pas du tout, vous faites bien plus jeune !", "ton": "chaleureux"}, {"t": "Et quel est votre secret ?", "ton": "curieux"},
-    {"t": "Moi j'aurais dit {age} et demi.", "ton": "drole"}, {"t": "Si vous le dites.", "ton": "sobre"}]},
-   {"dit": "Si c'était à refaire, j'aurais été pilote de rallye. Comme vous, quoi.", "rep": [
-    {"t": "Il n'est jamais trop tard !", "ton": "chaleureux"}, {"t": "Qu'est-ce qui vous en a empêché ?", "ton": "curieux"},
-    {"t": "Accrochez-vous, je vous fais une démonstration.", "ton": "drole"}, {"t": "Je respecte les limitations.", "ton": "sobre"}]}
+ "loisirs": [
+  "la pétanque",
+  "la randonnée sur les collines",
+  "le jardinage",
+  "la pêche à l'étang",
+  "le vélo",
+  "les mots croisés",
+  "la chorale",
+  "le rugby",
+  "la belote",
+  "la danse de salon",
+  "les champignons",
+  "la photo"
+ ],
+ "animaux": [
+  "un chat qui s'appelle Moustache",
+  "un vieux chien, Pistache",
+  "trois poules",
+  "un perroquet qui parle trop",
+  "deux lapins",
+  "un poisson rouge, Bulle",
+  "un âne, Cadichon"
+ ],
+ "familles": [
+  "deux petits-enfants",
+  "un fils à Lyon",
+  "une fille qui vit au Canada",
+  "des jumeaux de six ans",
+  "une grande famille, on est onze à Noël",
+  "personne, et c'est très bien comme ça",
+  "un frère qui ne m'appelle jamais"
+ ],
+ "questions": [
+  {
+   "id": "metier",
+   "t": [
+    "Vous faites quoi dans la vie ?",
+    "Vous travaillez dans quoi ?",
+    "C'est quoi, votre métier ?"
+   ],
+   "fait": [
+    "Je suis {metier}. {metier_detail}",
+    "{metier}. {metier_detail} Ça vous étonne ?"
+   ]
+  },
+  {
+   "id": "famille",
+   "t": [
+    "Vous avez de la famille par ici ?",
+    "Vous avez des enfants ?",
+    "Quelqu'un vous attend, ce soir ?"
+   ],
+   "fait": [
+    "J'ai {famille}.",
+    "Oh, j'ai {famille}. C'est comme ça."
+   ]
+  },
+  {
+   "id": "loisir",
+   "t": [
+    "Vous faites quoi, le week-end ?",
+    "Vous avez une passion ?",
+    "Qu'est-ce qui vous occupe, à part le travail ?"
+   ],
+   "fait": [
+    "Moi, c'est {loisir}. Tous les dimanches.",
+    "{loisir}, sans hésiter. J'en ferais tous les jours."
+   ]
+  },
+  {
+   "id": "animal",
+   "t": [
+    "Vous avez des animaux ?",
+    "Il y a des bêtes, chez vous ?"
+   ],
+   "fait": [
+    "J'ai {animal}.",
+    "Oui, j'ai {animal}. Une vraie personne de la famille."
+   ]
+  },
+  {
+   "id": "origine",
+   "t": [
+    "Vous êtes d'ici ?",
+    "Vous habitez dans le coin ?",
+    "Vous venez d'où, comme ça ?"
+   ],
+   "fait": [
+    "J'habite à {commune}, depuis toujours.",
+    "De {commune}. C'est petit, mais on s'y plaît."
+   ]
+  },
+  {
+   "id": "destination",
+   "t": [
+    "Vous allez faire quoi, là-bas ?",
+    "C'est pour quoi, cette course ?"
+   ],
+   "fait": [
+    "Je vais à {dest}. Une affaire à régler.",
+    "{dest}, à {dest_commune}. On m'attend."
+   ]
+  },
+  {
+   "id": "aime",
+   "t": [
+    "Qu'est-ce qui vous fait plaisir, en général ?",
+    "Vous êtes plutôt du genre à rire ou à rester tranquille ?",
+    "Qu'est-ce que vous aimez, dans la vie ?"
+   ]
+  },
+  {
+   "id": "humeur",
+   "t": [
+    "Vous avez passé une bonne journée ?",
+    "Comment ça va, aujourd'hui ?",
+    "Ça va, vous ? Pas trop fatigué ?"
+   ]
+  },
+  {
+   "id": "musique",
+   "t": [
+    "Vous écoutez quoi, comme musique ?",
+    "Je mets un peu de musique ? Vous aimez quoi ?"
+   ]
+  }
+ ],
+ "esquive": [
+  "Je préfère ne pas répondre.",
+  "Ça ne vous regarde pas trop, si ?",
+  "On parlera de ça une autre fois.",
+  "Hm. Regardez la route, plutôt."
+ ],
+ "fils": {
+  "metier": [
+   [
+    {
+     "dit": "Je suis {metier}. {metier_detail}",
+     "rep": {
+      "chaleureux": "Ça doit être passionnant !",
+      "drole": "Moi je conduis, c'est déjà du sport.",
+      "curieux": "Et ça vous plaît toujours ?",
+      "sobre": "Je vois."
+     }
+    },
+    {
+     "dit": "Il y a des jours avec, et des jours sans. Ce matin, c'était un jour sans.",
+     "rep": {
+      "chaleureux": "Courage, ça va s'arranger.",
+      "drole": "Un jour sans quoi ? Sans café ?",
+      "curieux": "Qu'est-ce qui s'est passé ?",
+      "sobre": "Ça arrive."
+     }
+    },
+    {
+     "dit": "Enfin, je ne changerais pour rien au monde, je crois.",
+     "rep": {
+      "chaleureux": "C'est beau d'aimer ce qu'on fait.",
+      "drole": "Même pas pour être chauffeur de taxi ?",
+      "curieux": "Vous avez déjà pensé à faire autre chose ?",
+      "sobre": "Tant mieux."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Vous savez, mon métier, on ne s'en rend pas compte, mais c'est fatigant.",
+     "rep": {
+      "chaleureux": "J'imagine, vous méritez du repos.",
+      "drole": "Plus fatigant que d'écouter mes clients ?",
+      "curieux": "Qu'est-ce qui est le plus dur ?",
+      "sobre": "Comme tous les métiers."
+     }
+    },
+    {
+     "dit": "Les horaires, surtout. Je ne vois plus mes amis.",
+     "rep": {
+      "chaleureux": "Il faut prendre du temps pour vous.",
+      "drole": "Vos amis vous attendent sûrement au café.",
+      "curieux": "Vous travaillez combien d'heures, en vrai ?",
+      "sobre": "Les horaires, oui."
+     }
+    },
+    {
+     "dit": "Bah. On fait avec. Et puis il faut bien payer les factures.",
+     "rep": {
+      "chaleureux": "Vous avez du courage, en tout cas.",
+      "drole": "Les factures, elles, ne prennent jamais de vacances.",
+      "curieux": "Vous pourriez changer de rythme ?",
+      "sobre": "C'est la vie."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "J'ai commencé tout jeune, vous savez. À seize ans.",
+     "rep": {
+      "chaleureux": "Quel parcours, chapeau.",
+      "drole": "À seize ans, moi je dormais jusqu'à midi.",
+      "curieux": "Qui vous a appris le métier ?",
+      "sobre": "Tôt, en effet."
+     }
+    },
+    {
+     "dit": "C'est mon oncle qui m'a tout appris. Un caractère, celui-là.",
+     "rep": {
+      "chaleureux": "Il doit être fier de vous.",
+      "drole": "Un caractère de cochon ou un caractère en or ?",
+      "curieux": "Il fait toujours le métier ?",
+      "sobre": "Je vois le genre."
+     }
+    },
+    {
+     "dit": "Il est parti l'an dernier. Je pense souvent à lui en travaillant.",
+     "rep": {
+      "chaleureux": "Il continue de vous accompagner, alors.",
+      "drole": "Je suis sûr qu'il vous surveille d'en haut.",
+      "curieux": "Quel souvenir vous reste de lui ?",
+      "sobre": "Je suis désolé."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Aujourd'hui, j'ai eu une journée de fou au travail.",
+     "rep": {
+      "chaleureux": "Vous allez pouvoir vous reposer, maintenant.",
+      "drole": "De fou, ou de fou furieux ?",
+      "curieux": "Qu'est-ce qui s'est passé ?",
+      "sobre": "Ça arrive."
+     }
+    },
+    {
+     "dit": "Mon chef m'a demandé de tout refaire. Trois semaines de travail.",
+     "rep": {
+      "chaleureux": "C'est injuste, je comprends que ça vous pèse.",
+      "drole": "Il voulait peut-être juste vous occuper.",
+      "curieux": "Il vous a expliqué pourquoi ?",
+      "sobre": "C'est rageant."
+     }
+    },
+    {
+     "dit": "Bon. Demain est un autre jour, comme on dit.",
+     "rep": {
+      "chaleureux": "Exactement, et vous avez bien mérité votre soirée.",
+      "drole": "Et demain, c'est peut-être lui qui refait tout.",
+      "curieux": "Vous allez faire quoi, ce soir, pour vous détendre ?",
+      "sobre": "C'est sage."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "On m'a proposé une promotion. Mais il faudrait déménager à Paris.",
+     "rep": {
+      "chaleureux": "C'est une belle reconnaissance, bravo.",
+      "drole": "Paris ? Il y a des collines, au moins ?",
+      "curieux": "Vous en avez envie ?",
+      "sobre": "Grosse décision."
+     }
+    },
+    {
+     "dit": "Je ne sais pas. Ici, j'ai mes habitudes, mes amis, mon jardin.",
+     "rep": {
+      "chaleureux": "Ce sont des choses précieuses, aussi.",
+      "drole": "Et votre taxi préféré, surtout.",
+      "curieux": "Qu'est-ce qui vous retient le plus ?",
+      "sobre": "Je comprends."
+     }
+    },
+    {
+     "dit": "Je crois que je vais dire non. La vie est trop courte.",
+     "rep": {
+      "chaleureux": "Ça me semble une sage décision.",
+      "drole": "Paris perd quelqu'un de bien, tant pis pour eux.",
+      "curieux": "Vous ne regretterez pas ?",
+      "sobre": "C'est votre choix."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Je viens de prendre ma retraite. C'est mon premier jour.",
+     "rep": {
+      "chaleureux": "Félicitations, profitez bien de ce nouveau temps !",
+      "drole": "Premier jour de vacances pour toujours !",
+      "curieux": "Qu'est-ce que vous allez faire, maintenant ?",
+      "sobre": "Félicitations."
+     }
+    },
+    {
+     "dit": "C'est bizarre. Je me suis réveillé{e} à six heures, par habitude.",
+     "rep": {
+      "chaleureux": "Ça viendra, il faut le temps de s'habituer.",
+      "drole": "Le réveil a pris sa retraite plus tard que vous.",
+      "curieux": "Qu'est-ce qui va vous manquer ?",
+      "sobre": "C'est normal."
+     }
+    },
+    {
+     "dit": "Les collègues, surtout. On a ri pendant trente ans.",
+     "rep": {
+      "chaleureux": "Vous pourrez continuer à les voir, j'en suis sûr.",
+      "drole": "Organisez des pots de retraite toutes les semaines.",
+      "curieux": "Vous avez prévu de les revoir ?",
+      "sobre": "Ça se comprend."
+     }
+    }
+   ]
   ],
   "maison": [
-   {"dit": "J'habite à {commune} depuis toujours. Ici, tout le monde se connaît.", "rep": [
-    {"t": "C'est un coin magnifique.", "ton": "chaleureux"}, {"t": "Ça a beaucoup changé ?", "ton": "curieux"},
-    {"t": "Donc tout le monde sait que vous prenez un taxi !", "ton": "drole"}, {"t": "Je connais.", "ton": "sobre"}]},
-   {"dit": "Ma maison est au bout du chemin, avec le portail vert. Mon père l'a construite de ses mains.", "rep": [
-    {"t": "Quel beau souvenir.", "ton": "chaleureux"}, {"t": "Il était maçon ?", "ton": "curieux"},
-    {"t": "Et le portail, c'est vous qui l'avez repeint ?", "ton": "drole"}, {"t": "Bien.", "ton": "sobre"}]},
-   {"dit": "Mes voisins ont mis une piscine. Depuis, j'ai des amis que je ne connaissais pas !", "rep": [
-    {"t": "Ha, c'est ça, la vie de village.", "ton": "chaleureux"}, {"t": "Vous y allez, vous ?", "ton": "curieux"},
-    {"t": "Il me faut leur adresse, du coup.", "ton": "drole"}, {"t": "Classique.", "ton": "sobre"}]},
-   {"dit": "Dans mon jardin j'ai des tomates, des courgettes… et des limaces, beaucoup de limaces.", "rep": [
-    {"t": "Rien ne vaut les légumes du jardin.", "ton": "chaleureux"}, {"t": "Vous avez une astuce contre les limaces ?", "ton": "curieux"},
-    {"t": "Les limaces aussi, elles aiment le bio.", "ton": "drole"}, {"t": "C'est la saison.", "ton": "sobre"}]},
-   {"dit": "Le soir, de chez moi, on voit les lumières de Bourgoin dans la vallée. C'est joli.", "rep": [
-    {"t": "Ça doit être très apaisant.", "ton": "chaleureux"}, {"t": "Et par temps clair, on voit les Alpes ?", "ton": "curieux"},
-    {"t": "Comme à Las Vegas, en plus petit.", "ton": "drole"}, {"t": "Hm.", "ton": "sobre"}]},
-   {"dit": "Le clocher sonne toutes les heures à côté de chez moi. Même la nuit. Surtout la nuit.", "rep": [
-    {"t": "On finit par s'y habituer, non ?", "ton": "chaleureux"}, {"t": "Vous avez essayé les bouchons d'oreille ?", "ton": "curieux"},
-    {"t": "Au moins vous n'avez pas besoin de réveil.", "ton": "drole"}, {"t": "C'est la campagne.", "ton": "sobre"}]}
+   [
+    {
+     "dit": "J'habite à {commune}, depuis toujours.",
+     "rep": {
+      "chaleureux": "C'est un joli coin.",
+      "drole": "Toujours ? Même avant votre naissance ?",
+      "curieux": "Ça a beaucoup changé, depuis ?",
+      "sobre": "D'accord."
+     }
+    },
+    {
+     "dit": "Avant, il y avait trois cafés et une épicerie. Maintenant, plus rien.",
+     "rep": {
+      "chaleureux": "C'est triste, ces villages qui se vident.",
+      "drole": "Il reste au moins le taxi !",
+      "curieux": "Qu'est-ce qui vous manque le plus ?",
+      "sobre": "C'est partout pareil."
+     }
+    },
+    {
+     "dit": "Mais les voisins sont toujours là. Ça, c'est précieux.",
+     "rep": {
+      "chaleureux": "Les bons voisins, c'est un trésor.",
+      "drole": "Tant qu'ils ne font pas de karaoké le soir.",
+      "curieux": "Vous vous voyez souvent ?",
+      "sobre": "C'est important."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "J'ai fait refaire ma toiture cet été. Quelle histoire !",
+     "rep": {
+      "chaleureux": "Au moins, vous serez au sec cet hiver.",
+      "drole": "Vous avez retrouvé un nid d'hirondelles dans la facture ?",
+      "curieux": "Qu'est-ce qui s'est passé ?",
+      "sobre": "Les travaux, toujours long."
+     }
+    },
+    {
+     "dit": "L'artisan est venu trois fois en quatre mois. Trois fois !",
+     "rep": {
+      "chaleureux": "Quelle patience vous avez eue.",
+      "drole": "Il devait faire le tour de la France en tuiles.",
+      "curieux": "Vous avez fini par en trouver un autre ?",
+      "sobre": "C'est fréquent."
+     }
+    },
+    {
+     "dit": "Enfin, c'est fini. Et c'est beau, je dois dire.",
+     "rep": {
+      "chaleureux": "Vous pouvez en être fier.",
+      "drole": "Il faudra pendre la crémaillère !",
+      "curieux": "Vous avez choisi quelle couleur de tuiles ?",
+      "sobre": "Tant mieux."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Mon jardin, c'est toute ma fierté. Des tomates, des courges, des haricots…",
+     "rep": {
+      "chaleureux": "Ça doit être un bonheur.",
+      "drole": "Vous me gardez une courge pour Halloween ?",
+      "curieux": "Quel est votre secret pour les tomates ?",
+      "sobre": "Bel endroit, sûrement."
+     }
+    },
+    {
+     "dit": "Le secret, c'est de leur parler. Si, si, je vous assure.",
+     "rep": {
+      "chaleureux": "C'est joli, cette idée.",
+      "drole": "Et elles vous répondent ?",
+      "curieux": "Vous leur dites quoi, aux tomates ?",
+      "sobre": "Pourquoi pas."
+     }
+    },
+    {
+     "dit": "Cette année, elles étaient énormes. Le voisin est jaloux.",
+     "rep": {
+      "chaleureux": "Bravo, c'est mérité.",
+      "drole": "Faites attention, il va venir les voler la nuit.",
+      "curieux": "Vous en faites quoi, de tout ça ?",
+      "sobre": "Belle récolte."
+     }
+    }
+   ]
+  ],
+  "famille": [
+   [
+    {
+     "dit": "J'ai {famille}.",
+     "rep": {
+      "chaleureux": "C'est une richesse, la famille.",
+      "drole": "Et ça fait du bruit, à Noël ?",
+      "curieux": "Vous les voyez souvent ?",
+      "sobre": "D'accord."
+     }
+    },
+    {
+     "dit": "Pas aussi souvent que je voudrais. Tout le monde court partout.",
+     "rep": {
+      "chaleureux": "Chaque moment ensemble compte, alors.",
+      "drole": "Il faudrait leur offrir un taxi.",
+      "curieux": "Qu'est-ce qui vous empêche de les voir ?",
+      "sobre": "C'est la vie moderne."
+     }
+    },
+    {
+     "dit": "Dimanche, on fait un grand repas. J'ai hâte.",
+     "rep": {
+      "chaleureux": "Ça va être un beau moment.",
+      "drole": "Prévoyez le pantalon élastique.",
+      "curieux": "Qu'est-ce que vous allez cuisiner ?",
+      "sobre": "Bon dimanche, alors."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Ma fille vient de m'annoncer qu'elle attend un bébé !",
+     "rep": {
+      "chaleureux": "Oh, quelle merveilleuse nouvelle !",
+      "drole": "Vous allez devenir une star des photos de famille.",
+      "curieux": "C'est pour quand ?",
+      "sobre": "Félicitations."
+     }
+    },
+    {
+     "dit": "Au printemps. Je suis tellement ému{e}, je n'en dors plus.",
+     "rep": {
+      "chaleureux": "C'est normal, c'est un bonheur immense.",
+      "drole": "Profitez du sommeil tant qu'il en reste !",
+      "curieux": "Vous savez si c'est une fille ou un garçon ?",
+      "sobre": "Je comprends."
+     }
+    },
+    {
+     "dit": "Je tricote déjà des petits chaussons. Je suis {nul|nulle} en tricot.",
+     "rep": {
+      "chaleureux": "Ce sera le plus beau cadeau.",
+      "drole": "Des chaussons asymétriques, c'est tendance.",
+      "curieux": "Vous en avez fait combien ?",
+      "sobre": "L'intention compte."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Mon frère et moi, on ne se parle plus depuis dix ans.",
+     "rep": {
+      "chaleureux": "C'est dur, ces silences en famille.",
+      "drole": "Dix ans ? Il doit avoir des choses à raconter.",
+      "curieux": "Qu'est-ce qui s'est passé ?",
+      "sobre": "Ça arrive."
+     }
+    },
+    {
+     "dit": "Une histoire d'héritage. Une maison. Des bêtises, au fond.",
+     "rep": {
+      "chaleureux": "C'est souvent pour des choses comme ça.",
+      "drole": "Une maison, ça ne vaut pas un frère. Sauf avec piscine.",
+      "curieux": "Vous aimeriez renouer ?",
+      "sobre": "Je vois."
+     }
+    },
+    {
+     "dit": "Peut-être que je l'appellerai. Un jour. Peut-être.",
+     "rep": {
+      "chaleureux": "Je suis sûr qu'il attend ce coup de fil.",
+      "drole": "Appelez-le, et proposez-lui un taxi.",
+      "curieux": "Qu'est-ce qui vous retient ?",
+      "sobre": "C'est à vous de voir."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Mon petit-fils passe son permis de conduire demain.",
+     "rep": {
+      "chaleureux": "Je lui souhaite plein de réussite !",
+      "drole": "Prévenez les autres conducteurs.",
+      "curieux": "C'est sa première fois ?",
+      "sobre": "Bonne chance à lui."
+     }
+    },
+    {
+     "dit": "C'est sa troisième tentative. Il cale toujours au démarrage.",
+     "rep": {
+      "chaleureux": "La troisième sera la bonne, j'en suis sûr.",
+      "drole": "Au moins, il ne roule pas trop vite.",
+      "curieux": "Il est stressé ?",
+      "sobre": "Ça arrive."
+     }
+    },
+    {
+     "dit": "S'il l'a, il pourra m'emmener faire les courses. Fini le taxi !",
+     "rep": {
+      "chaleureux": "Ce sera une belle fierté pour vous deux.",
+      "drole": "Vous allez me faire perdre une cliente !",
+      "curieux": "Il conduit comment, en vrai ?",
+      "sobre": "Bien sûr."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Ma mère a quatre-vingt-quinze ans et elle conduit encore.",
+     "rep": {
+      "chaleureux": "Quelle énergie, c'est formidable !",
+      "drole": "Il faut que je fasse attention à elle sur la route.",
+      "curieux": "Elle a quel secret ?",
+      "sobre": "Étonnant."
+     }
+    },
+    {
+     "dit": "Elle dit que c'est grâce à un petit verre de vin chaque soir.",
+     "rep": {
+      "chaleureux": "C'est une jolie philosophie de vie.",
+      "drole": "Je note : un petit verre, mais pas avant de conduire.",
+      "curieux": "Elle a toujours vécu ici ?",
+      "sobre": "Pourquoi pas."
+     }
+    },
+    {
+     "dit": "Elle me répète que je suis trop sérieux{e}. À mon âge !",
+     "rep": {
+      "chaleureux": "Les mamans restent des mamans.",
+      "drole": "Elle a peut-être raison, vous savez.",
+      "curieux": "Et vous, vous vous trouvez trop sérieux ?",
+      "sobre": "C'est drôle."
+     }
+    }
+   ]
+  ],
+  "loisir": [
+   [
+    {
+     "dit": "Moi, ma passion, c'est {loisir}.",
+     "rep": {
+      "chaleureux": "C'est bien d'avoir une passion.",
+      "drole": "Vous êtes champion départemental, j'espère ?",
+      "curieux": "Depuis quand vous en faites ?",
+      "sobre": "Pas mal."
+     }
+    },
+    {
+     "dit": "Depuis vingt ans. Et je ne m'en lasse pas.",
+     "rep": {
+      "chaleureux": "C'est beau, cette fidélité.",
+      "drole": "Vingt ans, ça mérite une médaille.",
+      "curieux": "Qu'est-ce qui vous plaît tant ?",
+      "sobre": "Bel engagement."
+     }
+    },
+    {
+     "dit": "C'est le seul moment où j'oublie tout. Le reste disparaît.",
+     "rep": {
+      "chaleureux": "On en a tous besoin, de ces moments-là.",
+      "drole": "Même les impôts ?",
+      "curieux": "Vous en faites avec des amis ?",
+      "sobre": "Je comprends."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Ce week-end, il y a un concours de belote à la salle des fêtes.",
+     "rep": {
+      "chaleureux": "Ça va être une belle soirée.",
+      "drole": "Attention, les mamies trichent, je le sais.",
+      "curieux": "Vous jouez souvent ?",
+      "sobre": "Bonne chance."
+     }
+    },
+    {
+     "dit": "L'an dernier, j'ai fini deuxième. À cause d'une dame de pique.",
+     "rep": {
+      "chaleureux": "Deuxième, c'est déjà très bien.",
+      "drole": "La dame de pique, toujours elle.",
+      "curieux": "Qui a gagné, alors ?",
+      "sobre": "Pas de chance."
+     }
+    },
+    {
+     "dit": "Cette année, je vise la première place. J'ai de l'entraînement.",
+     "rep": {
+      "chaleureux": "Je vous la souhaite de tout cœur.",
+      "drole": "Je parie sur vous, double ou rien.",
+      "curieux": "Vous vous entraînez comment ?",
+      "sobre": "On verra."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "J'ai trouvé des cèpes énormes la semaine dernière dans les bois.",
+     "rep": {
+      "chaleureux": "Quelle chance, ça doit être délicieux.",
+      "drole": "Vous me dites où ? Non, je plaisante. Quoique…",
+      "curieux": "Vous les avez cuisinés comment ?",
+      "sobre": "Joli."
+     }
+    },
+    {
+     "dit": "Mais je ne dirai jamais où. Même sous la torture.",
+     "rep": {
+      "chaleureux": "C'est votre petit secret, c'est normal.",
+      "drole": "Je vous suivrai en taxi, discrètement.",
+      "curieux": "Ça fait longtemps que vous connaissez le coin ?",
+      "sobre": "Je respecte."
+     }
+    },
+    {
+     "dit": "Mon père m'emmenait déjà là-bas quand j'étais petit{e}.",
+     "rep": {
+      "chaleureux": "C'est un joli souvenir à garder.",
+      "drole": "Les champignons de famille, ça se transmet.",
+      "curieux": "Vous y emmenez vos enfants, à votre tour ?",
+      "sobre": "Belle tradition."
+     }
+    }
+   ]
   ],
   "nouvelles": [
-   {"dit": "Vous avez entendu ? La vogue de {commune} est reportée à cause de la pluie.", "rep": [
-    {"t": "Dommage, c'est un beau moment.", "ton": "chaleureux"}, {"t": "Reportée à quand ?", "ton": "curieux"},
-    {"t": "La pluie aussi voulait faire un tour de manège.", "ton": "drole"}, {"t": "C'est la météo.", "ton": "sobre"}]},
-   {"dit": "Ils refont encore la route de Saint-Chef. Ça fait trois fois en deux ans !", "rep": [
-    {"t": "Au moins elle sera belle.", "ton": "chaleureux"}, {"t": "Pourquoi tant de travaux, d'après vous ?", "ton": "curieux"},
-    {"t": "Ils cherchent un trésor, c'est sûr.", "ton": "drole"}, {"t": "Ça arrive.", "ton": "sobre"}]},
-   {"dit": "Le club de rugby de Bourgoin a gagné dimanche. Toute la ville klaxonnait !", "rep": [
-    {"t": "Bravo à eux, ça fait plaisir.", "ton": "chaleureux"}, {"t": "Vous étiez au stade ?", "ton": "curieux"},
-    {"t": "J'ai klaxonné aussi, mais c'était un bouchon.", "ton": "drole"}, {"t": "Tant mieux.", "ton": "sobre"}]},
-   {"dit": "Il paraît qu'on a vu une soucoupe volante au-dessus des champs, l'autre nuit. Une soucoupe !", "rep": [
-    {"t": "Ça alors… vous l'avez vue ?", "ton": "curieux"}, {"t": "Elle cherchait peut-être son chemin, la pauvre.", "ton": "chaleureux"},
-    {"t": "Ah, c'était moi, elle m'a remorqué.", "ton": "drole"}, {"t": "Les gens racontent n'importe quoi.", "ton": "sobre"}]},
-   {"dit": "Le marché de Bourgoin a un nouveau fromager. Son saint-marcellin, une merveille.", "rep": [
-    {"t": "Ah, j'irai goûter !", "ton": "chaleureux"}, {"t": "Il est là quels jours ?", "ton": "curieux"},
-    {"t": "Pas dans mon taxi, par contre, l'odeur…", "ton": "drole"}, {"t": "Noté.", "ton": "sobre"}]},
-   {"dit": "La boulangerie du bourg ferme en août. Tout le village est en deuil.", "rep": [
-    {"t": "Ils méritent bien leurs vacances.", "ton": "chaleureux"}, {"t": "Et vous ferez comment pour le pain ?", "ton": "curieux"},
-    {"t": "Un mois sans croissant, c'est un drame national.", "ton": "drole"}, {"t": "Ça arrive tous les ans.", "ton": "sobre"}]},
-   {"dit": "La mairie veut installer des ralentisseurs partout. Partout !", "rep": [
-    {"t": "C'est pour la sécurité des enfants.", "ton": "chaleureux"}, {"t": "Vous êtes pour ou contre ?", "ton": "curieux"},
-    {"t": "Mes amortisseurs ont déjà démissionné.", "ton": "drole"}, {"t": "Je ralentirai.", "ton": "sobre"}]}
+   [
+    {
+     "dit": "Vous avez entendu ? Ils vont refaire la route de la vallée.",
+     "rep": {
+      "chaleureux": "Enfin, elle en a bien besoin.",
+      "drole": "Ils vont boucher les nids-de-poule ? Les poules vont être déçues.",
+      "curieux": "Vous savez quand commencent les travaux ?",
+      "sobre": "Je ne savais pas."
+     }
+    },
+    {
+     "dit": "Six mois de travaux, paraît-il. Avec des déviations partout.",
+     "rep": {
+      "chaleureux": "Il faudra être patient.",
+      "drole": "Six mois, en langage de travaux, ça fait deux ans.",
+      "curieux": "Vous passez souvent par là ?",
+      "sobre": "Ça va être long."
+     }
+    },
+    {
+     "dit": "Bon, au moins, après, ce sera tout lisse.",
+     "rep": {
+      "chaleureux": "On en profitera tous.",
+      "drole": "Idéal pour les courses de taxis.",
+      "curieux": "Vous pensez que ça va changer quelque chose ?",
+      "sobre": "On verra bien."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "La boulangerie de la place a changé de propriétaire.",
+     "rep": {
+      "chaleureux": "J'espère qu'ils sont gentils.",
+      "drole": "Tant que les croissants restent, je pardonne tout.",
+      "curieux": "Qui l'a reprise ?",
+      "sobre": "Ah bon."
+     }
+    },
+    {
+     "dit": "Un jeune couple de Lyon. Ils font du pain au levain, avec des graines.",
+     "rep": {
+      "chaleureux": "C'est bien, des jeunes qui s'installent.",
+      "drole": "Du pain avec des graines, mes oiseaux vont adorer.",
+      "curieux": "Vous l'avez goûté ?",
+      "sobre": "Je vois."
+     }
+    },
+    {
+     "dit": "Les anciens râlent, mais tout le monde y va quand même.",
+     "rep": {
+      "chaleureux": "C'est plutôt bon signe, alors.",
+      "drole": "Râler, c'est le sport national.",
+      "curieux": "Vous en pensez quoi, vous ?",
+      "sobre": "Classique."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Il paraît qu'on a vu un loup sur les collines, la semaine dernière.",
+     "rep": {
+      "chaleureux": "Pourvu que les bêtes soient en sécurité.",
+      "drole": "Un loup ? Ou le chien du voisin mal coiffé ?",
+      "curieux": "Qui l'a vu ?",
+      "sobre": "Étonnant."
+     }
+    },
+    {
+     "dit": "Un chasseur, au petit matin. Il est formel.",
+     "rep": {
+      "chaleureux": "Il a dû avoir peur, le pauvre.",
+      "drole": "Les chasseurs sont toujours formels.",
+      "curieux": "Il a pris une photo ?",
+      "sobre": "Je vois."
+     }
+    },
+    {
+     "dit": "En tout cas, je ne vais plus aux champignons seul{e}.",
+     "rep": {
+      "chaleureux": "C'est plus prudent, oui.",
+      "drole": "Prenez un sifflet et une côtelette.",
+      "curieux": "Vous y croyez vraiment ?",
+      "sobre": "Sage décision."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Le maire a annoncé une fête de village pour la fin du mois.",
+     "rep": {
+      "chaleureux": "Ça va être une belle occasion de se retrouver.",
+      "drole": "Avec un bal et des saucisses, j'espère.",
+      "curieux": "Qu'est-ce qui est prévu ?",
+      "sobre": "Ah, bien."
+     }
+    },
+    {
+     "dit": "Un repas sur la place, un concours de pétanque et un feu d'artifice.",
+     "rep": {
+      "chaleureux": "C'est un joli programme.",
+      "drole": "Le feu d'artifice, c'est pour la pétanque ?",
+      "curieux": "Vous allez y participer ?",
+      "sobre": "Complet."
+     }
+    },
+    {
+     "dit": "Je tiens la buvette, comme chaque année. Venez donc !",
+     "rep": {
+      "chaleureux": "Avec plaisir, si je ne travaille pas.",
+      "drole": "Je viendrai en taxi, pour pouvoir trinquer.",
+      "curieux": "Vous servez quoi, à la buvette ?",
+      "sobre": "Peut-être."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Vous savez que l'école du village risque de fermer ?",
+     "rep": {
+      "chaleureux": "Ce serait vraiment dommage.",
+      "drole": "Les enfants vont applaudir, les parents moins.",
+      "curieux": "Pourquoi elle fermerait ?",
+      "sobre": "Ah bon."
+     }
+    },
+    {
+     "dit": "Plus assez d'enfants. Quatorze élèves, toutes classes confondues.",
+     "rep": {
+      "chaleureux": "C'est le cœur du village, pourtant.",
+      "drole": "Quatorze, c'est une équipe de rugby et demie.",
+      "curieux": "Il y a une solution ?",
+      "sobre": "C'est peu."
+     }
+    },
+    {
+     "dit": "Les parents font une pétition. J'ai signé, bien sûr.",
+     "rep": {
+      "chaleureux": "Vous avez bien fait, il faut se battre.",
+      "drole": "Je signe aussi, même avec mon permis de conduire.",
+      "curieux": "Ça peut marcher, à votre avis ?",
+      "sobre": "Bien."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Il y a eu un cambriolage chez les voisins, cette semaine.",
+     "rep": {
+      "chaleureux": "Ça doit être terrible pour eux.",
+      "drole": "Ils ont emporté le nain de jardin ?",
+      "curieux": "Qu'est-ce qui a été volé ?",
+      "sobre": "C'est malheureux."
+     }
+    },
+    {
+     "dit": "La télé, l'ordinateur, et les bijoux de la grand-mère.",
+     "rep": {
+      "chaleureux": "Les souvenirs, c'est le plus dur à perdre.",
+      "drole": "Et ils ont laissé la belle-mère, pas de chance.",
+      "curieux": "La police a des pistes ?",
+      "sobre": "Je vois."
+     }
+    },
+    {
+     "dit": "Depuis, tout le monde ferme ses volets. Ça change l'ambiance.",
+     "rep": {
+      "chaleureux": "C'est triste de vivre dans la méfiance.",
+      "drole": "Les volets n'ont jamais autant servi.",
+      "curieux": "Vous avez installé une alarme, vous ?",
+      "sobre": "Prudence."
+     }
+    }
+   ]
   ],
   "meteo": [
-   {"dit": "Quel temps, hein ! On ne sait plus s'habiller.", "rep": [
-    {"t": "Heureusement, il fait bon dans la voiture.", "ton": "chaleureux"}, {"t": "Vous avez vu la météo pour demain ?", "ton": "curieux"},
-    {"t": "Moi je m'habille en voiture, c'est plus simple.", "ton": "drole"}, {"t": "C'est la saison.", "ton": "sobre"}]},
-   {"dit": "Avec ce soleil, les vaches vont faire du lait à la fraise.", "rep": [
-    {"t": "Ha, j'adore l'image !", "ton": "chaleureux"}, {"t": "C'est vrai que la chaleur les gêne ?", "ton": "curieux"},
-    {"t": "Et le chocolat, c'est en hiver ?", "ton": "drole"}, {"t": "Hm.", "ton": "sobre"}]}
+   [
+    {
+     "dit": "Quel temps, aujourd'hui !",
+     "rep": {
+      "chaleureux": "C'est vrai que c'est agréable.",
+      "drole": "Un temps à faire sécher le linge et les chauffeurs.",
+      "curieux": "Vous aimez cette saison ?",
+      "sobre": "Oui."
+     }
+    },
+    {
+     "dit": "Moi, je préfère l'automne. Les couleurs sur les collines…",
+     "rep": {
+      "chaleureux": "C'est magnifique, l'automne ici.",
+      "drole": "Et les feuilles mortes dans les gouttières.",
+      "curieux": "Qu'est-ce qui vous plaît, en automne ?",
+      "sobre": "C'est joli."
+     }
+    },
+    {
+     "dit": "Et puis l'odeur des feux de bois, le soir. Ça me rappelle mon enfance.",
+     "rep": {
+      "chaleureux": "C'est une odeur réconfortante.",
+      "drole": "Et celle des châtaignes grillées, surtout.",
+      "curieux": "Vous avez grandi à la campagne ?",
+      "sobre": "Je comprends."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Ils annoncent de l'orage pour ce soir.",
+     "rep": {
+      "chaleureux": "Rentrez bien au chaud, alors.",
+      "drole": "Je vais laver la voiture, il pleuvra sûrement.",
+      "curieux": "Vous avez peur de l'orage ?",
+      "sobre": "On verra."
+     }
+    },
+    {
+     "dit": "La dernière fois, la grêle a abîmé toutes mes salades.",
+     "rep": {
+      "chaleureux": "Quel dommage, après tant de travail.",
+      "drole": "Des salades en confettis, c'est original.",
+      "curieux": "Vous avez pu les sauver ?",
+      "sobre": "Pas de chance."
+     }
+    },
+    {
+     "dit": "Cette fois, j'ai mis des bâches. On verra bien.",
+     "rep": {
+      "chaleureux": "Vous avez bien fait.",
+      "drole": "Les bâches, l'arme secrète du jardinier.",
+      "curieux": "Vous avez d'autres astuces ?",
+      "sobre": "Prudent."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Il fait une de ces chaleurs, l'été maintenant.",
+     "rep": {
+      "chaleureux": "Ce n'est pas facile pour tout le monde.",
+      "drole": "Même la clim de mon taxi transpire.",
+      "curieux": "Vous trouvez que ça a changé ?",
+      "sobre": "C'est vrai."
+     }
+    },
+    {
+     "dit": "Quand j'étais jeune, il neigeait tous les hivers, ici.",
+     "rep": {
+      "chaleureux": "C'était un autre temps.",
+      "drole": "Et vous alliez à l'école en luge ?",
+      "curieux": "Vous vous souvenez du dernier grand hiver ?",
+      "sobre": "Les choses changent."
+     }
+    },
+    {
+     "dit": "Mes petits-enfants n'ont jamais fait de bonhomme de neige.",
+     "rep": {
+      "chaleureux": "C'est triste, j'espère qu'ils en feront un.",
+      "drole": "Il reste la mousse à raser.",
+      "curieux": "Vous les emmenez à la montagne ?",
+      "sobre": "C'est dommage."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Ce matin, il y avait du brouillard partout dans la vallée.",
+     "rep": {
+      "chaleureux": "C'est beau, ces matins d'automne.",
+      "drole": "J'ai cru que les vaches avaient disparu.",
+      "curieux": "Ça arrive souvent, ici ?",
+      "sobre": "Oui."
+     }
+    },
+    {
+     "dit": "On ne voyait pas à dix mètres. J'ai roulé au pas.",
+     "rep": {
+      "chaleureux": "Vous avez bien fait d'être prudent{e}.",
+      "drole": "Au pas ? Comme un cheval de trait.",
+      "curieux": "Vous conduisez souvent dans ces conditions ?",
+      "sobre": "Prudent."
+     }
+    },
+    {
+     "dit": "Et à midi, grand soleil. On ne s'ennuie pas avec la météo.",
+     "rep": {
+      "chaleureux": "C'est ce qui fait le charme du coin.",
+      "drole": "Le temps aussi a ses humeurs.",
+      "curieux": "Vous préférez quoi, comme temps ?",
+      "sobre": "C'est vrai."
+     }
+    }
+   ]
   ],
   "meteo_pluie": [
-   {"dit": "Encore de la pluie… Vos essuie-glaces, ils ne chôment pas.", "rep": [
-    {"t": "Au moins, la campagne est bien verte.", "ton": "chaleureux"}, {"t": "Ça va durer toute la semaine ?", "ton": "curieux"},
-    {"t": "Je les fais travailler, ils sont payés à l'heure.", "ton": "drole"}, {"t": "Je fais attention.", "ton": "sobre"}]}
+   [
+    {
+     "dit": "Quel temps de chien, avec cette pluie !",
+     "rep": {
+      "chaleureux": "Heureusement, vous êtes au sec ici.",
+      "drole": "Les chiens, eux, ont un parapluie ?",
+      "curieux": "Ça fait longtemps qu'il pleut comme ça ?",
+      "sobre": "Oui, il pleut."
+     }
+    },
+    {
+     "dit": "Mon jardin va être noyé. Mes tomates n'aiment pas ça du tout.",
+     "rep": {
+      "chaleureux": "Elles vont s'en remettre, j'en suis sûr.",
+      "drole": "Faites-leur des petits imperméables.",
+      "curieux": "Vous les avez protégées ?",
+      "sobre": "C'est la météo."
+     }
+    },
+    {
+     "dit": "Enfin, la nature en avait besoin, il paraît.",
+     "rep": {
+      "chaleureux": "C'est vrai, tout va reverdir.",
+      "drole": "Et les escargots sont ravis.",
+      "curieux": "Vous avez un puits pour récupérer l'eau ?",
+      "sobre": "Sans doute."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Faites attention, ça glisse sur ces petites routes.",
+     "rep": {
+      "chaleureux": "Ne vous en faites pas, je suis prudent.",
+      "drole": "Pas de souci, j'ai des pneus de pédalo.",
+      "curieux": "Vous avez déjà eu un accident ?",
+      "sobre": "Je fais attention."
+     }
+    },
+    {
+     "dit": "Mon cousin est parti dans le fossé l'an dernier, par un temps pareil.",
+     "rep": {
+      "chaleureux": "J'espère qu'il n'a rien eu.",
+      "drole": "Il a dû trouver le fossé très confortable.",
+      "curieux": "Comment ça s'est passé ?",
+      "sobre": "Ça arrive vite."
+     }
+    },
+    {
+     "dit": "Plus de peur que de mal. Mais depuis, je suis {inquiet|inquiète} sous la pluie.",
+     "rep": {
+      "chaleureux": "C'est bien normal, je roule doucement.",
+      "drole": "Je promets de ne pas tester le fossé.",
+      "curieux": "Vous préférez qu'on ralentisse ?",
+      "sobre": "Compris."
+     }
+    }
+   ]
   ],
-  "destination": {
-   "ecole": [{"dit": "Je vais chercher les enfants à {dest}. Ils sortent dans dix minutes !", "rep": [
-     {"t": "On sera à l'heure, promis.", "ton": "chaleureux"}, {"t": "Ils sont en quelle classe ?", "ton": "curieux"},
-     {"t": "Accrochez-vous, mode rallye activé.", "ton": "drole"}, {"t": "Compris.", "ton": "sobre"}]}],
-   "sante": [{"dit": "J'ai rendez-vous à {dest}. Rien de grave… j'espère.", "rep": [
-     {"t": "Je vous souhaite que ce soit rien du tout.", "ton": "chaleureux"}, {"t": "Un simple contrôle ?", "ton": "curieux"},
-     {"t": "Je conduis doucement, pas de risque d'en rajouter.", "ton": "drole"}, {"t": "On y va.", "ton": "sobre"}]}],
-   "culte": [{"dit": "Je vais à {dest}. Il y a un mariage, ma nièce se marie !", "rep": [
-     {"t": "Oh, félicitations à elle !", "ton": "chaleureux"}, {"t": "Avec qui se marie-t-elle ?", "ton": "curieux"},
-     {"t": "Je klaxonnerai en arrivant, c'est la tradition.", "ton": "drole"}, {"t": "Entendu.", "ton": "sobre"}]}],
-   "sport": [{"dit": "Direction {dest}, j'ai entraînement. On a un match important samedi.", "rep": [
-     {"t": "Je vous souhaite de gagner !", "ton": "chaleureux"}, {"t": "Contre qui vous jouez ?", "ton": "curieux"},
-     {"t": "L'échauffement, c'est le trajet en taxi ?", "ton": "drole"}, {"t": "Bien.", "ton": "sobre"}]}],
-   "mairie": [{"dit": "Je vais à {dest} pour des papiers. Les papiers, toujours les papiers…", "rep": [
-     {"t": "Courage, ce sera vite fait.", "ton": "chaleureux"}, {"t": "C'est pour quoi, si ce n'est pas indiscret ?", "ton": "curieux"},
-     {"t": "Prenez un stylo, ils en manquent toujours.", "ton": "drole"}, {"t": "Je comprends.", "ton": "sobre"}]}],
-   "poste": [{"dit": "Je dois envoyer un colis à {dest}. C'est un cadeau, c'est une surprise !", "rep": [
-     {"t": "Quelle gentille attention.", "ton": "chaleureux"}, {"t": "Pour qui, ce cadeau ?", "ton": "curieux"},
-     {"t": "Si c'est un gâteau, je ne prends pas les virages.", "ton": "drole"}, {"t": "D'accord.", "ton": "sobre"}]}],
-   "culture": [{"dit": "Je vais à {dest}. Il paraît qu'il y a une belle exposition en ce moment.", "rep": [
-     {"t": "Profitez bien, c'est important, la culture.", "ton": "chaleureux"}, {"t": "Une expo sur quoi ?", "ton": "curieux"},
-     {"t": "S'il y a des tableaux de voitures, je viens.", "ton": "drole"}, {"t": "Très bien.", "ton": "sobre"}]}],
-   "parc": [{"dit": "Déposez-moi à {dest}, je vais marcher un peu. Ça me fera du bien.", "rep": [
-     {"t": "Bonne idée, profitez-en.", "ton": "chaleureux"}, {"t": "Vous y allez souvent ?", "ton": "curieux"},
-     {"t": "Vous prenez un taxi pour aller marcher ? J'adore.", "ton": "drole"}, {"t": "Entendu.", "ton": "sobre"}]}],
-   "place": [{"dit": "Je retrouve des amis à {dest}. On se fait une terrasse !", "rep": [
-     {"t": "Passez une bonne soirée !", "ton": "chaleureux"}, {"t": "Ce sont des amis d'enfance ?", "ton": "curieux"},
-     {"t": "Une terrasse sans moi ? Je suis vexé.", "ton": "drole"}, {"t": "Bien.", "ton": "sobre"}]}],
-   "chateau": [{"dit": "{dest}… Vous saviez qu'il y a un souterrain qui part de là ? C'est mon grand-père qui le disait.", "rep": [
-     {"t": "Quelle belle histoire.", "ton": "chaleureux"}, {"t": "Il mène où, ce souterrain ?", "ton": "curieux"},
-     {"t": "S'il mène à une cave à vin, je veux l'adresse.", "ton": "drole"}, {"t": "Il y en a partout, des légendes.", "ton": "sobre"}]}],
-   "hameau": [{"dit": "Je rentre à {dest}. C'est perdu dans les collines, vous verrez, c'est le paradis.", "rep": [
-     {"t": "J'ai hâte de voir ça.", "ton": "chaleureux"}, {"t": "Il y a combien d'habitants ?", "ton": "curieux"},
-     {"t": "Le paradis a un code postal, alors !", "ton": "drole"}, {"t": "D'accord.", "ton": "sobre"}]}],
-   "gare": [{"dit": "{dest}, vite ! Mon train part dans un quart d'heure !", "rep": [
-     {"t": "Pas de panique, on va y arriver.", "ton": "chaleureux"}, {"t": "Vous partez loin ?", "ton": "curieux"},
-     {"t": "Je ne peux pas doubler un train, mais je peux essayer.", "ton": "drole"}, {"t": "Je fais au mieux.", "ton": "sobre"}]}],
-   "service": [{"dit": "Je vais à {dest}. J'ai un problème à régler, ça va être long.", "rep": [
-     {"t": "Bon courage, j'espère que ça s'arrangera.", "ton": "chaleureux"}, {"t": "Quel genre de problème ?", "ton": "curieux"},
-     {"t": "Si c'est une contravention, je n'y suis pour rien.", "ton": "drole"}, {"t": "On y va.", "ton": "sobre"}]}],
-   "autre": [{"dit": "{dest}, c'est là que j'ai rencontré l'amour de ma vie. Il y a bien longtemps.", "rep": [
-     {"t": "Oh, c'est très beau.", "ton": "chaleureux"}, {"t": "Racontez-moi !", "ton": "curieux"},
-     {"t": "Je vous dépose au même endroit, par superstition ?", "ton": "drole"}, {"t": "Hm.", "ton": "sobre"}]}]
-  }
+  "musique": [
+   [
+    {
+     "dit": "Elle est bien, cette chanson. Vous pouvez monter un peu ?",
+     "rep": {
+      "chaleureux": "Avec plaisir, profitez-en.",
+      "drole": "Je monte, mais je ne chante pas, promis.",
+      "curieux": "Vous la connaissez ?",
+      "sobre": "Bien sûr."
+     }
+    },
+    {
+     "dit": "Ça me rappelle le bal de quatorze juillet, il y a des années.",
+     "rep": {
+      "chaleureux": "Quel joli souvenir.",
+      "drole": "Vous dansiez le twist sur les tables ?",
+      "curieux": "Vous dansiez bien ?",
+      "sobre": "Je vois."
+     }
+    },
+    {
+     "dit": "J'y ai rencontré quelqu'un, ce soir-là. Mais c'est une autre histoire.",
+     "rep": {
+      "chaleureux": "Les plus belles histoires commencent au bal.",
+      "drole": "Vous ne pouvez pas me laisser comme ça !",
+      "curieux": "Racontez-moi, on a le temps.",
+      "sobre": "D'accord."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "La musique d'aujourd'hui, je n'y comprends plus rien.",
+     "rep": {
+      "chaleureux": "Chaque génération a la sienne.",
+      "drole": "Moi non plus, je fais semblant pour mes enfants.",
+      "curieux": "Qu'est-ce que vous écoutiez, vous ?",
+      "sobre": "Les goûts changent."
+     }
+    },
+    {
+     "dit": "Avant, il y avait des mélodies. Des paroles qu'on pouvait chanter.",
+     "rep": {
+      "chaleureux": "Ces chansons-là restent dans le cœur.",
+      "drole": "Maintenant, il y a des paroles qu'on ne peut pas répéter.",
+      "curieux": "Vous avez un chanteur préféré ?",
+      "sobre": "C'est vrai."
+     }
+    },
+    {
+     "dit": "Je chante encore à la chorale, le jeudi soir.",
+     "rep": {
+      "chaleureux": "C'est beau de continuer à chanter.",
+      "drole": "Je viendrai faire le chœur des chauffeurs.",
+      "curieux": "Vous chantez quoi, en ce moment ?",
+      "sobre": "Très bien."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Mon petit-fils m'a fait écouter du rap. Je n'ai rien compris.",
+     "rep": {
+      "chaleureux": "C'est gentil de sa part de partager ça.",
+      "drole": "Le rap, c'est de la poésie très pressée.",
+      "curieux": "Ça parlait de quoi ?",
+      "sobre": "Les générations."
+     }
+    },
+    {
+     "dit": "Mais il y avait un morceau sur sa grand-mère. J'ai pleuré.",
+     "rep": {
+      "chaleureux": "C'est touchant, c'était pour vous ?",
+      "drole": "Vous voilà fan de rap, alors !",
+      "curieux": "Il écrit lui-même ?",
+      "sobre": "C'est émouvant."
+     }
+    },
+    {
+     "dit": "Il veut que je fasse un duo avec lui. À mon âge !",
+     "rep": {
+      "chaleureux": "Ce serait un souvenir magnifique.",
+      "drole": "Je vous vois déjà en tournée.",
+      "curieux": "Vous allez accepter ?",
+      "sobre": "Pourquoi pas."
+     }
+    }
+   ]
+  ],
+  "souvenir": [
+   [
+    {
+     "dit": "Vous savez, je passais par ici quand j'étais petit{e}, à vélo.",
+     "rep": {
+      "chaleureux": "C'est émouvant de revoir ces endroits.",
+      "drole": "Vous aviez déjà un vélo avec turbo ?",
+      "curieux": "Ça a beaucoup changé ?",
+      "sobre": "Ah oui."
+     }
+    },
+    {
+     "dit": "Il y avait un vieux pommier, là-bas. On volait les pommes.",
+     "rep": {
+      "chaleureux": "Les meilleures pommes sont les pommes volées.",
+      "drole": "Le propriétaire vous attend encore avec son fusil.",
+      "curieux": "Le pommier est toujours là ?",
+      "sobre": "Je vois."
+     }
+    },
+    {
+     "dit": "Il a été coupé. Mais je le vois encore, quand je passe.",
+     "rep": {
+      "chaleureux": "Il vit dans vos souvenirs, alors.",
+      "drole": "Un pommier fantôme, ça fait des compotes invisibles.",
+      "curieux": "Qu'est-ce qu'il y a à la place ?",
+      "sobre": "C'est comme ça."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Mon premier travail, c'était dans une usine de tissage, à côté.",
+     "rep": {
+      "chaleureux": "Ça a dû être une sacrée époque.",
+      "drole": "Vous avez tissé ce siège, peut-être ?",
+      "curieux": "Comment c'était, l'usine ?",
+      "sobre": "D'accord."
+     }
+    },
+    {
+     "dit": "Le bruit des machines, toute la journée. On ne s'entendait pas parler.",
+     "rep": {
+      "chaleureux": "Ça devait être épuisant.",
+      "drole": "Pratique pour ne pas écouter son chef.",
+      "curieux": "Vous gardez de bons souvenirs quand même ?",
+      "sobre": "Dur métier."
+     }
+    },
+    {
+     "dit": "Mais on était une vraie bande. On riait beaucoup, à la pause.",
+     "rep": {
+      "chaleureux": "Ce sont ces moments-là qui restent.",
+      "drole": "Les pauses, le vrai cœur du métier.",
+      "curieux": "Vous vous voyez encore ?",
+      "sobre": "C'est bien."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Ici, avant, il y avait un cinéma. Le samedi soir, c'était plein.",
+     "rep": {
+      "chaleureux": "Ça devait être un lieu magique.",
+      "drole": "Avec des films muets et un pianiste ?",
+      "curieux": "Vous y alliez souvent ?",
+      "sobre": "Je ne savais pas."
+     }
+    },
+    {
+     "dit": "J'y ai vu mon premier film en couleur. J'en suis sorti{e} ébloui{e}.",
+     "rep": {
+      "chaleureux": "Quel beau souvenir d'enfance.",
+      "drole": "Et vous avez cherché les couleurs dans la rue en sortant ?",
+      "curieux": "C'était quel film ?",
+      "sobre": "Je vois."
+     }
+    },
+    {
+     "dit": "Maintenant, c'est une banque. Quelle tristesse.",
+     "rep": {
+      "chaleureux": "Le souvenir, lui, reste intact.",
+      "drole": "Au moins, la banque fait aussi du cinéma avec ses frais.",
+      "curieux": "Vous allez au cinéma de Bourgoin, maintenant ?",
+      "sobre": "C'est dommage."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Mon premier baiser, c'était sur ce pont, là-bas.",
+     "rep": {
+      "chaleureux": "C'est un joli endroit pour un premier baiser.",
+      "drole": "Le pont s'en souvient encore, il est tout rouge.",
+      "curieux": "Et qu'est-ce qu'elle est devenue, cette personne ?",
+      "sobre": "Ah oui."
+     }
+    },
+    {
+     "dit": "On s'est marié{e}s deux ans plus tard. Cinquante ans de mariage, l'an prochain.",
+     "rep": {
+      "chaleureux": "C'est magnifique, toutes mes félicitations.",
+      "drole": "Cinquante ans ! C'est plus long que mon contrat de taxi.",
+      "curieux": "Vous allez fêter ça ?",
+      "sobre": "Bravo."
+     }
+    },
+    {
+     "dit": "Je l'aime toujours autant. Même quand il ronfle.",
+     "rep": {
+      "chaleureux": "C'est ça, le vrai amour.",
+      "drole": "Le ronflement, c'est la preuve d'amour ultime.",
+      "curieux": "Quel est votre secret ?",
+      "sobre": "C'est beau."
+     }
+    }
+   ]
+  ],
+  "cuisine": [
+   [
+    {
+     "dit": "Ce soir, je fais un gratin dauphinois. Le vrai, sans fromage.",
+     "rep": {
+      "chaleureux": "Ça a l'air délicieux.",
+      "drole": "Sans fromage ? Vous êtes un rebelle.",
+      "curieux": "C'est quoi, votre secret ?",
+      "sobre": "Bon appétit."
+     }
+    },
+    {
+     "dit": "Le secret, c'est l'ail et la crème. Beaucoup de crème.",
+     "rep": {
+      "chaleureux": "C'est la cuisine qui réchauffe.",
+      "drole": "Et un cardiologue pas trop loin.",
+      "curieux": "Vous tenez la recette de qui ?",
+      "sobre": "Classique."
+     }
+    },
+    {
+     "dit": "C'était la recette de ma grand-mère. Personne ne le réussit comme elle.",
+     "rep": {
+      "chaleureux": "Je suis sûr que vous le faites très bien.",
+      "drole": "Elle doit vous surveiller depuis le four.",
+      "curieux": "Vous la cuisinez souvent ?",
+      "sobre": "Les grands-mères, oui."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Vous connaissez le restaurant près de la mairie ?",
+     "rep": {
+      "chaleureux": "On m'en a dit du bien.",
+      "drole": "Celui où on ressort en roulant ?",
+      "curieux": "Vous y allez souvent ?",
+      "sobre": "De nom."
+     }
+    },
+    {
+     "dit": "Leurs quenelles sont les meilleures du département.",
+     "rep": {
+      "chaleureux": "Il faudra que j'essaie.",
+      "drole": "Je les pensais réservées aux Lyonnais.",
+      "curieux": "Avec quelle sauce ?",
+      "sobre": "D'accord."
+     }
+    },
+    {
+     "dit": "Sauce Nantua, bien sûr. Il n'y a pas débat.",
+     "rep": {
+      "chaleureux": "Je vous fais confiance.",
+      "drole": "Le débat est clos, maître.",
+      "curieux": "C'est fait avec des écrevisses, c'est ça ?",
+      "sobre": "Entendu."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Vous connaissez la recette des bugnes ?",
+     "rep": {
+      "chaleureux": "Ce sont de vrais petits bonheurs.",
+      "drole": "Je connais surtout la recette pour les manger.",
+      "curieux": "C'est une spécialité d'ici ?",
+      "sobre": "Un peu."
+     }
+    },
+    {
+     "dit": "C'est pour Mardi gras. Ma grand-mère en faisait des montagnes.",
+     "rep": {
+      "chaleureux": "Ce sont de belles traditions.",
+      "drole": "Et vous finissiez couvert de sucre glace ?",
+      "curieux": "Vous en faites encore ?",
+      "sobre": "Classique."
+     }
+    },
+    {
+     "dit": "Le secret, c'est un zeste de citron et une goutte de rhum.",
+     "rep": {
+      "chaleureux": "Ça doit sentir délicieusement bon.",
+      "drole": "La goutte de rhum, c'est pour le cuisinier.",
+      "curieux": "Vous m'écrivez la recette ?",
+      "sobre": "Noté."
+     }
+    }
+   ]
+  ],
+  "animaux": [
+   [
+    {
+     "dit": "J'ai {animal}. Il me rend chèvre.",
+     "rep": {
+      "chaleureux": "C'est un vrai membre de la famille.",
+      "drole": "C'est lui qui commande, à la maison ?",
+      "curieux": "Qu'est-ce qu'il a fait encore ?",
+      "sobre": "Les animaux, oui."
+     }
+    },
+    {
+     "dit": "Hier, il a mangé une chaussette entière. Une chaussette !",
+     "rep": {
+      "chaleureux": "Pauvre bête, j'espère qu'il va bien.",
+      "drole": "Il avait faim de mode.",
+      "curieux": "Il va bien, après ça ?",
+      "sobre": "Ça arrive."
+     }
+    },
+    {
+     "dit": "Le vétérinaire a dit que ce n'était pas la première fois qu'il voyait ça.",
+     "rep": {
+      "chaleureux": "Ça me rassure pour lui.",
+      "drole": "Il a une collection de chaussettes, ce vétérinaire.",
+      "curieux": "Vous allez cacher vos chaussettes, maintenant ?",
+      "sobre": "Tant mieux."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Les vaches du voisin se sont encore échappées ce matin.",
+     "rep": {
+      "chaleureux": "J'espère que personne n'a été blessé.",
+      "drole": "Elles voulaient prendre le taxi, sûrement.",
+      "curieux": "Où est-ce qu'elles sont allées ?",
+      "sobre": "Ça arrive à la campagne."
+     }
+    },
+    {
+     "dit": "Sur la route départementale ! Il a fallu une heure pour les ramener.",
+     "rep": {
+      "chaleureux": "Quelle frayeur pour tout le monde.",
+      "drole": "Un embouteillage de vaches, c'est très rural.",
+      "curieux": "Comment vous les avez rattrapées ?",
+      "sobre": "Long."
+     }
+    },
+    {
+     "dit": "Avec un seau de grain. Les vaches, c'est comme les gens : par le ventre.",
+     "rep": {
+      "chaleureux": "Bien trouvé, la douceur marche toujours.",
+      "drole": "Je retiens l'astuce pour mes clients.",
+      "curieux": "Vous avez grandi dans une ferme ?",
+      "sobre": "Malin."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Mon chat a ramené une souris vivante dans la cuisine, hier soir.",
+     "rep": {
+      "chaleureux": "Il voulait vous faire un cadeau.",
+      "drole": "Il préparait le dîner, c'est gentil.",
+      "curieux": "Vous l'avez rattrapée ?",
+      "sobre": "Classique."
+     }
+    },
+    {
+     "dit": "Elle s'est cachée derrière le frigo. On a mis deux heures à l'attraper.",
+     "rep": {
+      "chaleureux": "Quelle soirée, vous avez été patient{e}.",
+      "drole": "Deux heures ? La souris aurait dû demander un salaire.",
+      "curieux": "Et le chat, il faisait quoi pendant ce temps ?",
+      "sobre": "Long."
+     }
+    },
+    {
+     "dit": "Le chat, lui, dormait sur le canapé. Mission accomplie, pour lui.",
+     "rep": {
+      "chaleureux": "Les chats ont leur propre logique.",
+      "drole": "Il a délégué, c'est un bon manager.",
+      "curieux": "Il fait souvent ça ?",
+      "sobre": "Typique."
+     }
+    }
+   ]
+  ],
+  "sport": [
+   [
+    {
+     "dit": "Vous avez vu le match de rugby, dimanche ?",
+     "rep": {
+      "chaleureux": "Il paraît que c'était un beau match.",
+      "drole": "J'ai vu le troisième mi-temps, ça compte ?",
+      "curieux": "Qui a gagné ?",
+      "sobre": "Pas vu."
+     }
+    },
+    {
+     "dit": "Bourgoin a gagné de deux points ! À la dernière seconde !",
+     "rep": {
+      "chaleureux": "Quelle émotion, ça a dû être !",
+      "drole": "Le cœur des supporters a dû lâcher.",
+      "curieux": "Qui a marqué ?",
+      "sobre": "Bravo à eux."
+     }
+    },
+    {
+     "dit": "Toute la tribune s'est levée. J'en ai encore des frissons.",
+     "rep": {
+      "chaleureux": "Ce sont des moments magiques.",
+      "drole": "Et votre voisin de tribune a perdu sa casquette.",
+      "curieux": "Vous y allez tous les dimanches ?",
+      "sobre": "Beau souvenir."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Je me suis mis{e} à la course à pied, à mon âge.",
+     "rep": {
+      "chaleureux": "C'est formidable, bravo !",
+      "drole": "Vous courez après le bus ?",
+      "curieux": "Vous courez où ?",
+      "sobre": "Bonne idée."
+     }
+    },
+    {
+     "dit": "Le long de la Bourbre, le matin. Trois kilomètres, pour l'instant.",
+     "rep": {
+      "chaleureux": "C'est déjà très bien, continuez.",
+      "drole": "Trois kilomètres, et le café à l'arrivée.",
+      "curieux": "Vous avez un objectif ?",
+      "sobre": "C'est un début."
+     }
+    },
+    {
+     "dit": "Je voudrais faire la course du village, au printemps.",
+     "rep": {
+      "chaleureux": "Vous y arriverez, j'en suis sûr.",
+      "drole": "Je viendrai vous encourager avec un klaxon.",
+      "curieux": "C'est quelle distance ?",
+      "sobre": "Bonne chance."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Je fais du vélo tous les dimanches, sur les petites routes.",
+     "rep": {
+      "chaleureux": "C'est une belle façon de profiter du coin.",
+      "drole": "Vous me doublez, des fois, dans les côtes ?",
+      "curieux": "Vous faites combien de kilomètres ?",
+      "sobre": "Bonne idée."
+     }
+    },
+    {
+     "dit": "Quatre-vingts kilomètres, avec la côte de Chamont. Elle est terrible.",
+     "rep": {
+      "chaleureux": "Chapeau, c'est un sacré effort.",
+      "drole": "En descente, c'est déjà terrible pour mon taxi.",
+      "curieux": "Vous roulez en groupe ?",
+      "sobre": "Pas mal."
+     }
+    },
+    {
+     "dit": "À l'arrivée, on s'arrête toujours au café. C'est le meilleur moment.",
+     "rep": {
+      "chaleureux": "C'est ça, le vrai plaisir du sport.",
+      "drole": "Le café, c'est le vrai sport national.",
+      "curieux": "Vous avez un bon café à me conseiller ?",
+      "sobre": "Je comprends."
+     }
+    }
+   ]
+  ],
+  "vacances": [
+   [
+    {
+     "dit": "Je pars en vacances la semaine prochaine. Enfin !",
+     "rep": {
+      "chaleureux": "Vous l'avez bien mérité.",
+      "drole": "Emmenez-moi dans la valise.",
+      "curieux": "Vous allez où ?",
+      "sobre": "Bonnes vacances."
+     }
+    },
+    {
+     "dit": "En Bretagne. Il paraît qu'il pleut, mais j'aime ça.",
+     "rep": {
+      "chaleureux": "La Bretagne, c'est magnifique.",
+      "drole": "Il pleut seulement sur les gens qui ne sont pas bretons.",
+      "curieux": "Vous y êtes déjà allé{e} ?",
+      "sobre": "Bon choix."
+     }
+    },
+    {
+     "dit": "Des crêpes, la mer, et pas de téléphone. Le rêve.",
+     "rep": {
+      "chaleureux": "Profitez de chaque instant.",
+      "drole": "Et le cidre, surtout le cidre.",
+      "curieux": "Vous allez réussir à couper le téléphone ?",
+      "sobre": "Profitez."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Cette année, on ne part pas. Trop cher.",
+     "rep": {
+      "chaleureux": "Il y a de belles choses à faire par ici aussi.",
+      "drole": "Les vacances au balcon, c'est très tendance.",
+      "curieux": "Qu'est-ce que vous allez faire, alors ?",
+      "sobre": "C'est comme ça."
+     }
+    },
+    {
+     "dit": "Des balades sur les collines, des pique-niques au lac.",
+     "rep": {
+      "chaleureux": "Ça a l'air très doux, comme programme.",
+      "drole": "Et des selfies devant le château, comme les touristes.",
+      "curieux": "Vous connaissez un bon coin ?",
+      "sobre": "Bien."
+     }
+    },
+    {
+     "dit": "Finalement, on est bien, chez nous. On l'oublie parfois.",
+     "rep": {
+      "chaleureux": "C'est vrai, c'est une belle région.",
+      "drole": "Et pas d'embouteillages sur l'autoroute.",
+      "curieux": "Qu'est-ce que vous préférez, ici ?",
+      "sobre": "C'est vrai."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "J'ai gagné un voyage au Japon, à la tombola !",
+     "rep": {
+      "chaleureux": "Quelle chance, je suis content pour vous !",
+      "drole": "À la tombola ? Moi j'ai gagné un saucisson.",
+      "curieux": "Vous partez quand ?",
+      "sobre": "Félicitations."
+     }
+    },
+    {
+     "dit": "Je n'ai jamais pris l'avion. J'ai un peu peur.",
+     "rep": {
+      "chaleureux": "Ça va bien se passer, vous verrez, c'est magique.",
+      "drole": "L'avion, c'est un taxi avec des ailes.",
+      "curieux": "Qu'est-ce qui vous fait peur ?",
+      "sobre": "C'est normal."
+     }
+    },
+    {
+     "dit": "Mais je ne vais pas rater ça. Les cerisiers en fleurs, toute ma vie j'en ai rêvé.",
+     "rep": {
+      "chaleureux": "Vous allez vivre un rêve, profitez-en.",
+      "drole": "Ramenez-moi un cerisier pour le taxi.",
+      "curieux": "Vous allez voir quoi d'autre, là-bas ?",
+      "sobre": "Bon voyage."
+     }
+    }
+   ]
+  ],
+  "route": [
+   [
+    {
+     "dit": "Vous conduisez bien, pour un taxi.",
+     "rep": {
+      "chaleureux": "Merci, c'est gentil.",
+      "drole": "Pour un taxi ? Je vais le prendre mal.",
+      "curieux": "Les autres conduisent mal ?",
+      "sobre": "Merci."
+     }
+    },
+    {
+     "dit": "Le dernier m'a fait faire trois fois le tour du rond-point.",
+     "rep": {
+      "chaleureux": "Ça a dû être désagréable.",
+      "drole": "Il visitait le rond-point en détail.",
+      "curieux": "Il s'était perdu ?",
+      "sobre": "Ça arrive."
+     }
+    },
+    {
+     "dit": "Il cherchait la sortie. Il a fini par me demander le chemin.",
+     "rep": {
+      "chaleureux": "Je vous promets que je connais la route.",
+      "drole": "Il vous a au moins fait une réduction ?",
+      "curieux": "Et vous lui avez indiqué ?",
+      "sobre": "Je connais le chemin."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "C'est joli, cette route, avec les collines.",
+     "rep": {
+      "chaleureux": "C'est vrai, je ne m'en lasse pas.",
+      "drole": "Et sans péage, en plus.",
+      "curieux": "Vous connaissez l'histoire du coin ?",
+      "sobre": "Oui."
+     }
+    },
+    {
+     "dit": "Là-haut, il y avait un château fort, au Moyen Âge.",
+     "rep": {
+      "chaleureux": "Ça devait être impressionnant.",
+      "drole": "Avec un taxi à cheval pour monter ?",
+      "curieux": "Il en reste quelque chose ?",
+      "sobre": "Je ne savais pas."
+     }
+    },
+    {
+     "dit": "Il reste quelques pierres. Les gamins y jouent aux chevaliers.",
+     "rep": {
+      "chaleureux": "C'est beau, que ça vive encore.",
+      "drole": "Et les parents jouent aux dragons.",
+      "curieux": "Vous y alliez, enfant ?",
+      "sobre": "Joli."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Vous avez vu ce radar, à l'entrée du village ?",
+     "rep": {
+      "chaleureux": "Oui, il faut faire attention aux enfants, ici.",
+      "drole": "Je l'ai vu, et il m'a vu aussi, je crois.",
+      "curieux": "Il est là depuis quand ?",
+      "sobre": "Oui."
+     }
+    },
+    {
+     "dit": "Mon voisin s'est fait flasher trois fois en un mois.",
+     "rep": {
+      "chaleureux": "Il devrait ralentir, c'est plus prudent.",
+      "drole": "Il fait collection de photos, peut-être.",
+      "curieux": "Il roulait vite ?",
+      "sobre": "Ça coûte cher."
+     }
+    },
+    {
+     "dit": "Il dit que le radar est mal réglé. Évidemment.",
+     "rep": {
+      "chaleureux": "C'est plus facile d'accuser le radar.",
+      "drole": "Le radar, lui, dit que c'est le voisin.",
+      "curieux": "Vous le croyez ?",
+      "sobre": "Évidemment."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "Ça fait combien de temps que vous êtes chauffeur ?",
+     "rep": {
+      "chaleureux": "Quelques années, et j'aime toujours autant ce métier.",
+      "drole": "Depuis que je sais tourner un volant.",
+      "curieux": "Pourquoi vous me demandez ça ?",
+      "sobre": "Un moment."
+     }
+    },
+    {
+     "dit": "Vous devez en voir, des gens bizarres.",
+     "rep": {
+      "chaleureux": "Surtout des gens charmants, comme vous.",
+      "drole": "Des gens bizarres ? Vous êtes le premier de la journée.",
+      "curieux": "Vous avez une histoire de taxi bizarre ?",
+      "sobre": "Un peu."
+     }
+    },
+    {
+     "dit": "Une fois, un chauffeur m'a raconté qu'il avait transporté une chèvre.",
+     "rep": {
+      "chaleureux": "Il faut de tout pour faire un monde.",
+      "drole": "La chèvre a laissé un pourboire ?",
+      "curieux": "Une vraie chèvre ? Pour aller où ?",
+      "sobre": "Possible."
+     }
+    }
+   ]
+  ],
+  "destination": [
+   [
+    {
+     "dit": "Vous connaissez {dest} ?",
+     "rep": {
+      "chaleureux": "Oui, c'est un endroit agréable.",
+      "drole": "Je connais tout, je suis un GPS humain.",
+      "curieux": "Vous y allez pour quoi ?",
+      "sobre": "Oui."
+     }
+    },
+    {
+     "dit": "J'y vais pour la première fois. Je suis un peu stressé{e}.",
+     "rep": {
+      "chaleureux": "Ça va bien se passer, vous verrez.",
+      "drole": "Pas de stress, au pire on fait demi-tour.",
+      "curieux": "Qu'est-ce qui vous inquiète ?",
+      "sobre": "Ça ira."
+     }
+    },
+    {
+     "dit": "Merci de m'y conduire, en tout cas.",
+     "rep": {
+      "chaleureux": "Avec plaisir, c'est mon métier.",
+      "drole": "Je vous dépose même devant la porte.",
+      "curieux": "Vous rentrez comment, après ?",
+      "sobre": "Je vous en prie."
+     }
+    }
+   ],
+   [
+    {
+     "dit": "À {dest_commune}, il y a un marché formidable le samedi.",
+     "rep": {
+      "chaleureux": "J'adore les marchés de village.",
+      "drole": "Avec des poules qui font la queue ?",
+      "curieux": "Qu'est-ce qu'on y trouve ?",
+      "sobre": "Ah bon."
+     }
+    },
+    {
+     "dit": "Du fromage, du miel, des légumes. Et des ragots, surtout.",
+     "rep": {
+      "chaleureux": "C'est ça, la vie de village.",
+      "drole": "Les ragots sont-ils bio ?",
+      "curieux": "Vous y allez chaque semaine ?",
+      "sobre": "Je vois."
+     }
+    },
+    {
+     "dit": "Si vous passez, goûtez le saint-marcellin du stand bleu.",
+     "rep": {
+      "chaleureux": "Je n'y manquerai pas, merci.",
+      "drole": "Je le mettrai en note de frais.",
+      "curieux": "Il est comment, ce fromage ?",
+      "sobre": "Noté."
+     }
+    }
+   ]
+  ]
  },
- "questions": [
-  {"t": "Vous faites quoi dans la vie ?", "sujet": "vie"},
-  {"t": "Vous habitez dans le coin ?", "sujet": "maison"},
-  {"t": "Quoi de neuf par chez vous ?", "sujet": "nouvelles"},
-  {"t": "Qu'est-ce qui vous amène là-bas ?", "sujet": "destination"},
-  {"t": "Drôle de temps, non ?", "sujet": "meteo"}
+ "bonjour": [
+  "Bonjour ! {dest}, à {dest_commune}, s'il vous plaît.",
+  "Bonsoir… {dest}, {dest_commune}. Merci.",
+  "Salut ! Vous m'emmenez à {dest} ? C'est à {dest_commune}.",
+  "{dest}, à {dest_commune}. Et pas de détour, hein !",
+  "Bonjour, je vais à {dest}, à {dest_commune}.",
+  "Ah, enfin un taxi ! {dest}, à {dest_commune}, s'il vous plaît."
  ],
- "bonjour": ["Bonjour ! {dest}, à {dest_commune}, s'il vous plaît.", "Bonsoir… {dest}, {dest_commune}. Merci.", "Salut ! Vous m'emmenez à {dest} ? C'est à {dest_commune}.", "{dest}, {dest_commune}. Et pas de détour, hein !"],
- "derange": ["Je préfère le calme, si ça ne vous dérange pas.", "Désolé, je ne suis pas très bavard aujourd'hui.", "Hm. Pas maintenant."],
- "trop": ["On vient d'en parler, non ?", "Laissez-moi souffler un peu !", "Vous êtes bien curieux…"],
  "fin": {
-  "bien": ["Quelle course agréable ! Gardez la monnaie… et un peu plus.", "J'ai passé un très bon moment. Merci, vraiment !", "Ah, si tous les chauffeurs étaient comme vous !"],
-  "moyen": ["Merci, au revoir.", "Bonne journée.", "Voilà pour vous."],
-  "mal": ["Je ne vous recommanderai pas.", "Enfin arrivé…", "La prochaine fois, je prends le bus."]
- }
+  "bien": [
+   "Quelle course agréable ! Gardez la monnaie… et un peu plus.",
+   "J'ai passé un très bon moment. Merci, vraiment !",
+   "Ah, si tous les chauffeurs étaient comme vous !",
+   "Merci pour la conversation, ça m'a fait du bien.",
+   "Je demanderai votre taxi la prochaine fois !",
+   "Vous avez illuminé ma journée."
+  ],
+  "moyen": [
+   "Merci, au revoir.",
+   "Bonne journée.",
+   "Voilà pour vous.",
+   "Merci. À la prochaine.",
+   "C'est bon, gardez la monnaie."
+  ],
+  "mal": [
+   "Je ne vous recommanderai pas.",
+   "Enfin arrivé{e}…",
+   "La prochaine fois, je prends le bus.",
+   "Quelle course pénible.",
+   "Je vais mettre une étoile, pas plus."
+  ]
+ },
+ "trop": [
+  "Laissez-moi respirer un peu, voulez-vous.",
+  "Encore ? On vient de parler.",
+  "Vous êtes bien bavard, vous."
+ ],
+ "derange": [
+  "Je préfère le silence, si ça ne vous dérange pas.",
+  "Désolé{e}, je ne suis pas très causant{e}.",
+  "Pas maintenant, s'il vous plaît."
+ ],
+ "silence": [
+  "Hm.",
+  "…",
+  "Vous ne dites rien ?"
+ ]
 }

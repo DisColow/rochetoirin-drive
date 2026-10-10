@@ -110,7 +110,10 @@ func _catalogue(res: int, code: int, _h: PackedStringArray, body: PackedByteArra
 	if _http.request(str(e.url)) != OK:
 		_lancer()
 
-func _process(_dt: float) -> void:
+func _process(dt: float) -> void:
+	if _charge:
+		_charger(dt)
+		return
 	if _cible.is_empty() or _parti:
 		return
 	var total := maxi(int(_cible.get("taille", 0)), _http.get_body_size())
@@ -133,7 +136,7 @@ func _recu(res: int, code: int, _h: PackedStringArray, _b: PackedByteArray) -> v
 	etat.set_value("maj", "version", str(_cible.version))
 	etat.set_value("maj", "base", base)
 	etat.set_value("maj", "essais", 0)
-	_info.text = "Version %s installée." % str(_cible.version)
+	_info.text = "Installation de la version %s…" % str(_cible.version)
 	if OS.has_environment("MAJ_ESSAI_BASE"):
 		print("maj essai : ", nom, " vérifié")
 		get_viewport().get_texture().get_image().save_png("user://shots/boot.png")
@@ -171,4 +174,38 @@ func _lancer() -> void:
 	var m = load("res://scripts/maj.gd").new()
 	m.name = "Maj"
 	get_tree().root.add_child.call_deferred(m)
-	get_tree().change_scene_to_file.call_deferred("res://scenes/main.tscn")
+	if _info == null:
+		get_tree().change_scene_to_file.call_deferred("res://scenes/main.tscn")
+		return
+	# chargement du monde en tâche de fond, barre qui avance (sinon l'écran reste figé une minute sur le téléphone)
+	_passer.visible = false
+	_barre.visible = true
+	_barre.value = 0.0
+	_info.text = "Chargement de Rochetoirin…"
+	if ResourceLoader.load_threaded_request(MAIN, "", true) != OK:
+		get_tree().change_scene_to_file.call_deferred(MAIN)
+		return
+	_charge = true
+
+const MAIN := "res://scenes/main.tscn"
+var _charge := false
+var _affiche := 0.0
+var _t_charge := 0.0
+
+func _charger(dt: float) -> void:
+	var pr := []
+	var st := ResourceLoader.load_threaded_get_status(MAIN, pr)
+	var cible: float = pr[0] if pr.size() > 0 else 0.0
+	# Godot ne détaille pas la progression d'une grosse scène : estimation qui avance en continu (jamais au bout
+	# avant la fin), remplacée par la vraie valeur quand elle est plus grande
+	_t_charge += dt
+	_affiche = maxf(_affiche, maxf(cible, 0.95 * (1.0 - exp(-_t_charge / 18.0))))
+	_barre.value = _affiche
+	_info.text = "Chargement de Rochetoirin… %d %%" % int(round(_affiche * 100.0))
+	if st == ResourceLoader.THREAD_LOAD_LOADED:
+		_charge = false
+		_info.text = "Démarrage…"
+		get_tree().change_scene_to_packed.call_deferred(ResourceLoader.load_threaded_get(MAIN))
+	elif st == ResourceLoader.THREAD_LOAD_FAILED or st == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+		_charge = false
+		get_tree().change_scene_to_file.call_deferred(MAIN)

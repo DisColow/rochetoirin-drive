@@ -57,7 +57,8 @@ func _ready() -> void:
 
 var settings: Control
 
-const CREDITS := """Voiture : « Ford Ranger Raptor 2019 » par David_Holiday (Sketchfab, licence CC BY 4.0), repeint en noir avec couvercle de benne blanc.
+const CREDITS := """Voix du taxi : synthèse Piper (rhasspy) ; voix « Siwis » (Université d'Édimbourg, CC BY 4.0), « Gilles » (CC0), « MLS » (Multilingual LibriSpeech, CC BY 4.0).
+Voiture : « Ford Ranger Raptor 2019 » par David_Holiday (Sketchfab, licence CC BY 4.0), repeint en noir avec couvercle de benne blanc.
 Soucoupe du gardien : « UFO » par sebslom (sketchfab.com/3d-models), licence CC BY 4.0.
 Pluie et orage : Sound Effect by Premankur Adhikary from Pixabay.
 Sons (moteur, roulement, ambiances, oiseaux, animaux, cloches, essuie-glaces, soucoupe…) : enregistrements de Joseph SARDIN - BigSoundBank.com (licence CC0) ; chocs : « Impact Sounds » de Kenney (CC0).
@@ -183,24 +184,6 @@ func _open_settings() -> void:
 			AU.set_volume(cat[0], x))
 		col.add_child(sl)
 		hs.add_child(col)
-	# voiture : sprite pixel art ou modèle 3D
-	var lc := Label.new(); lc.text = "Voiture"; lc.add_theme_font_size_override("font_size", 30); v.add_child(lc)
-	var hc := HBoxContainer.new(); hc.add_theme_constant_override("separation", 16); v.add_child(hc)
-	var car_node = main_node.car
-	for opt in [["sprite", "Sprite pixel art"], ["3d", "Modèle 3D"]]:
-		var b := Button.new()
-		b.text = opt[1]
-		b.toggle_mode = true
-		b.button_pressed = (opt[0] == "sprite") == car_node.sprite_mode
-		b.custom_minimum_size = Vector2(340, 70)
-		b.add_theme_font_size_override("font_size", 30)
-		b.pressed.connect(func():
-			car_node.set_sprite_mode(opt[0] == "sprite")
-			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
-			cfg.set_value("affichage", "voiture_v53", opt[0]); cfg.save("user://reglages.cfg")
-			for c in hc.get_children():
-				c.button_pressed = c == b)
-		hc.add_child(b)
 	var note := Label.new()
 	note.text = "Moins de végétation = jeu plus fluide sur les téléphones modestes.\nVersion %s (mises à jour automatiques au lancement)" % str(Engine.get_meta("version_jeu", ProjectSettings.get_setting("application/config/version", "")))
 	note.add_theme_font_size_override("font_size", 22); note.modulate = Color(1, 1, 1, 0.7); v.add_child(note)

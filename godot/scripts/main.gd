@@ -795,14 +795,47 @@ func _act_shot(s: Dictionary) -> void:
 			await run.call(200)
 			print("taxi : phase ", a._phase, " destination ", a._dest_name)
 			await snap.call(s.name + "_course")
-			# conversation : le client lance un sujet, on répond
-			a._talk._client_starts("vie")
-			await run.call(240)
-			print("taxi : client ", a._talk.client.prenom, " (", a._talk.client.car.id, ") « ", a._talk._full, " » réponses ", a._talk._choices.get_child_count())
-			await snap.call(s.name + "_conversation")
-			a._talk._answer("drole")
-			await run.call(120)
-			print("  réaction « ", a._talk._full, " » satisfaction ", a._talk.client.sat)
+			# conversation : le client lance un fil, on répond deux fois, puis on lui pose une question
+			var tk = a._talk
+			tk._queue.clear(); tk._step = {}
+			tk._start_fil("metier")
+			for k in 2:
+				var t0 := Time.get_ticks_msec()
+				while Time.get_ticks_msec() - t0 < 240000:
+					await get_tree().process_frame
+					tk._shown = tk._full.length(); tk._say_end = 0; tk._hold = minf(tk._hold, 0.0)   # 1 image/s ici
+					if tk._step.get("kind", "") == "choix" and tk._choices.get_child_count() > 0:
+						break
+				tk._wait = 999.0
+				print("  état : étape ", tk._step, " file ", tk._queue.size(), " montré ", tk._shown, "/", tk._full.length(), " attente ", tk._hold, " joue ", tk._player.playing, " fin ", tk._say_end - Time.get_ticks_msec(), " pause ", get_tree().paused, " riding ", tk.riding)
+				print("taxi : ", tk.client.prenom, " (", tk.client.car.id, ", voix ", tk.client.voix, ") « ", tk._full, " » choix ", tk._choices.get_child_count())
+				await snap.call(s.name + "_conversation%d" % k)
+				tk._choices.get_child(0).emit_signal("pressed")
+				await run.call(2)
+				print("  joueur « ", tk._full, " » verdict ", tk._verdict.text, " humeur ", tk.client.sat, " voix en cours ", tk._player.playing, " morceaux ", tk._clips.size(), " vitesse ", tk._speed)
+				await snap.call(s.name + "_reponse%d" % k)
+			var t1 := Time.get_ticks_msec()
+			while Time.get_ticks_msec() - t1 < 240000:
+				await get_tree().process_frame
+				tk._shown = tk._full.length(); tk._say_end = 0; tk._hold = minf(tk._hold, 0.0)
+				if tk._step.is_empty() and tk._queue.is_empty():
+					break
+			tk._fil = []; tk._since = 99.0
+			tk._ask_menu()
+			await run.call(2)
+			tk._wait = 999.0
+			await snap.call(s.name + "_questions")
+			tk._choices.get_child(0).emit_signal("pressed")
+			var t2 := Time.get_ticks_msec()
+			while Time.get_ticks_msec() - t2 < 240000:
+				await get_tree().process_frame
+				if tk._step.get("who", "") != "client":
+					tk._shown = tk._full.length(); tk._say_end = 0; tk._hold = minf(tk._hold, 0.0)
+				if tk._step.get("who", "") == "client":
+					tk._shown = tk._full.length()
+					break
+			print("  réponse à la question « ", tk._full, " » indice ", tk._hint.text)
+			await snap.call(s.name + "_indice")
 			var d: int = a._dest
 			car.place(Vector3(a.pts[d], a.pts[d + 2] + 0.3, a.pts[d + 1]), a.pts[d + 3])
 			car.hold(1.5)
