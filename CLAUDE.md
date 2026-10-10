@@ -68,7 +68,7 @@
   choix `map.pick_mode`, portes lumineuses, chrono), chasse au lieu (même appareil ; lieu nommé, touché sur la carte
   ou au hasard ; zone `circle` qui rétrécit, dessinée par `map.gd` et `gps.gd` avec les repères `marks`), taxi
   (clients `assets/clients/` de `fetch_clients.py` + `blender_clients.py`, destinations `world/places.json` de
-  `fetch_places.py` + `build_places.py` : lieux publics seulement). Essai : captures `{"act": "menu|course|chasse|taxi"}`.
+  `fetch_places.py` + `build_places.py` : lieux publics seulement). Essai : captures `{"act": "menu|course|chasse|taxi"}`. Pas de téléportation pendant une activité (`map.locked`, taxi compris) ; bouton « ■ Arrêter » dans le bandeau d'activité.
 - **Orientation des faces** : `glb.write_glb(..., fix_winding=True)` remet chaque triangle dans le sens de ses normales
   (tuiles de routes) ; contrôle : `python3 pipeline/check_winding.py godot/world/roads` doit donner 0 % partout.
 - **Rien ne déborde sur la route** (arbres : couronne hors chaussée, champs arrêtés avant, bâtiments découpés).
@@ -113,11 +113,11 @@
   versionnés) : caractères aux goûts cachés, fils de trois échanges (le client parle, on répond sur un ton —
   chaleureux, drôle, curieux, sobre, ou silence —, il réagit), indicateurs ♥ / • / ✗ et jauge d'humeur, indices
   (allure du client, préférences apprises en lui posant des questions avec le bouton « bulle »), pourboire selon la
-  satisfaction. **Voix intelligibles** : chaque réplique (client et joueur) enregistrée par `pipeline/build_voix.py`
-  (Piper, voix libres choisies d'après un test de reconnaissance vocale Vosk après effet talkie-walkie ; morceaux
-  fixes + valeurs des variables, clés md5, `assets/voix/index.json`), jouée par le bus « Voix » (hauteur du client,
-  bande étroite, saturation). Toute nouvelle réplique : relancer `taxi_dialogues.py` puis `build_voix.py`
-  (incrémental), puis `publier_donnees.sh`. La radio baisse quand quelqu'un parle.
+  satisfaction. **Voix** (depuis la v6.1) : synthèse vocale du système (`DisplayServer.tts_*`, réglage
+  `audio/general/text_to_speech`), voix française de base, hauteur propre au client ; effet talkie-walkie autour
+  (grésillement d'ouverture/fermeture, souffle radio sur le bus « Voix ») — la synthèse ne passe pas par les effets du
+  jeu, ce qui la garde compréhensible. Les voix Piper pré-enregistrées (v6.0) étaient incompréhensibles une fois
+  filtrées : abandonnées. La radio baisse quand quelqu'un parle.
 - **Éditeur de monde** (`scripts/editeur_monde.gd`) : « Sésame, ouvre-toi » / « Hasta la vista, baby » dans le champ
   « Formule magique » (appui long sur le nom de la rue, F2, ou ⚙) ; on touche un objet, puis « Générer depuis Street
   View » ou une remarque -> issue GitHub pré-remplie (étiquette `editeur-monde` : position, GPS, objet, caméra, lien

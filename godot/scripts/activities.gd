@@ -29,6 +29,7 @@ var join_marks := false           # relier les repères (tracé de la course)
 var _menu: Control
 var _status: PanelContainer
 var _status_l: Label
+var _stop_btn: Button
 var _bar: HBoxContainer
 var _beacons: Array = []
 var _bip: AudioStreamPlayer
@@ -77,9 +78,23 @@ func _ready() -> void:
 	_status = PanelContainer.new()
 	_status.add_theme_stylebox_override("panel", preload("res://scripts/ui.gd").panel(30, 14))
 	_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_status.mouse_filter = Control.MOUSE_FILTER_PASS
+	var sh := HBoxContainer.new(); sh.add_theme_constant_override("separation", 18)
+	_status.add_child(sh)
 	_status_l = Label.new(); _status_l.add_theme_font_size_override("font_size", 30)
 	_status_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status.add_child(_status_l)
+	_status_l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	sh.add_child(_status_l)
+	# arrêter l'activité en cours (taxi, course, chasse) d'un seul toucher
+	_stop_btn = Button.new(); _stop_btn.text = "■ Arrêter"
+	_stop_btn.add_theme_font_size_override("font_size", 26)
+	_stop_btn.custom_minimum_size = Vector2(0, 64)
+	_stop_btn.focus_mode = Control.FOCUS_NONE
+	_stop_btn.add_to_group("ui_zone")
+	_stop_btn.pressed.connect(func():
+		_stop()
+		hud.toast("Activité arrêtée.", 2.5))
+	sh.add_child(_stop_btn)
 	_status.visible = false
 	add_child(_status)
 	_bip = AudioStreamPlayer.new()
@@ -103,6 +118,7 @@ func _vs() -> Vector2:
 
 func _set_status(t: String) -> void:
 	_status_l.text = t
+	_stop_btn.visible = mode != ""
 	_status.visible = t != ""
 	_status.reset_size()
 	_status.position = Vector2((_vs().x - _status.get_combined_minimum_size().x) / 2, 122)
@@ -545,7 +561,7 @@ func _taxi_start() -> void:
 	_close_menu()
 	_clear_world()
 	mode = "taxi"
-	map.locked = false            # le taxi peut se téléporter entre deux courses
+	map.locked = true             # pas de téléportation pendant le taxi (■ Arrêter pour reprendre la main)
 	hud._show_drive(true)
 	_taxi_new_client()
 

@@ -435,9 +435,15 @@ def wheel():
     for yy in (cy - 12, cy + 15):
         c.flat(c.rect(cx - 22, yy, cx + 22, yy + 1) & hub, RAMP["rubber"][1])
         c.flat(c.rect(cx - 22, yy + 1, cx + 22, yy + 2) & hub, RAMP["rubber"][5])
-    # losange Renault chromé
-    lz = c.poly([(cx, cy - 9), (cx + 6, cy), (cx, cy + 9), (cx - 6, cy)]) & ~c.poly([(cx, cy - 5), (cx + 3, cy), (cx, cy + 5), (cx - 3, cy)])
-    c.shade(lz, c.bevel(lz, 1.5), "chrome", amb=0.4, scale=1.5)
+    # ovale « Fjord » (parodie de l'ovale Ford) : bleu nuit cerclé de chrome, signature blanche ondulée
+    ex, ey = (c.xx + 0.5 - cx) / 11.0, (c.yy + 0.5 - cy) / 6.5
+    oval = ex ** 2 + ey ** 2 <= 1.0
+    inner = ((c.xx + 0.5 - cx) / 9.5) ** 2 + ((c.yy + 0.5 - cy) / 5.0) ** 2 <= 1.0
+    c.shade(oval & ~inner, c.bevel(oval & ~inner, 1.2), "chrome", amb=0.45, scale=1.5)
+    c.flat(inner, (22, 48, 120))
+    c.flat(inner & (c.yy < cy - 2), (40, 76, 160))                # reflet du haut
+    wave = inner & (np.abs(c.yy + 0.5 - (cy + 1.6 * np.sin((c.xx - cx) * 0.75))) < 0.75) & (np.abs(c.xx - cx) <= 6)
+    c.flat(wave, (235, 238, 245))
     c.save("wheel.png")
     return {"wheel_r": WR, "wheel_t": WT}
 

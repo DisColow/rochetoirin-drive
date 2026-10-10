@@ -807,12 +807,12 @@ func _act_shot(s: Dictionary) -> void:
 					if tk._step.get("kind", "") == "choix" and tk._choices.get_child_count() > 0:
 						break
 				tk._wait = 999.0
-				print("  état : étape ", tk._step, " file ", tk._queue.size(), " montré ", tk._shown, "/", tk._full.length(), " attente ", tk._hold, " joue ", tk._player.playing, " fin ", tk._say_end - Time.get_ticks_msec(), " pause ", get_tree().paused, " riding ", tk.riding)
-				print("taxi : ", tk.client.prenom, " (", tk.client.car.id, ", voix ", tk.client.voix, ") « ", tk._full, " » choix ", tk._choices.get_child_count())
+				print("  état : étape ", tk._step, " file ", tk._queue.size(), " montré ", tk._shown, "/", tk._full.length(), " attente ", tk._hold, " fin ", tk._say_end - Time.get_ticks_msec(), " pause ", get_tree().paused, " riding ", tk.riding)
+				print("taxi : ", tk.client.prenom, " (", tk.client.car.id, ", hauteur ", tk.client.pitch, ") « ", tk._full, " » choix ", tk._choices.get_child_count())
 				await snap.call(s.name + "_conversation%d" % k)
 				tk._choices.get_child(0).emit_signal("pressed")
 				await run.call(2)
-				print("  joueur « ", tk._full, " » verdict ", tk._verdict.text, " humeur ", tk.client.sat, " voix en cours ", tk._player.playing, " morceaux ", tk._clips.size(), " vitesse ", tk._speed)
+				print("  joueur « ", tk._full, " » verdict ", tk._verdict.text, " humeur ", tk.client.sat, " voix TTS ", tk._voices.size(), " vitesse ", tk._speed)
 				await snap.call(s.name + "_reponse%d" % k)
 			var t1 := Time.get_ticks_msec()
 			while Time.get_ticks_msec() - t1 < 240000:

@@ -16,6 +16,15 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v6.1 — **APK à installer à la main** (réglage du projet modifié) :
+- **voix du taxi refaites de zéro** : synthèse vocale de base du téléphone, nette et compréhensible, avec un effet
+  talkie-walkie autour (grésillement quand le micro s'ouvre et se ferme, léger souffle radio). Chaque client a sa
+  hauteur de voix. Il faut une voix française installée dans le téléphone (Paramètres > Synthèse vocale), c'est le
+  cas par défaut sur la plupart des Android.
+- **bouton « ■ Arrêter »** dans le bandeau de l'activité (taxi, course, chasse) pour l'arrêter d'un toucher.
+- **volant de la vue cockpit** : le losange Renault est remplacé par l'ovale bleu « Fjord » (parodie de Ford).
+- **pas de téléportation pendant le taxi** (ni pendant les courses et la chasse) : il faut d'abord arrêter l'activité.
+
 Nouveautés de la v6.0 — **APK à installer à la main** (l'écran de démarrage change) :
 - **mise à jour au démarrage, sans écran figé** : après le téléchargement, une barre montre l'installation puis le
   chargement du monde, au lieu de rester bloquée sur « installée » pendant que le jeu charge.
