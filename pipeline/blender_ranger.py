@@ -20,7 +20,7 @@ WHEEL_Z = 1.44                         # centre des roues
 MATS = {"material": "paint", "preto__spec": "plastic", "Matte__FFFFF": "plastic", "Color_I11": "plastic",
         "FrontColor": "plastic", "preto_fosco": "plastic", "Color_008": "rubber", "black__spec": "chrome",
         "vidrogeral": "glass", "vidffron__sp": "glass", "lanterna__sp": "tail", "material_11": "lamp"}
-TARGET_FACES = 45000                   # caisse ; roue : 2 500
+TARGET_FACES = 22000                   # caisse (toujours à l'écran et dans les ombres : allégée pour le téléphone) ; roue : 2 500
 
 
 def bbox(o):

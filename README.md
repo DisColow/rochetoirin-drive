@@ -16,6 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v6.4 (mise à jour automatique) :
+- **Ranger allégé** pour le téléphone (22 000 faces au lieu de 45 000, toujours à l'écran et dans les ombres),
+  apparence inchangée.
+
 Nouveautés de la v6.3 (mise à jour automatique) :
 - **Ranger sans couvercle de benne**, et **performances du vrai Ford Ranger Raptor** : 2,4 t, quatre roues motrices,
   213 ch, 0 à 100 km/h en 10,5 s, 170 km/h maxi, freinage réaliste ; le son du moteur suit une boîte auto 10 rapports.
