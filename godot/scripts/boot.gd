@@ -60,6 +60,9 @@ func _ecran() -> void:
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	t.add_theme_font_size_override("font_size", 56)
 	v.add_child(t)
+	var sp := Spinner.new()
+	sp.custom_minimum_size = Vector2(0, 84)
+	v.add_child(sp)
 	_info = Label.new()
 	_info.text = "Recherche de mise à jour…"
 	_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -205,7 +208,31 @@ func _charger(dt: float) -> void:
 	if st == ResourceLoader.THREAD_LOAD_LOADED:
 		_charge = false
 		_info.text = "Démarrage…"
+		_voile()
 		get_tree().change_scene_to_packed.call_deferred(ResourceLoader.load_threaded_get(MAIN))
 	elif st == ResourceLoader.THREAD_LOAD_FAILED or st == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
 		_charge = false
 		get_tree().change_scene_to_file.call_deferred(MAIN)
+
+
+## Voile « Démarrage… » posé au-dessus de tout pendant que la scène du jeu se construit (sinon : ciel figé une dizaine
+## de secondes sur le téléphone) ; il s'efface tout seul quand le jeu tourne (scripts/voile_demarrage.gd).
+func _voile() -> void:
+	get_tree().root.add_child(preload("res://scripts/voile_demarrage.gd").new())
+
+## Spinner : arc lumineux qui tourne (montre que le jeu travaille, même quand la barre avance peu).
+class Spinner extends Control:
+	var _a := 0.0
+
+	func _process(dt: float) -> void:
+		_a = fmod(_a + minf(dt, 0.1) * TAU * 0.9, TAU)
+		queue_redraw()
+
+	func _draw() -> void:
+		var c := Vector2(size.x / 2.0, size.y / 2.0)
+		var r := minf(size.y / 2.0, 36.0) - 4.0
+		draw_arc(c, r, 0.0, TAU, 48, Color(1, 1, 1, 0.12), 7.0, true)
+		# traîne dégradée derrière la tête de l'arc
+		for i in 12:
+			var a0 := _a - i * 0.16
+			draw_arc(c, r, a0 - 0.17, a0, 6, Color(1.0, 0.72, 0.28, 1.0 - i / 12.0), 7.0, true)

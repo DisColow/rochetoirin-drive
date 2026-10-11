@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v5.5.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v5.5/RochetoirinSimulator-v5.5.apk)**
+**[RochetoirinSimulator-v6.2.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.2/RochetoirinSimulator-v6.2.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,17 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v6.2 — **APK à installer à la main** (écran de démarrage modifié) :
+- **voix du taxi refaites** : chaque réplique est enregistrée par synthèse vocale (Piper, libre) puis transformée en
+  talkie-walkie (version « D » : bande étroite, saturée, grain et souffle radio) ; le jeu joue ces fichiers tels quels.
+  Plus besoin de voix installée dans le téléphone.
+- **le dialogue attend la fin de la voix** avant d'afficher la ligne suivante (la vraie fin du son, pas une durée
+  estimée).
+- **spinner** sur l'écran de chargement, et l'écran reste affiché pendant le démarrage du jeu (plus de ciel figé).
+- **voiture coincée** (gaz enfoncé sans avancer, même en vibrant contre un obstacle comme sur la vidéo du
+  10 octobre) : remise sur la route automatique au bout de 3 s.
+- plus d'indicateurs ♥ / • / ✗ dans les conversations du taxi.
 
 Nouveautés de la v6.1 — **APK à installer à la main** (réglage du projet modifié) :
 - **voix du taxi refaites de zéro** : synthèse vocale de base du téléphone, nette et compréhensible, avec un effet

@@ -111,13 +111,15 @@
   commandes de conduite (◀ ▶ FREIN GAZ) restent des disques translucides. Toute nouvelle fenêtre : `UI.panel()`.
 - **Taxi : conversations** (`scripts/taxi_talk.gd`, textes `data/taxi.json` générés par `pipeline/taxi_dialogues.py`,
   versionnés) : caractères aux goûts cachés, fils de trois échanges (le client parle, on répond sur un ton —
-  chaleureux, drôle, curieux, sobre, ou silence —, il réagit), indicateurs ♥ / • / ✗ et jauge d'humeur, indices
+  chaleureux, drôle, curieux, sobre, ou silence —, il réagit), jauge d'humeur (plus d'indicateurs ♥ / • / ✗ depuis la v6.2), indices
   (allure du client, préférences apprises en lui posant des questions avec le bouton « bulle »), pourboire selon la
-  satisfaction. **Voix** (depuis la v6.1) : synthèse vocale du système (`DisplayServer.tts_*`, réglage
-  `audio/general/text_to_speech`), voix française de base, hauteur propre au client ; effet talkie-walkie autour
-  (grésillement d'ouverture/fermeture, souffle radio sur le bus « Voix ») — la synthèse ne passe pas par les effets du
-  jeu, ce qui la garde compréhensible. Les voix Piper pré-enregistrées (v6.0) étaient incompréhensibles une fois
-  filtrées : abandonnées. La radio baisse quand quelqu'un parle.
+  satisfaction. **Voix** (depuis la v6.2) : chaque réplique enregistrée par `pipeline/build_voix.py` (Piper hors ligne,
+  voix Siwis et Gilles en plusieurs hauteurs ; répliques entières, sauf les 25 à variables : morceaux + valeurs), **effet talkie-walkie appliqué
+  par ffmpeg dans les fichiers** (version « D » choisie par l'utilisateur : bande 450-2600 Hz, compression, saturation,
+  grain, souffle), joués tels quels par le bus « Voix » sans aucun effet ni décalage de hauteur (en v6.0, ces effets
+  en jeu rendaient les voix incompréhensibles ; en v6.1, synthèse vocale du système, abandonnée). Le dialogue n'avance
+  qu'à la fin réelle du son (`_voice_busy()`). Toute nouvelle réplique : relancer `taxi_dialogues.py` puis
+  `build_voix.py` (incrémental, venv avec piper-tts), puis `publier_donnees.sh`. La radio baisse quand quelqu'un parle.
 - **Éditeur de monde** (`scripts/editeur_monde.gd`) : « Sésame, ouvre-toi » / « Hasta la vista, baby » dans le champ
   « Formule magique » (appui long sur le nom de la rue, F2, ou ⚙) ; on touche un objet, puis « Générer depuis Street
   View » ou une remarque -> issue GitHub pré-remplie (étiquette `editeur-monde` : position, GPS, objet, caméra, lien
@@ -138,4 +140,5 @@
 - **Éditeur de monde** : bâtiments refaits sur demande dans `pipeline/sources/bati_editeur.txt` (cleabs + relevé
   Street View, photos dans le cache privé `streetview/editeur/`), appliqués par `build_buildings.py`.
 - **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
-  souples, pas d'à-coups de chargement).
+  souples, pas d'à-coups de chargement). Voiture coincée (gaz ou frein enfoncé, moins de 1,5 m parcouru en 3 s, même
+  si la vitesse calculée reste élevée en vibrant contre un obstacle) : remise sur la route automatique (`car.gd`).

@@ -36,6 +36,14 @@ var editeur: CanvasLayer          # éditeur de monde (scripts/editeur_monde.gd)
 const BOOT_FLAG := "user://demarrage.flag"
 var safe_mode := false
 
+## Voile de démarrage (boot.gd) : effacé après les premières images du jeu.
+func _fermer_voile() -> void:
+	for k in 3:
+		await get_tree().process_frame
+	var v := get_tree().root.get_node_or_null("VoileDemarrage")
+	if v and v.has_method("fermer"):
+		v.fermer()
+
 func _ready() -> void:
 	safe_mode = FileAccess.file_exists(BOOT_FLAG)
 	var bf := FileAccess.open(BOOT_FLAG, FileAccess.WRITE)
@@ -203,6 +211,7 @@ func _ready() -> void:
 	var cr = preload("res://scripts/crash_report.gd").new()
 	cr.car = car; cr.hud = hud; cr.names = hud.names
 	add_child(cr)
+	_fermer_voile()
 
 ## Téléportation sans à-coup : appliquée une fois le jeu repris (un déplacement fait pendant la pause est annulé par
 ## le moteur physique), routes et bâtiments de la destination chargés d'abord, voiture maintenue immobile 0,6 s.
@@ -808,11 +817,11 @@ func _act_shot(s: Dictionary) -> void:
 						break
 				tk._wait = 999.0
 				print("  état : étape ", tk._step, " file ", tk._queue.size(), " montré ", tk._shown, "/", tk._full.length(), " attente ", tk._hold, " fin ", tk._say_end - Time.get_ticks_msec(), " pause ", get_tree().paused, " riding ", tk.riding)
-				print("taxi : ", tk.client.prenom, " (", tk.client.car.id, ", hauteur ", tk.client.pitch, ") « ", tk._full, " » choix ", tk._choices.get_child_count())
+				print("taxi : ", tk.client.prenom, " (", tk.client.car.id, ", voix ", tk.client.voix, ") « ", tk._full, " » choix ", tk._choices.get_child_count())
 				await snap.call(s.name + "_conversation%d" % k)
 				tk._choices.get_child(0).emit_signal("pressed")
 				await run.call(2)
-				print("  joueur « ", tk._full, " » verdict ", tk._verdict.text, " humeur ", tk.client.sat, " voix TTS ", tk._voices.size(), " vitesse ", tk._speed)
+				print("  joueur « ", tk._full, " » verdict ", tk._verdict.text, " humeur ", tk.client.sat, " voix en cours ", tk._player.playing, " morceaux ", tk._clips.size(), " son ", tk._player.stream.resource_path if tk._player.stream else "aucun")
 				await snap.call(s.name + "_reponse%d" % k)
 			var t1 := Time.get_ticks_msec()
 			while Time.get_ticks_msec() - t1 < 240000:

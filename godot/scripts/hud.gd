@@ -57,7 +57,7 @@ func _ready() -> void:
 
 var settings: Control
 
-const CREDITS := """Voix du taxi : synthèse Piper (rhasspy) ; voix « Siwis » (Université d'Édimbourg, CC BY 4.0), « Gilles » (CC0), « MLS » (Multilingual LibriSpeech, CC BY 4.0).
+const CREDITS := """Voix du taxi : synthèse Piper (rhasspy) ; voix « Siwis » (Université d'Édimbourg, CC BY 4.0) et « Gilles » (CC0), effet talkie-walkie ffmpeg.
 Voiture : « Ford Ranger Raptor 2019 » par David_Holiday (Sketchfab, licence CC BY 4.0), repeint en noir avec couvercle de benne blanc.
 Soucoupe du gardien : « UFO » par sebslom (sketchfab.com/3d-models), licence CC BY 4.0.
 Pluie et orage : Sound Effect by Premankur Adhikary from Pixabay.

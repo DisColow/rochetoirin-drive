@@ -55,7 +55,7 @@ var _asked := {}
 var _player: AudioStreamPlayer
 var _noise_player: AudioStreamPlayer
 var _noise: AudioStreamWAV
-var _say_end := 0                  # fin prévue de la réplique (ms) : ne dépend pas du seul signal du lecteur
+var _say_end := 0                  # temps minimal de la réplique (ms) ; sans voix : temps de lecture du texte
 
 func _ready() -> void:
 	layer = 3
@@ -145,8 +145,7 @@ func start_ride(home: String, dest: String, dest_commune: String, dest_kind: Str
 		"metier": met.f if fem else met.m, "metier_detail": met.detail,
 		"loisir": _pick(data.loisirs), "animal": _pick(data.animaux), "famille": _pick(data.familles),
 		"commune": home, "dest": dest, "dest_commune": dest_commune, "kind": dest_kind,
-		"tts": _rng.randi_range(0, 7),
-		"pitch": _rng.randf_range(1.15, 1.35) if fem else _rng.randf_range(0.78, 0.95),
+		"voix": ("f" if fem else "m") + str(_rng.randi_range(1, 3)),
 		"allure": "", "connu": {},
 		"sat": 0.0,
 	}
@@ -188,9 +187,7 @@ func stop() -> void:
 	_step = {}
 	_fil = []
 	_box.visible = false
-	if not _voices.is_empty():
-		DisplayServer.tts_stop()
-	_hiss_player.stop()
+	_stop_voice()
 	_clear_choices()
 
 # ---------------------------------------------------------------- déroulé
@@ -227,7 +224,7 @@ func _process(dt: float) -> void:
 		var vs := get_viewport().get_visible_rect().size
 		var bh := _box.size.y + 30.0 if _box.visible else 22.0
 		_talk_btn.position = Vector2((vs.x - _talk_btn.shape.size.x) / 2.0, vs.y - _talk_btn.shape.size.y - bh)
-	var speaking := _full != "" and (_shown < _full.length() or Time.get_ticks_msec() < _say_end)
+	var speaking := _full != "" and (_shown < _full.length() or _voice_busy())
 	if main and main.get("radio") != null and main.radio.has_method("set_duck"):
 		main.radio.set_duck(1.0 if speaking else 0.0)
 	var AU := preload("res://scripts/audio.gd")
@@ -243,13 +240,11 @@ func _process(dt: float) -> void:
 		_shown = minf(_shown + dt * _speed, _full.length())
 		_text.text = _full.substr(0, int(_shown))
 	elif _step.get("kind", "") == "dit":
-		if Time.get_ticks_msec() < _say_end:
-			_hold = maxf(_hold, 0.0)  # Ne pas décrémenter tant que l'audio joue
-		else:
+		# la ligne suivante attend la fin du son de celle-ci
+		if not _voice_busy():
 			_hold -= dt
 			if _hold <= 0.0:
 				_squelch()
-				_hiss_player.stop()
 				_advance()
 	elif _step.is_empty() and _box.visible and _full != "":
 		_hold -= dt
@@ -449,7 +444,7 @@ func _say(t: String, who: String) -> void:
 	_hint.text = h
 	_hint.visible = h != ""
 	var dur := _speak(t, who)
-	_say_end = Time.get_ticks_msec() + int(dur * 1000.0) + 400
+	_say_end = Time.get_ticks_msec() + (400 if dur > 0.0 else int(filled.length() / 30.0 * 1000.0))
 	_speed = clampf(filled.length() / maxf(dur, 0.3), 10.0, 40.0) if dur > 0.0 else 30.0
 
 func _layout() -> void:
@@ -476,76 +471,93 @@ func _fill(t: String) -> String:
 	return t
 
 # ---------------------------------------------------------------- voix
-## Synthèse vocale du système (Android, Windows, Linux : DisplayServer.tts_*), voix française de base, nette.
-## Effet talkie-walkie autour : grésillement à l'ouverture et à la fermeture du micro, léger souffle radio pendant
-## qu'on parle (bus « Voix » : bande étroite). La synthèse elle-même ne passe pas par les effets du jeu (elle sort
-## directement du système), ce qui la garde compréhensible.
-var _voices: PackedStringArray = []
-var _hiss_player: AudioStreamPlayer
+## Répliques enregistrées par pipeline/build_voix.py (Piper + effet talkie-walkie appliqué par ffmpeg dans les
+## fichiers) : le jeu les joue telles quelles, sans effet ni changement de hauteur, ce qui les garde compréhensibles.
+## Grésillement d'ouverture et de fermeture du micro joué à part.
+var _index := {}
+var _clips: Array = []
 
 func _make_voice() -> void:
+	if FileAccess.file_exists("res://assets/voix/index.json"):
+		var d = JSON.parse_string(FileAccess.get_file_as_string("res://assets/voix/index.json"))
+		if d is Dictionary:
+			_index = d
 	var bus := AudioServer.get_bus_index("Voix")
 	if bus < 0:
 		AudioServer.add_bus()
 		bus = AudioServer.bus_count - 1
 		AudioServer.set_bus_name(bus, "Voix")
 		AudioServer.set_bus_send(bus, "Master")
-		var hp := AudioEffectHighPassFilter.new(); hp.cutoff_hz = 500.0
-		var lp := AudioEffectLowPassFilter.new(); lp.cutoff_hz = 3000.0
-		AudioServer.add_bus_effect(bus, hp)
-		AudioServer.add_bus_effect(bus, lp)
+	else:
+		while AudioServer.get_bus_effect_count(bus) > 0:
+			AudioServer.remove_bus_effect(bus, 0)
+	AudioServer.set_bus_volume_db(bus, 2.0)
 	_player = AudioStreamPlayer.new(); _player.bus = "Voix"
+	_player.finished.connect(_next_clip)
 	add_child(_player)
-	_noise_player = AudioStreamPlayer.new(); _noise_player.bus = "Voix"; _noise_player.volume_db = -8.0
+	_noise_player = AudioStreamPlayer.new(); _noise_player.bus = "Voix"; _noise_player.volume_db = -10.0
 	add_child(_noise_player)
-	_hiss_player = AudioStreamPlayer.new(); _hiss_player.bus = "Voix"; _hiss_player.volume_db = -30.0
-	add_child(_hiss_player)
 	var sr := 22050
-	# grésillement d'ouverture / fermeture (bruit coloré, attaque sèche)
-	var n := int(sr * 0.12)
+	var n := int(sr * 0.11)
 	var pcm := PackedByteArray(); pcm.resize(n * 2)
 	var prev := 0.0
 	for i in n:
 		var w := _rng.randf_range(-1.0, 1.0)
 		prev = prev * 0.35 + w * 0.65
-		var env := minf(1.0, i / (sr * 0.004)) * (1.0 - float(i) / n)
-		pcm.encode_s16(i * 2, int(clampf(prev * env * 0.5, -1.0, 1.0) * 32767.0))
+		var env := minf(1.0, i / (sr * 0.006)) * (1.0 - float(i) / n)
+		pcm.encode_s16(i * 2, int(clampf(prev * env * 0.45, -1.0, 1.0) * 32767.0))
 	_noise = AudioStreamWAV.new(); _noise.format = AudioStreamWAV.FORMAT_16_BITS; _noise.mix_rate = sr; _noise.data = pcm
-	# souffle radio en boucle (1 s)
-	var hn := sr
-	var hp_ := PackedByteArray(); hp_.resize(hn * 2)
-	for i in hn:
-		hp_.encode_s16(i * 2, int(_rng.randf_range(-0.3, 0.3) * 32767.0))
-	var hiss := AudioStreamWAV.new(); hiss.format = AudioStreamWAV.FORMAT_16_BITS; hiss.mix_rate = sr; hiss.data = hp_
-	hiss.loop_mode = AudioStreamWAV.LOOP_FORWARD; hiss.loop_end = hn
-	_hiss_player.stream = hiss
-	if DisplayServer.has_feature(DisplayServer.FEATURE_TEXT_TO_SPEECH):
-		for v in DisplayServer.tts_get_voices():
-			if str(v.get("language", "")).begins_with("fr"):
-				_voices.append(str(v.id))
-		DisplayServer.tts_set_utterance_callback(DisplayServer.TTS_UTTERANCE_ENDED, _tts_fin)
-		DisplayServer.tts_set_utterance_callback(DisplayServer.TTS_UTTERANCE_CANCELED, _tts_fin)
 
-func _tts_fin(_id: int) -> void:
-	_say_end = Time.get_ticks_msec()
-	_hiss_player.stop()
+## Vrai si une réplique est en train d'être dite (le dialogue n'avance pas avant la fin du son).
+func _voice_busy() -> bool:
+	return _player.playing or not _clips.is_empty() or Time.get_ticks_msec() < _say_end
 
-## Dit une réplique (texte complet, variables remplies). Renvoie une durée estimée (0 sans synthèse vocale : le texte
-## s'écrit alors seul).
+func _stop_voice() -> void:
+	_clips.clear()
+	_player.stop()
+
+## Dit une réplique : le fichier de la réplique entière, ou (répliques à variables) ses morceaux fixes et les valeurs
+## des variables joués à la suite. Renvoie la durée (0 sans voix : le texte s'écrit alors seul).
 func _speak(t: String, who: String) -> float:
-	_squelch()
-	if _voices.is_empty():
+	_stop_voice()
+	var v: String = "joueur" if who == "joueur" else str(client.get("voix", "m1"))
+	if not _index.has(v):
 		return 0.0
-	DisplayServer.tts_stop()
-	var txt := _fill(t)
-	var voice: String = _voices[0]
-	var pitch := 1.0
-	if who != "joueur":
-		voice = _voices[int(client.get("tts", 0)) % _voices.size()]
-		pitch = float(client.get("pitch", 1.0))
-	DisplayServer.tts_speak(txt, voice, 100, pitch, 1.0, 0, true)
-	_hiss_player.play()
-	return txt.length() / 13.0 + 0.3
+	var idx: Dictionary = _index[v]
+	var a := _accord(t)
+	var parts: Array = []
+	if _re_var.search(a) == null:
+		parts.append(a)
+	else:
+		var pos := 0
+		for m in _re_var.search_all(a):
+			parts.append(a.substr(pos, m.get_start() - pos))
+			parts.append(str(client.get(m.get_string(1), "")))
+			pos = m.get_end()
+		parts.append(a.substr(pos))
+	var dur := 0.0
+	for p in parts:
+		var s: String = (p as String).strip_edges()
+		if s == "":
+			continue
+		var k := s.md5_text()
+		if not idx.has(k):
+			continue
+		var path := "res://assets/voix/%s/%s.ogg" % [v, k.substr(0, 16)]
+		if ResourceLoader.exists(path):
+			_clips.append(path)
+			dur += float(idx[k])
+	if _clips.is_empty():
+		return 0.0
+	_squelch()
+	_next_clip()
+	return dur
+
+func _next_clip() -> void:
+	if _clips.is_empty():
+		return
+	_player.stream = load(_clips.pop_front())
+	_player.play()
 
 func _squelch() -> void:
 	if _noise == null:

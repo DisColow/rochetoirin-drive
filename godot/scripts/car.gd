@@ -20,6 +20,8 @@ var brk_in := 0.0
 var safe := []                  # positions sûres récentes : [Transform3D]
 var _safe_t := 0.0
 var _stuck_t := 0.0
+var _jam_t := 0.0
+var _jam_ref := Vector3.ZERO
 var _flip_t := 0.0
 var wheels := []
 var road_pts := PackedFloat32Array()
@@ -584,8 +586,37 @@ func _recovery(dt: float) -> void:
 	# bloqué (accélère sans avancer) plus de 4 s
 	var thr := Input.get_action_strength("accelerer") + touch_throttle
 	_stuck_t = _stuck_t + dt if (thr > 0.3 and kmh() < 1.5) else 0.0
+	# coincée en vibrant contre un obstacle : la vitesse calculée reste élevée mais la voiture ne se déplace pas ;
+	# on juge sur le déplacement réel (moins de 1,5 m en 3 s, gaz ou frein enfoncé)
+	var brk_j := Input.get_action_strength("freiner") + touch_brake
+	if (thr > 0.3 or brk_j > 0.3) and p.is_finite():
+		_jam_t += dt
+		if p.distance_to(_jam_ref) > 1.5:
+			_jam_ref = p; _jam_t = 0.0
+		elif _jam_t > 3.0:
+			print("voiture coincée en %s (vitesse calculée %.0f km/h) contre %s : remise sur la route" % [p, kmh(), _touching()])
+			reset_to_road()
+	else:
+		_jam_ref = p; _jam_t = 0.0
 	if p.y < -50.0 or _flip_t > 1.2 or _stuck_t > 4.0 or Input.is_action_just_pressed("replacer"):
 		reset_to_road()
+
+## Objets du décor qui touchent la carrosserie (diagnostic d'une voiture coincée).
+func _touching() -> Array:
+	var q := PhysicsShapeQueryParameters3D.new()
+	var b := BoxShape3D.new()
+	var bx: Array = _meta.get("box", [1.76, 1.15, 4.24])
+	b.size = Vector3(bx[0], bx[1], bx[2]) + Vector3(0.4, 0.2, 0.4)
+	q.shape = b
+	q.transform = global_transform * Transform3D(Basis(), Vector3(0, float(_meta.get("box_y", 0.95)), 0))
+	q.exclude = [get_rid()]
+	var out := []
+	for r in get_world_3d().direct_space_state.intersect_shape(q, 8):
+		var c: Object = r.collider
+		if c is Node:
+			var n := c as Node
+			out.append("%s/%s%s" % [n.get_parent().name if n.get_parent() else "", n.name, (" " + str(n.get_meta("surface"))) if n.has_meta("surface") else ""])
+	return out
 
 ## Remise sur la route la plus proche, dans le sens de la voie le plus proche de celui de la voiture.
 func reset_to_road() -> void:
@@ -618,4 +649,4 @@ func reset_to_road() -> void:
 		global_transform = Transform3D(Basis(Vector3.UP, t.basis.get_euler().y), t.origin + Vector3(0, 0.8, 0))
 		linear_velocity = Vector3.ZERO
 		angular_velocity = Vector3.ZERO
-	_flip_t = 0.0; _stuck_t = 0.0
+	_flip_t = 0.0; _stuck_t = 0.0; _jam_t = 0.0; _jam_ref = global_position
