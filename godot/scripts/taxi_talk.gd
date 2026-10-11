@@ -242,12 +242,15 @@ func _process(dt: float) -> void:
 	if _full != "" and _shown < _full.length():
 		_shown = minf(_shown + dt * _speed, _full.length())
 		_text.text = _full.substr(0, int(_shown))
-	elif _step.get("kind", "") == "dit" and Time.get_ticks_msec() > _say_end:
-		_hold -= dt
-		if _hold <= 0.0:
-			_squelch()
-			_hiss_player.stop()
-			_advance()
+	elif _step.get("kind", "") == "dit":
+		if Time.get_ticks_msec() < _say_end:
+			_hold = maxf(_hold, 0.0)  # Ne pas décrémenter tant que l'audio joue
+		else:
+			_hold -= dt
+			if _hold <= 0.0:
+				_squelch()
+				_hiss_player.stop()
+				_advance()
 	elif _step.is_empty() and _box.visible and _full != "":
 		_hold -= dt
 		if _hold <= -3.0:
@@ -322,9 +325,7 @@ func _answer(text: String, ton: String) -> void:
 	client.sat = float(client.sat) + d * 0.45
 	_since = 0.0
 	var cat := "bien" if d >= 0.9 else ("mal" if d <= -0.9 else "moyen")
-	_verdict.text = {"bien": "♥ Apprécié", "moyen": "• Bof", "mal": "✗ Agacé"}[cat]
-	_verdict.add_theme_color_override("font_color", {"bien": Color(0.45, 1.0, 0.5), "moyen": Color(0.8, 0.8, 0.8),
-		"mal": Color(1.0, 0.4, 0.35)}[cat])
+	_verdict.text = ""
 	if text != "":
 		_player_says(text)
 	var reaction: String = _pick(client.car[cat]) if text != "" else _pick(data.silence if cat != "mal" else client.car.mal)
@@ -368,8 +369,7 @@ func _ask(q: Dictionary, text: String) -> void:
 	_player_says(text)
 	if client.bavard < 0.3 and float(g.curieux) < 0.0 and _rng.randf() < 0.6:
 		client.sat = float(client.sat) - 0.4
-		_verdict.text = "✗ Dérangé" if not client.fem else "✗ Dérangée"
-		_verdict.add_theme_color_override("font_color", Color(1.0, 0.4, 0.35))
+		_verdict.text = ""
 		_client_says(_pick(data.esquive))
 		_next = maxf(_next, 25.0)
 		return
