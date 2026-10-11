@@ -1,13 +1,15 @@
 ## Bâtiments en tuiles de 256 m chargées au fil de la route (deux par image au plus) ; collisions simples près de la voiture.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
-const VIEW := 1300.0
+var VIEW := 1300.0
 const COLL := 220.0
 
 var target: Node3D
 var tiles := {}
 var loaded := {}
+var _chargeur = preload("res://scripts/chargeur.gd").new()
 var pending := {}
 var bodies := {}
 var mat: ShaderMaterial
@@ -88,14 +90,22 @@ func update_now() -> void:
 	_collisions()
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("buildings", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null:
 		return
-	var n := 0
+	# tuiles lues en arrière-plan (scripts/chargeur.gd), posées une par image au plus (pas d'à-coup)
 	for k in pending.keys():
-		_add(k)
-		pending.erase(k)
-		n += 1
-		if n >= 2:
+		if loaded.has(k):
+			pending.erase(k)
+			continue
+		var sc := _chargeur.pret(tiles[k]) as PackedScene
+		if sc != null:
+			_add(k, sc)
+			pending.erase(k)
 			break
 	_t -= dt
 	if _t > 0:
@@ -109,6 +119,10 @@ func _process(dt: float) -> void:
 	for k in pending.keys():
 		if not ws.has(k):
 			pending.erase(k)
+	var vp := {}
+	for k in pending:
+		vp[tiles[k]] = true
+	_chargeur.menage(vp)
 	for k in loaded.keys():
 		if not ws.has(k):
 			loaded[k].queue_free()
@@ -116,10 +130,11 @@ func _process(dt: float) -> void:
 			bodies.erase(k)
 	_collisions()
 
-func _add(k: Vector2i) -> void:
+func _add(k: Vector2i, sc: PackedScene = null) -> void:
 	if loaded.has(k):
 		return
-	var sc: PackedScene = load(tiles[k])
+	if sc == null:
+		sc = load(tiles[k])
 	if sc == null:
 		return
 	var n := sc.instantiate()

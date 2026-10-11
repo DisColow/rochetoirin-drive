@@ -1,5 +1,5 @@
 ## Moteur sonore (sons : pipeline/build_sons.py, enregistrements de Joseph Sardin - BigSoundBank et Kenney, CC0).
-## Voiture : moteur à boucles par régime (paliers d'un vrai 4 cylindres essence, boîte 5 vitesses simulée, version
+## Voiture : moteur à boucles par régime (paliers d'un vrai 4 cylindres essence, boîte automatique 10 rapports simulée, version
 ## « en charge » ou « frein moteur » selon l'accélérateur), démarreur, roulement selon ce qu'il y a sous chaque roue
 ## (asphalte, gravier, herbe), vent de la vitesse, crissement des pneus, chocs selon l'objet heurté, retombées.
 ## Monde : fonds sonores dosés d'après la carte des ambiances (world/ambiance.bin : bâti, bois, eau, autoroute) et
@@ -9,16 +9,18 @@
 ## ouverte (voiture et monde à plein) ; vue conducteur = dehors étouffé (passe-bas), moteur assourdi.
 ## Les sources trop faibles sont mises en pause (décodage économisé sur le téléphone).
 extends Node
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 var car: VehicleBody3D
 var cam_rig: Node
 var main: Node
 
-const GEARS := [3.42, 1.95, 1.3, 0.97, 0.72]     # boîte 5 vitesses (Espace I 2,0 l ; 5e allongée : 230 km/h sous la zone rouge)
-const FINAL := 3.89
-const WHEEL_R := 0.31
-const IDLE := 850.0
-const REDLINE := 5800.0
+# Ford Ranger Raptor : boîte automatique 10R80 à 10 rapports, pont 3,73, pneus 285/70 R17, diesel (zone rouge 4 500)
+const GEARS := [4.696, 2.985, 2.146, 1.769, 1.52, 1.275, 1.0, 0.854, 0.689, 0.636]
+const FINAL := 3.73
+const WHEEL_R := 0.415
+const IDLE := 800.0
+const REDLINE := 4500.0
 const SFX := "res://assets/sfx/%s.ogg"
 
 var rpm := IDLE
@@ -200,8 +202,8 @@ func _physics_process(dt: float) -> void:
 		target = maxf(IDLE, wrpm * 3.6)
 	else:
 		var r: float = wrpm * GEARS[gear]
-		var up := lerpf(2600.0, 5400.0, thr)
-		var down := lerpf(1250.0, 2300.0, thr)
+		var up := lerpf(1800.0, 3900.0, thr)          # diesel : passe tôt, couple dès 1 750 tr/min
+		var down := lerpf(1100.0, 1800.0, thr)
 		if _shift_t <= 0.0 and gear < GEARS.size() - 1 and r > up:
 			gear += 1; _shift_t = 0.28
 		elif _shift_t <= 0.0 and gear > 0 and r < down:
@@ -372,6 +374,11 @@ func amb_at(x: float, z: float) -> Array:
 	return out
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("audio", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if car == null or not is_instance_valid(car):
 		return
 	var cam := get_viewport().get_camera_3d()

@@ -1,5 +1,6 @@
 ## Eau (build_water.py) : étangs, rivières, ruisseaux en tuiles de 256 m chargées au fil de la route.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
 const VIEW := 1500.0
@@ -47,6 +48,11 @@ func update_now() -> void:
 			_add(k)
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("water", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null:
 		return
 	for k in pending.keys():

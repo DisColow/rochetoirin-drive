@@ -3,6 +3,7 @@
 ## boutons carte / caméra / remise sur la route en haut à gauche ; commandes tactiles multipoint (◀ ▶ à gauche, frein
 ## et accélérateur à droite). La manette et le clavier passent par les mêmes actions.
 extends CanvasLayer
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const UI := preload("res://scripts/ui.gd")
 
@@ -108,26 +109,29 @@ func _open_settings() -> void:
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sc.add_child(v)
 	var t := Label.new(); t.text = "Réglages"; t.add_theme_font_size_override("font_size", 44); v.add_child(t)
-	var l := Label.new(); l.text = "Densité de la végétation"; l.add_theme_font_size_override("font_size", 30); v.add_child(l)
-	var h := HBoxContainer.new(); h.add_theme_constant_override("separation", 16); v.add_child(h)
-	for i in veg.LEVELS.size():
+	var l := Label.new(); l.text = "Performances"; l.add_theme_font_size_override("font_size", 30); v.add_child(l)
+	var h := HBoxContainer.new(); h.add_theme_constant_override("separation", 12); v.add_child(h)
+	var main_n = get_parent()
+	var boutons := []
+	var maj := func():
+		for j in boutons.size():
+			boutons[j].button_pressed = (j == 4 and main_n.perf_auto) or (j < 4 and not main_n.perf_auto and j == veg.level)
+	for i in 5:
 		var b := Button.new()
-		b.text = veg.LEVELS[i].name
+		b.text = ["Économie", "Équilibré", "Élevée", "Maximale", "Auto"][i]
 		b.toggle_mode = true
-		b.button_pressed = i == veg.level
-		b.custom_minimum_size = Vector2(220, 70)
-		b.add_theme_font_size_override("font_size", 30)
+		b.custom_minimum_size = Vector2(170, 70)
+		b.add_theme_font_size_override("font_size", 28)
 		b.pressed.connect(func():
-			veg.set_level(i)
-			veg.update_now()
-			get_parent().crops.set_level(i)
-			get_parent().grass.set_level(i)
-			get_parent().set_post(i)
+			main_n.perf_auto = i == 4
+			if i < 4:
+				appliquer_niveau(i)
 			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
-			cfg.set_value("affichage", "vegetation", i); cfg.save("user://reglages.cfg")
-			for c in h.get_children():
-				c.button_pressed = c == b)
+			cfg.set_value("affichage", "perf_auto", main_n.perf_auto); cfg.save("user://reglages.cfg")
+			maj.call())
 		h.add_child(b)
+		boutons.append(b)
+	maj.call()
 	# heure de la journée (lumière, ciel, phares et fenêtres éclairées le soir)
 	var lt := Label.new(); lt.text = "Heure de la journée"; lt.add_theme_font_size_override("font_size", 30); v.add_child(lt)
 	var ht := HBoxContainer.new(); ht.add_theme_constant_override("separation", 16); v.add_child(ht)
@@ -185,7 +189,7 @@ func _open_settings() -> void:
 		col.add_child(sl)
 		hs.add_child(col)
 	var note := Label.new()
-	note.text = "Moins de végétation = jeu plus fluide sur les téléphones modestes.\nVersion %s (mises à jour automatiques au lancement)" % str(Engine.get_meta("version_jeu", ProjectSettings.get_setting("application/config/version", "")))
+	note.text = "Auto : le jeu choisit le niveau selon sa fluidité. Économie = le plus fluide.\nVersion %s (mises à jour automatiques au lancement)" % str(Engine.get_meta("version_jeu", ProjectSettings.get_setting("application/config/version", "")))
 	note.add_theme_font_size_override("font_size", 22); note.modulate = Color(1, 1, 1, 0.7); v.add_child(note)
 	# éditeur de monde : champ de la formule magique (dictée au micro du clavier, ou saisie)
 	var fm := Button.new(); fm.text = "Formule magique…"; fm.custom_minimum_size = Vector2(0, 64)
@@ -210,6 +214,18 @@ func _open_settings() -> void:
 		_fit_settings.call_deferred())
 	v.add_child(cb)
 	v.add_child(cr)
+	# mesure des performances : relevé de 3 minutes en conduisant, puis envoi en un toucher
+	var mp := Button.new(); mp.custom_minimum_size = Vector2(0, 64)
+	mp.add_theme_font_size_override("font_size", 28)
+	var pm = main_node.get("perf")
+	mp.text = ("Mesure en cours… (encore %d s)" % int(pm.reste())) if pm and pm.en_releve() else "Mesurer les performances (3 min de conduite)"
+	mp.pressed.connect(func():
+		if pm and not pm.en_releve():
+			pm.demarrer_releve()
+			settings.queue_free(); settings = null
+			_show_drive(true)
+			toast("Mesure lancée : roule normalement pendant 3 minutes.", 4.0))
+	v.add_child(mp)
 	# signaler un bug : ticket GitHub pré-rempli (version, appareil, position, journal) ouvert dans le navigateur
 	var bb := Button.new(); bb.text = "Signaler un bug…"; bb.custom_minimum_size = Vector2(0, 64)
 	bb.add_theme_font_size_override("font_size", 28)
@@ -432,6 +448,47 @@ func _layout() -> void:
 	for i in buttons.size():
 		buttons[i].position = pos[i]
 
+## Niveau de performances (0 Économie … 3 Maximale) : végétation, herbe, cultures, puis ombres, anticrénelage,
+## distances, résolution (main.gd, set_post) ; mémorisé dans user://reglages.cfg.
+func appliquer_niveau(i: int) -> void:
+	var m = get_parent()
+	m.vegetation.set_level(i)
+	m.vegetation.update_now()
+	m.crops.set_level(i)
+	m.grass.set_level(i)
+	m.set_post(i)
+	var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+	cfg.set_value("affichage", "vegetation", i); cfg.save("user://reglages.cfg")
+
+## Fin d'un relevé de performances : bandeau « Envoyer » (ticket GitHub pré-rempli) / « Copier ».
+func releve_perf_fini(texte: String) -> void:
+	var box := HBoxContainer.new()
+	box.position = Vector2(470, 128)
+	box.add_theme_constant_override("separation", 12)
+	var lab := Label.new()
+	lab.text = "Mesure des performances terminée."
+	lab.add_theme_font_size_override("font_size", 24)
+	lab.add_theme_color_override("font_outline_color", Color.BLACK)
+	lab.add_theme_constant_override("outline_size", 8)
+	box.add_child(lab)
+	var send := Button.new(); send.text = "Envoyer le relevé"
+	send.add_theme_font_size_override("font_size", 24); send.custom_minimum_size = Vector2(0, 64)
+	send.pressed.connect(func():
+		var body := texte if texte.length() < 6000 else texte.substr(0, 6000)
+		OS.shell_open("https://github.com/DisColow/rochetoirin-drive/issues/new?title=%s&body=%s" % [
+			("Performances v%s" % ProjectSettings.get_setting("application/config/version", "?")).uri_encode(),
+			("```\n%s\n```" % body).uri_encode()])
+		send.text = "Merci !")
+	box.add_child(send)
+	var copy := Button.new(); copy.text = "Copier"
+	copy.add_theme_font_size_override("font_size", 24); copy.custom_minimum_size = Vector2(0, 64)
+	copy.pressed.connect(func():
+		DisplayServer.clipboard_set(texte)
+		copy.text = "Copié")
+	box.add_child(copy)
+	add_child(box)
+	get_tree().create_timer(60.0).timeout.connect(func(): if is_instance_valid(box): box.queue_free())
+
 func _show_drive(on: bool) -> void:
 	for b in buttons:
 		b.visible = on
@@ -441,6 +498,11 @@ func _show_drive(on: bool) -> void:
 	get_tree().paused = not on
 
 func _process(_dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(_dt)
+	PerfMon.note("hud", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(_dt: float) -> void:
 	_update_leds()
 	if _toast and _toast.visible:
 		_toast_t -= _dt

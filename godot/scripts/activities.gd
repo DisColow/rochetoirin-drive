@@ -9,6 +9,7 @@
 ##    compteur, pourboire selon le temps et la conduite (chocs), courses enchaînées et gains cumulés.
 ## Les repères (marks) et le cercle (circle) sont dessinés par la carte (map.gd) et le GPS (gps.gd).
 extends CanvasLayer
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const FONT_BIG := 34
 const CHECK_R := 16.0            # rayon des portes de la course (m)
@@ -686,6 +687,11 @@ func _taxi_drop() -> void:
 
 # ================================================================ boucle
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("activities", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if Input.is_action_just_pressed("activites") and not map.visible and _menu == null:
 		open_menu()
 	if get_tree().paused or car == null:

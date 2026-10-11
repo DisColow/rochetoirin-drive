@@ -1,6 +1,7 @@
 ## Pluie : traits de pluie autour de la caméra (inclinés par le vent et par la vitesse de la voiture) et bruit de
 ## pluie en boucle ; s'arrête et repart en fondu.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 var cam_rig: Node3D
 var car: VehicleBody3D
@@ -60,6 +61,11 @@ func set_night(n: float) -> void:
 	mat.albedo_color = Color(0.78, 0.82, 0.88, 0.32).lerp(Color(0.5, 0.55, 0.62, 0.16), n)
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("rain", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	amount = move_toward(amount, 1.0 if on else 0.0, dt * 0.5)
 	drops.emitting = amount > 0.05
 	if sound:

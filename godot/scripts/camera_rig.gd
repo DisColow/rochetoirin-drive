@@ -1,5 +1,6 @@
 ## Caméra : poursuite souple derrière la voiture, ou vue conducteur (bouton caméra).
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 var target: VehicleBody3D
 var cam: Camera3D
@@ -63,6 +64,11 @@ func set_mode(m: int) -> void:
 		cockpit.set_active(mode == 1)
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("camera_rig", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if Input.is_action_just_pressed("camera"):
 		cycle()
 	shake = move_toward(shake, 0.0, dt * 1.2)

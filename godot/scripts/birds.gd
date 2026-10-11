@@ -1,6 +1,7 @@
 ## Vols d'oiseaux de temps en temps dans le ciel, devant la voiture (le jour seulement) : une petite bande qui traverse
 ## en battant des ailes et en planant, en ondulant comme un vrai vol ; un seul appel de dessin (MultiMesh).
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const N := 14
 
@@ -60,6 +61,11 @@ func _spawn() -> void:
 		mm.set_instance_custom_data(i, Color(_rng.randf(), _rng.randf_range(9.0, 13.0), 0.0, 0.0))
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("birds", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null:
 		return
 	if _life <= 0.0:

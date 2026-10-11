@@ -3,10 +3,11 @@
 ## prix) et cinémas (marquise à ampoules, affiches). Tuiles de 256 m chargées au fil de la
 ## route, un MultiMesh par modèle et par tuile ; enseignes, intérieurs et croix éclairés la nuit.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
 const Cells := preload("res://scripts/cells.gd")
-const VIEW := 600.0
+var VIEW := 600.0
 const MODELS := ["vitrine", "porte", "enseigne", "lampes", "banne", "croix", "carotte", "totem", "ombriere", "pompe",
 	"abri_caddies", "terrasse", "auvent", "bandeau", "pilastre", "coffre_rideau", "porte_sectionnelle", "bardage",
 	"boutique_station", "gonfleur", "lavage", "panneau_prix", "affiche", "marquise"]
@@ -101,6 +102,11 @@ func update_now() -> void:
 			_add(k)
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("shops", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null:
 		return
 	_t -= dt

@@ -2,10 +2,11 @@
 ## poubelles, tracteurs ; tuiles de 256 m chargées au
 ## fil de la route, un MultiMesh par modèle et par tuile (couleur de carrosserie par instance), collisions en boîtes.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
 const Cells := preload("res://scripts/cells.gd")
-const VIEW := 520.0
+var VIEW := 520.0
 const MODELS := {1: "car1", 2: "car2", 3: "car3", 4: "car4", 5: "tractor", 6: "bin"}
 # boîtes de collision (largeur, hauteur, longueur) : voitures aux mesures de blender_voitures.py (rétros exclus)
 const BOXES := {1: Vector3(1.66, 1.48, 3.75), 2: Vector3(1.75, 1.5, 4.05), 3: Vector3(1.76, 1.45, 4.45),
@@ -76,6 +77,11 @@ func update_now() -> void:
 			_add(k)
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("props", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null:
 		return
 	_t -= dt

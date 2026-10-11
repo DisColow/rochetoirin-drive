@@ -2,11 +2,15 @@
 ## Sans friction : marche arrière comme dans les jeux (FREIN freine puis recule, GAZ en reculant freine puis avance), remise sur la route automatique (sortie de zone,
 ## chute, retournement, blocage), aides à la stabilité.
 extends VehicleBody3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
-const MAX_KMH := 230.0
-const POWER := 98000.0         # puissance aux roues (W) : 130 km/h atteints franchement, pointe à 230 (souhait du joueur)
-const ENGINE := 4800.0          # force max (N) au démarrage (limitée par l'adhérence)
-const BRAKE := 60.0
+# Ford Ranger Raptor 2019 (2,0 l EcoBlue bi-turbo diesel, 213 ch / 157 kW, 500 N·m, boîte auto 10 rapports, 4x4) :
+# 0 à 100 km/h en 10,5 s, vitesse maxi 170 km/h (bridée), 2 330 kg à vide (2 400 kg avec le conducteur).
+const MAX_KMH := 170.0
+const POWER := 125000.0         # puissance aux roues (W) : 157 kW au moteur moins les pertes de transmission
+const ENGINE := 9500.0          # force max (N) au démarrage, toutes roues (limitée par l'adhérence)
+const DRAG := 0.98              # ½ ρ SCx : Cx 0,5 × 3,2 m² (gros pick-up)
+const BRAKE := 46.0              # freinage ≈ 9,5 m/s² (100 à 0 km/h en ~40 m, comme le vrai)
 const STEER_LOW := 0.55         # braquage max à l'arrêt (rad)
 const STEER_HIGH := 0.08        # à 130 km/h
 
@@ -29,7 +33,7 @@ var _hold_t := 0.0
 var _hold_xf := Transform3D()   # points de route (x, z, y, cap) pour la remise sur la route
 
 func _ready() -> void:
-	mass = 1650.0
+	mass = 2400.0
 	center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 	center_of_mass = Vector3(0, 0.22, 0)        # bas (moteur, plancher) : pas de basculement en virage
 	# pas d'amortissement générique (0,1 par défaut dans le projet = 7 kN à 130 km/h) : traînée aérodynamique réelle
@@ -59,15 +63,15 @@ func _ready() -> void:
 		var w := VehicleWheel3D.new()
 		w.position = Vector3((-1.0 if right else 1.0) * tr / 2, r + 0.12, (1.0 if front else -1.0) * wb / 2)
 		w.wheel_radius = r
-		w.suspension_travel = 0.18
-		w.suspension_stiffness = 42.0
-		w.suspension_max_force = 12000.0
+		w.suspension_travel = 0.24                   # suspensions Fox à grand débattement
+		w.suspension_stiffness = 38.0
+		w.suspension_max_force = 30000.0
 		w.damping_compression = 0.9
 		w.damping_relaxation = 1.4
 		w.wheel_friction_slip = 2.6
 		w.wheel_roll_influence = 0.03
 		w.use_as_steering = front
-		w.use_as_traction = front
+		w.use_as_traction = true                     # 4 roues motrices
 		var v: Node3D = wheel_scene.instantiate()
 		_materials(v)
 		v.rotation.y = 0.0 if right else PI
@@ -199,6 +203,11 @@ func _apply_sprite() -> void:
 		_wheel_node.visible = not on
 
 func _process(_dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(_dt)
+	PerfMon.note("car", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(_dt: float) -> void:
 	if _sprite == null or not _sprite.visible:
 		return
 	var cam := get_viewport().get_camera_3d()
@@ -527,11 +536,12 @@ func _physics_process(dt: float) -> void:
 			engine_force = 0.0
 			brake = BRAKE * thr
 		else:
-			engine_force = -ENGINE * 0.5 * brk if spd < 25.0 else 0.0
+			engine_force = -ENGINE * 0.5 / 4.0 * brk if spd < 25.0 else 0.0
 			brake = 0.0
 	else:
 		# boîte auto : force limitée par la puissance (F = P / v), coupée à la vitesse max
-		var f := thr * minf(ENGINE, POWER / maxf(absf(v), 1.0))
+		# (engine_force s'applique à chacune des 4 roues motrices)
+		var f := thr * minf(ENGINE, POWER / maxf(absf(v), 1.0)) / 4.0
 		if spd > MAX_KMH:
 			f = 0.0
 		engine_force = f if brk < 0.1 or thr > brk else 0.0
@@ -539,8 +549,10 @@ func _physics_process(dt: float) -> void:
 	# frein moteur léger et aide à la stabilité en virage (anti-dérive latérale)
 	if thr < 0.05 and not reversing:
 		apply_central_force(-linear_velocity * 25.0)
-	# traînée aérodynamique (SCx Espace IV ≈ 0,9 m²)
-	apply_central_force(-linear_velocity * linear_velocity.length() * 0.55)
+	# traînée aérodynamique et résistance au roulement (pneus tout-terrain BFGoodrich KO2)
+	apply_central_force(-linear_velocity * linear_velocity.length() * DRAG)
+	if linear_velocity.length() > 0.5:
+		apply_central_force(-linear_velocity.normalized() * mass * 9.81 * 0.015)
 	var side := global_transform.basis.x
 	var lat := linear_velocity.dot(side)
 	apply_central_force(-side * lat * mass * 0.6 * dt * 60.0 * 0.05)

@@ -1,5 +1,5 @@
-"""Voiture du joueur : Ford Ranger Raptor 2019 (David_Holiday, CC BY 4.0, fetch_ranger.py) noir, avec un couvercle de
-benne blanc (plateau rigide posé sur les ridelles, ajouté ici). Conversion au format de la voiture du jeu :
+"""Voiture du joueur : Ford Ranger Raptor 2019 (David_Holiday, CC BY 4.0, fetch_ranger.py) noir, benne ouverte
+(le couvercle de benne blanc des v5.9 à v6.2 a été retiré). Conversion au format de la voiture du jeu :
   - échelle réelle, origine au sol au milieu de l'empattement, avant vers -Z (glTF), droite +X ;
   - matériaux renommés d'après car.gd (paint, plastic, rubber, glass, chrome, lamp, tail, cover) ;
   - roues retirées de la caisse : la roue avant droite devient wheel.glb (centrée, face extérieure vers +X) ;
@@ -87,22 +87,6 @@ def main():
         for s in o.material_slots:
             if s.material:
                 s.material = new[MATS.get(s.material.name.split(".")[0], "plastic")]
-    # ridelles de la benne (peinture à l'arrière de la cabine) : couvercle blanc posé dessus
-    bed = [o.matrix_world @ v.co for o in meshes if not is_wheel(o) and o.material_slots and o.material_slots[0].material == new["paint"]
-           for v in o.data.vertices]
-    bed = [p for p in bed if -8.6 < p.y < -4.2]
-    top = max(p.z for p in bed)
-    xin = max(abs(p.x) for p in bed if p.z > top - 0.4) * 0.93
-    ys = [p.y for p in bed if p.z > top - 0.4]
-    y0, y1 = min(ys) + 0.15, max(ys) - 0.05
-    bm = bmesh.new()
-    bmesh.ops.create_cube(bm, size=1.0)
-    for v in bm.verts:
-        v.co = mathutils.Vector((v.co.x * 2 * xin, (y0 + y1) / 2 + v.co.y * (y1 - y0), top + 0.06 + v.co.z * 0.12))
-    cm = bpy.data.meshes.new("couvercle"); bm.to_mesh(cm); bm.free()
-    cover = bpy.data.objects.new("couvercle", cm); cm.materials.append(new["cover"])
-    bpy.context.scene.collection.objects.link(cover)
-    print("couvercle : y %.2f..%.2f, x ±%.2f, z %.2f (unités du modèle)" % (y0, y1, xin, top))
     # roues : avant droite -> wheel.glb, les autres supprimées
     wheels = [o for o in meshes if is_wheel(o)]
     fr = [o for o in wheels if bbox(o)[0][0] > 0 and bbox(o)[0][1] > 0]
@@ -113,7 +97,7 @@ def main():
     for o in wheels:
         if o not in fr:
             bpy.data.objects.remove(o)
-    body = [o for o in meshes if o not in wheels] + [cover]
+    body = [o for o in meshes if o not in wheels]
     # caisse : mise à l'échelle, origine au sol au milieu de l'empattement
     for o in body + fr:
         o.select_set(False)
@@ -141,7 +125,7 @@ def main():
     meta = {"steer": [-0.40, 1.22, -0.55], "eye": [-0.40, 1.52, -0.05], "wheelbase": round(2 * AXLE_Y * S, 3),
             "track": round(track, 3), "radius": round(radius, 3), "wheel_center": [0.0, 0.0, 0.0],
             "box": [1.9, 1.25, 5.2], "box_y": 1.0, "beams": [0.72, 0.95, 2.62],
-            "model": "Ford Ranger Raptor 2019 (David_Holiday, CC BY 4.0), noir, couvercle de benne blanc"}
+            "model": "Ford Ranger Raptor 2019 (David_Holiday, CC BY 4.0), noir"}
     json.dump(meta, open(os.path.join(OUT, "meta.json"), "w"))
     print("caisse", len(b.data.polygons), "faces ; roue", len(w.data.polygons), "faces ;", meta)
 

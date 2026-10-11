@@ -1,6 +1,7 @@
 ## Champs cultivés en 3D (parcelles RPG 2024) : rangs générés autour de la voiture, par cases de 32 m, en bandes de
 ## 3 m posées sur le relief (Terrain3D), orientés selon le grand côté du champ. Au-delà : texture du sol.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
 const CELL := 32.0
@@ -63,6 +64,11 @@ func _tile_fields(k: Vector2i) -> Array:
 	return out
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("crops", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null or terrain == null:
 		return
 	_t -= dt

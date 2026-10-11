@@ -4,6 +4,7 @@
 ## arrêtée brutalement (plantage, ou blocage fermé par Android) et un bandeau propose d'envoyer le rapport
 ## (ticket GitHub pré-rempli) ou de le copier.
 extends Node
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const FLAG := "user://en_cours.flag"
 const STATE := "user://etat.txt"
@@ -88,6 +89,11 @@ var _air := false
 var _air_t := 0.0
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("crash_report", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if car == null:
 		return
 	# sauts : l'état est écrit au décollage (si le jeu plante à l'atterrissage, on le saura)

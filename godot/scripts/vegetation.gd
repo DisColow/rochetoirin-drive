@@ -3,6 +3,7 @@
 ##  - près de la voiture : vrais modèles 3D (Sketchfab), ombres portées, troncs avec collisions ;
 ##  - densité réglable (Réglages) : part des arbres affichés, portée des imposteurs et des modèles 3D.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
 const NEAR_MARGIN := 14.0     # avance possible de la caméra entre deux choix des modèles 3D (0,2 s)
@@ -21,6 +22,10 @@ var tiles := {}          # Vector2i -> chemin
 var data := {}           # Vector2i -> PackedFloat32Array (8 valeurs par arbre)
 var mmi := {}            # Vector2i -> MultiMeshInstance3D
 var pending := []
+var _tache := -1                 # tâche en cours sur un fil de travail (WorkerThreadPool)
+var _tache_k := Vector2i.ZERO
+var _tache_lvl := 0
+var _tache_res: Array = []
 var meshes := []         # Mesh par essence
 var sizes := []          # taille de l'imposteur (en hauteurs d'arbre) par essence
 var imp_mat: ShaderMaterial
@@ -116,15 +121,13 @@ func _wanted(c: Vector3) -> Array:
 func _load(k: Vector2i) -> void:
 	if mmi.has(k):
 		return
-	if not data.has(k):
-		data[k] = FileAccess.get_file_as_bytes(tiles[k]).to_float32_array()
-	var a: PackedFloat32Array = data[k]
-	var n := int(a.size() / 8 * float(LEVELS[level].frac))
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.use_custom_data = true
-	mm.mesh = quad
-	mm.instance_count = n
+	var r := _tampon(tiles[k], int(level), data.get(k, PackedFloat32Array()))
+	_pose(k, r)
+
+## Tampon MultiMesh d'une tuile (calcul pur : peut tourner sur un fil de travail, sans toucher à la scène).
+func _tampon(path: String, lvl: int, cache: PackedFloat32Array) -> Array:
+	var a: PackedFloat32Array = cache if cache.size() > 0 else FileAccess.get_file_as_bytes(path).to_float32_array()
+	var n := int(a.size() / 8 * float(LEVELS[lvl].frac))
 	var buf := PackedFloat32Array()
 	buf.resize(n * 16)
 	for i in n:
@@ -136,7 +139,20 @@ func _load(k: Vector2i) -> void:
 		buf[b + 5] = s; buf[b + 7] = a[o + 1] - 0.02 * s
 		buf[b + 10] = s; buf[b + 11] = a[o + 2]
 		buf[b + 12] = sp / 8.0; buf[b + 13] = a[o + 4] / TAU; buf[b + 14] = a[o + 7]
-	mm.buffer = buf
+	return [n, buf, a]
+
+## Pose d'une tuile préparée (fil principal).
+func _pose(k: Vector2i, r: Array) -> void:
+	if mmi.has(k):
+		return
+	data[k] = r[2]
+	var n: int = r[0]
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_custom_data = true
+	mm.mesh = quad
+	mm.instance_count = n
+	mm.buffer = r[1]
 	var node := MultiMeshInstance3D.new()
 	node.multimesh = mm
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -145,10 +161,28 @@ func _load(k: Vector2i) -> void:
 	mmi[k] = node
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("vegetation", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null:
 		return
-	if pending.size() > 0:
-		_load(pending.pop_front())
+	# tuiles préparées sur un fil de travail (calcul du tampon), posées ici : pas d'à-coup
+	if _tache >= 0 and WorkerThreadPool.is_task_completed(_tache):
+		WorkerThreadPool.wait_for_task_completion(_tache)
+		_tache = -1
+		if _tache_lvl == level and not mmi.has(_tache_k):
+			_pose(_tache_k, _tache_res)
+		_tache_res = []
+	if _tache < 0 and pending.size() > 0:
+		var k: Vector2i = pending.pop_front()
+		if not mmi.has(k):
+			_tache_k = k; _tache_lvl = level
+			var path: String = tiles[k]
+			var cache: PackedFloat32Array = data.get(k, PackedFloat32Array())
+			var lvl := level
+			_tache = WorkerThreadPool.add_task(func(): _tache_res = _tampon(path, lvl, cache))
 	_t -= dt
 	if _t <= 0.0:
 		_t = 0.5

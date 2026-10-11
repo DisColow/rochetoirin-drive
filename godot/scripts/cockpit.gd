@@ -4,6 +4,7 @@
 ## phares, lettre de la boîte, rétroviseur (vraie vue arrière en basse résolution), sapin désodorisant qui se balance,
 ## habitacle qui suit les secousses ; éclairé selon l'heure de la journée (compteurs rétroéclairés la nuit).
 extends CanvasLayer
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const VW := 480
 const DIR := "res://assets/cockpit/"
@@ -140,6 +141,11 @@ func set_active(on: bool) -> void:
 
 # ---------------------------------------------------------------- animation
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("cockpit", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if not active or car == null:
 		return
 	view.visible = not car.blown

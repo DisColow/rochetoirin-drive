@@ -2,6 +2,7 @@
 ## glisser pour déplacer, pincer (ou molette, boutons + −) pour zoomer, toucher un endroit pour s'y téléporter (point de
 ## route le plus proche, dans le sens de la voie).
 extends Control
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 signal teleport(pos: Vector3, heading: float)
 signal closed
@@ -204,4 +205,9 @@ func _pick(s: Vector2) -> void:
 	closed.emit()
 
 func _process(_dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(_dt)
+	PerfMon.note("map", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(_dt: float) -> void:
 	pass

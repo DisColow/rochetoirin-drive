@@ -3,6 +3,7 @@
 ## soutènement sur les terrains en pente) et piscines hors-sol rondes. Un maillage par tuile de 256 m, chargé au fil
 ## de la route ; collisions à hauteur de margelle.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
 const VIEW := 380.0
@@ -60,6 +61,11 @@ func update_now() -> void:
 			_add(k)
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("pools", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null or tiles.is_empty():
 		return
 	_t -= dt

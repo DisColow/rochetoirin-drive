@@ -4,6 +4,7 @@
 ## proche, dans le sens qui ramène vers l'intérieur de la carte, puis repart vers le ciel et disparaît.
 ## Pas de cinématique : la caméra suit la voiture, le joueur reprend la main dès qu'elle touche la route.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const RESPAWN_MARGIN := 40.0    # dépôt à au moins 40 m de la limite
 const BEAM_H := 10.0            # hauteur de la soucoupe au-dessus de la voiture portée (m)
@@ -186,6 +187,11 @@ func _ground(x: float, z: float, fallback: float) -> float:
 
 # ---------------------------------------------------------------- boucle
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("guardian", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if car == null or zone.is_empty():
 		return
 	_t += dt

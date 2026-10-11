@@ -2,6 +2,7 @@
 ## clôtures, bornes d'appel d'urgence, panneaux bleus, potences de sortie, limitations de vitesse, absorbeurs de choc,
 ## balises à chevrons, gares de péage ; tuiles de 256 m chargées au fil de la route.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
 const Cells := preload("res://scripts/cells.gd")
@@ -100,6 +101,11 @@ func update_now() -> void:
 			_add(k)
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("autoroute", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null:
 		return
 	_barriers(dt)

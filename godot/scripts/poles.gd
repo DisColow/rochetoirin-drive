@@ -2,10 +2,11 @@
 ## Supports en MultiMesh (un appel de dessin par type et par tuile), fils en rubans fins qui pendent entre les supports ;
 ## la nuit, têtes de lampadaires lumineuses et vraies lumières sur les lampadaires les plus proches de la voiture.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
 const Cells := preload("res://scripts/cells.gd")
-const VIEW := 900.0
+var VIEW := 900.0
 const LIGHTS := 6
 
 var target: Node3D
@@ -130,6 +131,11 @@ func _wanted(c: Vector3) -> Array:
 	return out
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("poles", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null:
 		return
 	_t -= dt

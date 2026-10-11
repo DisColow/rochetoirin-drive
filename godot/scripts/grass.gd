@@ -2,6 +2,7 @@
 ## (build_ground.py : pelouse, pré, bas-côté, sous-bois ; rien sur les routes, trottoirs, bâtiments, clôtures, eau,
 ## champs). Cases de 12 m construites une par image autour de la caméra ; densité et portée selon le réglage.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const REG := 1024.0
 const CELL := 12.0
@@ -81,6 +82,11 @@ func update_now() -> void:
 			break
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("grass", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null or terrain == null:
 		return
 	_step()

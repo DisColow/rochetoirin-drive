@@ -32,7 +32,7 @@
   ralentisseurs), `fetch_vegetation.py` (LiDAR HD MNH, zones de végétation, haies, RPG), `fetch_parking.py` (parkings OSM), `build_roads.py`
   (autoroutes : `autoroute_geom.py` — tracé, profil, terre-plein, voies auxiliaires, marquages ; parkings :
   `parking.py` — enrobé nivelé, places, marquage, `data/parkings.pkl` pour les clôtures et les voitures garées),
-  `prepare_terrain.py`, `build_assets.py`, `fetch_ranger.py` + `blender_ranger.py` (voiture du joueur depuis la v5.9 : Ford Ranger Raptor noir, couvercle de benne blanc ; `meta.json` : empattement, voies, rayon, boîte de collision, phares ; l'ancien `build_espace.py` n'est plus utilisé), `fetch_communes.py`, `build_map.py`, `fetch_landmarks.py`,
+  `prepare_terrain.py`, `build_assets.py`, `fetch_ranger.py` + `blender_ranger.py` (voiture du joueur depuis la v5.9 : Ford Ranger Raptor noir, benne ouverte depuis la v6.3 ; performances réelles dans `car.gd` : 2 400 kg, 4x4, 125 kW aux roues, 0-100 en ~10,5 s, 170 km/h, son : boîte auto 10 rapports dans `audio.gd` ; `meta.json` : empattement, voies, rayon, boîte de collision, phares ; l'ancien `build_espace.py` n'est plus utilisé), `fetch_communes.py`, `build_map.py`, `fetch_landmarks.py`,
   `fetch_sv_landmarks.py` (cache Street View privé d'abord), `fetch_building_tex.py`, `build_bld_tex.py`,
   `build_buildings.py`, `build_gps.py`, `fetch_trees.py` (Sketchfab, SKETCHFAB_TOKEN), `fetch_cadastre.py`, `build_fence_tex.py`,
   `build_fences.py` (clôtures : relevé `clotures_bourg.json` ; contrôle « rien sur la route » doit donner 0),
@@ -139,6 +139,16 @@
   `boot.gd`, réglages du projet : `project.godot` n'est pas pris des paquets) ; sinon ne monter que `config/version`.
 - **Éditeur de monde** : bâtiments refaits sur demande dans `pipeline/sources/bati_editeur.txt` (cleabs + relevé
   Street View, photos dans le cache privé `streetview/editeur/`), appliqués par `build_buildings.py`.
+- **Performances** : `scripts/perf_monitor.gd` (images/s mesurées en temps réel — le delta de Godot est plafonné
+  quand le jeu rame —, 1 % bas, à-coups > 50 ms, appels de dessin, coût de chaque système : chaque `_process` est
+  enveloppé et chronométré par `PerfMon.note()` ; `[perf]` dans le journal ; relevé de 3 min depuis ⚙ envoyé en ticket
+  GitHub « Performances »). Les temps `Performance.TIME_PROCESS` et `viewport_get_measured_render_time_*` sont faux en
+  Compatibility : ne pas s'y fier. Réglage ⚙ > Performances (Économie, Équilibré, Élevée, Maximale, Auto ; `NIVEAUX` de
+  `main.gd` : anticrénelage, ombres, seuil de détail `mesh_lod_threshold`, résolution 3D, distances d'affichage `VIEW`
+  des systèmes, étalonnage ; végétation/herbe/cultures par leurs `LEVELS`) ; Auto = Équilibré puis ajusté toutes les
+  30 s d'après les images/s. Tuiles des routes et bâtiments lues en arrière-plan (`scripts/chargeur.gd`), végétation
+  préparée sur un fil de travail, shaders préchauffés sous le voile de démarrage (`_prechauffer`). Essai
+  `--perf-breakdown` : coût de chaque système et réglage (ombres ≈ 1/3 des triangles) ; captures `{"niveau": 0-3}`.
 - **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
   souples, pas d'à-coups de chargement). Voiture coincée (gaz ou frein enfoncé, moins de 1,5 m parcouru en 3 s, même
   si la vitesse calculée reste élevée en vibrant contre un obstacle) : remise sur la route automatique (`car.gd`).

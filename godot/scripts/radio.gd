@@ -6,6 +6,7 @@
 ## Commandes : bouton ♪ (ou touche N) : station suivante, puis arrêt ; l'écran de l'autoradio du cockpit affiche la
 ## fréquence.
 extends Node
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 var main: Node
 var hud: CanvasLayer
@@ -81,6 +82,11 @@ func _ready() -> void:
 		_tune()
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("radio", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if Input.is_action_just_pressed("radio"):
 		next()
 	var inside := 1.0 if (cam_rig and cam_rig.mode == 1) else 0.0

@@ -1,6 +1,7 @@
 ## Mini-GPS (en haut à droite, comme dans la première version) : carte tournée dans le sens de marche, zoom selon la
 ## vitesse, flèche du joueur, boussole. Toucher le GPS ouvre la grande carte.
 extends Control
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 signal open_map
 
@@ -30,6 +31,11 @@ func _gui_input(e: InputEvent) -> void:
 		accept_event()
 
 func _process(_dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(_dt)
+	PerfMon.note("gps", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(_dt: float) -> void:
 	if not visible or car == null:
 		return
 	var p := Vector2(car.global_position.x, car.global_position.z)

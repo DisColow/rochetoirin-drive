@@ -1,6 +1,7 @@
 ## Terrains de sport (build_sport.py) : surfaces et tracés posés sur le relief, équipements faits avec Blender
 ## (blender_sport.py) : buts, poteaux de rugby, filets et grillages de tennis, paniers, mâts d'éclairage, bancs.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
 const Cells := preload("res://scripts/cells.gd")
@@ -88,6 +89,11 @@ func update_now() -> void:
 			_add(k)
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("sport", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null:
 		return
 	_t -= dt

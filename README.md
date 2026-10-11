@@ -16,6 +16,16 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v6.3 (mise à jour automatique) :
+- **Ranger sans couvercle de benne**, et **performances du vrai Ford Ranger Raptor** : 2,4 t, quatre roues motrices,
+  213 ch, 0 à 100 km/h en 10,5 s, 170 km/h maxi, freinage réaliste ; le son du moteur suit une boîte auto 10 rapports.
+- **jeu plus fluide** : nouveau réglage ⚙ > **Performances** (Économie, Équilibré, Élevée, Maximale, et **Auto** par
+  défaut, qui choisit selon la fluidité) : ombres, anticrénelage, simplification des objets lointains, résolution et
+  distances d'affichage en plus de la végétation (jusqu'à 40 % de triangles en moins) ; moins d'à-coups en roulant
+  (routes et bâtiments chargés en arrière-plan, arbres préparés sur un autre cœur, shaders compilés au démarrage).
+- **mesure des performances** : ⚙ > « Mesurer les performances » ; on roule 3 minutes, puis « Envoyer le relevé »
+  (images/s, à-coups, coût de chaque partie du jeu, lieu par lieu).
+
 Nouveautés de la v6.2 — **APK à installer à la main** (écran de démarrage modifié) :
 - **voix du taxi refaites** : chaque réplique est enregistrée par synthèse vocale (Piper, libre) puis transformée en
   talkie-walkie (version « D » : bande étroite, saturée, grain et souffle radio) ; le jeu joue ces fichiers tels quels.

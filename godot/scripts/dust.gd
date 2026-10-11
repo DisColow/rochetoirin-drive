@@ -5,6 +5,7 @@
 ## qu'on roule vite ou que les roues avant (motrices) patinent. Surface : meta « surface » des routes (roads.gd),
 ## sinon terrain = herbe.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 var car: VehicleBody3D
 var roads: Node
@@ -109,6 +110,11 @@ func _surface(w: VehicleWheel3D) -> String:
 	return "herbe"
 
 func _process(_dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(_dt)
+	PerfMon.note("dust", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(_dt: float) -> void:
 	if car == null or car.wheels.size() < 4:
 		return
 	var kmh: float = car.kmh()

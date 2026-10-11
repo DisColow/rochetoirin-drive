@@ -6,6 +6,7 @@
 ## champ « Formule magique » (micro du clavier du téléphone : dictée vocale) ou s'y tape ; ce champ s'ouvre par un
 ## appui long sur le nom de la rue en haut de l'écran, la touche F2, ou ⚙ > Formule magique.
 extends CanvasLayer
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const UI := preload("res://scripts/ui.gd")
 const REPO := "https://github.com/DisColow/rochetoirin-drive/issues/new"
@@ -314,6 +315,11 @@ func _send(kind: String, remark: String) -> void:
 	_deselect()
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("editeur_monde", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	var vs := get_viewport().get_visible_rect().size
 	var paused := get_tree().paused
 	_banner.visible = active and not paused

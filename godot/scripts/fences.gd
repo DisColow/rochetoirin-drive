@@ -4,14 +4,15 @@
 ## Enregistrement : en-tête de 16 flottants (type, n, couche, couche2, h0, h1, w, r, g, b, r2, g2, b2, graine, extra,
 ## drapeaux) puis n points (x, y, z).
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
-const VIEW := 450.0             # clôtures, murets : effacés en fondu jusqu'à cette distance (m), tuile retirée ensuite
-const VIEW_CUT := 280.0         # grillages, haies découpées
+var VIEW := 450.0             # clôtures, murets : effacés en fondu jusqu'à cette distance (m), tuile retirée ensuite
+var VIEW_CUT := 280.0         # grillages, haies découpées
 const COLL := 160.0
 const CELL := 32.0             # touffes de haie regroupées par cases de 32 m
 const TOUFFES := false
-const TOUFFE_VIEW := 130.0
+var TOUFFE_VIEW := 130.0
 const TOUFFE_STEP := 0.7
 var touffes := []              # maillages Blender (blender_haies.py) : thuya, laurier, photinia, champêtre
 var mat_touffe: ShaderMaterial
@@ -108,6 +109,11 @@ func update_now() -> void:
 	_collisions()
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("fences", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	if target == null:
 		return
 	# tuiles calculées : ajoutées à la scène (une par image)

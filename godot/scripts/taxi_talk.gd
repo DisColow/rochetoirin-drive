@@ -10,6 +10,7 @@
 ##   pipeline/build_voix.py (morceaux enchaînés pour les noms de lieux, métiers…), passée par le bus « Voix » :
 ##   talkie-walkie (bande étroite, saturation légère, grésillement), hauteur propre à chaque client.
 extends CanvasLayer
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 var main: Node
 var hud: CanvasLayer
@@ -217,6 +218,11 @@ func _advance() -> void:
 			_advance()
 
 func _process(dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(dt)
+	PerfMon.note("taxi_talk", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(dt: float) -> void:
 	var paused := get_tree().paused
 	visible = not paused
 	if _talk_btn:

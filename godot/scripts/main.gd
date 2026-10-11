@@ -1,5 +1,6 @@
 ## Monde : relief Terrain3D, routes en tuiles chargées au fil de la route, horizon courbe, ciel HDRI, soleil, voiture.
 extends Node3D
+const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const SUN_ELEV := 48.0          # ciel « kloofendal_48d » : soleil à 48° ; azimut mesuré sur l'image au démarrage
 
@@ -30,15 +31,56 @@ var cockpit: CanvasLayer
 var sound: Node                   # moteur sonore (scripts/audio.gd)
 var radio: Node                   # autoradio (scripts/radio.gd)
 var editeur: CanvasLayer          # éditeur de monde (scripts/editeur_monde.gd)
+var perf: Node                     # mesure des performances (scripts/perf_monitor.gd)
 
 ## Mode sûr : si le démarrage précédent n'est pas allé jusqu'au bout (plantage pendant le chargement ou les
 ## premières images), on démarre sans le shader remplaçant du relief et avec moins d'anticrénelage.
 const BOOT_FLAG := "user://demarrage.flag"
 var safe_mode := false
 
-## Voile de démarrage (boot.gd) : effacé après les premières images du jeu.
-func _fermer_voile() -> void:
+## Préchauffage des shaders : sur le téléphone, chaque matériau est compilé la première fois qu'il est dessiné (à-coup
+## en pleine conduite). Pendant le voile de démarrage, un petit cube par matériau (simple, en lot MultiMesh, avec
+## ombre) est dessiné devant la caméra, hors de vue derrière le voile : tout est compilé d'avance.
+func _prechauffer() -> void:
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var Env := preload("res://scripts/env.gd")
+	var vus := {}
+	var tenue := Node3D.new()
+	cam.add_child(tenue)
+	tenue.position = Vector3(0, 0, -3.0)
+	var cube := BoxMesh.new(); cube.size = Vector3(0.05, 0.05, 0.05)
+	var i := 0
+	for m in Env.mats + Env.cam_mats:
+		if m == null or vus.has(m):
+			continue
+		vus[m] = true
+		var mi := MeshInstance3D.new()
+		mi.mesh = cube; mi.material_override = m
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		mi.position = Vector3((i % 20) * 0.06 - 0.6, (i / 20) * 0.06, 0)
+		tenue.add_child(mi)
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_custom_data = true
+		mm.mesh = cube; mm.instance_count = 1
+		mm.set_instance_transform(0, Transform3D(Basis(), mi.position + Vector3(0, -0.5, 0)))
+		var mmi := MultiMeshInstance3D.new()
+		mmi.multimesh = mm; mmi.material_override = m
+		tenue.add_child(mmi)
+		i += 1
 	for k in 3:
+		await get_tree().process_frame
+	tenue.queue_free()
+	print("shaders préchauffés : ", i, " matériaux")
+
+## Voile de démarrage (boot.gd) : effacé après les premières images du jeu et le préchauffage des shaders.
+func _fermer_voile() -> void:
+	for k in 2:
+		await get_tree().process_frame
+	await _prechauffer()
+	for k in 2:
 		await get_tree().process_frame
 	var v := get_tree().root.get_node_or_null("VoileDemarrage")
 	if v and v.has_method("fermer"):
@@ -87,7 +129,8 @@ func _ready() -> void:
 	vegetation = preload("res://scripts/vegetation.gd").new()
 	var cfg := ConfigFile.new()
 	cfg.load("user://reglages.cfg")
-	vegetation.level = int(cfg.get_value("affichage", "vegetation", 2))
+	perf_auto = bool(cfg.get_value("affichage", "perf_auto", true))
+	vegetation.level = int(cfg.get_value("affichage", "vegetation", 1))    # défaut : Équilibré (puis automatique)
 	add_child(vegetation)
 	vegetation.target = car
 	vegetation.update_now()
@@ -211,6 +254,12 @@ func _ready() -> void:
 	var cr = preload("res://scripts/crash_report.gd").new()
 	cr.car = car; cr.hud = hud; cr.names = hud.names
 	add_child(cr)
+	perf = preload("res://scripts/perf_monitor.gd").new()
+	perf.car = car; perf.names = hud.names
+	add_child(perf)
+	perf.releve_fini.connect(hud.releve_perf_fini)
+	if OS.get_cmdline_user_args().has("--perf-breakdown"):
+		_perf_breakdown()
 	_fermer_voile()
 
 ## Téléportation sans à-coup : appliquée une fois le jeu repris (un déplacement fait pendant la pause est annulé par
@@ -299,11 +348,73 @@ func _environment() -> void:
 	_sun_az = sun.rotation.y
 
 ## Étalonnage et netteté : désactivés au niveau Faible (téléphones modestes).
+## Niveau de performances (Réglages > Performances, 0 Économie … 3 Maximale) : en plus de la végétation, de l'herbe et
+## des cultures (réglées par hud.gd), il règle ici les ombres, l'anticrénelage, la simplification des objets lointains,
+## la résolution 3D, les distances d'affichage et l'étalonnage. Mesures : essai --perf-breakdown (les ombres pèsent un
+## tiers des triangles ; l'anticrénelage 4× coûte cher sur les petites puces).
+const NIVEAUX := [
+	# msaa, ombres (portée m, cascades, carte), seuil de détail (px), résolution 3D, distances, étalonnage
+	{"msaa": Viewport.MSAA_DISABLED, "ombre": 90.0, "split": false, "carte": 2048, "lod": 6.0, "res": 0.8, "dist": 0.55, "post": false},
+	{"msaa": Viewport.MSAA_2X, "ombre": 150.0, "split": false, "carte": 2048, "lod": 3.0, "res": 0.9, "dist": 0.75, "post": true},
+	{"msaa": Viewport.MSAA_4X, "ombre": 240.0, "split": true, "carte": 4096, "lod": 1.5, "res": 1.0, "dist": 1.0, "post": true},
+	{"msaa": Viewport.MSAA_4X, "ombre": 320.0, "split": true, "carte": 4096, "lod": 1.0, "res": 1.0, "dist": 1.0, "post": true},
+]
+var _vues_base := {}
+
 func set_post(level: int) -> void:
-	# anticrénelage : 4× aux niveaux Élevée et Maximale (fils, clôtures et toits sans escaliers), 2× sinon
-	get_viewport().msaa_3d = Viewport.MSAA_4X if level >= 2 and not safe_mode else Viewport.MSAA_2X
+	var N: Dictionary = NIVEAUX[clampi(level, 0, NIVEAUX.size() - 1)]
+	Engine.set_meta("niveau_perf", level)
+	var vp := get_viewport()
+	vp.msaa_3d = Viewport.MSAA_2X if safe_mode and N.msaa != Viewport.MSAA_DISABLED else N.msaa
+	vp.mesh_lod_threshold = N.lod
+	vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+	vp.scaling_3d_scale = N.res
+	if _sun:
+		_sun.directional_shadow_max_distance = N.ombre
+		_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS if N.split else DirectionalLight3D.SHADOW_ORTHOGONAL
+		RenderingServer.directional_shadow_atlas_set_size(N.carte, true)
+	# distances d'affichage des objets posés par tuiles (valeurs de base gardées au premier appel)
+	for sysn in ["buildings", "props", "fences", "poles", "shops"]:
+		var sy = get(sysn)
+		if sy == null:
+			continue
+		for prop in ["VIEW", "VIEW_CUT", "TOUFFE_VIEW"]:
+			if sy.get(prop) == null:
+				continue
+			var key: String = sysn + "." + prop
+			if not _vues_base.has(key):
+				_vues_base[key] = float(sy.get(prop))
+			sy.set(prop, _vues_base[key] * N.dist)
+	if fences and fences.get("mat"):
+		var Env := preload("res://scripts/env.gd")
+		Env.fade(fences.mat, fences.VIEW)
+		if fences.get("mat_cut"):
+			Env.fade(fences.mat_cut, fences.VIEW_CUT)
 	if post:
-		post.visible = level >= 1 and not OS.get_environment("RS_SKIP").contains("post")
+		post.visible = N.post and not OS.get_environment("RS_SKIP").contains("post")
+
+## Niveau automatique : on part d'Équilibré ; toutes les 30 s, d'après les images/s mesurées (perf_monitor.gd), on
+## descend d'un cran sous 24 img/s, on remonte (jusqu'à Élevée) au-dessus de 50 img/s.
+var perf_auto := false
+var _auto_t := 0.0
+
+func _perf_auto(dt: float) -> void:
+	if not perf_auto or perf == null or get_tree().paused:
+		return
+	_auto_t += dt
+	if _auto_t < 30.0:
+		return
+	_auto_t = 0.0
+	var f: float = perf.get_fps_moyen(4)
+	if f <= 0.0:
+		return
+	var l: int = vegetation.level
+	if f < 24.0 and l > 0:
+		get_node("HUD").appliquer_niveau(l - 1)
+		print("[perf] niveau automatique : %.0f img/s -> %d" % [f, l - 1])
+	elif f > 50.0 and l < 2:
+		get_node("HUD").appliquer_niveau(l + 1)
+		print("[perf] niveau automatique : %.0f img/s -> %d" % [f, l + 1])
 
 # ---------------------------------------------------------------- heure de la journée (Réglages)
 const TIMES := ["Midi", "Après-midi", "Coucher", "Nuit"]
@@ -507,6 +618,12 @@ func _far() -> void:
 		add_child(n)
 
 func _process(_dt: float) -> void:
+	var t0_perf := Time.get_ticks_usec()
+	_process_corps(_dt)
+	PerfMon.note("main", Time.get_ticks_usec() - t0_perf)
+
+func _process_corps(_dt: float) -> void:
+	_perf_auto(_dt)
 	# sol qui se mouille peu à peu sous la pluie et sèche après
 	if absf(_wet - _wet_target) > 0.001:
 		_wet = move_toward(_wet, _wet_target, _dt / (6.0 if _wet_target > _wet else 25.0))
@@ -537,6 +654,11 @@ func _shots(path: String) -> void:
 	car.freeze = true
 	DirAccess.make_dir_recursive_absolute("user://shots")
 	for s in list:
+		if s.has("niveau"):
+			perf_auto = false
+			get_node("HUD").appliquer_niveau(int(s.niveau))
+			for i in 30:
+				await get_tree().process_frame
 		if s.has("weather"):
 			weather = int(s.weather)
 			_wet_target = [0.0, 0.0, 1.0, 0.3][weather]
@@ -852,6 +974,47 @@ func _act_shot(s: Dictionary) -> void:
 			print("  dépôt : phase ", a._phase, " courses ", a._rides, " total ", a._total)
 			await snap.call(s.name + "_paye")
 	a._stop()
+
+# ---------------------------------------------------------------- essai : --perf-breakdown
+## Voiture arrêtée : chaque système masqué à tour de rôle (triangles, appels de dessin, images/s gagnés), puis les
+## réglages de rendu coûteux (ombres, anticrénelage, post-traitement, brouillard, lueur).
+func _perf_breakdown() -> void:
+	var fps := func(sec: float) -> float:
+		var n := 0; var t0 := Time.get_ticks_msec()
+		while Time.get_ticks_msec() - t0 < sec * 1000.0:
+			await get_tree().process_frame
+			n += 1
+		return n / sec
+	var mesure := func() -> Array:
+		for i in 4:
+			await get_tree().process_frame
+		var f: float = await fps.call(3.0)
+		return [Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000.0,
+			Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), f]
+	await get_tree().create_timer(20.0).timeout
+	car.freeze = true
+	var ref: Array = await mesure.call()
+	print("[répartition] référence : %.0fk triangles, %d appels, %.1f img/s" % ref)
+	for c in get_children():
+		if not (c is Node3D) or c == car or not c.visible:
+			continue
+		c.visible = false
+		var m: Array = await mesure.call()
+		c.visible = true
+		print("[répartition] %-14s %6.0fk triangles  %5d appels  %+5.1f img/s" % [c.name, ref[0] - m[0], ref[1] - m[1], m[2] - ref[2]])
+	var essais := [
+		["ombres", func(on): _sun.shadow_enabled = on],
+		["anticrénelage", func(on): get_viewport().msaa_3d = Viewport.MSAA_4X if on else Viewport.MSAA_DISABLED],
+		["post-traitement", func(on): if post: post.visible = on],
+		["brouillard", func(on): _env.fog_enabled = on],
+		["lueur", func(on): _env.glow_enabled = on],
+	]
+	for e in essais:
+		e[1].call(false)
+		var m: Array = await mesure.call()
+		e[1].call(true)
+		print("[répartition] sans %-14s %6.0fk triangles  %5d appels  %+5.1f img/s" % [e[0], ref[0] - m[0], ref[1] - m[1], m[2] - ref[2]])
+	get_tree().quit()
 
 # ---------------------------------------------------------------- essai de conduite (pipeline) : --drive-test
 func _physics_process(_dt: float) -> void:
