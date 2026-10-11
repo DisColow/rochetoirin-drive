@@ -1,0 +1,3 @@
+# Bâtiments refaits à la demande de l'éditeur de monde (issues GitHub « Éditeur : … »), relevés sur Street View :
+# « cleabs niveaux toit façade volets  # issue » (mêmes codes que shops_bati.txt ; toit plat/2p/4p ; volets « - » = aucun).
+BATIMENT0000002275796925 1 plat crepi_beige -  # issue 2 : maison moderne de plain-pied, toit plat à large acrotère, route de Montcarra

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Silhouette d'Espace rouge sur une route -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#3A3A3E" android:pathData="M0,70 L108,70 L108,84 L0,84 Z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M20,76 L34,76 L34,78 L20,78 Z M48,76 L62,76 L62,78 L48,78 Z M76,76 L90,76 L90,78 L76,78 Z" />
+    <path android:fillColor="#B0141A" android:pathData="M26,66 L26,58 Q27,53 33,52 L40,51 L52,38 Q55,36 60,36 L80,36 Q84,36 84,40 L84,66 Z" />
+    <path android:fillColor="#1C2630" android:pathData="M43,51 L54,40 Q56,39 59,39 L66,39 L66,51 Z M69,39 L80,39 Q81,39 81,41 L81,51 L69,51 Z" />
+    <path android:fillColor="#111111" android:pathData="M33,66 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 M74,66 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+    <path android:fillColor="#BBBBBB" android:pathData="M33,66 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0 M74,66 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+</vector>
