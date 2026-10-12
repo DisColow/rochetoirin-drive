@@ -141,7 +141,8 @@ l'actualité du jour, comme dans un vrai taxi. Les répliques sont lues à voix 
 - français parlé, phrases courtes (« dit » : 25 mots au plus ; chaque réponse : 14 mots au plus), sans sigle obscur,
   sans abréviation, sans émoji, sans guillemets ni parenthèses ; dates relatives (« hier », « ce week-end ») ;
 - le client peut être un homme ou une femme : quand un mot s'accorde avec lui, écris {masculin|féminin}, par exemple
-  « je suis {inquiet|inquiète} » ; n'utilise aucune autre accolade ;
+  « je suis {inquiet|inquiète} », y compris dans les réponses du chauffeur qui s'adressent à lui (« vous êtes
+  {frileux|frileuse} ») ; le chauffeur, lui, est un homme ; n'utilise aucune autre accolade ;
 - varie les sujets : environ deux tiers de sujets locaux (Nord-Isère, Isère) et un tiers nationaux, plus un fil sur
   la météo du jour ; varie aussi les caractères des clients (râleur, nostalgique, farceur, inquiet, enthousiaste) ;
 - « sujet » : quelques mots qui résument l'actualité (pour le journal du jeu, non lus).
