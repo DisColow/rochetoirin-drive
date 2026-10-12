@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.14.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.14/RochetoirinSimulator-v6.14.apk)**
+**[RochetoirinSimulator-v6.15.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.15/RochetoirinSimulator-v6.15.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v6.15 (APK complet à installer) :
+- **écran de chargement épuré** : le cercle tournant est retiré (on ne le voyait pas tourner) ; restent le titre,
+  la barre de progression et l'étape en cours.
 
 Nouveautés de la v6.14 (APK complet à installer) :
 - **écran de chargement honnête** : il affiche ce qui se charge (« Relief… », « Routes… », « Bâtiments… », « Arbres… »)
