@@ -16,6 +16,13 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v6.9 (mise à jour automatique) :
+- **décor destructible** : panneaux de signalisation, lampadaires, clôtures et petits arbres se renversent quand on
+  les percute (débris, poussière, bruit du choc, la voiture perd un peu de vitesse) ; les gros arbres, les murets et
+  les haies restent des obstacles. Tout est remis en place quand on revient plus tard.
+- **cultures vraiment couchées** : dans la trace de la voiture, les plants basculent à plat et le dessus des champs de
+  céréales s'ouvre sur des tiges couchées dans le sens de la marche.
+
 Nouveautés de la v6.8 (mise à jour automatique) :
 - **voix du taxi refaites** : les répliques sont lues par la synthèse vocale du téléphone (voix bien plus naturelles),
   voix de femme ou d'homme selon le client, chacun avec sa hauteur et son débit ; la réplique suivante attend toujours

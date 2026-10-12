@@ -4,6 +4,10 @@ shader_type spatial;
 render_mode blend_mix,depth_draw_opaque,cull_back,diffuse_burley,specular_schlick_ggx,skip_vertex_transform;
 #include "res://scripts/env.gdshaderinc"
 
+// cultures couchées par la voiture (trample.gd) : tiges à plat dessinées au sol dans la trace
+uniform sampler2D trample_tex : filter_linear, repeat_disable;
+uniform vec4 trample_zone = vec4(0.0, 0.0, 96.0, 0.0);
+uniform sampler2D crops_albedo : source_color, filter_linear_mipmap, repeat_enable;
 uniform vec3 _camera_pos = vec3(0.f);
 uniform float _mesh_size = 48.f;
 uniform uint _background_mode = 1u;
@@ -407,6 +411,26 @@ void fragment() {
  float wet_k = wet * smoothstep(0.6, 0.95, w_normal.y);
  ALBEDO = mat.albedo_height.rgb * color_map.rgb * macrov * env_cloud(v_vertex.xz) * (1.0 - 0.38 * wet_k);
  ROUGHNESS = mix(roughness, 0.22, wet_k * 0.85);
+ if (trample_zone.w > 0.5) {
+  vec2 tuv = (v_vertex.xz - trample_zone.xy) / trample_zone.z;
+  if (tuv.x > 0.0 && tuv.y > 0.0 && tuv.x < 1.0 && tuv.y < 1.0) {
+   vec4 tr = texture(trample_tex, tuv);
+   float row = floor(texelFetch(trample_tex, ivec2(tuv * vec2(textureSize(trample_tex, 0))), 0).a * 8.0 + 0.5) - 1.0;
+   if (tr.b > 0.05 && row >= 0.0) {
+    // tiges couchées dans le sens de la marche : texture de la culture étirée le long de la trace
+    vec2 dir = normalize(tr.rg * 2.0 - 1.0 + vec2(1e-4));
+    vec2 q = vec2(dot(v_vertex.xz, vec2(-dir.y, dir.x)) / 1.6, dot(v_vertex.xz, dir) / 5.0);
+    vec2 cu = vec2(q.x, (row + clamp(fract(q.y), 0.02, 0.98)) / 6.0);
+    vec2 dq = vec2(1.0 / 1.6, 1.0 / 30.0);
+    vec4 tige = textureGrad(crops_albedo, cu, dFdx(q) * dq, dFdy(q) * dq);
+    float k = smoothstep(0.05, 0.6, tr.b);
+    // sol tassé et assombri sous les tiges, tiges un peu dans l'ombre (à plat)
+    vec3 sol = ALBEDO * 0.7;
+    ALBEDO = mix(ALBEDO, mix(sol, tige.rgb * 0.8 * env_cloud(v_vertex.xz), tige.a), k);
+    ROUGHNESS = mix(ROUGHNESS, 0.9, k);
+   }
+  }
+ }
  SPECULAR = 1. - mat.normal_rough.a;
 
  NORMAL_MAP =  ((normalize(mat.normal_rough.xzy)) * (vec3(0.5)) + (vec3(0.5))) ;

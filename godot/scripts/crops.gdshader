@@ -21,7 +21,7 @@ void vertex() {
 	float h = INSTANCE_CUSTOM.w;
 	vec3 wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	v_gust = env_gust(wp.xz);
-	v_wp = wp;
+	v_wp = wp;               // position avant écrasement (découpe de la trace au pixel près)
 	if (h > 0.0) {
 		// haut de la bande penché dans le sens du vent, plus fort dans les rafales
 		float top = 1.0 - UV.y;
@@ -38,19 +38,21 @@ void vertex() {
 			vec4 trc = textureLod(trample_tex, clamp(cuv, vec2(0.001), vec2(0.999)), 0.0);
 			if (trc.b > tr.b) { tr = trc; }
 			if (tr.b > 0.05) {
-				// tige couchée dans le sens de la marche, un peu irrégulière (variation par tige)
 				vec2 dir = normalize(tr.rg * 2.0 - 1.0 + vec2(1e-4));
 				float var_t = fract(sin(dot(floor(wp.xz * 3.0), vec2(12.9898, 78.233))) * 43758.5453);
 				float top = 1.0 - UV.y;
-				float a = tr.b * (0.8 + 0.2 * var_t);
 				vec3 d;
 				if (h > 0.0) {
-					// bande de plants verticale : le haut se couche dans le sens de la marche
-					float haut = min(h, 2.5) * top;
-					d = vec3(dir.x, 0.0, dir.y) * haut * a * 0.85 + vec3(0.0, -haut * a * 0.82, 0.0);
+					// bande de plants verticale : elle bascule à plat (90°) autour de son pied, du côté où va la
+					// voiture (perpendiculairement à la bande : une bande dans l'axe de la marche ne disparaît pas)
+					vec2 n = normalize(MODEL_MATRIX[2].xz + vec2(1e-4));
+					vec2 fv = n * (dot(dir, n) < 0.0 ? -1.0 : 1.0);
+					float th = clamp(tr.b * 1.15, 0.0, 1.0) * (1.47 + 0.1 * var_t);
+					float haut = h * top;
+					d = vec3(fv.x, 0.0, fv.y) * haut * sin(th) + vec3(0.0, haut * cos(th) - haut + 0.07 * top * tr.b, 0.0);
 				} else {
-					// nappe du dessus du champ : elle descend presque au sol
-					d = vec3(0.0, -0.7 * a, 0.0);
+					// nappe du dessus : découpée dans la trace (fragment), descendue au sol au bord
+					d = vec3(0.0, -0.7 * tr.b, 0.0);
 				}
 				VERTEX += inverse(mat3(MODEL_MATRIX)) * d;
 			}
@@ -73,6 +75,13 @@ void fragment() {
 	if (v_sheet >= 0.0) {
 		uv = vec2(v_raw.x, (v_sheet + clamp(fract(v_raw.y), 0.002, 0.998)) / 6.0);
 		gx = dFdx(v_raw) * vec2(1.0, 1.0 / 6.0); gy = dFdy(v_raw) * vec2(1.0, 1.0 / 6.0);
+	}
+	// dessus des céréales : trou net dans la trace (les tiges couchées sont dessinées au sol par le relief)
+	if (v_sheet >= 0.0 && trample_zone.w > 0.5) {
+		vec2 tuv = (v_wp.xz - trample_zone.xy) / trample_zone.z;
+		if (tuv.x > 0.0 && tuv.y > 0.0 && tuv.x < 1.0 && tuv.y < 1.0 && texture(trample_tex, tuv).b > 0.45) {
+			discard;
+		}
 	}
 	vec4 c = textureGrad(albedo_atlas, uv, gx, gy);
 	if (c.a < 0.5) {

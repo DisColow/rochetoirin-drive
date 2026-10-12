@@ -8,6 +8,21 @@ uniform float wet = 0.0;
 // Fondu au loin (cells.gd) : distance (m) où l'objet a fini de s'effacer (0 : jamais) ; position de la caméra tenue à
 // jour par env.gd (CAMERA_POSITION_WORLD serait celle de la lumière pendant le calcul des ombres).
 uniform float fade_far = 0.0;
+// Décor renversé par la voiture (casse.gd) : panneaux, clôtures. Point i : x, z, rayon (m), hauteur y au-dessus de
+// laquelle les sommets sont effacés (ramenés sous le sol). casse_n = nombre de points utilisés.
+uniform vec4 casse_pts[16];
+uniform int casse_n = 0;
+
+// Position (monde) d'un sommet après effacement des objets renversés.
+vec3 env_casse(vec3 wp) {
+	for (int i = 0; i < casse_n; i++) {
+		vec4 c = casse_pts[i];
+		if (wp.y > c.w && distance(wp.xz, c.xy) < c.z) {
+			wp.y = c.w - 2.5;
+		}
+	}
+	return wp;
+}
 uniform vec3 env_cam = vec3(0.0);
 
 // Rafales qui traversent le paysage dans le sens du vent (0 … 1).

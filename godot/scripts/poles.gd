@@ -14,6 +14,7 @@ var target: Node3D
 var tiles := {}
 var loaded := {}           # Vector2i -> Node3D
 var lamps := {}            # Vector2i -> PackedVector3Array (têtes de lampadaires)
+var pieds := {}            # Vector2i -> PackedVector3Array (pieds des lampadaires : décor destructible, casse.gd)
 var meshes := {}           # type -> Mesh
 var wire_mat: StandardMaterial3D
 var head_mat: StandardMaterial3D
@@ -175,6 +176,7 @@ func _process_corps(dt: float) -> void:
 				loaded[k].queue_free()
 				loaded.erase(k)
 				lamps.erase(k)
+				pieds.erase(k)
 		_night_lights()
 
 func _add(k: Vector2i) -> void:
@@ -186,6 +188,7 @@ func _add(k: Vector2i) -> void:
 	var ns := sp.get_32()
 	var by := {}
 	var heads := PackedVector3Array()
+	var feet := PackedVector3Array()
 	for i in ns:
 		var t := int(sp.get_float()); var x := sp.get_float(); var y := sp.get_float(); var z := sp.get_float(); var cap := sp.get_float()
 		var b := Basis(Vector3.UP, PI - deg_to_rad(cap))
@@ -194,6 +197,7 @@ func _add(k: Vector2i) -> void:
 		by[t].append(Transform3D(b, Vector3(x, y, z)))
 		if t == 1:
 			heads.append(Vector3(x, y, z) + b * HEAD)
+			feet.append(Vector3(x, y, z))
 	for t in by:
 		var l := []
 		for xf in by[t]:
@@ -227,6 +231,27 @@ func _add(k: Vector2i) -> void:
 	add_child(root)
 	loaded[k] = root
 	lamps[k] = heads
+	pieds[k] = feet
+
+## Lampadaire renversé (casse.gd) : exemplaire caché, plus de lumière ; renvoie le modèle pour le débris.
+func casser(pied: Vector3) -> Mesh:
+	var k := Vector2i(floori(pied.x / TILE), floori(pied.z / TILE))
+	if loaded.has(k):
+		for mi in loaded[k].find_children("*", "MultiMeshInstance3D", true, false):
+			if not mi.has_meta("origines") or (mi as MultiMeshInstance3D).multimesh.mesh != meshes[1]:
+				continue
+			var org: PackedVector3Array = mi.get_meta("origines")
+			for i in org.size():
+				if org[i].distance_squared_to(pied) < 0.05:
+					mi.multimesh.set_instance_transform(i, Transform3D(Basis.from_scale(Vector3.ONE * 0.001), pied - Vector3(0, 60, 0)))
+	if pieds.has(k):
+		var f: PackedVector3Array = pieds[k]
+		var h: PackedVector3Array = lamps[k]
+		for i in range(f.size() - 1, -1, -1):
+			if f[i].distance_squared_to(pied) < 0.05:
+				f.remove_at(i); h.remove_at(i)
+		pieds[k] = f; lamps[k] = h
+	return meshes[1]
 
 ## Nuit : têtes lumineuses et lumières réelles sur les lampadaires les plus proches de la voiture.
 func set_night(n: float) -> void:

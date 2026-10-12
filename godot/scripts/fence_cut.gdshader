@@ -16,6 +16,13 @@ void vertex() {
 	layer = UV2.x;
 	tint = COLOR.rgb;
 	wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	if (casse_n > 0) {
+		vec3 w2 = env_casse(wpos);
+		if (w2.y != wpos.y) {
+			VERTEX = (inverse(MODEL_MATRIX) * vec4(w2, 1.0)).xyz;
+			wpos = w2;
+		}
+	}
 }
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }

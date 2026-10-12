@@ -30,6 +30,7 @@ var tasks := {}           # Vector2i -> identifiant de tâche
 var results := {}         # Vector2i -> [opaque, découpe, collisions] (écrit par le fil)
 var bodies := {}
 var colfaces := {}        # Vector2i -> PackedVector3Array
+var lignes := {}          # Vector2i -> PackedVector3Array (segments a, b des clôtures cassables : casse.gd)
 var lscale := PackedFloat32Array()
 var mat: ShaderMaterial
 var mat_cut: ShaderMaterial
@@ -143,6 +144,7 @@ func _process_corps(dt: float) -> void:
 			loaded.erase(k)
 			bodies.erase(k)
 			colfaces.erase(k)
+			lignes.erase(k)
 	_collisions()
 
 func _finish(k: Vector2i) -> void:
@@ -192,6 +194,29 @@ func _finish(k: Vector2i) -> void:
 	add_child(root)
 	loaded[k] = root
 	colfaces[k] = r[2]
+	if r.size() > 4:
+		lignes[k] = r[4]
+
+## Clôture enfoncée (casse.gd) : plus de collision dans un rayon r autour de p (la voiture passe par la brèche).
+func breche(p: Vector3, r: float) -> void:
+	var k := Vector2i(floori(p.x / TILE), floori(p.z / TILE))
+	if not colfaces.has(k):
+		return
+	var f: PackedVector3Array = colfaces[k]
+	var g := PackedVector3Array()
+	var r2 := r * r
+	var c := Vector2(p.x, p.z)
+	for i in range(0, f.size() - 2, 3):
+		var near := false
+		for j in 3:
+			if Vector2(f[i + j].x, f[i + j].z).distance_squared_to(c) < r2:
+				near = true
+		if not near:
+			g.append(f[i]); g.append(f[i + 1]); g.append(f[i + 2])
+	colfaces[k] = g
+	if bodies.has(k):
+		var cs: CollisionShape3D = bodies[k].get_child(0)
+		(cs.shape as ConcavePolygonShape3D).set_faces(g)
 
 func _collisions() -> void:
 	var p := target.global_position
@@ -263,6 +288,7 @@ func _build(k: Vector2i, a: PackedFloat32Array) -> void:
 	var op := _surf()
 	var cut := _surf()
 	var col := PackedVector3Array()
+	var lig := PackedVector3Array()
 	var cl := {}                 # (essence, case de 32 m) -> PackedFloat32Array des instances de touffes
 	var o := 0
 	while o + 16 <= a.size():
@@ -286,8 +312,11 @@ func _build(k: Vector2i, a: PackedFloat32Array) -> void:
 			POSTS: _posts(op, P, layer, h0, h1, w, extra, tint)
 			BOX: _box(op, P[0], Vector3(t2.x, 0, t2.y), w, extra, h0, h1, layer, tint)
 			COLL_REC: _coll(col, P, h1)
+		if typ == PANEL or typ == POSTS:
+			for i in n - 1:
+				lig.append(P[i]); lig.append(P[i + 1])
 	mutex.lock()
-	results[k] = [op, cut, col, cl]
+	results[k] = [op, cut, col, cl, lig]
 	mutex.unlock()
 
 func _hedge(S: Dictionary, C: Dictionary, P: PackedVector3Array, layer: float, bord: float, h: float, w: float, tint: Color, seed: float) -> void:

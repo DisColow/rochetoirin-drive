@@ -85,6 +85,10 @@ static func add(parent: Node, mesh: Mesh, items: Array, far: float, shadow: bool
 				mm.set_instance_custom_data(i, l[i][1] if l[i].size() > 1 else Color(0, 0, 0, 0))
 		var mi := MultiMeshInstance3D.new()
 		mi.multimesh = mm
+		var org := PackedVector3Array(); org.resize(l.size())
+		for i in l.size():
+			org[i] = (l[i][0] as Transform3D).origin
+		mi.set_meta("origines", org)           # casse.gd : retrouver l'exemplaire d'un objet renversé
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadow else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mi.visibility_range_end = reach if fade else far
 		mi.visibility_range_end_margin = 10.0

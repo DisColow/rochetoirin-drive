@@ -202,6 +202,20 @@ func _process_corps(dt: float) -> void:
 		_near_t = 0.2
 		_update_near()
 
+## Arbre renversé (casse.gd) : retiré des modèles 3D proches et des imposteurs ; renvoie [modèle, hauteur, lacet].
+func casser(k: Vector2i, i: int) -> Array:
+	if not data.has(k):
+		return []
+	var a: PackedFloat32Array = data[k]
+	var o := i * 8
+	var out := [meshes[int(a[o + 5])], a[o + 3], a[o + 4]]
+	a[o + 3] = 0.0
+	data[k] = a
+	if mmi.has(k) and i < mmi[k].multimesh.instance_count:
+		mmi[k].multimesh.set_instance_transform(i, Transform3D(Basis.from_scale(Vector3.ONE * 0.001), Vector3(a[o], a[o + 1] - 60.0, a[o + 2])))
+	_near_t = 0.0
+	return out
+
 ## Distance du relais modèles 3D / imposteurs (fondu tramé sur ± 4 m autour).
 func _set_cut(d: float) -> void:
 	imp_mat.set_shader_parameter("near_cut", d)
@@ -231,7 +245,7 @@ func _update_near() -> void:
 				var ddx := a[o] - c.x
 				var ddz := a[o + 2] - c.z
 				var d := ddx * ddx + ddz * ddz
-				if d < r2:
+				if d < r2 and a[o + 3] > 0.0:          # hauteur 0 : arbre renversé (casse.gd)
 					found.append([d, a[o], a[o + 1], a[o + 2], a[o + 3], a[o + 4], int(a[o + 5]), a[o + 7]])
 	found.sort_custom(func(p, q): return p[0] < q[0])
 	if found.size() > int(L.max_near):
@@ -255,8 +269,8 @@ func _update_near() -> void:
 			mi.mesh = meshes[t[6]]
 		mi.transform = Transform3D(Basis(Vector3.UP, t[5]).scaled(Vector3.ONE * t[4]), Vector3(t[1], t[2] - 0.05, t[3]))
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if t[0] < 55.0 * 55.0 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		# tronc : collision pour les arbres de plus de 5 m à moins de 40 m
-		if t[4] > 5.0 and t[0] < 1600.0:
+		# tronc : collision pour les gros arbres (9 m et plus) à moins de 40 m ; les petits se cassent (casse.gd)
+		if t[4] >= 9.0 and t[0] < 1600.0:
 			if nt >= trunk_shapes.size():
 				var cs := CollisionShape3D.new()
 				var cyl := CylinderShape3D.new()

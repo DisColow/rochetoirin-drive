@@ -142,9 +142,13 @@ func _ready() -> void:
 	# cultures couchées au passage de la voiture
 	var tr = preload("res://scripts/trample.gd").new()
 	tr.car = car
+	tr.crops = crops
 	add_child(tr)
 	if crops.get("mat"):
 		tr.attacher(crops.mat)
+	var env_ := preload("res://scripts/env.gd")
+	if env_.terrain_mat and ResourceLoader.exists("res://assets/veg/crops_albedo.png"):
+		tr.attacher_relief(env_.terrain_mat, load("res://assets/veg/crops_albedo.png"))
 	grass = preload("res://scripts/grass.gd").new()
 	grass.level = vegetation.level
 	grass.terrain = terrain
@@ -220,6 +224,15 @@ func _ready() -> void:
 	sound.cam_rig = cam_rig
 	sound.main = self
 	add_child(sound)
+	# décor destructible : panneaux, lampadaires, clôtures, petits arbres (casse.gd)
+	var ca = preload("res://scripts/casse.gd").new()
+	ca.name = "Casse"
+	ca.main = self
+	ca.car = car
+	ca.poles = poles
+	ca.vegetation = vegetation
+	ca.fences = fences
+	add_child(ca)
 	radio = preload("res://scripts/radio.gd").new()
 	radio.name = "Radio"
 	radio.main = self

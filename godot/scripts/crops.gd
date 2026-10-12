@@ -63,6 +63,13 @@ func _tile_fields(k: Vector2i) -> Array:
 	fields[k] = out
 	return out
 
+## Type de culture sous un point (x, z), -1 hors des champs (trample.gd : la trace n'est peinte que dans les champs).
+func field_at(p: Vector2) -> int:
+	for f in _tile_fields(Vector2i(floori(p.x / TILE), floori(p.y / TILE))):
+		if (f[3] as Rect2).grow(0.01).has_point(p) and Geometry2D.is_point_in_polygon(p, f[2]):
+			return f[0]
+	return -1
+
 func _process(dt: float) -> void:
 	var t0_perf := Time.get_ticks_usec()
 	_process_corps(dt)

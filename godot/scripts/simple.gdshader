@@ -15,6 +15,13 @@ varying vec3 v_wp;
 
 void vertex() {
 	v_wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	if (casse_n > 0) {
+		vec3 w2 = env_casse(v_wp);
+		if (w2.y != v_wp.y) {
+			VERTEX = (inverse(MODEL_MATRIX) * vec4(w2, 1.0)).xyz;
+			v_wp = w2;
+		}
+	}
 }
 
 void fragment() {
