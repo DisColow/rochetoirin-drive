@@ -66,8 +66,10 @@
   `blender_maisons.py` (kit de détails des maisons, posé par `build_buildings.py`) ; puis
   `godot --headless --import`, `godot --headless --script res://tools/prepare_trees.gd`, `godot --headless --import`,
   `xvfb-run godot --path godot res://tools/bake_impostors.tscn`, `impostor_bleed.py`, `build_crop_tex.py`,
-  `build_vegetation.py`, `build_crops.py`, `godot --headless --import` et
-  `godot --headless --script res://tools/import_terrain.gd`.
+  `build_vegetation.py`, `build_crops.py`, `godot --headless --import`,
+  `godot --headless --script res://tools/import_terrain.gd`, puis
+  `xvfb-run godot --path godot res://tools/bake_relief.tscn` (relief de remplacement `world/relief/`, à refaire après
+  toute modification du relief ou de son shader) et `godot --headless --import`.
 - Relief : shader Terrain3D remplacé par `godot/scripts/terrain.gdshader` (code généré par Terrain3D, récupéré avec
   `xvfb-run godot --path godot --script res://tools/dump_terrain_shader.gd`, + ombres des nuages et sol mouillé) ; à
   régénérer si on change les réglages du matériau du relief. Ambiance commune des shaders : `scripts/env.gdshaderinc`
@@ -226,10 +228,21 @@
   (`await _etape("Routes")`…), une image dessinée entre chaque ; le voile (`voile_demarrage.gd`, posé aussi sur PC)
   affiche l'étape et une barre calée sur la durée de chaque étape mesurée au lancement précédent
   (`user://chargement.cfg`, défauts `DEFAUT`). Pendant le chargement : `set_process(false)`, voiture tenue
-  (`car.hold`) ; les essais attendent `Chargement.fini`. Terrain3D lit ses 173 régions d'un bloc et ignore le cache de
-  Godot (les précharger doublait le temps) : l'étape « Relief » reste la seule longue sans image. Essai :
+  (`car.hold`) ; les essais attendent `Chargement.fini`. Essai :
   `-- --capture-chargement` (captures `user://shots/chargement_N.png`). Toute nouvelle grosse initialisation :
   l'ajouter dans une étape (ou en créer une, avec sa durée par défaut).
 - **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
   souples, pas d'à-coups de chargement). Voiture coincée (gaz ou frein enfoncé, moins de 1,5 m parcouru en 3 s, même
   si la vitesse calculée reste élevée en vibrant contre un obstacle) : remise sur la route automatique (`car.gd`).
+- **Relief chargé autour de la voiture** (v6.16, issue #11, `scripts/relief.gd`) : plus de `data_directory` (qui
+  lisait les 173 régions d'un bloc : 765 Mo, 8 s) ; régions lues d'avance sur un fil (`R_LIRE` 2,6 km), mises dans
+  Terrain3D à moins de `R_CHARGE` (1,8 km), libérées au-delà de `R_GARDE` (`remove_regionl` puis `save_region` vers
+  un dossier vide : seul moyen de les sortir de la mémoire de Terrain3D 1.0.2) ; ajouts et retraits groupés en une
+  seule `update_maps()` (Terrain3D refait alors toutes ses textures, ≈ 3 ms par région). Au démarrage et à la
+  téléportation : régions à moins de 1,2 km chargées tout de suite (`charger_autour`). **Pas de popping** : ailleurs,
+  relief de remplacement (`relief.gdshader`, maillage de 32 m) habillé de l'albédo, des normales et de la matière du
+  vrai relief cuits par `tools/bake_relief.gd` (`bake_mode` de `terrain.gdshader`), effacé là où le vrai relief est
+  chargé (masque 32 × 32), bordure de 32 m glissée dessous. Altitude du sol partout : `Relief.hauteur(p)` (vrai relief,
+  sinon grille de secours `world/relief/hauteurs.bin`) — **ne plus appeler `terrain.data.get_height`**. Essais :
+  `godot --path godot --script res://tools/essai_relief.gd -- --relief-debug` (trajet de 16 km, mémoire, durées),
+  captures `{"relief": 99999}` (tout le vrai relief) contre `{"relief": 1800}`, `"nuages": false` pour comparer.

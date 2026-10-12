@@ -1,10 +1,12 @@
 ## Monde : relief Terrain3D, routes en tuiles chargées au fil de la route, horizon courbe, ciel HDRI, soleil, voiture.
 extends Node3D
+const Relief := preload("res://scripts/relief.gd")
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const SUN_ELEV := 48.0          # ciel « kloofendal_48d » : soleil à 48° ; azimut mesuré sur l'image au démarrage
 
 var terrain: Terrain3D
+var relief: Node3D                 # régions du relief chargées autour de la voiture (relief.gd)
 var car: VehicleBody3D
 var roads: Node3D
 var buildings: Node3D
@@ -107,26 +109,31 @@ func _ready() -> void:
 	await _etape("Ciel et lumière")
 	if not skip.contains("env"): _environment()
 	await _etape("Relief")
+	var spawn: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://world/spawn.json"))
+	var depart := Vector3(spawn.x, spawn.y + 0.6, spawn.z)
+	var cap_depart := float(spawn.heading)
+	# essai : --drive-from=x,y,z,cap (départ de l'essai de conduite ailleurs qu'au point de départ)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--drive-from="):
+			var v := a.trim_prefix("--drive-from=").split(",")
+			depart = Vector3(float(v[0]), float(v[1]), float(v[2]))
+			cap_depart = float(v[3])
 	if not skip.contains("terrain"):
-		# (Terrain3D lit toutes ses régions d'un bloc et ignore le cache de Godot : les lire avant en arrière-plan
-		# doublait le temps, essai v6.14 ; cette étape reste donc la seule longue sans image)
+		# relief chargé autour du point de départ seulement (v6.16, relief.gd) ; le reste suit en arrière-plan
 		_terrain()
+		relief.charger_autour(depart)
 	await _etape("Horizon")
 	if not skip.contains("far"): _far()
 	await _etape("Routes")
 	roads = preload("res://scripts/roads.gd").new()
 	add_child(roads)
-	var spawn: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://world/spawn.json"))
 	car = preload("res://scripts/car.gd").new()
 	car.road_pts = FileAccess.get_file_as_bytes("res://world/teleport.bin").to_float32_array()
 	add_child(car)
-	car.place(Vector3(spawn.x, spawn.y + 0.6, spawn.z), float(spawn.heading))
+	car.place(depart, cap_depart)
 	car.hold(600.0)                    # immobile pendant la suite du chargement (relâchée à la fin)
-	# essai : --drive-from=x,y,z,cap (départ de l'essai de conduite ailleurs qu'au point de départ)
-	for a in OS.get_cmdline_user_args():
-		if a.begins_with("--drive-from="):
-			var v := a.trim_prefix("--drive-from=").split(",")
-			car.place(Vector3(float(v[0]), float(v[1]), float(v[2])), float(v[3]))
+	if relief:
+		relief.cible = car
 	roads.target = car
 	roads.update_now()
 	await _etape("Bâtiments")
@@ -322,6 +329,8 @@ func _etape(nom: String) -> void:
 func _teleport(p: Vector3, heading: float) -> void:
 	await get_tree().process_frame
 	await get_tree().physics_frame
+	if relief:
+		relief.charger_autour(p)
 	car.place(p, heading)
 	car.hold(0.6)
 	cam_rig.snap()
@@ -631,7 +640,6 @@ func _terrain() -> void:
 	terrain = Terrain3D.new()
 	terrain.change_region_size(512)
 	terrain.vertex_spacing = 2.0
-	terrain.data_directory = "res://terrain"
 	terrain.assets = load("res://assets/terrain_assets.tres")
 	terrain.mesh_lods = 7
 	terrain.mesh_size = 48
@@ -653,6 +661,8 @@ func _terrain() -> void:
 		preload("res://scripts/env.gd").terrain_mat = m
 	add_child(terrain)
 	terrain.set_camera(get_viewport().get_camera_3d())
+	relief = Relief.new(terrain)
+	add_child(relief)
 
 func _far() -> void:
 	var sh := preload("res://scripts/far.gdshader")
@@ -870,6 +880,15 @@ func _shots(path: String) -> void:
 		c.fov = s.get("fov", 62.0)
 		get_node("HUD").visible = s.get("hud", true)          # "hud": false : image du monde seul (revues)
 		terrain.set_camera(c)
+		if not s.get("nuages", true):
+			preload("res://scripts/env.gd").set_value("clouds", Vector4.ZERO)
+		if relief:
+			# "relief": rayon (m) du vrai relief chargé (comparaison avec le relief de remplacement au-delà)
+			relief.cible = c
+			relief.r_charge = float(s.get("relief", Relief.R_CHARGE))
+			relief.r_garde = relief.r_charge + 800.0
+			relief.r_lire = relief.r_garde
+			relief.charger_autour(p, relief.r_charge)
 		for i in 40:
 			roads._process(0.3)
 			buildings._process(0.3)
@@ -1116,18 +1135,18 @@ func _physics_process(_dt: float) -> void:
 			var p := q
 			var h := 0.0
 			for k in 400:
-				var hh: float = terrain.data.get_height(Vector3(p.x, 0, p.y))
+				var hh: float = Relief.hauteur(Vector3(p.x, 0, p.y))
 				if is_nan(hh):
 					break
 				h = hh
 				p += out * 4.0
 			p -= out * 40.0
-			h = terrain.data.get_height(Vector3(p.x, 0, p.y))
+			h = Relief.hauteur(Vector3(p.x, 0, p.y))
 			if OS.get_cmdline_user_args().has("--void-drop"):
 				# lâchée directement au-dessus du vide, loin de tout relief : la soucoupe doit surgir et la rattraper
 				p = q
 				for k in 600:
-					if is_nan(terrain.data.get_height(Vector3(p.x, 0, p.y))):
+					if is_nan(Relief.hauteur(Vector3(p.x, 0, p.y))):
 						break
 					p += out * 50.0
 				p += out * 300.0

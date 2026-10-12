@@ -1,6 +1,7 @@
 ## Vols d'oiseaux de temps en temps dans le ciel, devant la voiture (le jour seulement) : une petite bande qui traverse
 ## en battant des ailes et en planant, en ondulant comme un vrai vol ; un seul appel de dessin (MultiMesh).
 extends Node3D
+const Relief := preload("res://scripts/relief.gd")
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const N := 14
@@ -40,7 +41,7 @@ func _ready() -> void:
 
 func _ground(x: float, z: float) -> float:
 	if terrain and terrain.data:
-		var h: float = terrain.data.get_height(Vector3(x, 0, z))
+		var h: float = Relief.hauteur(Vector3(x, 0, z))
 		if is_finite(h):
 			return h
 	return target.global_position.y

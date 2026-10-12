@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.15.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.15/RochetoirinSimulator-v6.15.apk)**
+**[RochetoirinSimulator-v6.16.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.16/RochetoirinSimulator-v6.16.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,14 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v6.16 (APK complet à installer) :
+- **relief chargé autour de la voiture** (issue #11) : au lieu de lire d'un bloc les 173 kilomètres carrés de relief
+  (765 Mo de mémoire, 8 secondes d'écran figé au démarrage), le jeu ne garde que les environs de la voiture (~1,8 km)
+  et lit le reste en arrière-plan en roulant. Plus loin, un relief de remplacement léger, habillé de l'aspect exact
+  du vrai relief vu de loin, prend le relais : on ne voit rien changer quand une région se charge. Démarrage plus
+  rapide (étape « Relief » : moins d'une seconde sur PC) et environ 7 à 9 fois moins de mémoire pour le relief, ce qui
+  pourrait aussi aider contre l'image figée (issue #4).
 
 Nouveautés de la v6.15 (APK complet à installer) :
 - **écran de chargement épuré** : le cercle tournant est retiré (on ne le voyait pas tourner) ; restent le titre,

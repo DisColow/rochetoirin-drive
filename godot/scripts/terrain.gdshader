@@ -7,6 +7,8 @@ render_mode blend_mix,depth_draw_opaque,cull_back,diffuse_burley,specular_schlic
 // cultures couchées par la voiture (trample.gd) : tiges à plat dessinées au sol dans la trace
 uniform sampler2D trample_tex : filter_linear, repeat_disable;
 uniform vec4 trample_zone = vec4(0.0, 0.0, 96.0, 0.0);
+// cuisson du relief de remplacement (tools/bake_relief.gd) : 1 albédo, 2 normale du monde, 3 rugosité / AO / spéculaire
+uniform int bake_mode = 0;
 uniform sampler2D crops_albedo : source_color, filter_linear_mipmap, repeat_enable;
 uniform vec3 _camera_pos = vec3(0.f);
 uniform float _mesh_size = 48.f;
@@ -439,5 +441,12 @@ void fragment() {
  float ao = (1. - (mat.albedo_height.a * log(2.1 - mat.ao_strength))) * (1. - mat.normal_rough.y);
  AO = clamp(1. - ao * mat.ao_strength, mat.albedo_height.a, 1.0);
  AO_LIGHT_AFFECT = (1.0 - mat.albedo_height.a) * clamp(mat.normal_rough.y, 0., 1.);
+
+ if (bake_mode > 0) {
+  EMISSION = bake_mode == 1 ? ALBEDO : (bake_mode == 2 ? w_normal * 0.5 + 0.5 : vec3(ROUGHNESS, AO, SPECULAR));
+  ALBEDO = vec3(0.0);
+  SPECULAR = 0.0;
+  ROUGHNESS = 1.0;
+ }
 
 }

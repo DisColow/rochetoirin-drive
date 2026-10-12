@@ -4,6 +4,7 @@
 ## proche, dans le sens qui ramène vers l'intérieur de la carte, puis repart vers le ciel et disparaît.
 ## Pas de cinématique : la caméra suit la voiture, le joueur reprend la main dès qu'elle touche la route.
 extends Node3D
+const Relief := preload("res://scripts/relief.gd")
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const RESPAWN_MARGIN := 40.0    # dépôt à au moins 40 m de la limite
@@ -180,7 +181,7 @@ func _nearest(p: Vector2) -> Array:
 
 func _ground(x: float, z: float, fallback: float) -> float:
 	if terrain and terrain.data:
-		var h: float = terrain.data.get_height(Vector3(x, 0, z))
+		var h: float = Relief.hauteur(Vector3(x, 0, z))
 		if not is_nan(h) and absf(h) < 5000.0:
 			return h
 	return fallback
@@ -344,7 +345,7 @@ func _effects(dt: float) -> void:
 func _in_void(cp: Vector3) -> bool:
 	var h := NAN
 	if terrain and terrain.data:
-		h = terrain.data.get_height(cp)
+		h = Relief.hauteur(cp)
 	if is_nan(h) or absf(h) > 5000.0:
 		return car.linear_velocity.y < -2.0           # plus de sol dessous et la voiture descend : elle tombe
 	return cp.y < h - 2.5

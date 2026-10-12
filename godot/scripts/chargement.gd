@@ -8,7 +8,7 @@ const FICHIER := "user://chargement.cfg"
 const DEPART := 0.04              # part de la barre prise par la lecture de la scène (écran de boot.gd)
 # durées par défaut (s), relevées sur PC ; remplacées par celles de l'appareil dès le deuxième lancement
 const DEFAUT := {
-	"Ciel et lumière": 0.3, "Relief": 2.0, "Horizon": 0.5, "Routes": 2.5, "Bâtiments": 3.0,
+	"Ciel et lumière": 0.3, "Relief": 1.0, "Horizon": 0.5, "Routes": 2.5, "Bâtiments": 3.0,
 	"Clôtures et haies": 1.5, "Rivières et étangs": 0.3, "Arbres": 2.0, "Champs et herbe": 1.0,
 	"Poteaux et lampadaires": 0.6, "Voitures garées et mobilier": 0.8, "Commerces": 0.8, "Terrains de sport": 0.4,
 	"Animaux": 0.5, "Autoroutes": 0.8, "Voiture, sons et radio": 1.0, "Interface": 0.8,

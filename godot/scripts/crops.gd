@@ -1,6 +1,7 @@
 ## Champs cultivés en 3D (parcelles RPG 2024) : rangs générés autour de la voiture, par cases de 32 m, en bandes de
 ## 3 m posées sur le relief (Terrain3D), orientés selon le grand côté du champ. Au-delà : texture du sol.
 extends Node3D
+const Relief := preload("res://scripts/relief.gd")
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
@@ -169,7 +170,7 @@ func _sheet(f: Array, t: int, cellpoly: PackedVector2Array) -> MultiMeshInstance
 						piece.reverse()
 					var hs := []
 					for v in piece:
-						var y: float = terrain.data.get_height(Vector3(v.x, 0, v.y))
+						var y: float = Relief.hauteur(Vector3(v.x, 0, v.y))
 						hs.append(0.0 if is_nan(y) else y + hh)
 					for i in range(1, piece.size() - 1):
 						for j in [0, i, i + 1]:              # sens des faces vues du dessus (sinon normale retournée)
@@ -221,7 +222,7 @@ func _rows(f: Array, t: int, d: Vector2, sp: float, cellpoly: PackedVector2Array
 					for j in int(ceil(L / STRIP)):
 						var w := minf(STRIP, L - j * STRIP)
 						var m := a + dd * (j * STRIP + w * 0.5)
-						var y: float = terrain.data.get_height(Vector3(m.x, 0, m.y))
+						var y: float = Relief.hauteur(Vector3(m.x, 0, m.y))
 						if is_nan(y) or w < 0.3:
 							continue
 						var h: float = (0.95 if t == 1 else 0.85)
@@ -242,13 +243,13 @@ func _rows(f: Array, t: int, d: Vector2, sp: float, cellpoly: PackedVector2Array
 						if w < 0.4:
 							continue
 						var m := a + (b - a).normalized() * (j * STRIP + w * 0.5)
-						var y: float = terrain.data.get_height(Vector3(m.x, 0, m.y))
+						var y: float = Relief.hauteur(Vector3(m.x, 0, m.y))
 						if is_nan(y):
 							continue
 						# bande inclinée comme le terrain (pas de marches ni de trous sur les pentes)
 						var dn := (b - a).normalized()
-						var ya: float = terrain.data.get_height(Vector3(m.x - dn.x * w * 0.5, 0, m.y - dn.y * w * 0.5))
-						var yb: float = terrain.data.get_height(Vector3(m.x + dn.x * w * 0.5, 0, m.y + dn.y * w * 0.5))
+						var ya: float = Relief.hauteur(Vector3(m.x - dn.x * w * 0.5, 0, m.y - dn.y * w * 0.5))
+						var yb: float = Relief.hauteur(Vector3(m.x + dn.x * w * 0.5, 0, m.y + dn.y * w * 0.5))
 						var slope := 0.0 if is_nan(ya) or is_nan(yb) else (yb - ya) * signf(dn.dot(d))
 						var h: float = HEIGHT[t] * _rng.randf_range(0.92, 1.06)
 						if t == 2 or t == 1:

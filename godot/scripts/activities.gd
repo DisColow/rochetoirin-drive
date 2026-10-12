@@ -9,6 +9,7 @@
 ##    compteur, pourboire selon le temps et la conduite (chocs), courses enchaînées et gains cumulés.
 ## Les repères (marks) et le cercle (circle) sont dessinés par la carte (map.gd) et le GPS (gps.gd).
 extends CanvasLayer
+const Relief := preload("res://scripts/relief.gd")
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const FONT_BIG := 34
@@ -166,7 +167,7 @@ func _start_at(i: int, toward: Vector2) -> Array:
 func _ground(x: float, z: float, fallback: float) -> float:
 	var t = main.get("terrain")
 	if t and t.data:
-		var h: float = t.data.get_height(Vector3(x, 0, z))
+		var h: float = Relief.hauteur(Vector3(x, 0, z))
 		if not is_nan(h):
 			return h
 	return fallback

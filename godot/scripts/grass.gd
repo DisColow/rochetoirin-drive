@@ -2,6 +2,7 @@
 ## (build_ground.py : pelouse, pré, bas-côté, sous-bois ; rien sur les routes, trottoirs, bâtiments, clôtures, eau,
 ## champs). Cases de 12 m construites une par image autour de la caméra ; densité et portée selon le réglage.
 extends Node3D
+const Relief := preload("res://scripts/relief.gd")
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const REG := 1024.0
@@ -137,7 +138,7 @@ func _build(k: Vector2i) -> void:
 			var spec: Array = CAT[cat]
 			if rng.randf() > float(spec[4]):
 				continue
-			var y: float = terrain.data.get_height(Vector3(x, 0, z))
+			var y: float = Relief.hauteur(Vector3(x, 0, z))
 			if is_nan(y):
 				continue
 			var cellv: int = spec[0][rng.randi() % 4]
