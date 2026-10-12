@@ -7,7 +7,8 @@ enchaînés en jeu.
 
 Voix : les deux plus compréhensibles après effet D (mots reconnus par Vosk : Siwis 91 %, Gilles 89 % ; les voix MLS
 56 à 79 %, écartées), déclinées en plusieurs hauteurs : passagères Siwis (CC BY 4.0), passagers et chauffeur Gilles
-(CC0).
+(CC0) ; chauffeur : UPMC « Pierre » (CC BY 4.0). Chaque fichier est ensuite normalisé (crête à -1 dBFS) : les voix
+passent au-dessus du moteur et de la radio (v6.5).
 Clé d'un fichier : md5 du texte (String.md5_text() en jeu).
 Modèles : https://huggingface.co/rhasspy/piper-voices (fr_FR-siwis-medium, fr_FR-gilles-low, fr_FR-mls-medium), dans
 data/voix_modeles/ (téléchargés ici s'ils manquent). Lancer avec le Python où piper-tts est installé :
@@ -23,13 +24,13 @@ COMMUNES = os.path.join(HERE, "data", "communes.json")
 OUT = os.path.join(HERE, "..", "godot", "assets", "voix")
 MOD = os.path.join(HERE, "data", "voix_modeles")
 HF = "https://huggingface.co/rhasspy/piper-voices/resolve/main/fr/fr_FR/"
-MODELES = {"fr_FR-siwis-medium": "siwis/medium/", "fr_FR-gilles-low": "gilles/low/"}
+MODELES = {"fr_FR-siwis-medium": "siwis/medium/", "fr_FR-gilles-low": "gilles/low/", "fr_FR-upmc-medium": "upmc/medium/"}
 VOIX = {  # nom : (modèle, locuteur, genre, hauteur) ; hauteur changée hors ligne (rubberband, timbre préservé)
     "f1": ("fr_FR-siwis-medium", None, "f", 1.0), "f2": ("fr_FR-siwis-medium", None, "f", 1.08),
     "f3": ("fr_FR-siwis-medium", None, "f", 0.9),
     "m1": ("fr_FR-gilles-low", None, "m", 1.0), "m2": ("fr_FR-gilles-low", None, "m", 1.1),
     "m3": ("fr_FR-gilles-low", None, "m", 0.92),
-    "joueur": ("fr_FR-gilles-low", None, "m", 0.86),
+    "joueur": ("fr_FR-upmc-medium", 1, "m", 1.0),       # « Pierre » (96 % compris ; v6.5)
 }
 EFFET = ("highpass=f=450,lowpass=f=2600,acompressor=threshold=-24dB:ratio=8,volume=8dB,asoftclip=type=hard,"
          "acrusher=bits=10:mix=0.3")
@@ -100,6 +101,21 @@ def modeles():
                 urllib.request.urlretrieve(HF + sub + m + ext, f)
 
 
+def normaliser(f):
+    """Crête du fichier amenée à -1 dBFS (deux passes : mesure, puis gain), réencodé en Vorbis."""
+    r = subprocess.run(["ffmpeg", "-hide_banner", "-i", f, "-af", "volumedetect", "-f", "null", "-"], capture_output=True, text=True)
+    m = re.search(r"max_volume: (-?[\d.]+) dB", r.stderr)
+    if not m:
+        return
+    gain = -1.0 - float(m.group(1))
+    if abs(gain) < 0.5:
+        return
+    tmp = f + ".tmp.ogg"
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", f, "-af", "volume=%.2fdB" % gain, "-ar", "11025", "-ac", "1",
+                    "-c:a", "libvorbis", "-q:a", "-1", tmp], check=True)
+    os.replace(tmp, f)
+
+
 _voices = {}
 
 
@@ -127,6 +143,7 @@ def rendu(job):
                     "[1]highpass=f=300,lowpass=f=3400[n];[v][n]amix=inputs=2:duration=first:weights=1 1[o]",
                     "-map", "[o]", "-ar", "11025", "-ac", "1", "-c:a", "libvorbis", "-q:a", "-1", f],
                    input=b.getvalue(), check=True)
+    normaliser(f)
     out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", f],
                          capture_output=True, text=True).stdout.strip()
     return v, cle(texte), round(float(out or dur), 3)
@@ -162,4 +179,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "--normaliser":
+        # normalise les fichiers déjà enregistrés (sans les ré-synthétiser)
+        fs = [os.path.join(OUT, v, f) for v in VOIX if os.path.isdir(os.path.join(OUT, v)) for f in os.listdir(os.path.join(OUT, v)) if f.endswith(".ogg")]
+        with Pool(4) as pool:
+            pool.map(normaliser, fs, chunksize=32)
+        print("normalisés :", len(fs))
+    else:
+        main()

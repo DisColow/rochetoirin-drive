@@ -7,6 +7,9 @@ render_mode cull_disabled;
 
 uniform sampler2D albedo_atlas : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D normal_atlas : filter_linear_mipmap, repeat_enable;
+// cultures écrasées au passage de la voiture (scripts/trample.gd) : R, V = sens de la marche, B = écrasement
+uniform sampler2D trample_tex : filter_linear, repeat_disable;
+uniform vec4 trample_zone = vec4(0.0, 0.0, 96.0, 0.0);   // coin x, coin z, taille (m), active
 
 varying float v_tint;
 varying float v_gust;
@@ -24,6 +27,34 @@ void vertex() {
 		float top = 1.0 - UV.y;
 		vec3 w = vec3(wind.x, 0.0, wind.y) * top * (0.04 + 0.22 * v_gust) * wind.z * min(h, 1.5);
 		VERTEX += inverse(mat3(MODEL_MATRIX)) * w;
+	}
+	if (trample_zone.w > 0.5) {
+		vec2 tuv = (wp.xz - trample_zone.xy) / trample_zone.z;
+		if (tuv.x > 0.0 && tuv.y > 0.0 && tuv.x < 1.0 && tuv.y < 1.0) {
+			vec4 tr = textureLod(trample_tex, tuv, 0.0);
+			// une bande fait jusqu'à 3 m : on lit aussi l'écrasement en son centre (une trace étroite passe entre
+			// ses coins), et on garde le plus fort
+			vec2 cuv = (MODEL_MATRIX[3].xz - trample_zone.xy) / trample_zone.z;
+			vec4 trc = textureLod(trample_tex, clamp(cuv, vec2(0.001), vec2(0.999)), 0.0);
+			if (trc.b > tr.b) { tr = trc; }
+			if (tr.b > 0.05) {
+				// tige couchée dans le sens de la marche, un peu irrégulière (variation par tige)
+				vec2 dir = normalize(tr.rg * 2.0 - 1.0 + vec2(1e-4));
+				float var_t = fract(sin(dot(floor(wp.xz * 3.0), vec2(12.9898, 78.233))) * 43758.5453);
+				float top = 1.0 - UV.y;
+				float a = tr.b * (0.8 + 0.2 * var_t);
+				vec3 d;
+				if (h > 0.0) {
+					// bande de plants verticale : le haut se couche dans le sens de la marche
+					float haut = min(h, 2.5) * top;
+					d = vec3(dir.x, 0.0, dir.y) * haut * a * 0.85 + vec3(0.0, -haut * a * 0.82, 0.0);
+				} else {
+					// nappe du dessus du champ : elle descend presque au sol
+					d = vec3(0.0, -0.7 * a, 0.0);
+				}
+				VERTEX += inverse(mat3(MODEL_MATRIX)) * d;
+			}
+		}
 	}
 	float row = INSTANCE_CUSTOM.x * 6.0;
 	v_sheet = h > 0.0 ? -1.0 : row;

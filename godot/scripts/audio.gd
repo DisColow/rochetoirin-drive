@@ -15,12 +15,12 @@ var car: VehicleBody3D
 var cam_rig: Node
 var main: Node
 
-# Ford Ranger Raptor : boîte automatique 10R80 à 10 rapports, pont 3,73, pneus 285/70 R17, diesel (zone rouge 4 500)
+# Ford Ranger Raptor : boîte automatique 10R80 à 10 rapports, pont 3,73, pneus 285/70 R17, V6 essence (zone rouge 6 500)
 const GEARS := [4.696, 2.985, 2.146, 1.769, 1.52, 1.275, 1.0, 0.854, 0.689, 0.636]
 const FINAL := 3.73
 const WHEEL_R := 0.415
-const IDLE := 800.0
-const REDLINE := 4500.0
+const IDLE := 750.0
+const REDLINE := 6500.0
 const SFX := "res://assets/sfx/%s.ogg"
 
 var rpm := IDLE
@@ -97,7 +97,7 @@ func _ready() -> void:
 
 ## Volumes réglés par le joueur (⚙ > Son), 0 … 1,5 : ambiance (bus « Monde »), effets (« Voiture », « Voix »),
 ## musique (« Radio »). Mémorisés dans user://reglages.cfg, section [audio].
-static var volumes := {"ambiance": 1.0, "effets": 1.0, "musique": 1.0}
+static var volumes := {"ambiance": 1.0, "effets": 1.0, "musique": 1.0, "voix": 1.0}
 static var _vol_loaded := false
 ## 0 … 1 : un client du taxi parle (taxi_talk.gd) ; moteur et ambiance baissent de quelques décibels.
 static var talk_duck := 0.0
@@ -202,8 +202,8 @@ func _physics_process(dt: float) -> void:
 		target = maxf(IDLE, wrpm * 3.6)
 	else:
 		var r: float = wrpm * GEARS[gear]
-		var up := lerpf(1800.0, 3900.0, thr)          # diesel : passe tôt, couple dès 1 750 tr/min
-		var down := lerpf(1100.0, 1800.0, thr)
+		var up := lerpf(2000.0, 6000.0, thr)          # V6 essence : monte haut quand on écrase
+		var down := lerpf(1100.0, 2600.0, thr)
 		if _shift_t <= 0.0 and gear < GEARS.size() - 1 and r > up:
 			gear += 1; _shift_t = 0.28
 		elif _shift_t <= 0.0 and gear > 0 and r < down:
@@ -390,11 +390,12 @@ func _process_corps(dt: float) -> void:
 		_lp_world.cutoff_hz = lerpf(20000.0, 650.0, pow(_cockpit, 0.5))
 	if _lp_car:
 		_lp_car.cutoff_hz = lerpf(20000.0, 3200.0, _cockpit)
-	AudioServer.set_bus_volume_db(_bus_world, lerpf(0.0, -9.0, _cockpit) + volume_db("ambiance") - 8.0 * talk_duck)
-	AudioServer.set_bus_volume_db(_bus_car, lerpf(0.0, -2.0, _cockpit) + volume_db("effets") - 7.0 * talk_duck)
+	# quand quelqu'un parle, le monde et la voiture s'effacent nettement (les voix passent devant, v6.5)
+	AudioServer.set_bus_volume_db(_bus_world, lerpf(0.0, -9.0, _cockpit) + volume_db("ambiance") - 12.0 * talk_duck)
+	AudioServer.set_bus_volume_db(_bus_car, lerpf(0.0, -2.0, _cockpit) + volume_db("effets") - 11.0 * talk_duck)
 	var bv := AudioServer.get_bus_index("Voix")
 	if bv >= 0:
-		AudioServer.set_bus_volume_db(bv, volume_db("effets"))
+		AudioServer.set_bus_volume_db(bv, 4.0 + volume_db("voix"))
 	_rain_inside(dt)
 	_amb_t -= dt
 	if _amb_t <= 0.0:

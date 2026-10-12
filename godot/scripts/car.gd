@@ -4,11 +4,11 @@
 extends VehicleBody3D
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
-# Ford Ranger Raptor 2019 (2,0 l EcoBlue bi-turbo diesel, 213 ch / 157 kW, 500 N·m, boîte auto 10 rapports, 4x4) :
-# 0 à 100 km/h en 10,5 s, vitesse maxi 170 km/h (bridée), 2 330 kg à vide (2 400 kg avec le conducteur).
-const MAX_KMH := 170.0
-const POWER := 125000.0         # puissance aux roues (W) : 157 kW au moteur moins les pertes de transmission
-const ENGINE := 9500.0          # force max (N) au démarrage, toutes roues (limitée par l'adhérence)
+# Ford Ranger Raptor « préparé » (souhait du joueur : plus puissant que la série) : V6 3,0 l bi-turbo poussé à
+# ~450 ch (300 kW aux roues), boîte auto 10 rapports, 4x4, 2 400 kg : 0 à 100 km/h en ~5 s, 230 km/h (débridé).
+const MAX_KMH := 230.0
+const POWER := 300000.0         # puissance aux roues (W)
+const ENGINE := 15000.0         # force max (N) au démarrage, toutes roues (limitée par l'adhérence)
 const DRAG := 0.98              # ½ ρ SCx : Cx 0,5 × 3,2 m² (gros pick-up)
 const BRAKE := 46.0              # freinage ≈ 9,5 m/s² (100 à 0 km/h en ~40 m, comme le vrai)
 const STEER_LOW := 0.55         # braquage max à l'arrêt (rad)
@@ -100,7 +100,8 @@ func _ready() -> void:
 	blob.position = Vector3(0, 0.05, 0)
 	add_child(blob)
 	_blob = blob
-	_make_sprite()
+	# le sprite pixel art (option masquée depuis la v6.0) n'est construit qu'à la demande : ses 4 planches non
+	# compressées occupaient ~170 Mo de mémoire vidéo pour rien (cause probable de l'image figée, v6.5)
 
 ## ---------------------------------------------------------------- voiture en sprite pixel art
 ## Atlas précalculé (blender_sprite.py + build_car_sprite.py) : la vue est choisie selon la direction de la caméra
@@ -174,6 +175,8 @@ func _set_page(pg: int) -> void:
 	_sprite_mat.set_shader_parameter("feux", _pages[pg][1])
 
 func set_sprite_mode(on: bool) -> void:
+	if on and _sprite == null:
+		_make_sprite()
 	sprite_mode = on and _sprite != null
 	_apply_sprite()
 

@@ -172,7 +172,7 @@ func _open_settings() -> void:
 	var hs := HBoxContainer.new(); hs.add_theme_constant_override("separation", 24); v.add_child(hs)
 	var AU := preload("res://scripts/audio.gd")
 	AU.volume_db("ambiance")
-	for cat in [["ambiance", "Ambiance"], ["effets", "Effets"], ["musique", "Musique"]]:
+	for cat in [["ambiance", "Ambiance"], ["effets", "Effets"], ["musique", "Musique"], ["voix", "Voix"]]:
 		var col := VBoxContainer.new(); col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var cl := Label.new(); cl.add_theme_font_size_override("font_size", 24)
 		col.add_child(cl)

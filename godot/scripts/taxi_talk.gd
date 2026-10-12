@@ -497,7 +497,6 @@ func _make_voice() -> void:
 	else:
 		while AudioServer.get_bus_effect_count(bus) > 0:
 			AudioServer.remove_bus_effect(bus, 0)
-	AudioServer.set_bus_volume_db(bus, 2.0)
 	_player = AudioStreamPlayer.new(); _player.bus = "Voix"
 	_player.finished.connect(_next_clip)
 	add_child(_player)

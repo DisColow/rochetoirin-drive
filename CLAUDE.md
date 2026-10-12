@@ -32,7 +32,7 @@
   ralentisseurs), `fetch_vegetation.py` (LiDAR HD MNH, zones de végétation, haies, RPG), `fetch_parking.py` (parkings OSM), `build_roads.py`
   (autoroutes : `autoroute_geom.py` — tracé, profil, terre-plein, voies auxiliaires, marquages ; parkings :
   `parking.py` — enrobé nivelé, places, marquage, `data/parkings.pkl` pour les clôtures et les voitures garées),
-  `prepare_terrain.py`, `build_assets.py`, `fetch_ranger.py` + `blender_ranger.py` (voiture du joueur depuis la v5.9 : Ford Ranger Raptor noir, benne ouverte depuis la v6.3 ; performances réelles dans `car.gd` : 2 400 kg, 4x4, 125 kW aux roues, 0-100 en ~10,5 s, 170 km/h, son : boîte auto 10 rapports dans `audio.gd` ; `meta.json` : empattement, voies, rayon, boîte de collision, phares ; l'ancien `build_espace.py` n'est plus utilisé), `fetch_communes.py`, `build_map.py`, `fetch_landmarks.py`,
+  `prepare_terrain.py`, `build_assets.py`, `fetch_ranger.py` + `blender_ranger.py` (voiture du joueur depuis la v5.9 : Ford Ranger Raptor noir, benne ouverte depuis la v6.3 ; performances dans `car.gd` (Raptor « préparé » à la demande du joueur : 2 400 kg, 4x4, 300 kW aux roues, 0-100 en ~5 s, 230 km/h ; son V6 essence, boîte auto 10 rapports dans `audio.gd`) ; `meta.json` : empattement, voies, rayon, boîte de collision, phares ; l'ancien `build_espace.py` n'est plus utilisé), `fetch_communes.py`, `build_map.py`, `fetch_landmarks.py`,
   `fetch_sv_landmarks.py` (cache Street View privé d'abord), `fetch_building_tex.py`, `build_bld_tex.py`,
   `build_buildings.py`, `build_gps.py`, `fetch_trees.py` (Sketchfab, SKETCHFAB_TOKEN), `fetch_cadastre.py`, `build_fence_tex.py`,
   `build_fences.py` (clôtures : relevé `clotures_bourg.json` ; contrôle « rien sur la route » doit donner 0),
@@ -88,15 +88,20 @@
 - Gardien des limites (`scripts/guardian.gd`) : soucoupe volante « UFO » de sebslom (Sketchfab, CC BY 4.0 ;
   `fetch_ufo.py` + `blender_ufo.py` -> `assets/ufo/ufo.glb`), invisible jusqu'à ce que la voiture tombe hors de la carte,
   rayon tracteur qui la ramène sur la route (`car.carried`), puis repart ; essai : `-- --drive-test --void-test --void-drop [--snap]`. Crédits dans ⚙ > Crédits (`hud.gd`, `CREDITS`) : y ajouter toute nouvelle ressource sous licence.
-- **Modèles 3D : toujours privilégier les modèles gratuits trouvables en ligne** (Sketchfab CC BY/CC0 via
-  SKETCHFAB_TOKEN, Poly Haven, Kenney, Quaternius…, crédités dans ⚙ > Crédits) plutôt que de modéliser soi-même ; ne
-  modéliser (Blender, procédural) qu'à défaut de modèle convenable.
+- **Éléments graphiques : modèles existants d'abord, au choix de l'utilisateur.** Pour tout élément graphique ajouté
+  ou modifié (objets, mobilier, véhicules, personnages, végétation…) : 1) chercher d'abord des modèles 3D libres
+  existants (Sketchfab CC BY/CC0 via SKETCHFAB_TOKEN, Poly Haven, Kenney, Quaternius, MakeHuman/MPFB…, crédités dans
+  ⚙ > Crédits) ; 2) **proposer plusieurs candidats à l'utilisateur sur une planche JPEG** (même éclairage, échelle
+  humaine) et attendre son choix ; 3) ne modéliser soi-même (Blender, procédural) qu'à défaut de modèle convenable.
 - **Modèles d'après Street View : au pixel près.** Quand l'utilisateur demande de bâtir un modèle 3D d'après Street
   View, analyser le bâtiment avec précision sur les photos (plusieurs angles si possible) et le reproduire fidèlement
   dans le moindre détail : gabarit et proportions mesurés (largeur, profondeur, hauteur d'égout et de faîtage, pente et
   débords du toit), nombre, position, taille et forme exactes des ouvertures, menuiseries, volets, portes, balcons,
   cheminées, gouttières, enduit et couleurs relevés sur la photo, annexes et clôtures. Comparer ensuite une capture
-  du jeu prise du même point de vue que la photo et corriger jusqu'à ce qu'elles se superposent.
+  du jeu prise du même point de vue que la photo et corriger jusqu'à ce qu'elles se superposent. **Faire le tour du
+  bâtiment** : récupérer un maximum de vues Street View (tous les panoramas proches, plusieurs caps et hauteurs) avant
+  de relever quoi que ce soit ; l'architecture doit être strictement identique (formes, nombre et place des fenêtres
+  et portes, annexes). Une issue n'est refermée qu'avec l'accord de l'utilisateur, comparatif photo/jeu à l'appui.
 - **Viser les canons du genre** : à chaque demande, s'inspirer des meilleures références du genre (jeux de conduite,
   simulateurs, jeux en pixel art…) pour la qualité du résultat et l'ingéniosité des solutions, dans les limites du
   moteur graphique et du téléphone ; chercher l'astuce qui donne un rendu de grand jeu plutôt que la solution minimale.
@@ -128,7 +133,12 @@
 - **Particules en Compatibility** : les matériaux « billboard » (y compris `BILLBOARD_PARTICLES`) et la transparence
   alpha ignorent la position, la taille et la couleur de chaque particule (CPUParticles3D), et `color_ramp` écrase la
   teinte : utiliser des maillages en volume (cubes, sphères basses), la transparence tramée `ALPHA_HASH` et
-  `scale_amount_curve` pour le fondu (`scripts/dust.gd`, effets des roues).
+  `scale_amount_curve` pour le fondu. **Effets des roues depuis la v6.5** (`scripts/dust.gd` + `scripts/fumee.gdshader`,
+  texture `assets/fx/fumee.png` de `pipeline/build_fumee_tex.py`) : système maison en MultiMesh (pas de CPUParticles) —
+  panneau face caméra calculé dans le shader (`skip_vertex_transform`), taille/rotation/âge/opacité dans
+  `INSTANCE_CUSTOM`, teinte dans `COLOR`, éclairage par le soleil d'après la normale de la texture, tri arrière→avant
+  en GDScript, débris en volume avec rebond. **Ne pas utiliser `hint_depth_texture`** (soft particles) : tout le rendu
+  3D devient noir en Compatibility. Essai visuel : `-- --fx-demo` (chaque roue émet une matière en continu).
 - **Mises à jour incrémentales** (depuis la v5.5) : `scenes/boot.tscn` (`scripts/boot.gd`, jamais mis à jour lui-même)
   écran de démarrage (depuis la v5.8) : lit le catalogue `raw.githubusercontent.com/…/maj/catalogue.json` (branche
   `maj`), télécharge le paquet de la base de l'APK installé avec barre de progression (bouton « Jouer sans attendre »),
@@ -149,6 +159,14 @@
   30 s d'après les images/s. Tuiles des routes et bâtiments lues en arrière-plan (`scripts/chargeur.gd`), végétation
   préparée sur un fil de travail, shaders préchauffés sous le voile de démarrage (`_prechauffer`). Essai
   `--perf-breakdown` : coût de chaque système et réglage (ombres ≈ 1/3 des triangles) ; captures `{"niveau": 0-3}`.
+- **Cultures écrasées** (v6.5, `scripts/trample.gd`) : carte des passages de 96 m qui suit la voiture (256 px,
+  R/V = sens, B = écrasement), lue par `crops.gdshader` (`trample_tex`, `trample_zone`) au sommet ET au centre de
+  chaque bande (une bande fait jusqu'à 3 m : une trace étroite passerait entre ses coins) ; nappes du dessus abaissées.
+  Essais : `--trample-debug` (journal), `--trample-all` (tout couché) ; captures `{"cam": 0, "place": [x, y, z, cap]}`.
+- **Mémoire vidéo** (image figée sur le téléphone : la 3D cesse d'être dessinée quand la mémoire vidéo sature, l'écran
+  alterne alors entre les deux dernières images) : **toute texture de plus de 4 Mo doit être importée compressée**
+  (`compress/mode=2`, sauf pixel art de `assets/ui` et `assets/cockpit`) ; le sprite de la voiture n'est chargé qu'à
+  la demande (`car.set_sprite_mode`). Contrôle : `-- --mem-test` (mémoire vidéo, textures, tampons).
 - **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
   souples, pas d'à-coups de chargement). Voiture coincée (gaz ou frein enfoncé, moins de 1,5 m parcouru en 3 s, même
   si la vitesse calculée reste élevée en vibrant contre un obstacle) : remise sur la route automatique (`car.gd`).

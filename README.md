@@ -16,6 +16,17 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v6.5 (mise à jour automatique) :
+- **voix du taxi plus fortes** (chaque réplique normalisée, moteur et ambiance qui s'effacent quand on parle) et
+  **nouvelle voix du chauffeur** ; nouveau curseur ⚙ > Son > Voix.
+- **Raptor bien plus puissant** : ~450 ch, 0 à 100 km/h en 5 s, 230 km/h ; son de V6 essence.
+- **fumée et poussière des roues refaites** (façon Call of Duty 2) : grosses volutes éclairées par le soleil qui
+  gonflent et se dissipent, fumée blanche des pneus qui patinent, poussière dans la terre, embruns sous la pluie,
+  brins d'herbe, mottes et cailloux qui volent et rebondissent.
+- **les champs se couchent au passage de la voiture** (maïs, blé, toutes les cultures), et la trace reste.
+- **moins de mémoire vidéo** (≈ 700 Mo de moins) : cause probable de l'image qui se figeait en alternant entre deux
+  images pendant que le jeu continuait.
+
 Nouveautés de la v6.4 (mise à jour automatique) :
 - **Ranger allégé** pour le téléphone (22 000 faces au lieu de 45 000, toujours à l'écran et dans les ombres),
   apparence inchangée.

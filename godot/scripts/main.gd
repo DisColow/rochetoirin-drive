@@ -139,6 +139,12 @@ func _ready() -> void:
 	crops.terrain = terrain
 	add_child(crops)
 	crops.target = car
+	# cultures couchées au passage de la voiture
+	var tr = preload("res://scripts/trample.gd").new()
+	tr.car = car
+	add_child(tr)
+	if crops.get("mat"):
+		tr.attacher(crops.mat)
 	grass = preload("res://scripts/grass.gd").new()
 	grass.level = vegetation.level
 	grass.terrain = terrain
@@ -669,6 +675,12 @@ func _shots(path: String) -> void:
 			# vue de la caméra du jeu (0 poursuite, 1 conducteur, 2 capot) après un court trajet
 			car.freeze = false
 			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; pools.target = car; shops.target = car; sport.target = car; animaux.target = car; autoroute.target = car; vegetation.target = car; crops.target = car; grass.target = car
+			if s.has("place"):
+				# voiture posée ailleurs (x, y, z, cap) avant le court trajet
+				car.place(Vector3(s.place[0], s.place[1], s.place[2]), float(s.place[3]))
+				car.hold(0.5)
+				for i in 120:
+					await get_tree().physics_frame
 			cam_rig.set_mode(int(s.cam))
 			if s.has("sprite"):
 				car.set_sprite_mode(bool(s.sprite))
@@ -1121,8 +1133,10 @@ func _mem_test() -> void:
 		car.freeze = true
 		car.place(Vector3(_mem_pts[i], _mem_pts[i + 2], _mem_pts[i + 1]), _mem_pts[i + 3])
 	if t % 600 == 0:
-		print("t=%ds mémoire %.0f Mo objets %d nœuds %d ressources %d tuiles routes %d bâtiments %d" % [t / 120,
-			Performance.get_monitor(Performance.MEMORY_STATIC) / 1e6, Performance.get_monitor(Performance.OBJECT_COUNT),
+		print("t=%ds mémoire %.0f Mo vidéo %.0f Mo (textures %.0f, tampons %.0f) objets %d nœuds %d ressources %d tuiles routes %d bâtiments %d" % [t / 120,
+			Performance.get_monitor(Performance.MEMORY_STATIC) / 1e6, Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1e6,
+			Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1e6, Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1e6,
+			Performance.get_monitor(Performance.OBJECT_COUNT),
 			Performance.get_monitor(Performance.OBJECT_NODE_COUNT), Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT),
 			roads.loaded.size(), buildings.loaded.size()])
 	if t > 120 * 240:
