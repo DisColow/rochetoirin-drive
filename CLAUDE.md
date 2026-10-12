@@ -123,7 +123,14 @@
   versionnés) : caractères aux goûts cachés, fils de trois échanges (le client parle, on répond sur un ton —
   chaleureux, drôle, curieux, sobre, ou silence —, puis il enchaîne : **pas de réplique d'appréciation** après notre réponse, demande de l'utilisateur, v6.6 ; son humeur évolue en silence), jauge d'humeur (plus d'indicateurs ♥ / • / ✗ depuis la v6.2), indices
   (allure du client, préférences apprises en lui posant des questions avec le bouton « bulle »), pourboire selon la
-  satisfaction. **Voix** (depuis la v6.2) : chaque réplique enregistrée par `pipeline/build_voix.py` (Piper hors ligne,
+  satisfaction. **Voix du téléphone** (depuis la v6.8, demande de l'utilisateur, `scripts/voix_tel.gd`) : synthèse
+  vocale du système (`DisplayServer.tts_*`, réglage `audio/general/text_to_speech` déjà actif) ; voix française
+  d'homme ou de femme selon le client (table `CONNUES` des voix Google/Samsung/Windows + mots du nom ; sinon hauteur
+  décalée), hauteur et débit propres à chaque client (`graine`), voix forcées dans ⚙ > Son (`voix_f`, `voix_m`). La
+  réplique suivante attend la fin de la lecture (`_tts_busy` : rappel « fin », état « parle » retombé, durée estimée,
+  filet de sécurité) : **le dialogue ne doit jamais pouvoir rester bloqué**. Pas d'effet talkie (le son ne passe pas
+  par Godot). Sous Linux, un speech-dispatcher planté bloque Godot au démarrage (essais : tuer `speech-dispatcher`).
+  **Voix enregistrées** (secours quand l'appareil n'a aucune voix française ; depuis la v6.2) : chaque réplique enregistrée par `pipeline/build_voix.py` (Piper hors ligne,
   voix Siwis et Gilles en plusieurs hauteurs ; répliques entières, sauf les 25 à variables : morceaux + valeurs), **effet talkie-walkie appliqué
   par ffmpeg dans les fichiers** (version « D » choisie par l'utilisateur : bande 450-2600 Hz, compression, saturation,
   grain, souffle), joués tels quels par le bus « Voix » sans aucun effet ni décalage de hauteur (en v6.0, ces effets

@@ -16,6 +16,13 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v6.8 (mise à jour automatique) :
+- **voix du taxi refaites** : les répliques sont lues par la synthèse vocale du téléphone (voix bien plus naturelles),
+  voix de femme ou d'homme selon le client, chacun avec sa hauteur et son débit ; la réplique suivante attend toujours
+  la fin de la lecture, sans risque de blocage.
+- ⚙ > Son : choix de la voix des femmes et de celle des hommes parmi les voix françaises du téléphone (on l'entend en
+  touchant le bouton). Sans voix française sur l'appareil, les anciennes voix enregistrées prennent le relais.
+
 Nouveautés de la v6.7 (mise à jour automatique) :
 - **nouveaux lampadaires** : une tige et une lanterne (« Street Lantern », Oneironauticus, CC BY 4.0) à la place des
   crosses grises ; la nuit, seules les vitres de la lanterne s'allument.

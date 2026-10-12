@@ -6,9 +6,9 @@
 ## - Indicateurs : après chaque réponse, ♥ (apprécié), • (bof) ou ✗ (agacé), et la jauge d'humeur du client.
 ## - Indices : son allure (sous son nom), ses réactions, et ses réponses quand on lui pose des questions (bouton
 ##   « bulle » ou touche P) ; ce qu'on apprend de ses goûts reste affiché.
-## - Voix : chaque réplique (client et chauffeur) est dite par une voix de synthèse intelligible enregistrée par
-##   pipeline/build_voix.py (morceaux enchaînés pour les noms de lieux, métiers…), passée par le bus « Voix » :
-##   talkie-walkie (bande étroite, saturation légère, grésillement), hauteur propre à chaque client.
+## - Voix (v6.8) : chaque réplique est lue par la synthèse vocale du téléphone (voix_tel.gd), voix d'homme ou de
+##   femme selon le client, hauteur et débit propres à chacun ; la réplique suivante attend la fin de la lecture.
+##   Sans voix française sur l'appareil : répliques enregistrées par pipeline/build_voix.py (Piper + talkie-walkie).
 extends CanvasLayer
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
@@ -57,6 +57,11 @@ var _player: AudioStreamPlayer
 var _noise_player: AudioStreamPlayer
 var _noise: AudioStreamWAV
 var _say_end := 0                  # temps minimal de la réplique (ms) ; sans voix : temps de lecture du texte
+const VT := preload("res://scripts/voix_tel.gd")
+var _tts_id := -1                  # réplique en cours de lecture par le téléphone (-1 : aucune)
+var _tts_t0 := 0                   # début de la lecture (ms)
+var _tts_est := 0                  # durée estimée (ms)
+var _tts_vu := -1                  # dernière fois que le téléphone a dit « je parle » (ms ; -1 : jamais)
 
 func _ready() -> void:
 	layer = 3
@@ -146,7 +151,7 @@ func start_ride(home: String, dest: String, dest_commune: String, dest_kind: Str
 		"metier": met.f if fem else met.m, "metier_detail": met.detail,
 		"loisir": _pick(data.loisirs), "animal": _pick(data.animaux), "famille": _pick(data.familles),
 		"commune": home, "dest": dest, "dest_commune": dest_commune, "kind": dest_kind,
-		"voix": ("f" if fem else "m") + str(_rng.randi_range(1, 3)),
+		"voix": ("f" if fem else "m") + str(_rng.randi_range(1, 3)), "graine": _rng.randi(),
 		"allure": "", "connu": {},
 		"sat": 0.0,
 	}
@@ -512,19 +517,62 @@ func _make_voice() -> void:
 		var env := minf(1.0, i / (sr * 0.006)) * (1.0 - float(i) / n)
 		pcm.encode_s16(i * 2, int(clampf(prev * env * 0.45, -1.0, 1.0) * 32767.0))
 	_noise = AudioStreamWAV.new(); _noise.format = AudioStreamWAV.FORMAT_16_BITS; _noise.mix_rate = sr; _noise.data = pcm
+	if DisplayServer.has_feature(DisplayServer.FEATURE_TEXT_TO_SPEECH):
+		for e in [DisplayServer.TTS_UTTERANCE_ENDED, DisplayServer.TTS_UTTERANCE_CANCELED]:
+			DisplayServer.tts_set_utterance_callback(e, _tts_fin)
+		VT.voix()                  # premier appel : le moteur d'Android s'initialise pendant ce temps
 
 ## Vrai si une réplique est en train d'être dite (le dialogue n'avance pas avant la fin du son).
 func _voice_busy() -> bool:
-	return _player.playing or not _clips.is_empty() or Time.get_ticks_msec() < _say_end
+	return _player.playing or not _clips.is_empty() or Time.get_ticks_msec() < _say_end or _tts_busy()
+
+## Lecture par le téléphone : finie dès que l'un des signaux arrive (le dialogue ne peut jamais rester bloqué) :
+## 1. rappel du système « fin » / « annulée » / « erreur » (_tts_fin) ;
+## 2. le téléphone a dit qu'il parlait, puis ne parle plus depuis 0,4 s ;
+## 3. il n'a jamais dit qu'il parlait : durée estimée + 1,5 s ;
+## 4. filet de sécurité absolu : deux fois la durée estimée + 5 s.
+func _tts_busy() -> bool:
+	if _tts_id < 0:
+		return false
+	var now := Time.get_ticks_msec()
+	if DisplayServer.tts_is_speaking():
+		_tts_vu = now
+	var fini := now > _tts_t0 + _tts_est * 2 + 5000
+	if _tts_vu >= 0:
+		fini = fini or now - _tts_vu > 400
+	else:
+		fini = fini or now > _tts_t0 + _tts_est + 1500
+	if fini:
+		_tts_id = -1
+	return not fini
+
+func _tts_fin(id: int) -> void:
+	if id == _tts_id:
+		_tts_id = -1
 
 func _stop_voice() -> void:
 	_clips.clear()
 	_player.stop()
+	if _tts_id >= 0:
+		DisplayServer.tts_stop()
+		_tts_id = -1
 
 ## Dit une réplique : le fichier de la réplique entière, ou (répliques à variables) ses morceaux fixes et les valeurs
 ## des variables joués à la suite. Renvoie la durée (0 sans voix : le texte s'écrit alors seul).
 func _speak(t: String, who: String) -> float:
 	_stop_voice()
+	if VT.dispo():
+		# chauffeur : voix d'homme fixe ; client : voix de son sexe, propre à lui
+		var ch := VT.choisir("m", 7) if who == "joueur" else VT.choisir("f" if client.get("fem", false) else "m", int(client.get("graine", 0)))
+		var txt := _fill(t)
+		var AU := preload("res://scripts/audio.gd")
+		AU.volume_db("voix")
+		_tts_id = VT.dire(txt, ch, float(AU.volumes["voix"]))
+		_tts_t0 = Time.get_ticks_msec()
+		_tts_vu = -1
+		var d := VT.duree(txt, float(ch.debit))
+		_tts_est = int(d * 1000.0)
+		return d
 	var v: String = "joueur" if who == "joueur" else str(client.get("voix", "m1"))
 	if not _index.has(v):
 		return 0.0
@@ -565,7 +613,7 @@ func _next_clip() -> void:
 	_player.play()
 
 func _squelch() -> void:
-	if _noise == null:
+	if _noise == null or VT.dispo():           # grésillement du micro : seulement avec les voix enregistrées
 		return
 	_noise_player.stream = _noise
 	_noise_player.play()

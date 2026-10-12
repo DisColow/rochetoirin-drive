@@ -58,7 +58,7 @@ func _ready() -> void:
 
 var settings: Control
 
-const CREDITS := """Voix du taxi : synthèse Piper (rhasspy) ; voix « Siwis » (Université d'Édimbourg, CC BY 4.0) et « Gilles » (CC0), effet talkie-walkie ffmpeg.
+const CREDITS := """Voix du taxi : synthèse vocale de l'appareil ; à défaut, synthèse Piper (rhasspy) ; voix « Siwis » (Université d'Édimbourg, CC BY 4.0) et « Gilles » (CC0), effet talkie-walkie ffmpeg.
 Voiture : « Ford Ranger Raptor 2019 » par David_Holiday (Sketchfab, licence CC BY 4.0), repeint en noir.
 Lampadaires : « Street Lantern » par Samuel Francis Johnson (Oneironauticus) (Sketchfab, licence CC BY 4.0).
 Soucoupe du gardien : « UFO » par sebslom (sketchfab.com/3d-models), licence CC BY 4.0.
@@ -189,6 +189,33 @@ func _open_settings() -> void:
 			AU.set_volume(cat[0], x))
 		col.add_child(sl)
 		hs.add_child(col)
+	# voix du taxi (v6.8) : synthèse vocale du téléphone ; voix choisie pour les femmes et pour les hommes
+	var VT := preload("res://scripts/voix_tel.gd")
+	var hv := HBoxContainer.new(); hv.add_theme_constant_override("separation", 16); v.add_child(hv)
+	if not VT.dispo():
+		var nv := Label.new(); nv.add_theme_font_size_override("font_size", 22); nv.modulate = Color(1, 1, 1, 0.7)
+		nv.text = "Voix du taxi : aucune voix française sur cet appareil (voix enregistrées utilisées).\nPour l'ajouter : Paramètres Android > Synthèse vocale > voix française."
+		hv.add_child(nv)
+	else:
+		for sx in [["f", "Voix des femmes"], ["m", "Voix des hommes"]]:
+			var bv := Button.new(); bv.custom_minimum_size = Vector2(0, 64); bv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			bv.add_theme_font_size_override("font_size", 22); bv.clip_text = true
+			var nom_v := func() -> String:
+				var cur := VT.reglage(sx[0])
+				for x in VT.voix():
+					if x.id == cur:
+						return "%s : %s" % [sx[1], x.nom]
+				return "%s : auto" % sx[1]
+			bv.text = nom_v.call()
+			bv.pressed.connect(func():
+				# voix suivante de la liste (auto, puis chaque voix française), et on l'écoute aussitôt
+				var ids: Array = [""] + VT.voix().map(func(x): return x.id)
+				var i := ids.find(VT.reglage(sx[0]))
+				VT.regler(sx[0], ids[(i + 1) % ids.size()])
+				bv.text = nom_v.call()
+				var AU2 := preload("res://scripts/audio.gd")
+				VT.dire("Bonjour ! Vous m'emmenez à Rochetoirin ?", VT.choisir(sx[0], 1), float(AU2.volumes["voix"]), true))
+			hv.add_child(bv)
 	var note := Label.new()
 	note.text = "Auto : le jeu choisit le niveau selon sa fluidité. Économie = le plus fluide.\nVersion %s (mises à jour automatiques au lancement)" % str(Engine.get_meta("version_jeu", ProjectSettings.get_setting("application/config/version", "")))
 	note.add_theme_font_size_override("font_size", 22); note.modulate = Color(1, 1, 1, 0.7); v.add_child(note)
