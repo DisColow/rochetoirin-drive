@@ -3,6 +3,11 @@
 - **Issues GitHub** : quand l'utilisateur demande de faire des choses, lire les issues ouvertes de
   `DisColow/rochetoirin-drive` (`curl -s https://api.github.com/repos/DisColow/rochetoirin-drive/issues?state=open`)
   et les ajouter à la liste des tâches ; poser des questions si une issue n'est pas claire.
+- **Issues « pour-toi »** : chaque fois que l'utilisateur a quelque chose à faire de son côté (mesure ou essai sur le
+  téléphone, secret à ajouter, choix à valider, vidéo à envoyer…), créer une issue GitHub étiquetée `pour-toi`,
+  assignée à `DisColow`, en français : contexte en deux lignes, étapes numérotées, ce qu'on attend en retour. Ne pas
+  créer de doublon (vérifier les issues ouvertes). Ces issues ne sont pas des tâches pour Claude : les relire pour
+  traiter les réponses de l'utilisateur, puis les refermer quand l'action est faite (en le disant dans un commentaire).
 - **Notification à la fin de chaque tour** : quand le travail est fini et que c'est à l'utilisateur d'écrire, lui
   envoyer une notification (outil PushNotification, message court en français : ce qui est prêt / ce qu'on attend de lui).
 - Après chaque livraison (modification du jeu, nouvel APK), **mettre à jour ce dépôt systématiquement** :
