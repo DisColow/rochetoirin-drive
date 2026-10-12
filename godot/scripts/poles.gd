@@ -8,6 +8,7 @@ const TILE := 256.0
 const Cells := preload("res://scripts/cells.gd")
 var VIEW := 900.0
 const LIGHTS := 6
+var HEAD := Vector3(0, 5.9, -1.45)   # tête du lampadaire (repère du support)
 
 var target: Node3D
 var tiles := {}
@@ -34,7 +35,9 @@ func _ready() -> void:
 	head_mat = _m(Color(0.25, 0.26, 0.27), 0.5, 0.3)
 	wire_mat = _m(Color(0.08, 0.08, 0.09), 0.6)
 	wire_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	meshes[1] = _lamp(grey)
+	meshes[1] = _lanterne()
+	if meshes[1] == null:
+		meshes[1] = _lamp(grey)
 	meshes[2] = _pole(wood, 0.12, 0.1, 9.0)
 	meshes[3] = _pole(concrete, 0.16, 0.1, 10.0)
 	meshes[4] = _pylon(steel)
@@ -63,6 +66,26 @@ func _bar(st: SurfaceTool, a: Vector3, b: Vector3, r: float) -> void:
 		var n := (p0 + p1).normalized()
 		for q in [a + p0, b + p0, b + p1, a + p0, b + p1, a + p1]:
 			st.set_normal(n); st.add_vertex(q)
+
+## Lampadaire « Street Lantern » (Oneironauticus, CC BY 4.0, blender_lampadaire.py) : une tige et une lanterne ;
+## les vitres (texture d'émission) s'allument la nuit.
+func _lanterne() -> Mesh:
+	var f := "res://assets/props/lampadaire.glb"
+	if not ResourceLoader.exists(f):
+		return null
+	var sc: Node = (load(f) as PackedScene).instantiate()
+	var mi: MeshInstance3D = sc.find_children("*", "MeshInstance3D", true, false)[0]
+	var mesh: Mesh = mi.mesh.duplicate()
+	var m := mi.get_active_material(0)
+	if m is StandardMaterial3D:
+		head_mat = m.duplicate()
+		head_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		head_mat.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY   # seulement les vitres (texture d'émission)
+		head_mat.emission = Color(1.0, 0.85, 0.6)
+		mesh.surface_set_material(0, head_mat)
+	sc.free()
+	HEAD = Vector3(0, 3.4, 0)
+	return mesh
 
 func _lamp(m: Material) -> Mesh:
 	var st := SurfaceTool.new(); st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -170,7 +193,7 @@ func _add(k: Vector2i) -> void:
 			by[t] = []
 		by[t].append(Transform3D(b, Vector3(x, y, z)))
 		if t == 1:
-			heads.append(Vector3(x, y + 5.9, z) + b * Vector3(0, 0, -1.45))
+			heads.append(Vector3(x, y, z) + b * HEAD)
 	for t in by:
 		var l := []
 		for xf in by[t]:
@@ -209,7 +232,8 @@ func _add(k: Vector2i) -> void:
 func set_night(n: float) -> void:
 	night = n
 	head_mat.emission_enabled = n > 0.0
-	head_mat.emission = Color(1.0, 0.8, 0.5)
+	if head_mat.emission_texture == null:
+		head_mat.emission = Color(1.0, 0.8, 0.5)
 	head_mat.emission_energy_multiplier = 4.0 * n
 	_night_lights()
 
@@ -229,5 +253,5 @@ func _night_lights() -> void:
 		var l: OmniLight3D = pool[i]
 		l.visible = i < best.size()
 		if l.visible:
-			l.global_position = best[i][1] - Vector3(0, 0.4, 0)
+			l.global_position = best[i][1] - Vector3(0, 0.3, 0)
 			l.light_energy = 2.2 * night

@@ -16,6 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v6.7 (mise à jour automatique) :
+- **nouveaux lampadaires** : une tige et une lanterne (« Street Lantern », Oneironauticus, CC BY 4.0) à la place des
+  crosses grises ; la nuit, seules les vitres de la lanterne s'allument.
+
 Nouveautés de la v6.6 (mise à jour automatique) :
 - taxi : le client ne commente plus nos réponses (plus de « Ah, c'est gentil »…) ; la conversation s'enchaîne, son
   humeur évolue en silence (jauge, pourboire).
