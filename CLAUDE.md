@@ -137,6 +137,14 @@
   en jeu rendaient les voix incompréhensibles ; en v6.1, synthèse vocale du système, abandonnée). Le dialogue n'avance
   qu'à la fin réelle du son (`_voice_busy()`). Toute nouvelle réplique : relancer `taxi_dialogues.py` puis
   `build_voix.py` (incrémental, venv avec piper-tts), puis `publier_donnees.sh`. La radio baisse quand quelqu'un parle.
+- **Actualité du taxi** (v6.11, issue #6, `docs/plan_actualites.md`) : action `.github/workflows/actu.yml` chaque matin
+  (6 h 50 à Paris, et à chaque modification de `pipeline/actu.py`) : titres des dernières 72 h (Le Dauphiné Libéré via
+  Google Actualités — son flux RSS direct ne répond pas —, France Info), **pas de sport, aucun sujet exclu** (choix de
+  l'utilisateur), météo Open-Meteo ; API Claude (`claude-opus-5-5`, sortie JSON contrainte par schéma, repli serveur
+  `fallbacks: "default"`, secret `ANTHROPIC_API_KEY`) ; contrôles (3 nœuds, longueurs, accords `{masculin|féminin}`
+  seulement) ; `actu.json` publié sur la branche `actu`. Jeu : `taxi_talk.gd` le télécharge au lancement
+  (`user://actu.json`, valable 3 jours), **une conversation sur deux** sur l'actualité (`ACTU_PART`). Essai local :
+  `python3 pipeline/actu.py --sans-ia` (titres et météo seulement).
 - **Éditeur de monde** (`scripts/editeur_monde.gd`) : « Sésame, ouvre-toi » / « Hasta la vista, baby » dans le champ
   « Formule magique » (appui long sur le nom de la rue, F2, ou ⚙) ; on touche un objet, puis « Générer depuis Street
   View » ou une remarque -> issue GitHub pré-remplie (étiquette `editeur-monde` : position, GPS, objet, caméra, lien

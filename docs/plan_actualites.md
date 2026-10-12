@@ -1,6 +1,8 @@
 # Plan : des clients du taxi qui parlent de la vraie actualité
 
-Statut : **en attente** — à lancer quand l'utilisateur sera prêt (proposé le 12 octobre 2026).
+Statut : **en service depuis la v6.11** (12 octobre 2026). Choix de l'utilisateur (issue #6) : sources Le Dauphiné
+Libéré + France Info, **pas de sport**, **aucun sujet exclu**, une conversation sur deux. Les voix sont celles du
+téléphone (v6.8) : plus de fichiers son à fabriquer, le paquet ne contient que le texte.
 
 ## Pourquoi pas de génération en temps réel sur le téléphone
 

@@ -16,6 +16,12 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v6.11 (mise à jour automatique) :
+- **les clients du taxi parlent de la vraie actualité** : une conversation sur deux porte sur ce qui se passe en ce
+  moment (Le Dauphiné Libéré pour Bourgoin-Jallieu et l'Isère, France Info pour le national, la météo du jour à
+  Rochetoirin ; pas de sport). Les conversations sont écrites chaque matin et téléchargées au lancement du jeu ; sans
+  connexion, celles des trois derniers jours servent encore, puis les sujets habituels.
+
 Nouveautés de la v6.10 (mise à jour automatique) :
 - **image figée** (le jeu continue mais l'écran ne bouge plus) : le jeu s'en aperçoit désormais tout seul (témoin de
   rendu contrôlé toutes les 5 s) et le note avec l'état de la mémoire vidéo ; au lancement suivant, un bandeau

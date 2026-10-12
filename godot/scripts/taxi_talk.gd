@@ -9,6 +9,9 @@
 ## - Voix (v6.8) : chaque réplique est lue par la synthèse vocale du téléphone (voix_tel.gd), voix d'homme ou de
 ##   femme selon le client, hauteur et débit propres à chacun ; la réplique suivante attend la fin de la lecture.
 ##   Sans voix française sur l'appareil : répliques enregistrées par pipeline/build_voix.py (Piper + talkie-walkie).
+## - Actualité (v6.11, issue #6) : une conversation sur deux porte sur la vraie actualité du jour (fils écrits chaque
+##   matin par pipeline/actu.py dans l'action « Actualité du taxi », branche « actu ») ; paquet téléchargé au
+##   lancement dans user://actu.json, gardé trois jours ; sans paquet récent, sujets habituels seulement.
 extends CanvasLayer
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
@@ -78,6 +81,8 @@ func _ready() -> void:
 			var k := InputEventKey.new(); k.physical_keycode = a[1]
 			InputMap.action_add_event(a[0], k)
 	_make_voice()
+	_actu_charger()
+	_actu_telecharger()
 
 func _build_ui() -> void:
 	_box = PanelContainer.new()
@@ -285,7 +290,51 @@ func _process_corps(dt: float) -> void:
 		_start_fil(_topic())
 
 # ---------------------------------------------------------------- fils de conversation (le client parle)
+# ---------------------------------------------------------------- actualité du jour
+const ACTU_URL := "https://raw.githubusercontent.com/DisColow/rochetoirin-drive/actu/actu.json"
+const ACTU_FICHIER := "user://actu.json"
+const ACTU_PART := 0.5            # part des conversations sur l'actualité (choix de l'utilisateur : 50/50)
+var _actu: Array = []             # fils du jour (même format que data.fils)
+var _actu_vus := {}               # fils déjà entendus pendant la partie
+
+func _actu_charger() -> void:
+	_actu = []
+	if not FileAccess.file_exists(ACTU_FICHIER):
+		return
+	var d = JSON.parse_string(FileAccess.get_file_as_string(ACTU_FICHIER))
+	if not (d is Dictionary) or not d.has("fils") or not d.has("date"):
+		return
+	# trois jours au plus : au-delà, l'actualité n'en est plus une
+	var jour := Time.get_unix_time_from_datetime_string(str(d.date) + "T12:00:00")
+	if Time.get_unix_time_from_system() - jour > 3.5 * 86400.0:
+		return
+	for f in d.fils:
+		if f is Array and f.size() > 0 and f.all(func(n): return n is Dictionary and n.has("dit") and n.has("rep")):
+			_actu.append(f)
+	print("[actu] %d fils du %s" % [_actu.size(), d.date])
+
+func _actu_telecharger() -> void:
+	var h := HTTPRequest.new()
+	h.timeout = 20.0
+	add_child(h)
+	h.request_completed.connect(func(res: int, code: int, _hd, body: PackedByteArray):
+		h.queue_free()
+		if res != HTTPRequest.RESULT_SUCCESS or code != 200:
+			return
+		var d = JSON.parse_string(body.get_string_from_utf8())
+		if d is Dictionary and d.has("fils"):
+			var f := FileAccess.open(ACTU_FICHIER, FileAccess.WRITE)
+			if f:
+				f.store_buffer(body)
+				f.close()
+			_actu_charger())
+	if h.request(ACTU_URL) != OK:
+		h.queue_free()
+
 func _topic() -> String:
+	# une fois sur deux, l'actualité du jour (tant qu'il reste des fils pas encore entendus)
+	if _actu.size() > _actu_vus.size() and _rng.randf() < ACTU_PART:
+		return "actu"
 	var subjects: Array = data.fils.keys()
 	subjects.erase("meteo_pluie")
 	if main and int(main.get("weather")) == 2:
@@ -297,6 +346,15 @@ func _topic() -> String:
 	return subjects[0]
 
 func _start_fil(subject: String) -> void:
+	if subject == "actu":
+		var libres := range(_actu.size()).filter(func(i): return not _actu_vus.has(i))
+		var i: int = libres[_rng.randi() % libres.size()]
+		_actu_vus[i] = true
+		_fil = _actu[i]
+		_node = 0
+		_since = 0.0
+		_exchange()
+		return
 	_used[subject] = true
 	var pool: Array = data.fils[subject]
 	_fil = pool[_rng.randi() % pool.size()]
