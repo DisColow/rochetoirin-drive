@@ -1,0 +1,1365 @@
+{
+"BATIMENT0000000007604353": {
+"front": "rien",
+"cam": [
+-249.3,
+-38.1
+]
+},
+"BATIMENT0000000007604375": {
+"front": "rien",
+"cam": [
+-248.1,
+-83.0
+]
+},
+"BATIMENT0000000007604394": {
+"front": "rien",
+"cam": [
+-138.5,
+46.0
+]
+},
+"BATIMENT0000000290577802": {
+"front": "haieL",
+"mur": "creme",
+"cam": [
+-292.5,
+463.9
+]
+},
+"BATIMENT0000000290577805": {
+"front": "muret_rigide",
+"mur": "gris",
+"cam": [
+-150.6,
+494.2
+]
+},
+"BATIMENT0000000290577811": {
+"front": "muret_rigide",
+"mur": "creme",
+"cam": [
+251.6,
+379.8
+]
+},
+"BATIMENT0000000290577816": {
+"front": "muret_rigide",
+"mur": "gris",
+"cam": [
+-323.2,
+381.3
+]
+},
+"BATIMENT0000000290577820": {
+"front": "haieL",
+"portail": "plein_blanc",
+"cam": [
+-271.9,
+397.8
+]
+},
+"BATIMENT0000000290577825": {
+"front": "haieL",
+"cam": [
+-276.6,
+417.8
+]
+},
+"BATIMENT0000000290577826": {
+"front": "muret",
+"mur": "creme",
+"portail": "fer",
+"cam": [
+-292.5,
+463.9
+]
+},
+"BATIMENT0000000290577836": {
+"front": "muret",
+"mur": "creme",
+"cam": [
+-150.6,
+494.2
+]
+},
+"BATIMENT0000000290577839": {
+"front": "haieL",
+"mur": "creme",
+"cam": [
+-251.7,
+467.7
+]
+},
+"BATIMENT0000000290577842": {
+"front": "muret_rigide",
+"mur": "creme",
+"cam": [
+-150.6,
+494.2
+]
+},
+"BATIMENT0000000301132931": {
+"front": "haieL",
+"cam": [
+-523.2,
+89.4
+]
+},
+"BATIMENT0000000301132932": {
+"front": "muret_grille",
+"mur": "creme",
+"grille": "blanc",
+"portail": "fer",
+"cam": [
+-511.9,
+-18.9
+]
+},
+"BATIMENT0000000301132934": {
+"front": "muret_grille",
+"mur": "creme",
+"grille": "blanc",
+"portail": "fer",
+"cam": [
+-511.9,
+-18.9
+]
+},
+"BATIMENT0000000301132936": {
+"front": "haieT",
+"cam": [
+-392.5,
+47.5
+]
+},
+"BATIMENT0000000301132939": {
+"front": "haieT",
+"mur": "gris",
+"cam": [
+-401.4,
+42.0
+]
+},
+"BATIMENT0000000301132941": {
+"front": "haieL",
+"mur": "pierre",
+"portail": "fer",
+"cam": [
+-401.4,
+42.0
+]
+},
+"BATIMENT0000000301132943": {
+"front": "grillage",
+"cam": [
+-553.1,
+59.4
+]
+},
+"BATIMENT0000000301132976": {
+"front": "haieT",
+"mur": "gris",
+"cam": [
+-401.4,
+42.0
+]
+},
+"BATIMENT0000000301132978": {
+"front": "haieT",
+"mur": "gris",
+"portail": "bois",
+"cam": [
+-401.4,
+42.0
+]
+},
+"BATIMENT0000000301132980": {
+"front": "haieT",
+"mur": "gris",
+"cam": [
+-401.4,
+42.0
+]
+},
+"BATIMENT0000000301132982": {
+"front": "occult",
+"grille": "blanc",
+"cam": [
+-521.4,
+-82.7
+]
+},
+"BATIMENT0000000301132995": {
+"front": "haieT",
+"cam": [
+-545.6,
+-5.3
+]
+},
+"BATIMENT0000000301133017": {
+"front": "rien",
+"cam": [
+-578.9,
+43.5
+]
+},
+"BATIMENT0000000301133020": {
+"front": "haieL",
+"portail": "fer",
+"cam": [
+-511.9,
+-18.9
+]
+},
+"BATIMENT0000000301133021": {
+"front": "muret_grille",
+"mur": "creme",
+"grille": "blanc",
+"portail": "barreaux_blanc",
+"cam": [
+-511.9,
+-18.9
+]
+},
+"BATIMENT0000000301133022": {
+"front": "haieL",
+"mur": "gris",
+"portail": "plein_gris",
+"cam": [
+-342.9,
+79.0
+]
+},
+"BATIMENT0000000301133023": {
+"front": "haieL",
+"portail": "fer",
+"cam": [
+-511.9,
+-18.9
+]
+},
+"BATIMENT0000000301133025": {
+"front": "bois",
+"mur": "creme",
+"portail": "bois",
+"cam": [
+-368.7,
+62.2
+]
+},
+"BATIMENT0000000301133026": {
+"front": "haieL",
+"cam": [
+-499.9,
+110.6
+]
+},
+"BATIMENT0000000301133028": {
+"front": "grillage",
+"cam": [
+-638.3,
+20.4
+]
+},
+"BATIMENT0000000301133030": {
+"front": "bois",
+"mur": "pierre",
+"portail": "bois",
+"cam": [
+-322.4,
+147.4
+]
+},
+"BATIMENT0000000301133051": {
+"front": "haieT",
+"mur": "creme",
+"portail": "bois",
+"cam": [
+-354.1,
+229.0
+]
+},
+"BATIMENT0000000301133061": {
+"front": "haieL",
+"mur": "gris",
+"cam": [
+-385.3,
+51.9
+]
+},
+"BATIMENT0000000301133141": {
+"front": "mur",
+"mur": "creme",
+"portail": "plein_gris",
+"cam": [
+-547.4,
+726.8
+]
+},
+"BATIMENT0000000301133190": {
+"front": "haieL",
+"cam": [
+-497.6,
+714.5
+]
+},
+"BATIMENT0000000301133192": {
+"front": "rien",
+"cam": [
+-486.1,
+694.1
+]
+},
+"BATIMENT0000000301133201": {
+"front": "haieL",
+"mur": "gris",
+"cam": [
+-204.7,
+364.6
+]
+},
+"BATIMENT0000000301133211": {
+"front": "muret_grille",
+"mur": "gris",
+"grille": "noir",
+"portail": "fer",
+"cam": [
+343.6,
+491.1
+]
+},
+"BATIMENT0000000301133213": {
+"front": "mur",
+"mur": "gris",
+"cam": [
+8.4,
+383.3
+]
+},
+"BATIMENT0000000301133216": {
+"front": "rien",
+"cam": [
+90.6,
+336.8
+]
+},
+"BATIMENT0000000301133217": {
+"front": "muret_grille",
+"mur": "gris",
+"grille": "blanc",
+"portail": "barreaux_blanc",
+"cam": [
+145.4,
+438.3
+]
+},
+"BATIMENT0000000301133218": {
+"front": "muret_grille",
+"mur": "gris",
+"grille": "vert",
+"portail": "fer",
+"cam": [
+175.5,
+446.5
+]
+},
+"BATIMENT0000000301133222": {
+"front": "haieT",
+"mur": "pierre",
+"portail": "fer",
+"cam": [
+238.9,
+431.5
+]
+},
+"BATIMENT0000000301133226": {
+"front": "mur",
+"mur": "gris",
+"cam": [
+406.3,
+596.0
+]
+},
+"BATIMENT0000000301133228": {
+"front": "rien",
+"cam": [
+406.7,
+575.9
+]
+},
+"BATIMENT0000000301133231": {
+"front": "mur",
+"mur": "gris",
+"cam": [
+406.3,
+596.0
+]
+},
+"BATIMENT0000000301133243": {
+"front": "grillage",
+"cam": [
+-264.7,
+307.7
+]
+},
+"BATIMENT0000000301133244": {
+"front": "haieL",
+"mur": "creme",
+"portail": "plein_blanc",
+"cam": [
+-149.5,
+348.9
+]
+},
+"BATIMENT0000000301133245": {
+"front": "rien",
+"cam": [
+81.0,
+379.2
+]
+},
+"BATIMENT0000000301133246": {
+"front": "occult",
+"grille": "bois",
+"cam": [
+-119.8,
+352.9
+]
+},
+"BATIMENT0000000301133248": {
+"front": "lisses",
+"cam": [
+-180.7,
+345.3
+]
+},
+"BATIMENT0000000301133250": {
+"front": "rien",
+"cam": [
+95.6,
+419.4
+]
+},
+"BATIMENT0000000301133264": {
+"front": "muret",
+"mur": "creme",
+"cam": [
+-180.3,
+494.0
+]
+},
+"BATIMENT0000000301133266": {
+"front": "muret_rigide",
+"mur": "gris",
+"cam": [
+246.5,
+400.0
+]
+},
+"BATIMENT0000000301133269": {
+"front": "muret_rigide",
+"mur": "creme",
+"cam": [
+-209.9,
+467.9
+]
+},
+"BATIMENT0000000301133272": {
+"front": "haieL",
+"cam": [
+-168.5,
+428.7
+]
+},
+"BATIMENT0000000301133274": {
+"front": "occult",
+"grille": "gris",
+"portail": "plein_gris",
+"cam": [
+-160.8,
+495.5
+]
+},
+"BATIMENT0000000301133276": {
+"front": "occult",
+"mur": "blanc",
+"grille": "gris",
+"cam": [
+-202.7,
+451.1
+]
+},
+"BATIMENT0000000301133305": {
+"front": "mur",
+"mur": "gris",
+"grille": "beige",
+"cam": [
+-213.3,
+110.2
+]
+},
+"BATIMENT0000000301133306": {
+"front": "mur",
+"mur": "blanc",
+"portail": "ajoure_gris",
+"cam": [
+-107.2,
+110.3
+]
+},
+"BATIMENT0000000301133307": {
+"front": "haieL",
+"mur": "gris",
+"grille": "brande",
+"cam": [
+-148.0,
+158.8
+]
+},
+"BATIMENT0000000301133308": {
+"front": "haieT",
+"cam": [
+-261.9,
+125.6
+]
+},
+"BATIMENT0000000301133309": {
+"front": "haieT",
+"mur": "gris",
+"cam": [
+-233.7,
+95.2
+]
+},
+"BATIMENT0000000301133310": {
+"front": "haieT",
+"cam": [
+-201.7,
+58.1
+]
+},
+"BATIMENT0000000301133315": {
+"front": "mur",
+"mur": "creme",
+"cam": [
+-101.9,
+119.4
+]
+},
+"BATIMENT0000000301133317": {
+"front": "mur",
+"mur": "blanc",
+"portail": "ajoure_gris",
+"cam": [
+-107.2,
+110.3
+]
+},
+"BATIMENT0000000301133319": {
+"front": "muret",
+"mur": "creme",
+"cam": [
+-125.9,
+73.5
+]
+},
+"BATIMENT0000000301133322": {
+"front": "haieL",
+"cam": [
+-195.3,
+45.2
+]
+},
+"BATIMENT0000000301133323": {
+"front": "haieL",
+"cam": [
+-144.1,
+168.1
+]
+},
+"BATIMENT0000000301133324": {
+"front": "haieL",
+"mur": "gris",
+"cam": [
+-155.4,
+8.1
+]
+},
+"BATIMENT0000000301133325": {
+"front": "rien",
+"cam": [
+338.5,
+98.4
+]
+},
+"BATIMENT0000000301133327": {
+"front": "rien",
+"cam": [
+338.5,
+98.4
+]
+},
+"BATIMENT0000000301133331": {
+"front": "haieL",
+"mur": "gris",
+"portail": "barreaux_blanc",
+"cam": [
+-208.8,
+66.0
+]
+},
+"BATIMENT0000000301133335": {
+"front": "occult",
+"mur": "gris",
+"grille": "gris",
+"cam": [
+-130.0,
+64.5
+]
+},
+"BATIMENT0000000301133336": {
+"front": "occult",
+"mur": "gris",
+"grille": "gris",
+"cam": [
+-130.0,
+64.5
+]
+},
+"BATIMENT0000000301133337": {
+"front": "haieT",
+"grille": "grillage",
+"cam": [
+-300.3,
+108.0
+]
+},
+"BATIMENT0000000301133338": {
+"front": "haieL",
+"cam": [
+-207.5,
+17.5
+]
+},
+"BATIMENT0000000301133339": {
+"front": "haieL",
+"cam": [
+-86.7,
+146.3
+]
+},
+"BATIMENT0000000301133341": {
+"front": "haieL",
+"mur": "gris",
+"cam": [
+-201.9,
+137.3
+]
+},
+"BATIMENT0000000301133342": {
+"front": "occult",
+"mur": "gris",
+"grille": "brande",
+"cam": [
+-207.5,
+17.5
+]
+},
+"BATIMENT0000000301133343": {
+"front": "muret",
+"mur": "creme",
+"portail": "fer",
+"cam": [
+-201.9,
+137.3
+]
+},
+"BATIMENT0000000301133344": {
+"front": "rien",
+"cam": [
+-231.3,
+-42.2
+]
+},
+"BATIMENT0000000301133345": {
+"front": "rien",
+"cam": [
+-234.9,
+-50.9
+]
+},
+"BATIMENT0000000301133346": {
+"front": "rien",
+"cam": [
+-238.7,
+-59.9
+]
+},
+"BATIMENT0000000301133349": {
+"front": "lisses",
+"mur": "blanc",
+"portail": "lisses_blanc",
+"cam": [
+-351.2,
+73.3
+]
+},
+"BATIMENT0000000301133352": {
+"front": "muret_grille",
+"mur": "pierre",
+"grille": "bois",
+"portail": "bois",
+"cam": [
+-322.4,
+147.4
+]
+},
+"BATIMENT0000000301133353": {
+"front": "grillage",
+"cam": [
+-322.4,
+147.4
+]
+},
+"BATIMENT0000000301133354": {
+"front": "haieL",
+"cam": [
+-138.5,
+46.0
+]
+},
+"BATIMENT0000000301133355": {
+"front": "haieT",
+"cam": [
+-275.3,
+140.9
+]
+},
+"BATIMENT0000000301133356": {
+"front": "haieL",
+"mur": "gris",
+"cam": [
+-171.0,
+101.5
+]
+},
+"BATIMENT0000000301133357": {
+"front": "haieL",
+"cam": [
+-117.1,
+91.7
+]
+},
+"BATIMENT0000000301133358": {
+"front": "lisses",
+"cam": [
+-112.6,
+101.2
+]
+},
+"BATIMENT0000000301133360": {
+"front": "grillage",
+"cam": [
+-259.9,
+278.2
+]
+},
+"BATIMENT0000000301133362": {
+"front": "haieL",
+"cam": [
+-273.4,
+244.1
+]
+},
+"BATIMENT0000000301133363": {
+"front": "haieT",
+"mur": "gris",
+"cam": [
+-135.7,
+263.2
+]
+},
+"BATIMENT0000000301133364": {
+"front": "haieL",
+"mur": "pierre",
+"portail": "barreaux_blanc",
+"cam": [
+-156.3,
+248.9
+]
+},
+"BATIMENT0000000301133365": {
+"front": "grillage",
+"mur": "gris",
+"cam": [
+-125.0,
+214.3
+]
+},
+"BATIMENT0000000301133367": {
+"front": "haieL",
+"cam": [
+106.9,
+247.2
+]
+},
+"BATIMENT0000000301133368": {
+"front": "haieT",
+"cam": [
+-201.9,
+137.3
+]
+},
+"BATIMENT0000000301133371": {
+"front": "haieT",
+"mur": "gris",
+"cam": [
+-140.2,
+177.3
+]
+},
+"BATIMENT0000000301133372": {
+"front": "muret_rigide",
+"mur": "gris",
+"cam": [
+-312.6,
+148.1
+]
+},
+"BATIMENT0000000301133373": {
+"front": "haieT",
+"mur": "gris",
+"cam": [
+-292.5,
+150.1
+]
+},
+"BATIMENT0000000301133374": {
+"front": "haieL",
+"mur": "pierre",
+"grille": "noir",
+"portail": "fer",
+"cam": [
+-146.7,
+261.2
+]
+},
+"BATIMENT0000000301133375": {
+"front": "grillage",
+"cam": [
+-305.0,
+238.1
+]
+},
+"BATIMENT0000000301133376": {
+"front": "haieT",
+"mur": "gris",
+"cam": [
+-324.4,
+234.5
+]
+},
+"BATIMENT0000000301133378": {
+"front": "haieL",
+"cam": [
+-295.0,
+239.9
+]
+},
+"BATIMENT0000000301133380": {
+"front": "rien",
+"cam": [
+143.6,
+268.3
+]
+},
+"BATIMENT0000000301133381": {
+"front": "muret_grille",
+"mur": "pierre",
+"grille": "noir",
+"portail": "fer",
+"cam": [
+-155.6,
+238.3
+]
+},
+"BATIMENT0000000301133382": {
+"front": "haieL",
+"portail": "fer",
+"cam": [
+-155.7,
+258.5
+]
+},
+"BATIMENT0000000301133383": {
+"front": "haieL",
+"cam": [
+-334.8,
+232.6
+]
+},
+"BATIMENT0000000301133385": {
+"front": "occult",
+"mur": "gris",
+"grille": "blanc",
+"cam": [
+-261.5,
+288.2
+]
+},
+"BATIMENT0000000301133387": {
+"front": "rien",
+"cam": [
+-266.1,
+316.8
+]
+},
+"BATIMENT0000000301133391": {
+"front": "haieL",
+"mur": "gris",
+"cam": [
+-273.4,
+244.1
+]
+},
+"BATIMENT0000000301133392": {
+"front": "haieL",
+"cam": [
+107.5,
+264.3
+]
+},
+"BATIMENT0000000301133393": {
+"front": "rien",
+"cam": [
+-155.6,
+238.3
+]
+},
+"BATIMENT0000000301133395": {
+"front": "rien",
+"cam": [
+97.7,
+306.1
+]
+},
+"BATIMENT0000000301133396": {
+"front": "haieL",
+"mur": "creme",
+"portail": "fer",
+"cam": [
+-354.1,
+229.0
+]
+},
+"BATIMENT0000000301133397": {
+"front": "muret_grille",
+"mur": "creme",
+"grille": "noir",
+"portail": "fer",
+"cam": [
+-282.3,
+148.0
+]
+},
+"BATIMENT0000000301133398": {
+"front": "haieL",
+"cam": [
+-256.5,
+257.2
+]
+},
+"BATIMENT0000000301133401": {
+"front": "haieL",
+"mur": "pierre",
+"portail": "fer",
+"cam": [
+-115.4,
+267.0
+]
+},
+"BATIMENT0000000301133408": {
+"front": "haieT",
+"cam": [
+-163.2,
+120.9
+]
+},
+"BATIMENT0000000330807446": {
+"front": "grillage",
+"cam": [
+50.3,
+344.0
+]
+},
+"BATIMENT0000000330807451": {
+"front": "rien",
+"cam": [
+31.1,
+336.5
+]
+},
+"BATIMENT0000000330807467": {
+"front": "muret_rigide",
+"mur": "rose",
+"cam": [
+-203.1,
+440.3
+]
+},
+"BATIMENT0000000330807474": {
+"front": "rien",
+"cam": [
+-13.7,
+311.9
+]
+},
+"BATIMENT0000000330807493": {
+"front": "haieP",
+"mur": "creme",
+"portail": "plein_gris",
+"cam": [
+-271.5,
+387.9
+]
+},
+"BATIMENT0000000330807494": {
+"front": "lisses",
+"grille": "gris",
+"cam": [
+-599.3,
+35.2
+]
+},
+"BATIMENT0000000330807565": {
+"front": "grillage",
+"portail": "barreaux_blanc",
+"cam": [
+259.1,
+350.0
+]
+},
+"BATIMENT0000000330807568": {
+"front": "rien",
+"cam": [
+-619.0,
+27.6
+]
+},
+"BATIMENT0000000330807583": {
+"front": "muret_grille",
+"mur": "rose",
+"grille": "noir",
+"cam": [
+-178.5,
+429.0
+]
+},
+"BATIMENT0000000330807625": {
+"front": "muret_rigide",
+"mur": "gris",
+"cam": [
+-159.8,
+347.7
+]
+},
+"BATIMENT0000000330807628": {
+"front": "occult",
+"mur": "gris",
+"grille": "bois",
+"cam": [
+-241.3,
+466.8
+]
+},
+"BATIMENT0000000330807629": {
+"front": "muret_grille",
+"mur": "creme",
+"grille": "noir",
+"portail": "plein_gris",
+"cam": [
+-168.5,
+428.7
+]
+},
+"BATIMENT0000000330807630": {
+"front": "haieL",
+"cam": [
+-204.7,
+364.6
+]
+},
+"BATIMENT0000000330807634": {
+"front": "haieP",
+"mur": "gris",
+"cam": [
+-273.7,
+407.9
+]
+},
+"BATIMENT0000000330807637": {
+"front": "rien",
+"cam": [
+4.5,
+321.9
+]
+},
+"BATIMENT0000000330807639": {
+"front": "occult",
+"mur": "rose",
+"grille": "gris",
+"cam": [
+-203.9,
+406.2
+]
+},
+"BATIMENT0000000330807644": {
+"front": "rien",
+"cam": [
+31.1,
+336.5
+]
+},
+"BATIMENT0000000330807646": {
+"front": "muret_rigide",
+"mur": "gris",
+"cam": [
+-282.7,
+464.6
+]
+},
+"BATIMENT0000000330807651": {
+"front": "occult",
+"mur": "blanc",
+"grille": "gris",
+"cam": [
+-188.3,
+487.9
+]
+},
+"BATIMENT0000000330807653": {
+"front": "haieL",
+"cam": [
+-243.4,
+342.3
+]
+},
+"BATIMENT0000000330807654": {
+"front": "occult",
+"grille": "vert",
+"cam": [
+12.8,
+326.5
+]
+},
+"BATIMENT0000000330807658": {
+"front": "muret_rigide",
+"mur": "gris",
+"cam": [
+-272.6,
+358.3
+]
+},
+"BATIMENT0000000330807659": {
+"front": "muret_rigide",
+"mur": "gris",
+"cam": [
+-261.7,
+466.1
+]
+},
+"BATIMENT0000000330807660": {
+"front": "occult",
+"mur": "gris",
+"grille": "vert",
+"cam": [
+-327.7,
+422.2
+]
+},
+"BATIMENT0000002001968370": {
+"front": "occult",
+"grille": "vert",
+"cam": [
+-28.2,
+239.2
+]
+},
+"BATIMENT0000002001968371": {
+"front": "grillage",
+"cam": [
+10.5,
+210.0
+]
+},
+"BATIMENT0000002001968385": {
+"front": "haieL",
+"cam": [
+-25.1,
+247.9
+]
+},
+"BATIMENT0000002001968400": {
+"front": "occult",
+"grille": "vert",
+"cam": [
+-11.4,
+274.1
+]
+},
+"BATIMENT0000002001968402": {
+"front": "haieL",
+"cam": [
+-40.5,
+200.2
+]
+},
+"BATIMENT0000002001968403": {
+"front": "grillage",
+"cam": [
+-34.1,
+220.6
+]
+},
+"BATIMENT0000002001968404": {
+"front": "grillage",
+"cam": [
+0.3,
+207.1
+]
+},
+"BATIMENT0000002001968405": {
+"front": "mur",
+"mur": "gris",
+"cam": [
+-662.0,
+666.0
+]
+},
+"BATIMENT0000002001968407": {
+"front": "haieL",
+"cam": [
+-13.4,
+264.4
+]
+},
+"BATIMENT0000002001968411": {
+"front": "rien",
+"cam": [
+-11.4,
+274.1
+]
+},
+"BATIMENT0000002001968449": {
+"front": "grillage",
+"cam": [
+-34.1,
+220.6
+]
+},
+"BATIMENT0000002200215212": {
+"front": "rien",
+"cam": [
+-18.4,
+369.2
+]
+},
+"BATIMENT0000002209655366": {
+"front": "mur",
+"mur": "gris",
+"portail": "plein_gris",
+"cam": [
+-547.4,
+726.8
+]
+},
+"BATIMENT0000002209655374": {
+"front": "muret_grille",
+"mur": "gris",
+"grille": "blanc",
+"portail": "fer",
+"cam": [
+-511.9,
+-18.9
+]
+},
+"BATIMENT0000002209655375": {
+"front": "haieL",
+"mur": "gris",
+"cam": [
+-401.4,
+42.0
+]
+},
+"BATIMENT0000002209655420": {
+"front": "occult",
+"mur": "gris",
+"grille": "gris",
+"cam": [
+-230.5,
+466.7
+]
+},
+"BATIMENT0000002209655463": {
+"front": "haieL",
+"cam": [
+106.9,
+247.2
+]
+},
+"BATIMENT0000002275796925": {
+"front": "rien",
+"cam": [
+-76.2,
+319.4
+]
+},
+"BATIMENT0000002491002559": {
+"front": "haieT",
+"mur": "gris",
+"grille": "grillage",
+"cam": [
+241.3,
+420.9
+]
+},
+"BATIMENT0000002491002560": {
+"front": "muret_grille",
+"mur": "gris",
+"grille": "vert",
+"portail": "fer",
+"cam": [
+175.5,
+446.5
+]
+},
+"BATIMENT0000002491002561": {
+"front": "occult",
+"mur": "gris",
+"grille": "gris",
+"cam": [
+194.5,
+452.4
+]
+},
+"BATIMENT0000002493295898": {
+"front": "lisses",
+"mur": "gris",
+"portail": "barreaux_blanc",
+"cam": [
+143.6,
+268.3
+]
+},
+"BATIMENT0000002493295903": {
+"front": "muret_grille",
+"mur": "gris",
+"grille": "blanc",
+"cam": [
+-511.9,
+-18.9
+]
+}
+}

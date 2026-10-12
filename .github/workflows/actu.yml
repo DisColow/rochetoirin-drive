@@ -1,0 +1,65 @@
+# Actualité du jour pour les clients du taxi (issue #6, docs/plan_actualites.md) : chaque matin, pipeline/actu.py relève
+# les titres (Le Dauphiné Libéré, France Info ; pas de sport) et la météo de Rochetoirin, l'API Claude (secret
+# ANTHROPIC_API_KEY) en tire des fils de conversation, et actu.json est publié sur la branche « actu », où le jeu le
+# télécharge au lancement. En cas d'échec, le paquet de la veille reste en place (le jeu le garde trois jours).
+name: Actualité du taxi
+
+on:
+  schedule:
+    - cron: "50 4 * * *"          # 6 h 50 à Paris (heure d'été), 5 h 50 en hiver
+  workflow_dispatch:
+  push:
+    branches: [godot]
+    paths:
+      - pipeline/actu.py
+      - .github/workflows/actu.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: actu
+  cancel-in-progress: false
+
+jobs:
+  actu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: godot
+          sparse-checkout: pipeline
+          fetch-depth: 1
+          lfs: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dépendances
+        run: pip install --quiet anthropic
+
+      - name: Fils de conversation du jour
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 pipeline/actu.py --sortie "$RUNNER_TEMP/actu.json"
+
+      - name: Publication sur la branche actu
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch --depth 1 origin actu 2>/dev/null; then
+            git worktree add "$RUNNER_TEMP/branche" FETCH_HEAD
+            cd "$RUNNER_TEMP/branche"
+            git checkout -B actu
+          else
+            git worktree add --detach "$RUNNER_TEMP/branche"
+            cd "$RUNNER_TEMP/branche"
+            git checkout --orphan actu
+            git rm -rf --quiet . || true
+          fi
+          cp "$RUNNER_TEMP/actu.json" actu.json
+          git add actu.json
+          git commit --quiet -m "Actualité du $(date +%F)" || { echo "rien de neuf"; exit 0; }
+          git push origin actu

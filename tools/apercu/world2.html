@@ -1,0 +1,176 @@
+<!doctype html><html><body style="margin:0;background:#000"><canvas id=c width=2400 height=1080></canvas>
+<script>
+let S,M,gl,P={},terr=[],roads=[],props=[],trees=[],car={},tex={},T,F;
+const W=2400,H=1080;
+function prog(vs,fs){const p=gl.createProgram();for(const [t,s] of [[gl.VERTEX_SHADER,vs],[gl.FRAGMENT_SHADER,fs]]){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(sh);gl.attachShader(p,sh);}gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw gl.getProgramInfoLog(p);return p;}
+function mesh(v,i,L,b){const vao=gl.createVertexArray();gl.bindVertexArray(vao);const bb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bb);gl.bufferData(gl.ARRAY_BUFFER,v,gl.STATIC_DRAW);const st=L.reduce((a,b)=>a+b)*4;let o=0;L.forEach((n,k)=>{gl.enableVertexAttribArray(k);gl.vertexAttribPointer(k,n,gl.FLOAT,false,st,o*4);o+=n;});const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,i,gl.STATIC_DRAW);gl.bindVertexArray(null);return {vao,n:i.length,b};}
+function bounds(v,stride){let b=[1e9,1e9,1e9,-1e9,-1e9,-1e9];for(let k=0;k<v.length;k+=stride){for(let a=0;a<3;a++){b[a]=Math.min(b[a],v[k+a]);b[a+3]=Math.max(b[a+3],v[k+a]);}}return b;}
+function grid(buf){const dv=new DataView(buf);return {nx:dv.getInt32(4,true),nz:dv.getInt32(8,true),x0:dv.getFloat32(12,true),z0:dv.getFloat32(16,true),st:dv.getFloat32(20,true),h:new Float32Array(buf.slice(24))};}
+function height(g,x,z){let gx=Math.min(Math.max((x-g.x0)/g.st,0),g.nx-1.0001),gz=Math.min(Math.max((z-g.z0)/g.st,0),g.nz-1.0001);const i=Math.floor(gx),j=Math.floor(gz),fx=gx-i,fz=gz-j,Hh=g.h,n=g.nx;const h00=Hh[j*n+i],h10=Hh[j*n+i+1],h01=Hh[(j+1)*n+i],h11=Hh[(j+1)*n+i+1];return fz>=fx?h00+(h11-h01)*fx+(h01-h00)*fz:h00+(h10-h00)*fx+(h11-h10)*fz;}
+function buildTerrain(g,cells,hole,kind){const ncx=Math.ceil((g.nx-1)/cells),ncz=Math.ceil((g.nz-1)/cells);for(let cz=0;cz<ncz;cz++)for(let cx=0;cx<ncx;cx++){const i0=cx*cells,i1=Math.min(g.nx-1,i0+cells),j0=cz*cells,j1=Math.min(g.nz-1,j0+cells),w=i1-i0+1,h=j1-j0+1;const v=new Float32Array(w*h*6);const at=(i,j)=>g.h[j*g.nx+i];
+for(let j=0;j<h;j++)for(let i=0;i<w;i++){const gi=i0+i,gj=j0+j,o=(j*w+i)*6;v[o]=g.x0+gi*g.st;v[o+1]=at(gi,gj);v[o+2]=g.z0+gj*g.st;const hx=at(Math.min(g.nx-1,gi+1),gj)-at(Math.max(0,gi-1),gj),hz=at(gi,Math.min(g.nz-1,gj+1))-at(gi,Math.max(0,gj-1));let nx=-hx,ny=2*g.st,nz=-hz,l=Math.hypot(nx,ny,nz);v[o+3]=nx/l;v[o+4]=ny/l;v[o+5]=nz/l;}
+const idx=[];for(let j=0;j<h-1;j++)for(let i=0;i<w-1;i++){if(hole){const xa=g.x0+(i0+i)*g.st,xb=xa+g.st,za=g.z0+(j0+j)*g.st,zb=za+g.st;if(xa>=hole[0]-.01&&xb<=hole[2]+.01&&za>=hole[1]-.01&&zb<=hole[3]+.01)continue;}const a=j*w+i,b=a+1,c=a+w,d=c+1;idx.push(a,c,d,a,d,b);}if(idx.length){const m=mesh(v,new Uint32Array(idx),[3,3],bounds(v,6));m.kind=kind;terr.push(m);}}}
+function texImg(src,nearest){return new Promise(r=>{const im=new Image();im.onload=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);const f=nearest?gl.NEAREST:gl.LINEAR;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,f);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,f);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);r(t);};im.src=src;});}
+function leafCanvas(){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let sd=17;const rnd=()=>{sd=(sd*9301+49297)%233280;return sd/233280;};
+ for(let k=0;k<170;k++){const a=rnd()*6.2832,d=Math.sqrt(rnd())*256*.44,X=128+Math.cos(a)*d,Y=128+Math.sin(a)*d,g=.75+rnd()*.5,ye=rnd()*.25;x.fillStyle=`rgb(${Math.min(255,150*g*(.75+ye))|0},${Math.min(255,190*g)|0},${(95*g*.8)|0})`;
+  x.save();x.translate(X,Y);x.rotate(rnd()*6.2832);const L=256*(.035+rnd()*.03);x.beginPath();x.ellipse(0,0,L,L*.45,0,0,7);x.fill();x.restore();}return c;}
+function tuftCanvas(){const c=document.createElement('canvas');c.width=256;c.height=128;const x=c.getContext('2d');let sd=23;const rnd=()=>{sd=(sd*9301+49297)%233280;return sd/233280;};const h=128;
+ for(let k=0;k<46;k++){const x0=8+rnd()*112,tall=.45+rnd()*.55,lean=(rnd()-.5)*40,bw=2.2+rnd()*2.5,g=.7+rnd()*.6;x.fillStyle=`rgb(${Math.min(255,175*g)|0},${Math.min(255,215*g)|0},${Math.min(255,150*g)|0})`;
+  x.beginPath();x.moveTo(x0-bw,h);x.quadraticCurveTo(x0+lean*.3,h-tall*h*.6,x0+lean,h-tall*h);x.quadraticCurveTo(x0+lean*.3+bw*.4,h-tall*h*.6,x0+bw,h);x.closePath();x.fill();}
+ for(let k=0;k<16;k++){const x0=136+rnd()*112,tall=.75+rnd()*.25,lean=(rnd()-.5)*14,g=.85+rnd()*.3;const col=`rgb(${Math.min(255,230*g)|0},${Math.min(255,215*g)|0},${Math.min(255,160*g)|0})`;
+  x.strokeStyle=col;x.lineWidth=2.2;x.beginPath();x.moveTo(x0,h);x.lineTo(x0+lean,h-tall*h+14);x.stroke();x.fillStyle=col;x.beginPath();x.ellipse(x0+lean,h-tall*h+10,3.5,10,0,0,7);x.fill();}return c;}
+function texCanvas(cv){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cv);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);const e=gl.getExtension('EXT_texture_filter_anisotropic');if(e)gl.texParameterf(gl.TEXTURE_2D,e.TEXTURE_MAX_ANISOTROPY_EXT,8);return t;}
+function noiseCanvas(fn){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');const im=x.createImageData(256,256);for(let i=0;i<256*256;i++)im.data.set(fn(i%256,Math.floor(i/256)),i*4);x.putImageData(im,0,0);return c;}
+function vn(p,seed){const v=new Float32Array(p*p);let s=seed*9301+49297;for(let i=0;i<v.length;i++){s=(s*9301+49297)%233280;v[i]=s/233280;}return (x,y)=>{const xi=Math.floor(x),yi=Math.floor(y),fx=x-xi,fy=y-yi,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy);const g=(i,j)=>v[((j%p+p)%p)*p+((i%p+p)%p)];const a=g(xi,yi)+(g(xi+1,yi)-g(xi,yi))*sx,b=g(xi,yi+1)+(g(xi+1,yi+1)-g(xi,yi+1))*sx;return a+(b-a)*sy;};}
+function fbm(base,oct,seed){const ns=[];for(let o=0;o<oct;o++)ns.push([vn(base<<o,seed+o),base<<o]);return (u,v)=>{let s=0,a=.5,n=0;for(const [f,p] of ns){s+=f(u*p,v*p)*a;n+=a;a*=.5;}return s/n;};}
+function treeMesh(sub){const t=(1+Math.sqrt(5))/2;let pts=[[-1,t,0],[1,t,0],[-1,-t,0],[1,-t,0],[0,-1,t],[0,1,t],[0,-1,-t],[0,1,-t],[t,0,-1],[t,0,1],[-t,0,-1],[-t,0,1]].map(p=>{const l=Math.hypot(...p);return p.map(x=>x/l)});
+let f=[[0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],[1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],[3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],[4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]];
+for(let s=0;s<sub;s++){const c={};const mid=(a,b)=>{const k=Math.min(a,b)+'_'+Math.max(a,b);if(c[k]===undefined){const p=pts[a],q=pts[b];let m=[(p[0]+q[0])/2,(p[1]+q[1])/2,(p[2]+q[2])/2];const l=Math.hypot(...m);pts.push(m.map(x=>x/l));c[k]=pts.length-1;}return c[k];};const nf=[];for(const [a0,b0,c0] of f){const a=mid(a0,b0),b=mid(b0,c0),cc=mid(c0,a0);nf.push([a0,a,cc],[b0,b,a],[c0,cc,b],[a,b,cc]);}f=nf;}
+const v=[],idx=[];const LH=[[0,.05,0,.62],[.45,.25,.15,.48],[-.42,.22,-.2,.5],[.1,.32,-.48,.46],[-.15,.35,.46,.47],[.38,-.25,-.3,.45],[-.4,-.22,.28,.44],[.05,.55,0,.42],[0,-.4,.05,.45]],LL=[[0,.05,0,.7],[.42,.1,.2,.5],[-.42,.12,-.15,.5],[.05,.15,-.45,.5],[-.05,.2,.45,.5]];
+ (sub>0?LH:LL).forEach((l,li)=>{const b0=v.length/7;for(const p of pts){const x=l[0]+p[0]*l[3],y=l[1]+p[1]*l[3],z=l[2]+p[2]*l[3],lc=Math.max(Math.hypot(x,y,z),1e-3);let nx=p[0]*.6+x/lc*.4,ny=p[1]*.6+y/lc*.4,nz=p[2]*.6+z/lc*.4;const ln=Math.hypot(nx,ny,nz);v.push(x,y,z,nx/ln,ny/ln,nz/ln,li*.05);}for(const x of f)idx.push(b0+x[0],b0+x[1],b0+x[2]);});
+ while((v.length/7)%4)v.push(0,0,0,0,0,0,0);const ico=pts.slice(0,12);
+ (sub>0?LH:LL).forEach((l,li)=>{const cl=Math.hypot(l[0],l[1],l[2]);let made=0;ico.forEach((d,k)=>{if(made>=(sub>0?10:4))return;const out=cl<.1?d[1]:(d[0]*l[0]+d[1]*l[1]+d[2]*l[2])/cl;if(out<-.25)return;
+  const ref=Math.abs(d[1])<.9?[0,1,0]:[1,0,0];let t1=[d[1]*ref[2]-d[2]*ref[1],d[2]*ref[0]-d[0]*ref[2],d[0]*ref[1]-d[1]*ref[0]];let lt=Math.hypot(...t1);t1=t1.map(x=>x/lt);
+  const t2=[d[1]*t1[2]-d[2]*t1[1],d[2]*t1[0]-d[0]*t1[2],d[0]*t1[1]-d[1]*t1[0]];const tilt=.55+.1*(k%3);let u=[0,1,2].map(q=>t2[q]*(1-tilt)+d[q]*tilt);lt=Math.hypot(...u);u=u.map(x=>x/lt);
+  const s=l[3]*.5,c=[0,1,2].map(q=>l[q]+d[q]*l[3]*.9),b0=v.length/7;for(const [sa,sb] of [[-1,-1],[1,-1],[1,1],[-1,1]])v.push(...[0,1,2].map(q=>c[q]+t1[q]*s*sa+u[q]*s*sb),d[0],d[1],d[2],.5+li*.02);idx.push(b0,b0+1,b0+2,b0,b0+2,b0+3);made++;});});
+ const sides=sub>0?6:3,base=v.length/7;for(let k=0;k<sides;k++){const a=2*Math.PI*k/sides,cx=Math.cos(a),cz=Math.sin(a);v.push(cx,0,cz,cx,0,cz,1,cx,1,cz,cx,0,cz,1);}for(let k=0;k<sides;k++){const a=base+k*2,b=base+((k+1)%sides)*2;idx.push(a,b,b+1,a,b+1,a+1);}return {v:new Float32Array(v),i:new Uint32Array(idx)};}
+function treeVao(geo,inst,bb){const vao=gl.createVertexArray();gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,geo.vb);if(bb){gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,8,0);}else{gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,28,0);gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,3,gl.FLOAT,false,28,12);gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,1,gl.FLOAT,false,28,24);}
+gl.bindBuffer(gl.ARRAY_BUFFER,inst);gl.enableVertexAttribArray(3);gl.vertexAttribPointer(3,4,gl.FLOAT,false,24,0);gl.vertexAttribDivisor(3,1);gl.enableVertexAttribArray(4);gl.vertexAttribPointer(4,2,gl.FLOAT,false,24,16);gl.vertexAttribDivisor(4,1);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,geo.ib);gl.bindVertexArray(null);return vao;}
+function geo(m){const vb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,m.v,gl.STATIC_DRAW);const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,m.i,gl.STATIC_DRAW);return {vb,ib,n:m.i.length};}
+async function init(){
+ S=await (await fetch('shadersrc.json')).json();M=await (await fetch('map.json')).json();
+ gl=document.getElementById('c').getContext('webgl2',{antialias:true});
+ for(const k of ['TERRAIN','ROAD','SKY','CAR','PROPS','TREE','BILLBOARD'])P[k]=prog(S[k+'_VS'],S[k+'_FS']);
+ P.PROPSD=prog(S.PROPS_VS,S.PROPS_DEPTH_FS);P.IMP=prog(S.IMP_VS,S.IMP_FS);P.IMPD=prog(S.IMP_VS,S.IMP_DEPTH_FS);P.TREED=prog(S.TREE_VS,S.TREE_DEPTH_FS);P.CARD=prog(S.CAR_VS,S.DEPTH_FS);
+ SM.tex=[];SM.fbo=[];for(let k=0;k<2;k++){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texStorage2D(gl.TEXTURE_2D,1,gl.DEPTH_COMPONENT24,SM.size,SM.size);
+  for(const [a,b] of [[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE],[gl.TEXTURE_COMPARE_MODE,gl.COMPARE_REF_TO_TEXTURE],[gl.TEXTURE_COMPARE_FUNC,gl.LEQUAL]])gl.texParameteri(gl.TEXTURE_2D,a,b);
+  const f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.TEXTURE_2D,t,0);gl.drawBuffers([gl.NONE]);gl.readBuffer(gl.NONE);SM.tex.push(t);SM.fbo.push(f);}
+ gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+ T=grid(await (await fetch('terrain.bin')).arrayBuffer());F=grid(await (await fetch('far.bin')).arrayBuffer());const PA=grid(await (await fetch('pano.bin')).arrayBuffer());
+ buildTerrain(T,32,null,0);buildTerrain(F,12,[T.x0,T.z0,T.x0+(T.nx-1)*T.st,T.z0+(T.nz-1)*T.st],1);buildTerrain(PA,24,[F.x0,F.z0,F.x0+(F.nx-1)*F.st,F.z0+(F.nz-1)*F.st],2);
+ let rb=await (await fetch('roads.bin')).arrayBuffer();let dv=new DataView(rb);let p=28;let n=dv.getInt32(24,true);
+ for(let k=0;k<n;k++){const nv=dv.getInt32(p+8,true),ni=dv.getInt32(p+12,true);p+=16;const v=new Float32Array(rb.slice(p,p+nv*40));p+=nv*40;const i=new Uint32Array(rb.slice(p,p+ni*4));p+=ni*4;roads.push(mesh(v,i,[3,3,4],bounds(v,10)));}
+ rb=await (await fetch('props.bin')).arrayBuffer();dv=new DataView(rb);p=28;n=dv.getInt32(24,true);
+ for(let k=0;k<n;k++){const nv=dv.getInt32(p+8,true),ni=dv.getInt32(p+12,true),nb=dv.getInt32(p+16,true);p+=20;const v=new Float32Array(rb.slice(p,p+nv*52));p+=nv*52;const i=new Uint32Array(rb.slice(p,p+ni*4));p+=ni*4;const m=mesh(v,i,[3,3,3,2,2],bounds(v,13));m.big=nb;props.push(m);}
+ rb=await (await fetch('decals.bin')).arrayBuffer();dv=new DataView(rb);p=28;n=dv.getInt32(24,true);window.decals=[];
+ for(let k=0;k<n;k++){const nv=dv.getInt32(p+8,true),ni=dv.getInt32(p+12,true);p+=16;const v=new Float32Array(rb.slice(p,p+nv*40));p+=nv*40;const i=new Uint32Array(rb.slice(p,p+ni*4));p+=ni*4;decals.push(mesh(v,i,[3,3,4],bounds(v,10)));}
+ rb=await (await fetch('street.bin')).arrayBuffer();dv=new DataView(rb);p=28;n=dv.getInt32(24,true);window.street=[];
+ for(let k=0;k<n;k++){const nv=dv.getInt32(p+8,true),ni=dv.getInt32(p+12,true),nb=dv.getInt32(p+16,true);p+=20;const v=new Float32Array(rb.slice(p,p+nv*52));p+=nv*52;const i=new Uint32Array(rb.slice(p,p+ni*4));p+=ni*4;const m=mesh(v,i,[3,3,3,2,2],bounds(v,13));m.big=nb;street.push(m);}
+ const names=(await (await fetch('street.json')).json()).signs;tex.signs=signAtlas(names);
+ const hi=geo(treeMesh(1)),lo=geo(treeMesh(0));const qv=geo({v:new Float32Array([-1,0,1,0,1,1,-1,1]),i:new Uint32Array([0,1,2,0,2,3])});
+ rb=await (await fetch('trees.bin')).arrayBuffer();dv=new DataView(rb);p=28;n=dv.getInt32(24,true);
+ window.imps=[];for(let k=0;k<n;k++){const c0=dv.getInt32(p+8,true);p+=12;const all=new Float32Array(rb.slice(p,p+c0*24));p+=c0*24;
+  const ia=[],ta=[];for(let q=0;q<c0;q++)(all[q*6+4]>=5.9?ia:ta).push(...all.slice(q*6,q*6+6));
+  if(ia.length){const di=new Float32Array(ia);let bi=[1e9,1e9,1e9,-1e9,-1e9,-1e9];for(let q=0;q<di.length/6;q++){const x=di[q*6],y=di[q*6+1],z=di[q*6+2],h=di[q*6+3];bi=[Math.min(bi[0],x-h),Math.min(bi[1],y-1),Math.min(bi[2],z-h),Math.max(bi[3],x+h),Math.max(bi[4],y+h*1.6),Math.max(bi[5],z+h)];}
+   const ib=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,ib);gl.bufferData(gl.ARRAY_BUFFER,di,gl.STATIC_DRAW);imps.push({b:bi,c:di.length/6,vao:treeVao(qv,ib,true)});}
+  if(!ta.length)continue;const d=new Float32Array(ta);const c=ta.length/6;let b=[1e9,1e9,1e9,-1e9,-1e9,-1e9];for(let q=0;q<c;q++){const x=d[q*6],y=d[q*6+1],z=d[q*6+2],h=d[q*6+3];b[0]=Math.min(b[0],x-6);b[3]=Math.max(b[3],x+6);b[2]=Math.min(b[2],z-6);b[5]=Math.max(b[5],z+6);b[1]=Math.min(b[1],y-1);b[4]=Math.max(b[4],y+h*1.1);}
+  const inst=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,inst);gl.bufferData(gl.ARRAY_BUFFER,d,gl.STATIC_DRAW);trees.push({b,c,hi:treeVao(hi,inst),lo:treeVao(lo,inst),bb:treeVao(qv,inst,true),nhi:hi.n,nlo:lo.n});}
+ const f1=fbm(4,5,11),f2=fbm(32,2,50),f3=fbm(2,3,90);
+ tex.grass=texCanvas(noiseCanvas((x,y)=>{const u=x/256,v=y/256,l=f1(u,v)*.75+f2(u,v)*.25,b=(Math.random()<.17?(Math.random()<.6?.22:-.25):0);const dr=Math.max(0,f3(u,v)-.55);return [(.22+.09*l+.12*dr+b*.35)*255,(.34+.13*l+.04*dr+b*.55)*255,(.12+.04*l+b*.15)*255,255];}));
+ const a=fbm(4,4,100),b2=fbm(8,4,200),c=fbm(32,3,300),d=fbm(64,2,400);
+ tex.noise=texCanvas(noiseCanvas((x,y)=>{const u=x/256,v=y/256;return [a(u,v)*255,b2(u,v)*255,c(u,v)*255,d(u,v)*255];}));
+ gl.bindTexture(gl.TEXTURE_2D,tex.noise);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+ tex.leaf=texCanvas(leafCanvas());gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+ tex.land=await texImg('landcover.png',true);
+ {const ld=async(n)=>{const im=new Image();im.src=n;await im.decode();const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL,gl.NONE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t;};
+  tex.impc=await ld('trees_imp_col.webp');tex.hedge=await ld('hedge_leaves.png');gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);tex.impn=await ld('trees_imp_nrm.webp');const ji=await (await fetch('trees_imp.json')).json();window.impP=new Float32Array(32);ji.forEach((o,k)=>{impP[k*4]=o.S/o.H;impP[k*4+1]=o.R/o.H;});}tex.mask=await texImg('grassmask.png',true);tex.ao=await texImg('groundao.png',false);
+ tex.tuft=texCanvas(tuftCanvas());gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+ tex.height=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex.height);gl.pixelStorei(gl.UNPACK_ALIGNMENT,4);gl.texImage2D(gl.TEXTURE_2D,0,gl.R32F,T.nx,T.nz,0,gl.RED,gl.FLOAT,T.h);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+ P.GRASS=prog(S.GRASS_VS,S.GRASS_FS);GR.m=mesh(new Float32Array([-.5,0,0,.5,0,0,.5,1,0,-.5,1,0,-.5,0,1,.5,0,1,.5,1,1,-.5,1,1]),new Uint32Array([0,1,2,0,2,3,4,5,6,4,6,7]),[3],null);tex.landfar=await texImg('landfar.png',true);
+ const cm=await (await fetch('carmesh.json')).json();car.body=mesh(new Float32Array(cm.bodyV),new Uint32Array(cm.bodyI),[3,3,4,2]);car.glass=mesh(new Float32Array(cm.glassV),new Uint32Array(cm.glassI),[3,3,4,2]);car.wheel=mesh(new Float32Array(cm.wheelV),new Uint32Array(cm.wheelI),[3,3,4,2]);
+ const cv=document.createElement('canvas');cv.width=512;cv.height=256;const x=cv.getContext('2d');function plate(top,bg){x.fillStyle=bg;x.fillRect(0,top,512,128);x.fillStyle='#000';x.font='bold 92px monospace';x.textAlign='center';x.fillText('4127 XR 38',256,top+98);}plate(0,'#f5f5f0');plate(128,'#facd1e');tex.plates=texCanvas(cv);
+ window.ready=true;
+}
+function signAtlas(names){const cv=document.createElement('canvas');cv.width=1024;cv.height=1024;const x=cv.getContext('2d');const red='rgb(200,20,30)',white='rgb(245,245,240)',black='#141414';
+ function cell(c,r,f){x.save();x.translate(c*128,r*128);f();x.restore();}function poly(p,col){x.beginPath();x.moveTo(p[0],p[1]);for(let k=2;k<p.length;k+=2)x.lineTo(p[k],p[k+1]);x.closePath();x.fillStyle=col;x.fill();}
+ function oct(r){const a=[];for(let k=0;k<8;k++){const g=Math.PI/8+k*Math.PI/4;a.push(64+r*Math.cos(g),64+r*Math.sin(g));}return a;}
+ function txt(t,X,Y,s,c){x.fillStyle=c;x.font='bold '+s+'px sans-serif';x.textAlign='center';x.fillText(t,X,Y);}
+ cell(0,0,()=>{poly(oct(62),white);poly(oct(56),red);txt('STOP',64,77,38,white);});
+ cell(1,0,()=>{poly([4,10,124,10,64,120],red);poly([24,22,104,22,64,94],white);});
+ cell(2,0,()=>{x.fillStyle=white;x.fillRect(4,4,120,120);x.fillStyle='rgb(20,70,160)';x.fillRect(10,10,108,108);poly([64,18,112,108,16,108],white);x.fillStyle=black;x.beginPath();x.arc(64,50,6,0,7);x.fill();x.fillRect(60,56,6,22);});
+ const warn=(c,f)=>cell(c,0,()=>{poly([64,6,124,116,4,116],red);poly([64,28,104,102,24,102],white);f();});
+ warn(3,()=>{x.fillStyle=black;x.beginPath();x.moveTo(34,92);x.bezierCurveTo(50,92,52,62,64,62);x.bezierCurveTo(76,62,78,92,94,92);x.fill();});
+ warn(4,()=>{x.fillStyle=black;x.fillRect(40,62,6,32);x.fillRect(46,70,44,8);});
+ cell(5,0,()=>{for(const g of [45,-45]){x.save();x.translate(64,64);x.rotate(g*Math.PI/180);x.fillStyle=red;x.fillRect(-60,-13,120,26);x.fillStyle=white;x.fillRect(-54,-8,108,16);x.restore();}});
+ cell(6,0,()=>{x.fillStyle='rgb(150,152,155)';x.fillRect(0,0,128,128);});
+ cell(7,0,()=>{for(let k=0;k<8;k++){x.fillStyle=k%2?white:red;x.fillRect(k*16,0,16,128);}});
+ [30,50,70,80,90,110,130].forEach((v,k)=>cell(k,1,()=>{x.fillStyle=red;x.beginPath();x.arc(64,64,60,0,7);x.fill();x.fillStyle=white;x.beginPath();x.arc(64,64,47,0,7);x.fill();txt(''+v,64,81,v>=100?40:50,black);}));
+ cell(7,1,()=>{x.fillStyle='#19191c';x.fillRect(34,2,60,124);x.fillStyle='#461010';x.beginPath();x.arc(64,24,16,0,7);x.fill();x.fillStyle='#503c0a';x.beginPath();x.arc(64,64,16,0,7);x.fill();x.fillStyle='#3cff78';x.beginPath();x.arc(64,104,16,0,7);x.fill();});
+ names.slice(0,4).forEach((nm,i)=>{for(const ex of [0,1]){const sl=i*2+ex,X=(sl%4)*256,Y=(2+Math.floor(sl/4))*128;x.fillStyle=red;x.fillRect(X+2,Y+14,252,100);x.fillStyle=white;x.fillRect(X+10,Y+22,236,84);const t=nm.toUpperCase();const s=t.length>14?26:(t.length>10?32:38);txt(t,X+128,Y+64+s*0.36,s,black);if(ex){x.strokeStyle=red;x.lineWidth=12;x.beginPath();x.moveTo(X+18,Y+100);x.lineTo(X+238,Y+28);x.stroke();}}});
+ function shop(c,bg,bd,lines,fg,serif){const X=c*128,Y=512;x.fillStyle=bd;x.fillRect(X,Y,256,128);x.fillStyle=bg;x.fillRect(X+5,Y+9,246,110);const tot=lines.reduce((a,l)=>a+l[1],0)*1.1;let y=Y+64-tot/2;for(const [t,s] of lines){y+=s*1.1;x.save();x.translate(X+128,y-s*0.22);x.scale(0.5,1);x.fillStyle=fg;x.font='bold '+s+'px '+(serif?'serif':'sans-serif');x.textAlign='center';x.fillText(t,0,0);x.restore();}}
+ shop(0,'rgb(104,20,34)','rgb(205,170,95)',[['BOULANGERIE',46],['PÂTISSERIE',40]],'rgb(236,210,140)',true);
+ shop(2,'rgb(150,28,30)','rgb(235,225,205)',[['Le Rochetoirin',64]],'rgb(250,242,225)',true);
+ shop(4,'rgb(238,233,220)','rgb(238,233,220)',[['MAIRIE',84]],'rgb(30,45,90)',true);
+ shop(6,'rgb(245,243,240)','rgb(245,243,240)',[['Médiathèque',72]],'rgb(118,48,140)',false);
+ cell(0,5,()=>{x.fillStyle='rgb(238,234,222)';x.beginPath();x.arc(64,64,62,0,7);x.fill();x.strokeStyle=black;for(let k=0;k<12;k++){const a=Math.PI*2*k/12,r0=k%3?46:40;x.lineWidth=k%3?4:7;x.beginPath();x.moveTo(64+r0*Math.cos(a),64+r0*Math.sin(a));x.lineTo(64+56*Math.cos(a),64+56*Math.sin(a));x.stroke();}x.lineWidth=7;x.beginPath();x.moveTo(64,64);x.lineTo(42,46);x.stroke();x.lineWidth=5;x.beginPath();x.moveTo(64,64);x.lineTo(98,34);x.stroke();});
+ cell(1,5,()=>{x.fillStyle='rgb(250,242,225)';x.beginPath();x.arc(64,64,62,0,7);x.fill();x.fillStyle='rgb(150,28,30)';x.beginPath();x.arc(64,64,55,0,7);x.fill();x.fillStyle='rgb(250,242,225)';x.font='bold 84px serif';x.textAlign='center';x.fillText('R',64,94);});
+ cell(2,5,()=>{x.fillStyle=white;x.fillRect(4,4,120,120);x.fillStyle='rgb(20,70,160)';x.fillRect(10,10,108,108);txt('P',64,100,96,white);});
+ cell(3,5,()=>{x.fillStyle=white;x.beginPath();x.arc(64,64,62,0,7);x.fill();x.fillStyle=red;x.beginPath();x.arc(64,64,58,0,7);x.fill();x.fillStyle=white;x.fillRect(22,53,84,22);});
+ return texCanvas(cv);}
+function persp(f,a,n,fa){const t=1/Math.tan(f/2);return [t/a,0,0,0,0,t,0,0,0,0,(fa+n)/(n-fa),-1,0,0,2*fa*n/(n-fa),0];}
+function mul(a,b){const r=new Array(16).fill(0);for(let i=0;i<4;i++)for(let j=0;j<4;j++)for(let k=0;k<4;k++)r[j*4+i]+=a[k*4+i]*b[j*4+k];return r;}
+function look(e,t,u){let f=[t[0]-e[0],t[1]-e[1],t[2]-e[2]];let l=Math.hypot(...f);f=f.map(v=>v/l);let s=[f[1]*u[2]-f[2]*u[1],f[2]*u[0]-f[0]*u[2],f[0]*u[1]-f[1]*u[0]];l=Math.hypot(...s);s=s.map(v=>v/l);const uu=[s[1]*f[2]-s[2]*f[1],s[2]*f[0]-s[0]*f[2],s[0]*f[1]-s[1]*f[0]];return [s[0],uu[0],-f[0],0,s[1],uu[1],-f[1],0,s[2],uu[2],-f[2],0,-(s[0]*e[0]+s[1]*e[1]+s[2]*e[2]),-(uu[0]*e[0]+uu[1]*e[1]+uu[2]*e[2]),(f[0]*e[0]+f[1]*e[1]+f[2]*e[2]),1];}
+function inv(m){const a=m,r=new Array(16);const b00=a[0]*a[5]-a[1]*a[4],b01=a[0]*a[6]-a[2]*a[4],b02=a[0]*a[7]-a[3]*a[4],b03=a[1]*a[6]-a[2]*a[5],b04=a[1]*a[7]-a[3]*a[5],b05=a[2]*a[7]-a[3]*a[6],b06=a[8]*a[13]-a[9]*a[12],b07=a[8]*a[14]-a[10]*a[12],b08=a[8]*a[15]-a[11]*a[12],b09=a[9]*a[14]-a[10]*a[13],b10=a[9]*a[15]-a[11]*a[13],b11=a[10]*a[15]-a[11]*a[14];const d=1/(b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06);r[0]=(a[5]*b11-a[6]*b10+a[7]*b09)*d;r[1]=(a[2]*b10-a[1]*b11-a[3]*b09)*d;r[2]=(a[13]*b05-a[14]*b04+a[15]*b03)*d;r[3]=(a[10]*b04-a[9]*b05-a[11]*b03)*d;r[4]=(a[6]*b08-a[4]*b11-a[7]*b07)*d;r[5]=(a[0]*b11-a[2]*b08+a[3]*b07)*d;r[6]=(a[14]*b02-a[12]*b05-a[15]*b01)*d;r[7]=(a[8]*b05-a[10]*b02+a[11]*b01)*d;r[8]=(a[4]*b10-a[5]*b08+a[7]*b06)*d;r[9]=(a[1]*b08-a[0]*b10-a[3]*b06)*d;r[10]=(a[12]*b04-a[13]*b02+a[15]*b00)*d;r[11]=(a[9]*b02-a[8]*b04-a[11]*b00)*d;r[12]=(a[5]*b07-a[4]*b09-a[6]*b06)*d;r[13]=(a[0]*b09-a[1]*b07+a[2]*b06)*d;r[14]=(a[13]*b01-a[12]*b03-a[14]*b00)*d;r[15]=(a[8]*b03-a[9]*b01+a[10]*b00)*d;return r;}
+const sun=(()=>{const s=[-0.45,0.72,0.53],l=Math.hypot(...s);return s.map(v=>v/l);})();
+let eye;
+function U(p,n){return gl.getUniformLocation(p,n);}
+function common(p){gl.uniform3fv(U(p,'uCamPos'),eye);gl.uniform3fv(U(p,'uSunDir'),sun);gl.uniform1i(U(p,'uShadow0'),6);gl.uniform1i(U(p,'uShadow1'),7);
+ if(SM.on){gl.uniformMatrix4fv(U(p,'uShadowM0'),false,SM.texM[0]);gl.uniformMatrix4fv(U(p,'uShadowM1'),false,SM.texM[1]);gl.uniform3f(U(p,'uShadowP'),2*SM.r[0]/SM.size,2*SM.r[1]/SM.size,1);}else gl.uniform3f(U(p,'uShadowP'),0,0,0);}
+const GR={r:30,sp:0.42};const SM={size:2048,r:[45,300],on:true,lvp:[],texM:[],c:[]};
+function ortho(l,r,b,t,n,f){return [2/(r-l),0,0,0,0,2/(t-b),0,0,0,0,-2/(f-n),0,-(r+l)/(r-l),-(t+b)/(t-b),-(f+n)/(f-n),1];}
+function xf(m,p){const r=[0,0,0,0];for(let i=0;i<4;i++)r[i]=m[i]*p[0]+m[4+i]*p[1]+m[8+i]*p[2]+m[12+i]*p[3];return r;}
+function shadowPass(V,carM){
+ let fx=-V[2],fz=-V[10];const l=Math.hypot(fx,fz);if(l<1e-3){fx=0;fz=-1;}else{fx/=l;fz/=l;}
+ const ahead=[SM.r[0]*0.55,SM.r[1]*0.75];const B=[.5,0,0,0,0,.5,0,0,0,0,.5,0,.5,.5,.5,1];
+ for(let k=0;k<2;k++){const r=SM.r[k],c=[eye[0]+fx*ahead[k],eye[1]-2,eye[2]+fz*ahead[k]],d=600;SM.c[k]=c;
+  const Vl=look([c[0]+sun[0]*d,c[1]+sun[1]*d,c[2]+sun[2]*d],c,[0,1,0]);const Pl=ortho(-r,r,-r,r,1,d+400);let lvp=mul(Pl,Vl);
+  const o=xf(lvp,[0,0,0,1]),half=SM.size/2;Pl[12]+=(Math.floor(o[0]*half+.5)-o[0]*half)/half;Pl[13]+=(Math.floor(o[1]*half+.5)-o[1]*half)/half;lvp=mul(Pl,Vl);SM.lvp[k]=lvp;SM.texM[k]=mul(B,lvp);
+  const touch=(b,h)=>{const R=r+h;return b[3]>=c[0]-R&&b[0]<=c[0]+R&&b[5]>=c[2]-R&&b[2]<=c[2]+R;};
+  gl.bindFramebuffer(gl.FRAMEBUFFER,SM.fbo[k]);gl.viewport(0,0,SM.size,SM.size);gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.depthMask(true);gl.enable(gl.POLYGON_OFFSET_FILL);gl.polygonOffset(1.6,3);
+  let p=P.PROPSD;gl.useProgram(p);gl.uniformMatrix4fv(U(p,'uVP'),false,lvp);
+  for(const m of props){if(!touch(m.b,m.b[4]-m.b[1]))continue;gl.bindVertexArray(m.vao);if(k==0||dmin(m.b)<600)gl.drawElements(gl.TRIANGLES,m.n,gl.UNSIGNED_INT,0);else if(m.big>0)gl.drawElements(gl.TRIANGLES,m.big,gl.UNSIGNED_INT,0);}
+  for(const m of street){if(!touch(m.b,12))continue;gl.bindVertexArray(m.vao);if(k==0)gl.drawElements(gl.TRIANGLES,m.n,gl.UNSIGNED_INT,0);else if(m.big>0)gl.drawElements(gl.TRIANGLES,m.big,gl.UNSIGNED_INT,0);}
+  p=P.TREED;gl.useProgram(p);gl.uniformMatrix4fv(U(p,'uVP'),false,lvp);bind(p,'uLeaf',tex.leaf,3);
+  for(const t of trees){if(!touch(t.b,25))continue;if(k==0){gl.bindVertexArray(t.hi);gl.drawElementsInstanced(gl.TRIANGLES,t.nhi,gl.UNSIGNED_INT,0,t.c);}else{gl.bindVertexArray(t.lo);gl.drawElementsInstanced(gl.TRIANGLES,t.nlo,gl.UNSIGNED_INT,0,t.c);}}
+  p=P.IMPD;gl.useProgram(p);gl.uniformMatrix4fv(U(p,'uVP'),false,lvp);gl.uniform4fv(U(p,'uImp'),impP);gl.uniform1f(U(p,'uDirMode'),1);gl.uniform3f(U(p,'uFaceDir'),sun[0],0,sun[2]);bind(p,'uImpCol',tex.impc,9);
+  for(const t of imps){if(!touch(t.b,25))continue;gl.bindVertexArray(t.vao);gl.drawElementsInstanced(gl.TRIANGLES,6,gl.UNSIGNED_INT,0,t.c);}
+  if(carM){p=P.CARD;gl.useProgram(p);gl.uniformMatrix4fv(U(p,'uVP'),false,lvp);gl.uniformMatrix4fv(U(p,'uModel'),false,carM);gl.bindVertexArray(car.body.vao);gl.drawElements(gl.TRIANGLES,car.body.n,gl.UNSIGNED_INT,0);}
+  gl.disable(gl.POLYGON_OFFSET_FILL);}
+ gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
+ gl.activeTexture(gl.TEXTURE6);gl.bindTexture(gl.TEXTURE_2D,SM.tex[0]);gl.activeTexture(gl.TEXTURE7);gl.bindTexture(gl.TEXTURE_2D,SM.tex[1]);gl.activeTexture(gl.TEXTURE0);}
+function bind(p,name,t,u){gl.activeTexture(gl.TEXTURE0+u);gl.bindTexture(gl.TEXTURE_2D,t);gl.uniform1i(U(p,name),u);}
+function dmin(b){const dx=Math.max(b[0]-eye[0],0,eye[0]-b[3]),dy=Math.max(b[1]-eye[1],0,eye[1]-b[4]),dz=Math.max(b[2]-eye[2],0,eye[2]-b[5]);return Math.hypot(dx,dy,dz);}
+function dmax(b){return Math.hypot(Math.max(Math.abs(b[0]-eye[0]),Math.abs(b[3]-eye[0])),Math.max(Math.abs(b[1]-eye[1]),Math.abs(b[4]-eye[1])),Math.max(Math.abs(b[2]-eye[2]),Math.abs(b[5]-eye[2])));}
+function inR(b,n,f){return dmin(b)<=f&&dmax(b)>=n;}
+window.render=function(e,target,fov,carPos,carYaw){
+ eye=e;const V=look(eye,target,[0,1,0]);
+ let carM=null;if(carPos){const cc=Math.cos(-carYaw),s=Math.sin(-carYaw);carM=[cc,0,-s,0,0,1,0,0,s,0,cc,0,carPos[0],carPos[1],carPos[2],1];}
+ if(SM.on)shadowPass(V,carM);
+ gl.viewport(0,0,W,H);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ let VP=mul(persp(fov,W/H,1,100),V);gl.disable(gl.DEPTH_TEST);gl.useProgram(P.SKY);common(P.SKY);gl.uniformMatrix4fv(U(P.SKY,'uInvVP'),false,inv(VP));gl.uniform1f(U(P.SKY,'uTime'),40.0);bind(P.SKY,'uNoise',tex.noise,1);gl.drawArrays(gl.TRIANGLES,0,3);
+ gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
+ for(const [n,f] of [[5000,260000],[500,6000],[36,600],[0.1,40]]){gl.clear(gl.DEPTH_BUFFER_BIT);VP=mul(persp(fov,W/H,n,f),V);
+  let p=P.TERRAIN;gl.useProgram(p);common(p);gl.uniformMatrix4fv(U(p,'uVP'),false,VP);bind(p,'uGrass',tex.grass,0);bind(p,'uNoise',tex.noise,1);bind(p,'uLand',tex.land,2);bind(p,'uLandFar',tex.landfar,3);bind(p,'uAO',tex.ao,8);
+  gl.uniform4f(U(p,'uLandRect'),T.x0,T.z0,(T.nx-1)*T.st,(T.nz-1)*T.st);gl.uniform4f(U(p,'uFarRect'),F.x0,F.z0,16600,18200);gl.enable(gl.CULL_FACE);
+  for(const c of terr){if(!inR(c.b,n,f))continue;gl.uniform1i(U(p,'uMode'),c.kind);gl.bindVertexArray(c.vao);gl.drawElements(gl.TRIANGLES,c.n,gl.UNSIGNED_INT,0);}gl.disable(gl.CULL_FACE);
+  if(n>4000)continue;
+  p=P.ROAD;gl.useProgram(p);common(p);gl.uniformMatrix4fv(U(p,'uVP'),false,VP);bind(p,'uGrass',tex.grass,0);bind(p,'uNoise',tex.noise,1);bind(p,'uAO',tex.ao,8);gl.uniform4f(U(p,'uAORect'),T.x0,T.z0,(T.nx-1)*T.st,(T.nz-1)*T.st);gl.depthMask(false);gl.enable(gl.POLYGON_OFFSET_FILL);gl.polygonOffset(-1,-2);for(const c of roads){if(!inR(c.b,n,f))continue;gl.bindVertexArray(c.vao);gl.drawElements(gl.TRIANGLES,c.n,gl.UNSIGNED_INT,0);}gl.polygonOffset(-2,-4);for(const c of decals){if(!inR(c.b,n,f)||dmin(c.b)>900)continue;gl.bindVertexArray(c.vao);gl.drawElements(gl.TRIANGLES,c.n,gl.UNSIGNED_INT,0);}gl.disable(gl.POLYGON_OFFSET_FILL);gl.depthMask(true);
+  if(n<GR.r&&GR.on!==false){p=P.GRASS;gl.useProgram(p);common(p);gl.uniformMatrix4fv(U(p,'uVP'),false,VP);bind(p,'uGrass',tex.grass,0);bind(p,'uNoise',tex.noise,1);bind(p,'uLand',tex.land,2);bind(p,'uMask',tex.mask,3);bind(p,'uAO',tex.ao,8);bind(p,'uHeight',tex.height,4);bind(p,'uTuft',tex.tuft,5);
+   gl.uniform4f(U(p,'uLandRect'),T.x0,T.z0,(T.nx-1)*T.st,(T.nz-1)*T.st);const gn=Math.floor(2*GR.r/GR.sp);gl.uniform4f(U(p,'uGrid'),Math.floor((eye[0]-GR.r)/GR.sp)*GR.sp,Math.floor((eye[2]-GR.r)/GR.sp)*GR.sp,GR.sp,gn);
+   gl.uniform3f(U(p,'uHRect'),T.x0,T.z0,T.st);gl.uniform1f(U(p,'uRadius'),GR.r);gl.uniform1f(U(p,'uTime'),12.0);gl.bindVertexArray(GR.m.vao);gl.drawElementsInstanced(gl.TRIANGLES,12,gl.UNSIGNED_INT,0,gn*gn);}
+  p=P.PROPS;gl.useProgram(p);common(p);gl.uniformMatrix4fv(U(p,'uVP'),false,VP);gl.uniform1f(U(p,'uTime'),12.0);bind(p,'uNoise',tex.noise,1);bind(p,'uSigns',tex.signs,2);bind(p,'uHedge',tex.hedge,11);for(const c of street){if(!inR(c.b,n,f))continue;const d=dmin(c.b);gl.bindVertexArray(c.vao);if(d<650)gl.drawElements(gl.TRIANGLES,c.n,gl.UNSIGNED_INT,0);else if(d<1600&&c.big>0)gl.drawElements(gl.TRIANGLES,c.big,gl.UNSIGNED_INT,0);}
+  for(const c of props){if(!inR(c.b,n,f))continue;const d=dmin(c.b);gl.bindVertexArray(c.vao);if(d<1400)gl.drawElements(gl.TRIANGLES,c.n,gl.UNSIGNED_INT,0);else if(d<5500&&c.big>0)gl.drawElements(gl.TRIANGLES,c.big,gl.UNSIGNED_INT,0);}
+  for(const c of trees){if(!inR(c.b,n,f))continue;const d=dmin(c.b);if(d>3200)continue;if(d<380){p=P.TREE;}else p=P.BILLBOARD;gl.useProgram(p);common(p);gl.uniformMatrix4fv(U(p,'uVP'),false,VP);bind(p,'uNoise',tex.noise,1);bind(p,'uLeaf',tex.leaf,3);
+   if(d<130){gl.bindVertexArray(c.hi);gl.drawElementsInstanced(gl.TRIANGLES,c.nhi,gl.UNSIGNED_INT,0,c.c);}else if(d<380){gl.bindVertexArray(c.lo);gl.drawElementsInstanced(gl.TRIANGLES,c.nlo,gl.UNSIGNED_INT,0,c.c);}else{gl.bindVertexArray(c.bb);gl.drawElementsInstanced(gl.TRIANGLES,6,gl.UNSIGNED_INT,0,c.c);}}
+  p=P.IMP;gl.useProgram(p);common(p);gl.uniformMatrix4fv(U(p,'uVP'),false,VP);gl.uniform4fv(U(p,'uImp'),impP);gl.uniform1f(U(p,'uDirMode'),0);bind(p,'uImpCol',tex.impc,9);bind(p,'uImpNrm',tex.impn,10);
+  for(const c of imps){if(!inR(c.b,n,f)||dmin(c.b)>3200)continue;gl.bindVertexArray(c.vao);gl.drawElementsInstanced(gl.TRIANGLES,6,gl.UNSIGNED_INT,0,c.c);}
+  if(carPos){p=P.CAR;gl.useProgram(p);common(p);gl.uniformMatrix4fv(U(p,'uVP'),false,VP);bind(p,'uPlates',tex.plates,0);gl.uniform1f(U(p,'uBrake'),0);
+   const cc=Math.cos(-carYaw),s=Math.sin(-carYaw);const Mm=[cc,0,-s,0,0,1,0,0,s,0,cc,0,carPos[0],carPos[1],carPos[2],1];gl.uniformMatrix4fv(U(p,'uModel'),false,Mm);gl.bindVertexArray(car.body.vao);gl.drawElements(gl.TRIANGLES,car.body.n,gl.UNSIGNED_INT,0);
+   for(let k=0;k<4;k++){const r=k%2,fr=k<2;let W2=[1,0,0,0,0,1,0,0,0,0,1,0,(r?1:-1)*0.78,0.33,fr?-1.4:1.4,1];if(!r)W2=mul(W2,[-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1]);gl.uniformMatrix4fv(U(p,'uModel'),false,mul(Mm,W2));gl.bindVertexArray(car.wheel.vao);gl.drawElements(gl.TRIANGLES,car.wheel.n,gl.UNSIGNED_INT,0);}
+   gl.uniformMatrix4fv(U(p,'uModel'),false,Mm);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);gl.bindVertexArray(car.glass.vao);gl.drawElements(gl.TRIANGLES,car.glass.n,gl.UNSIGNED_INT,0);gl.depthMask(true);gl.disable(gl.BLEND);}
+ }
+ gl.finish();
+};
+window.getH=(x,z)=>height(T,x,z);window.setShadows=(on)=>{SM.on=on;};window.getMap=()=>M;
+init().catch(e=>console.log('ERR '+e));
+</script></body></html>
