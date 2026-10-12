@@ -3,19 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cn0m2j8oe2k5w"
-path="res://.godot/imported/gps_bg.png-e1555b5a7cf9d6f063b6309630f0e70d.ctex"
+path.s3tc="res://.godot/imported/gps_bg.png-e1555b5a7cf9d6f063b6309630f0e70d.s3tc.ctex"
+path.etc2="res://.godot/imported/gps_bg.png-e1555b5a7cf9d6f063b6309630f0e70d.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/tex/gps_bg.png"
-dest_files=["res://.godot/imported/gps_bg.png-e1555b5a7cf9d6f063b6309630f0e70d.ctex"]
+dest_files=["res://.godot/imported/gps_bg.png-e1555b5a7cf9d6f063b6309630f0e70d.s3tc.ctex", "res://.godot/imported/gps_bg.png-e1555b5a7cf9d6f063b6309630f0e70d.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

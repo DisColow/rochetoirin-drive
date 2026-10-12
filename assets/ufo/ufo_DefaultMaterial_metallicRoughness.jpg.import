@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ca1dtfwdm17uv"
-path="res://.godot/imported/ufo_DefaultMaterial_metallicRoughness.jpg-c5f6384ce875ff59bd62837256982480.ctex"
+path.s3tc="res://.godot/imported/ufo_DefaultMaterial_metallicRoughness.jpg-c5f6384ce875ff59bd62837256982480.s3tc.ctex"
+path.etc2="res://.godot/imported/ufo_DefaultMaterial_metallicRoughness.jpg-c5f6384ce875ff59bd62837256982480.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "5515643820a43d127fc6f074becfdb76"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/ufo/ufo_DefaultMaterial_metallicRoughness.jpg"
-dest_files=["res://.godot/imported/ufo_DefaultMaterial_metallicRoughness.jpg-c5f6384ce875ff59bd62837256982480.ctex"]
+dest_files=["res://.godot/imported/ufo_DefaultMaterial_metallicRoughness.jpg-c5f6384ce875ff59bd62837256982480.s3tc.ctex", "res://.godot/imported/ufo_DefaultMaterial_metallicRoughness.jpg-c5f6384ce875ff59bd62837256982480.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

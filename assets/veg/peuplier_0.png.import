@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://by0qo8baon3ya"
-path="res://.godot/imported/peuplier_0.png-9eb92531c91c3aaf82b3a510be389707.ctex"
+path.s3tc="res://.godot/imported/peuplier_0.png-9eb92531c91c3aaf82b3a510be389707.s3tc.ctex"
+path.etc2="res://.godot/imported/peuplier_0.png-9eb92531c91c3aaf82b3a510be389707.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f7c5048e710b7cecbbcbabe627b92684"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/veg/peuplier_0.png"
-dest_files=["res://.godot/imported/peuplier_0.png-9eb92531c91c3aaf82b3a510be389707.ctex"]
+dest_files=["res://.godot/imported/peuplier_0.png-9eb92531c91c3aaf82b3a510be389707.s3tc.ctex", "res://.godot/imported/peuplier_0.png-9eb92531c91c3aaf82b3a510be389707.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

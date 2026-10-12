@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dvkgvj6gs037"
-path="res://.godot/imported/chene_0.png-53fbaca64a36544863605665828aecec.ctex"
+path.s3tc="res://.godot/imported/chene_0.png-53fbaca64a36544863605665828aecec.s3tc.ctex"
+path.etc2="res://.godot/imported/chene_0.png-53fbaca64a36544863605665828aecec.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "15de5816623b48c8c0c0016bdfe175bd"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/veg/chene_0.png"
-dest_files=["res://.godot/imported/chene_0.png-53fbaca64a36544863605665828aecec.ctex"]
+dest_files=["res://.godot/imported/chene_0.png-53fbaca64a36544863605665828aecec.s3tc.ctex", "res://.godot/imported/chene_0.png-53fbaca64a36544863605665828aecec.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

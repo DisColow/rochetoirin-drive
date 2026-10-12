@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://pn8ydu0egl15"
-path="res://.godot/imported/bouleau_0.png-3293e5304939cfbfa25648d57f8dbb6b.ctex"
+path.s3tc="res://.godot/imported/bouleau_0.png-3293e5304939cfbfa25648d57f8dbb6b.s3tc.ctex"
+path.etc2="res://.godot/imported/bouleau_0.png-3293e5304939cfbfa25648d57f8dbb6b.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "b3c68520132b06b4895d4ab504162567"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/veg/bouleau_0.png"
-dest_files=["res://.godot/imported/bouleau_0.png-3293e5304939cfbfa25648d57f8dbb6b.ctex"]
+dest_files=["res://.godot/imported/bouleau_0.png-3293e5304939cfbfa25648d57f8dbb6b.s3tc.ctex", "res://.godot/imported/bouleau_0.png-3293e5304939cfbfa25648d57f8dbb6b.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

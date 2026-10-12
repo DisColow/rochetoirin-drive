@@ -3,25 +3,27 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bxychm3i7hxhq"
-path="res://.godot/imported/crops_albedo.png-b7dc5af16047e57763a126d438bc1ea2.ctex"
+path.s3tc="res://.godot/imported/crops_albedo.png-b7dc5af16047e57763a126d438bc1ea2.s3tc.ctex"
+path.etc2="res://.godot/imported/crops_albedo.png-b7dc5af16047e57763a126d438bc1ea2.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/veg/crops_albedo.png"
-dest_files=["res://.godot/imported/crops_albedo.png-b7dc5af16047e57763a126d438bc1ea2.ctex"]
+dest_files=["res://.godot/imported/crops_albedo.png-b7dc5af16047e57763a126d438bc1ea2.s3tc.ctex", "res://.godot/imported/crops_albedo.png-b7dc5af16047e57763a126d438bc1ea2.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c3va14p215wao"
-path="res://.godot/imported/ufo_DefaultMaterial_baseColor.png-72e6bafb5e12b2c62177c5cfac9bd664.ctex"
+path.s3tc="res://.godot/imported/ufo_DefaultMaterial_baseColor.png-72e6bafb5e12b2c62177c5cfac9bd664.s3tc.ctex"
+path.etc2="res://.godot/imported/ufo_DefaultMaterial_baseColor.png-72e6bafb5e12b2c62177c5cfac9bd664.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "397aaa62ceb3dbf50b9731c0e22c20ab"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/ufo/ufo_DefaultMaterial_baseColor.png"
-dest_files=["res://.godot/imported/ufo_DefaultMaterial_baseColor.png-72e6bafb5e12b2c62177c5cfac9bd664.ctex"]
+dest_files=["res://.godot/imported/ufo_DefaultMaterial_baseColor.png-72e6bafb5e12b2c62177c5cfac9bd664.s3tc.ctex", "res://.godot/imported/ufo_DefaultMaterial_baseColor.png-72e6bafb5e12b2c62177c5cfac9bd664.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

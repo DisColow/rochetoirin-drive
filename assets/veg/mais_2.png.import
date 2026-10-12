@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c26o2y7u4g0ow"
-path="res://.godot/imported/mais_2.png-d220a0e00e26ef8853b6e3093eb99eaf.ctex"
+path.s3tc="res://.godot/imported/mais_2.png-d220a0e00e26ef8853b6e3093eb99eaf.s3tc.ctex"
+path.etc2="res://.godot/imported/mais_2.png-d220a0e00e26ef8853b6e3093eb99eaf.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "d08f6b8c41d975504acc306bc458f1cb"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/veg/mais_2.png"
-dest_files=["res://.godot/imported/mais_2.png-d220a0e00e26ef8853b6e3093eb99eaf.ctex"]
+dest_files=["res://.godot/imported/mais_2.png-d220a0e00e26ef8853b6e3093eb99eaf.s3tc.ctex", "res://.godot/imported/mais_2.png-d220a0e00e26ef8853b6e3093eb99eaf.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

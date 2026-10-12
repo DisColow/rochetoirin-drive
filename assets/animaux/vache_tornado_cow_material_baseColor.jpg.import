@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b81t3i74op53i"
-path="res://.godot/imported/vache_tornado_cow_material_baseColor.jpg-0e51de3bb1d16a8ab3ba6b607681e91c.ctex"
+path.s3tc="res://.godot/imported/vache_tornado_cow_material_baseColor.jpg-0e51de3bb1d16a8ab3ba6b607681e91c.s3tc.ctex"
+path.etc2="res://.godot/imported/vache_tornado_cow_material_baseColor.jpg-0e51de3bb1d16a8ab3ba6b607681e91c.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "d29769136248ce9c164259aca7b2019b"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/animaux/vache_tornado_cow_material_baseColor.jpg"
-dest_files=["res://.godot/imported/vache_tornado_cow_material_baseColor.jpg-0e51de3bb1d16a8ab3ba6b607681e91c.ctex"]
+dest_files=["res://.godot/imported/vache_tornado_cow_material_baseColor.jpg-0e51de3bb1d16a8ab3ba6b607681e91c.s3tc.ctex", "res://.godot/imported/vache_tornado_cow_material_baseColor.jpg-0e51de3bb1d16a8ab3ba6b607681e91c.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

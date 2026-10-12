@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://6bhtd27hda8v"
-path="res://.godot/imported/cheval_horse_mat_baseColor.jpg-d2e10d5489701dbfaff3614da4087f3d.ctex"
+path.s3tc="res://.godot/imported/cheval_horse_mat_baseColor.jpg-d2e10d5489701dbfaff3614da4087f3d.s3tc.ctex"
+path.etc2="res://.godot/imported/cheval_horse_mat_baseColor.jpg-d2e10d5489701dbfaff3614da4087f3d.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "8829e81fb7d11bc3195560a825822c4c"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/animaux/cheval_horse_mat_baseColor.jpg"
-dest_files=["res://.godot/imported/cheval_horse_mat_baseColor.jpg-d2e10d5489701dbfaff3614da4087f3d.ctex"]
+dest_files=["res://.godot/imported/cheval_horse_mat_baseColor.jpg-d2e10d5489701dbfaff3614da4087f3d.s3tc.ctex", "res://.godot/imported/cheval_horse_mat_baseColor.jpg-d2e10d5489701dbfaff3614da4087f3d.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
