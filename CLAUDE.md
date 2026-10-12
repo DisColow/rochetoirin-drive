@@ -25,6 +25,8 @@
   `version/code` d'`export_presets.cfg` **à chaque livraison : APK complet à chaque version depuis la v6.13**). Après toute régénération de données :
   `pipeline/publier_donnees.sh` (n'envoie que les fichiers modifiés) **avant** de pousser le code. Mettre à jour le
   lien « Télécharger » du README ; captures et comparatifs dans `docs/apercus/`.
+- **Toujours tirer la branche sans les APK** : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot` (un `git pull`
+  normal télécharge l'APK de 1,3 Go via Git LFS et remplit le disque de la session).
 - Les données brutes (`tools/data/`) ne sont pas versionnées : elles se régénèrent avec les scripts `tools/fetch_*`.
 - **Quota Google Street View** : avant tout appel à l'API, récupérer le cache privé
   `DisColow/rochetoirin-streetview` (copier `streetview/` dans `tools/data/streetview/`) ; après tout nouveau
