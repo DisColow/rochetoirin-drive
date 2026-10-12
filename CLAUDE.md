@@ -31,6 +31,10 @@
 - **Quota Google Street View** : avant tout appel à l'API, récupérer le cache privé
   `DisColow/rochetoirin-streetview` (copier `streetview/` dans `tools/data/streetview/`) ; après tout nouveau
   téléchargement, y pousser les nouvelles images. Ce dépôt reste privé (images Google non redistribuables).
+- **Bâtiments : directives de l'utilisateur sur les aplats** (`docs/kb/aplats.md`, à lire avant de toucher un
+  bâtiment) : façades strictement plates (ouvertures et détails muraux peints : texture + normal map), volume réservé
+  aux structures extérieures, bâtiment reconnaissable plutôt qu'exact, corriger le volume existant par une fiche
+  d'une ligne plutôt que modéliser.
 - **La logique prime sur la donnée brute** (cf. `docs/kb/21-coherence.md`) : rien sur les routes/trottoirs, clôtures et
   haies continues, pas de routes superposées, pas de taches ni de piscines absurdes. `python3 tools/check_coherence.py`
   doit rapporter 0 violation avant de livrer.
@@ -108,15 +112,11 @@
   existants (Sketchfab CC BY/CC0 via SKETCHFAB_TOKEN, Poly Haven, Kenney, Quaternius, MakeHuman/MPFB…, crédités dans
   ⚙ > Crédits) ; 2) **proposer plusieurs candidats à l'utilisateur sur une planche JPEG** (même éclairage, échelle
   humaine) et attendre son choix ; 3) ne modéliser soi-même (Blender, procédural) qu'à défaut de modèle convenable.
-- **Modèles d'après Street View : au pixel près.** Quand l'utilisateur demande de bâtir un modèle 3D d'après Street
-  View, analyser le bâtiment avec précision sur les photos (plusieurs angles si possible) et le reproduire fidèlement
-  dans le moindre détail : gabarit et proportions mesurés (largeur, profondeur, hauteur d'égout et de faîtage, pente et
-  débords du toit), nombre, position, taille et forme exactes des ouvertures, menuiseries, volets, portes, balcons,
-  cheminées, gouttières, enduit et couleurs relevés sur la photo, annexes et clôtures. Comparer ensuite une capture
-  du jeu prise du même point de vue que la photo et corriger jusqu'à ce qu'elles se superposent. **Faire le tour du
-  bâtiment** : récupérer un maximum de vues Street View (tous les panoramas proches, plusieurs caps et hauteurs) avant
-  de relever quoi que ce soit ; l'architecture doit être strictement identique (formes, nombre et place des fenêtres
-  et portes, annexes). Une issue n'est refermée qu'avec l'accord de l'utilisateur, comparatif photo/jeu à l'appui.
+- **Bâtiments d'après Street View : reconnaissables, pas exacts** (directive du 12/10, remplace l'ancienne règle
+  « au pixel près », jugée beaucoup trop longue sur la boulangerie) : partir du bâtiment déjà généré et le corriger
+  (fiche d'une ligne : couleur, matériaux, toit, niveaux, volets, structures extérieures) ; façades en aplat
+  (`docs/kb/aplats.md`) ; dimensions approximatives acceptées ; photos du cache d'abord, une ou deux suffisent.
+  Comparatif photo/jeu pour validation ; une issue n'est refermée qu'avec l'accord de l'utilisateur.
 - **Viser les canons du genre** : à chaque demande, s'inspirer des meilleures références du genre (jeux de conduite,
   simulateurs, jeux en pixel art…) pour la qualité du résultat et l'ingéniosité des solutions, dans les limites du
   moteur graphique et du téléphone ; chercher l'astuce qui donne un rendu de grand jeu plutôt que la solution minimale.
@@ -259,3 +259,16 @@
   **Photos Google jamais dans ce dépôt** (planches photo/jeu : cache privé seulement). Régénérer les bâtiments
   refait toutes les tuiles : vérifier que seules celles du bâtiment changent (empreintes contre la branche
   `donnees`) et remettre les `.import` publiés (Godot leur donne de nouveaux identifiants).
+- **Aplats partout** (v6.18, directive de l'utilisateur, `docs/kb/aplats.md`) : `build_buildings.py` ne fait plus
+  aucune micro-géométrie (`wall_edge` : menuiserie au nu du mur, plus de tableaux, d'appuis saillants ni de kit 3D
+  fenêtre/volet/porte/garage/marquise ; volets et appuis = quads collés à 1 cm ; fenêtres de comble idem) ;
+  `build_bld_tex.py` peint l'ombre d'embrasure dans les couches fenêtre/porte/vitrine (`embrasure()`) ;
+  `build_shops_plats.py` (après `blender_commerces.py`) remplace vitrine, porte, pilastre, coffre de rideau, porte
+  sectionnelle, bardage, bandeau, caisson d'enseigne et affiche par des quads plats (une vitrine : 652 -> 14
+  triangles). Le kit `assets/maisons` ne sert plus qu'aux faîtières, mitrons, antennes et paraboles.
+- **Fiches rapides des bâtiments** (v6.18, `pipeline/sources/bati_fiches.txt`, `fiches_overrides` de
+  `build_buildings.py`) : « cleabs niveaux toit façade volets [usage=… chainage=#rrggbb porche=tuile|verre h=…] ␣␣#
+  commentaire », façade = code de `shops_bati.txt` ou `crepi#rrggbb`, volets = code ou `#rrggbb`. Méthode voulue par
+  l'utilisateur pour les bâtiments non résidentiels (2 583 dans la zone) : garder le volume généré et le rendre
+  reconnaissable (couleur, matériaux, aplats, structures extérieures). Premier essai : restaurant Le Rochetoirin
+  (`BATIMENT0000000301133202`, rouge à chaînages jaunes, porche en tuiles).

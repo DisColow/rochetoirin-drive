@@ -463,12 +463,14 @@ def roof_rect(M, R, others, eave, pitch, kind, back, layer, tint, wall_layer, wa
                 nn = nrm / max(np.linalg.norm(nrm), 1e-9)
                 right = np.array([nn[2], 0.0, -nn[0]])
                 c = np.array(W(s_w, tc, eave + 0.35)) + nn * 0.03
-                kit("fenetre", right * 0.8, (0, 1.0, 0), nn, c - right * 0.4)
-                M.poly([c - right * 0.45 + nn * 0.05, c + right * 0.45 + nn * 0.05, c + right * 0.45 - nn * 0.03, c - right * 0.45 - nn * 0.03],
-                       [(0, 0), (1, 0), (1, 0.2), (0, 0.2)], IDX["beton"], srgb((0.95, 0.93, 0.88)), (0, 1, 0))
+                # fenêtre de comble en aplat (directive aplats, v6.18) : menuiserie peinte, volets en aplat
+                q = lambda x0, x1, y0, y1, e: [c + right * x0 + (0, y0, 0) + nn * e, c + right * x1 + (0, y0, 0) + nn * e,
+                                              c + right * x1 + (0, y1, 0) + nn * e, c + right * x0 + (0, y1, 0) + nn * e]
+                M.poly(q(-0.4, 0.4, 0.0, 1.0, -0.02), [(0.01, 0.99), (0.99, 0.99), (0.99, 0.01), (0.01, 0.01)], IDX["fenetre"], srgb((1, 1, 1)), nn)
+                M.poly(q(-0.45, 0.45, -0.06, 0.0, -0.02), [(0, 0), (1, 0), (1, 0.05), (0, 0.05)], IDX["beton"], srgb((0.95, 0.93, 0.88)), nn)
                 if GABLE_WIN[1] is not None:
-                    for sgn in (-1, 1):
-                        kit("volet", right * 0.4, (0, 1.0, 0), nn, c + right * (0.4 if sgn > 0 else -0.8) + nn * 0.03, GABLE_WIN[1])
+                    for x0 in (-0.8, 0.4):
+                        M.poly(q(x0, x0 + 0.4, 0.0, 1.0, -0.02), [(0.02, 0.98), (0.98, 0.98), (0.98, 0.02), (0.02, 0.02)], IDX["volet"], GABLE_WIN[1], nn)
             if ends[side][0] == "outer":
                 # épaisseur de rive (planche de rive)
                 s_o = s_e + sg * ov
@@ -553,43 +555,23 @@ def wall_edge(M, A, B, base, top, gnd, layer, tint, openings, shutter_tint, plin
                        [(u / sc, -ya / sc), (h0 / sc, -ya / sc), (h0 / sc, -yb / sc), (u / sc, -yb / sc)], layer, tint, nrm)
             u = max(u, h1)
     for u0, u1, v0, v1, lay, dep in openings:
-        # menuiserie en retrait et tableaux
-        M.poly([W(u0, v0, -dep), W(u1, v0, -dep), W(u1, v1, -dep), W(u0, v1, -dep)],
+        # AUCUNE micro-géométrie (directive de l'utilisateur, v6.18, docs/kb/aplats.md) : la menuiserie est peinte dans
+        # sa couche de texture (cadre, vitrage, ombre de l'embrasure, normal map) et posée au nu du mur ; pas de
+        # tableaux, d'appui saillant ni de kit 3D. Volets et appui : aplats collés au mur (1 cm, sans épaisseur).
+        M.poly([W(u0, v0), W(u1, v0), W(u1, v1), W(u0, v1)],
                [(0.01, 0.99), (0.99, 0.99), (0.99, 0.01), (0.01, 0.01)], lay, srgb((1, 1, 1)), nrm)
-        dv = np.array([d[0], 0, d[1]])
-        M.poly([W(u0, v0), W(u0, v0, -dep), W(u0, v1, -dep), W(u0, v1)], [(0, 0), (dep / sc, 0), (dep / sc, 1 / sc), (0, 1 / sc)], layer, tint, dv)
-        M.poly([W(u1, v0), W(u1, v0, -dep), W(u1, v1, -dep), W(u1, v1)], [(0, 0), (dep / sc, 0), (dep / sc, 1 / sc), (0, 1 / sc)], layer, tint, -dv)
-        M.poly([W(u0, v1), W(u1, v1), W(u1, v1, -dep), W(u0, v1, -dep)], [(0, 0), (1 / sc, 0), (1 / sc, dep / sc), (0, dep / sc)], layer, tint, (0, -1, 0))
-        # kit 3D (vu de dehors, x vers la droite = -d, origine au coin bas-gauche, au fond du tableau)
-        mX = -np.array([d[0], 0, d[1]]); Zk = nrm / max(np.linalg.norm(nrm), 1e-9)
-        wdt, hgt = u1 - u0, v1 - v0
-        if lay == IDX["fenetre"] or lay == IDX["fenetre_volet_roulant"]:
-            kit("fenetre" if lay == IDX["fenetre"] else "fenetre_vr", mX * wdt, (0, hgt, 0), Zk, W(u1, v0, -dep + 0.004))
-        elif lay == IDX["porte"]:
-            dc = KIT_DOOR[0]
-            kit("porte", mX * wdt, (0, hgt, 0), Zk, W(u1, v0, -dep + 0.004), dc)
-            if KIT_DOOR[1]:
-                kit("marquise", mX * (wdt + 0.3), (0, 1, 0), Zk, W(u1 + 0.15, v1 + 0.12, 0.0))
-        elif lay == IDX["porte_garage"] and wdt < 3.0:
-            kit("garage", mX * wdt, (0, hgt, 0), Zk, W(u1, v0, -dep + 0.004))
         if lay in (IDX["fenetre"], IDX["fenetre_volet_roulant"]):
-            if shutter_tint is not None and lay == IDX["fenetre"]:
-                w2 = (u1 - u0) / 2
-                for a_, b_ in ((u0 - w2, u0), (u1, u1 + w2)):
-                    kit("volet", mX * (b_ - a_), (0, hgt, 0), Zk, W(b_, v0, 0.055), shutter_tint)
-            # appui de fenêtre saillant
-            M.poly([W(u0 - 0.05, v0, 0.06), W(u1 + 0.05, v0, 0.06), W(u1 + 0.05, v0, -dep), W(u0 - 0.05, v0, -dep)],
-                   [(0, 0), (1, 0), (1, 0.2), (0, 0.2)], IDX["beton"], srgb((0.95, 0.93, 0.88)), (0, 1, 0))
-            M.poly([W(u0 - 0.05, v0 - 0.06, 0.06), W(u1 + 0.05, v0 - 0.06, 0.06), W(u1 + 0.05, v0, 0.06), W(u0 - 0.05, v0, 0.06)],
+            # appui de fenêtre en aplat : bande claire sous la fenêtre, son ombre en dessous
+            M.poly([W(u0 - 0.05, v0 - 0.06, 0.01), W(u1 + 0.05, v0 - 0.06, 0.01), W(u1 + 0.05, v0, 0.01), W(u0 - 0.05, v0, 0.01)],
                    [(0, 0), (1, 0), (1, 0.05), (0, 0.05)], IDX["beton"], srgb((0.95, 0.93, 0.88)), nrm)
+            M.poly([W(u0 - 0.05, v0 - 0.16, 0.008), W(u1 + 0.05, v0 - 0.16, 0.008), W(u1 + 0.05, v0 - 0.06, 0.008), W(u0 - 0.05, v0 - 0.06, 0.008)],
+                   [(u0 / sc, -(v0 - 0.16) / sc), (u1 / sc, -(v0 - 0.16) / sc), (u1 / sc, -(v0 - 0.06) / sc), (u0 / sc, -(v0 - 0.06) / sc)],
+                   layer, np.asarray(tint) * 0.72, nrm)
             if shutter_tint is not None and lay == IDX["fenetre"]:
                 w2 = (u1 - u0) / 2
                 for a, b in ((u0 - w2, u0), (u1, u1 + w2)):
-                    M.poly([W(a, v0, 0.04), W(b, v0, 0.04), W(b, v1, 0.04), W(a, v1, 0.04)],
+                    M.poly([W(a, v0, 0.01), W(b, v0, 0.01), W(b, v1, 0.01), W(a, v1, 0.01)],
                            [(0.02, 0.98), (0.98, 0.98), (0.98, 0.02), (0.02, 0.02)], IDX["volet"], shutter_tint, nrm)
-        else:
-            M.poly([W(u0, v0), W(u1, v0), W(u1, v0, -dep), W(u0, v0, -dep)], [(0, 0), (1, 0), (1, 0.1), (0, 0.1)], IDX["beton"],
-                   srgb((0.7, 0.7, 0.68)), (0, 1, 0))
     if plinth and gnd - base > 0.05:
         # soubassement : même matière que le mur, un ton plus sombre, 25 cm au-dessus du sol (il paraissait noir)
         cuts = sorted([(o[0], o[1]) for o in openings if o[2] < gnd + 0.25])
@@ -727,6 +709,96 @@ def editeur_overrides(blds):
         ov["H"] = max(float(p.get("hauteur") or 0.0), 3.6) if n == 1 else 0.6 + n * 2.8
         out[f[0]] = ov
     return out
+
+
+def _hex(c):
+    c = c.lstrip("#")
+    return tuple(int(c[i:i + 2], 16) / 255 for i in (0, 2, 4))
+
+
+def fiches_overrides(blds):
+    """{cleabs : réglages} des fiches rapides (sources/bati_fiches.txt, v6.18 — méthode rapide de l'utilisateur pour
+    les bâtiments non résidentiels : on garde le volume généré et on le rend reconnaissable).
+    Ligne : « cleabs niveaux toit façade volets [clé=valeur …]  # commentaire »
+      toit : plat / 2p / 4p ; façade : un code de shops_bati.txt (crepi_beige, bardage_gris, brique…) ou
+      crepi#rrggbb (enduit de couleur libre) ; volets : code (bois, gris…), #rrggbb, roulant ou « - ».
+      Options : usage=maison|collectif|commerce|activite (forme des ouvertures : maison = fenêtres + porte côté rue,
+      commerce = vitrines au rez-de-chaussée), chainage=#rrggbb (chaînages d'angle en aplat), porche=tuile|verre
+      (auvent en volume au-dessus de la porte côté rue), h=hauteur d'égout (m)."""
+    out = {}
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sources/bati_fiches.txt")
+    if not os.path.exists(path):
+        return out
+    by = {p.get("cleabs"): (p, g) for p, g in blds}
+    for ln in open(path):
+        # « # » sert aussi aux couleurs : commentaire = ligne qui commence par « # » ou texte après « ␣␣# »
+        f = [] if ln.lstrip().startswith("#") else ln.split("  #")[0].split()
+        if len(f) < 5 or f[0] not in by:
+            continue
+        p, g = by[f[0]]
+        n = int(f[1]); fac = f[3]; vol = f[4]
+        extra = dict(x.split("=", 1) for x in f[5:] if "=" in x)
+        kind = extra.get("usage") or classify(p, g)
+        ov = bati_ov((n, f[2], "crepi_beige" if fac.startswith("crepi#") else fac, "-" if vol.startswith("#") else vol), g.area, kind)
+        ov["kind"] = kind
+        if fac.startswith("crepi#"):
+            ov["wall"], ov["wtint"] = "crepi", _hex(fac[5:])
+        if vol.startswith("#"):
+            ov["modern"] = False; ov["shutters"] = _hex(vol)
+        if kind != "commerce":
+            ov["nowin"] = False
+            ov["H"] = 0.6 + n * 2.8 if n > 1 else 3.6
+        if "h" in extra:
+            ov["H"] = float(extra["h"])
+        if "chainage" in extra:
+            ov["chainage"] = _hex(extra["chainage"])
+        if "porche" in extra:
+            ov["porche"] = extra["porche"]
+        out[f[0]] = ov
+    return out
+
+
+def chainages(M, A, B, gnd, top, layer, col):
+    """Chaînages d'angle en aplat (pierres harpées alternées, 1 cm devant le mur) aux deux bouts du mur A–B."""
+    A = np.asarray(A, float); B = np.asarray(B, float)
+    L = float(np.hypot(*(B - A)))
+    if L < 1.5:
+        return
+    d = (B - A) / L; n2 = np.array([d[1], -d[0]]); nrm = (n2[0], 0.0, n2[1])
+    W = lambda u, y: (A[0] + d[0] * u + n2[0] * 0.012, y, A[1] + d[1] * u + n2[1] * 0.012)
+    sc = SCALE[LAYERS[layer][0]]
+    y, k = gnd, 0
+    while y < top - 0.05:
+        y1 = min(y + 0.32, top)
+        w = 0.45 if k % 2 == 0 else 0.28
+        for u0, u1 in ((0.0, w), (L - w, L)):
+            M.poly([W(u0, y), W(u1, y), W(u1, y1), W(u0, y1)],
+                   [(u0 / sc, -y / sc), (u1 / sc, -y / sc), (u1 / sc, -y1 / sc), (u0 / sc, -y1 / sc)], layer, srgb(col), nrm)
+        y, k = y1 + 0.02, k + 1
+
+
+def porche(M, C, A, B, door, gnd, kind):
+    """Auvent en volume au-dessus de la porte côté rue (structure extérieure, gardée en 3D) : toit à un pan en tuiles
+    (ou verre), deux poteaux en bois."""
+    A = np.asarray(A, float); B = np.asarray(B, float)
+    L = float(np.hypot(*(B - A)))
+    d = (B - A) / L; n2 = np.array([d[1], -d[0]])
+    u0, u1, v1 = door[0] - 0.7, door[1] + 0.7, door[3]
+    P = lambda u, o, y: (A[0] + d[0] * u + n2[0] * o, y, A[1] + d[1] * u + n2[1] * o)
+    y0, y1, prof = v1 + 0.75, v1 + 0.35, 1.5
+    lay = IDX["tuile_meca"] if kind == "tuile" else IDX["vitrine"]
+    up = np.cross(np.r_[d[0], 0, d[1]], np.r_[n2[0] * prof, y1 - y0, n2[1] * prof]); up /= np.linalg.norm(up)
+    if up[1] < 0:
+        up = -up
+    M.poly([P(u0, 0.02, y0), P(u1, 0.02, y0), P(u1, prof, y1), P(u0, prof, y1)], [(0, 0), (1.2, 0), (1.2, 0.8), (0, 0.8)], lay, srgb((1, 1, 1)), up)
+    M.poly([P(u0, prof, y1 - 0.12), P(u1, prof, y1 - 0.12), P(u1, prof, y1), P(u0, prof, y1)], [(0, 0), (1, 0), (1, 0.05), (0, 0.05)],
+           IDX["bardage_bois"], srgb((0.6, 0.45, 0.32)), (n2[0], 0, n2[1]))
+    for u in (u0 + 0.1, u1 - 0.1):
+        c = np.array(P(u, prof - 0.1, gnd))
+        for k_, (ex, ez) in enumerate(((d, n2), (n2, -d), (-d, -n2), (-n2, d))):
+            e = np.r_[ex[0], 0, ex[1]] * 0.07; f = np.r_[ez[0], 0, ez[1]] * 0.07
+            M.poly([c - e - f, c + e - f, c + e - f + (0, y1 - gnd, 0), c - e - f + (0, y1 - gnd, 0)],
+                   [(0, 0), (0.1, 0), (0.1, 1), (0, 1)], IDX["bardage_bois"], srgb((0.55, 0.4, 0.28)), -np.r_[ez[0], 0, ez[1]])
 
 
 def bati_overrides(blds):
@@ -942,6 +1014,12 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
                 ud = stair[1] + f * 5.8 - 0.65                  # porte au palier de l'étage f
                 ops.append((ud - 0.47, ud + 0.47, gnd + f * 2.75 + 0.02, gnd + f * 2.75 + 2.17, IDX["porte"], 0.12))
         wall_edge(M, Aa, Bb, base, top, gnd, wl, wtint, ops, sh_tint)
+        if ov.get("chainage") is not None and not mitoyen:
+            chainages(M, Aa, Bb, gnd, eave, wl, ov["chainage"])
+        if ov.get("porche") and k == street:
+            portes = [o for o in ops if o[4] in (IDX["porte"], IDX["vitrine"])]
+            if portes:
+                porche(M, C, Aa, Bb, min(portes, key=lambda o: abs((o[0] + o[1]) / 2 - L / 2)), gnd, ov["porche"])
         if stair is not None and k == stair[0]:
             ext_stairs(M, C, Aa, Bb, gnd, stair[1], stair[3])
             dd = (Bb - Aa) / L; nn = np.array([dd[1], -dd[0]])
@@ -1091,6 +1169,9 @@ def main():
     EOV = editeur_overrides(blds)
     BOV.update(EOV)
     print(len(EOV), "bâtiments refaits à la demande de l'éditeur de monde")
+    FOV = fiches_overrides(blds)
+    BOV.update(FOV)
+    print(len(FOV), "bâtiments d'après les fiches rapides (sources/bati_fiches.txt)")
     for kind, n in LM.build(tiles, TILE, Mesh).items():
         stats["monument:" + kind] = n
     for i, (p, g) in enumerate(blds):

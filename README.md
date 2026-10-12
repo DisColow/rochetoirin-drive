@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.17.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.17/RochetoirinSimulator-v6.17.apk)**
+**[RochetoirinSimulator-v6.18.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.18/RochetoirinSimulator-v6.18.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,15 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v6.18 (APK complet à installer) :
+- **façades en aplat partout** : les fenêtres, portes, volets, appuis et embrasures des bâtiments ne sont plus des
+  polygones en relief, mais des images peintes sur des murs plats (avec l'ombre de l'embrasure et le relief de la
+  normal map), comme dans les anciens GTA ; pareil pour les vitrines, portes et détails des devantures de commerces
+  (une vitrine passe de 652 à 14 triangles). Toits, auvents, stores, escaliers et enseignes en drapeau restent en
+  volume.
+- **restaurant Le Rochetoirin** (à côté de la boulangerie) : enduit rouge, chaînages d'angle jaunes, volets gris-bleu
+  clair, porche en tuiles.
 
 Nouveautés de la v6.17 (APK complet à installer) :
 - **la boulangerie de Rochetoirin, refaite d'après Street View** (à l'angle du carrefour, à côté du restaurant) :

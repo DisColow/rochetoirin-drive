@@ -311,6 +311,22 @@ def plaque(text):
     return col, _normal_from_height(h, 2.0), np.full((S, S), 0.35, np.float32), np.zeros((S, S), np.float32)
 
 
+def embrasure(col, nor, prof=0.08):
+    """Ouverture posée au nu du mur (directive aplats, v6.18 : plus de tableaux en 3D) : ombre de l'embrasure peinte
+    en haut (soleil haut) et sur les côtés, et normales inclinées vers l'intérieur sur le pourtour, pour garder
+    l'impression de profondeur sans aucun polygone."""
+    yy, xx = np.mgrid[0:S, 0:S] / S
+    k_top = np.clip(1 - yy / prof, 0, 1)
+    k_side = np.clip(1 - np.minimum(xx, 1 - xx) / (prof * 0.6), 0, 1)
+    ombre = 1 - 0.55 * k_top - 0.30 * k_side * (1 - k_top)
+    col = col * np.clip(ombre, 0.35, 1)[..., None]
+    n = nor * 2 - 1
+    n[..., 1] -= k_top * 0.6                  # haut : normale vers le bas (dessous du linteau)
+    n[..., 0] += np.where(xx < 0.5, 1, -1) * k_side * 0.5
+    n /= np.linalg.norm(n, axis=2, keepdims=True)
+    return col, n * 0.5 + 0.5
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     A, Nm = [], []
@@ -328,6 +344,8 @@ def main():
                                       "drapeau_fr": lambda: flag("fr"), "drapeau_eu": lambda: flag("eu"),
                                       "plaque_mairie": lambda: plaque("MAIRIE"),
                                       "plaque_hdv": lambda: plaque("HÔTEL DE VILLE")}[name]()
+        if name in ("fenetre", "fenetre_volet_roulant", "porte", "porte_garage", "vitrine"):
+            col, nor = embrasure(col, nor)
         if name == "toit_plat":                                         # gravillons gris d'étanchéité
             col = np.clip(col.mean(2, keepdims=True) / col.mean() * np.array([0.52, 0.52, 0.50]), 0, 1)
         if name == "crepi_ancien":                                      # taches moins orangées
