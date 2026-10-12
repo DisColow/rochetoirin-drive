@@ -1,0 +1,18 @@
+{
+ "boulangerie": {
+  "glb": "res://assets/sur_mesure/boulangerie.glb",
+  "atlas": "res://assets/sur_mesure/boulangerie.png",
+  "pos": [
+   49.26,
+   450.3,
+   409.8
+  ],
+  "remplace_bati": [
+   "BATIMENT0000000301133203"
+  ],
+  "remplace_commerce": [
+   "n3646424189"
+  ],
+  "nom": "Chez Flonflon (boulangerie de Rochetoirin)"
+ }
+}
