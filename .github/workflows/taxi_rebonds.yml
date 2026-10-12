@@ -1,0 +1,60 @@
+# Rebonds des clients du taxi (v6.12) : écrits une fois par l'API Claude (pipeline/taxi_rebonds.py, secret
+# ANTHROPIC_API_KEY) à partir de godot/data/taxi.json, publiés sur la branche « rebonds » pour relecture, puis
+# versionnés dans pipeline/sources/taxi_fils.json. Se relance à la demande ou quand le script change.
+name: Rebonds du taxi
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [godot]
+    paths:
+      - pipeline/taxi_rebonds.py
+      - .github/workflows/taxi_rebonds.yml
+
+permissions:
+  contents: write
+
+jobs:
+  rebonds:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: godot
+          sparse-checkout: |
+            pipeline
+            godot/data
+          fetch-depth: 1
+          lfs: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dépendances
+        run: pip install --quiet anthropic
+
+      - name: Écriture des rebonds
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 pipeline/taxi_rebonds.py --sortie "$RUNNER_TEMP/taxi_fils.json"
+
+      - name: Publication sur la branche rebonds
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch --depth 1 origin rebonds 2>/dev/null; then
+            git worktree add "$RUNNER_TEMP/branche" FETCH_HEAD
+            cd "$RUNNER_TEMP/branche"
+            git checkout -B rebonds
+          else
+            git worktree add --detach "$RUNNER_TEMP/branche"
+            cd "$RUNNER_TEMP/branche"
+            git checkout --orphan rebonds
+            git rm -rf --quiet . || true
+          fi
+          cp "$RUNNER_TEMP/taxi_fils.json" taxi_fils.json
+          git add taxi_fils.json
+          git commit --quiet -m "Rebonds du taxi $(date +%F)" || { echo "rien de neuf"; exit 0; }
+          git push origin rebonds
