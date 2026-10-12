@@ -19,10 +19,10 @@
    "taille": 22992
   },
   "60": {
-   "version": "6.6",
-   "url": "https://github.com/DisColow/rochetoirin-drive/releases/download/v6.6/maj-6.6.pck",
-   "sha256": "f1199e55d00fe9287343fe20453f007e31090ab58b1906b7855529a58d57d209",
-   "taille": 215144304
+   "version": "6.7",
+   "url": "https://github.com/DisColow/rochetoirin-drive/releases/download/v6.7/maj-6.7.pck",
+   "sha256": "fe44511b345a9c8c570e71fb9a0ed7976ce6722dcb657a821143eb8a6e2ccd6c",
+   "taille": 215486416
   }
  }
 }
