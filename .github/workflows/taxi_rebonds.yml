@@ -3,13 +3,9 @@
 # versionnés dans pipeline/sources/taxi_fils.json. Se relance à la demande ou quand le script change.
 name: Rebonds du taxi
 
+# Lancement manuel seulement, et uniquement avec l'accord explicite de l'utilisateur (coût : ~4,50 $ le 12/10/2026).
 on:
   workflow_dispatch:
-  push:
-    branches: [godot]
-    paths:
-      - pipeline/taxi_rebonds.py
-      - .github/workflows/taxi_rebonds.yml
 
 permissions:
   contents: write
