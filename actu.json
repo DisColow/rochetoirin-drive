@@ -1,372 +1,313 @@
 {
  "version": 1,
  "date": "2026-10-12",
- "genere": "2026-10-12T12:11:44+00:00",
+ "genere": "2026-10-12T12:14:18+00:00",
  "meteo": "aujourd'hui : brouillard, de 5 à 16 °C ; demain : couvert, de 7 à 16 °C",
  "modele": "claude-opus-5-5",
  "sujets": [
-  "Brouillard du jour et temps couvert demain",
-  "Les Restos du cœur ouvrent un centre à Bourgoin-Jallieu",
+  "Météo : brouillard puis temps couvert",
+  "Les Restos du cœur arrivent à Bourgoin-Jallieu",
   "Fin des Magasins généraux, futur quartier Gare Ramseyer",
-  "Une commerçante de 81 ans fête 50 ans derrière son comptoir",
-  "Reprise des cours au lycée L'Oiselet après la mobilisation",
-  "Bourgoin-Jallieu : demande d'annulation des municipales rejetée",
-  "Les punaises s'invitent dans les maisons avant l'hiver",
-  "Grenoble : pneus d'une centaine de voitures crevés en une nuit",
-  "Matinée boudin du club des Lilas à Charantonnay",
-  "Saint-Savin : une navette du marché pour les aînés",
-  "Fin des Orgues Festival au musée de Bourgoin-Jallieu",
-  "Aubagne : un principal et une professeure blessés par des tirs",
+  "Le Palais des sports accueille l'école Simone-Veil",
+  "Rencontres canines au parc des Lilattes",
+  "Une centaine de voitures aux pneus crevés à Grenoble",
+  "Reprise des cours au lycée L'Oiselet",
+  "Matinée boudin à Charantonnay, choucroute à Savas-Mépin",
+  "Navette du marché pour les aînés à Saint-Savin",
+  "Une gérante de café de 81 ans fête 50 ans de comptoir",
   "Cyberattaque contre les frigos de magasins Système U et Intermarché",
-  "Voitures électriques : 42 % des immatriculations en septembre",
-  "Les deux Renoir volés à Cagnes-sur-Mer retrouvés"
+  "Voitures électriques à 42 % des ventes, prix des carburants",
+  "Incendie du marché des Enfants rouges à Paris",
+  "Les tableaux de Renoir retrouvés bientôt examinés"
  ],
  "fils": [
   [
    {
-    "dit": "Quel brouillard ce matin ! On n'y voyait rien du tout en sortant de chez moi.",
+    "dit": "On n'y voit pas à vingt mètres ce matin. Avec ce brouillard, vous arrivez à rouler correctement ?",
     "rep": {
-     "chaleureux": "Oui, on roule doucement ce matin. On n'est pas pressés, rassurez-vous.",
-     "drole": "J'ai failli saluer une boîte aux lettres, je la prenais pour un piéton.",
-     "curieux": "Vous avez dû allumer vos phares, vous aussi ?",
-     "sobre": "Oui, la visibilité est mauvaise. Ça devrait se lever."
+     "chaleureux": "Doucement mais sûrement. L'essentiel, c'est que vous soyez bien au chaud.",
+     "drole": "Je conduis au flair, comme un vieux chien de chasse.",
+     "curieux": "Vous venez de loin avec cette purée de pois ?",
+     "sobre": "Oui, en roulant prudemment, phares allumés."
     }
    },
    {
-    "dit": "Il paraît que ça monte quand même jusqu'à seize degrés cet après-midi. Pour octobre, je ne vais pas me plaindre.",
+    "dit": "Le pire, c'est qu'il fait cinq degrés le matin et seize l'après-midi. On ne sait jamais comment s'habiller.",
     "rep": {
-     "chaleureux": "Tant mieux, un peu de douceur, ça fait du bien.",
-     "drole": "Seize degrés, je ressors le short. Enfin, presque.",
-     "curieux": "Vous comptez en profiter pour sortir un peu ?",
-     "sobre": "Oui, cinq degrés ce matin, seize cet après-midi."
+     "chaleureux": "Plusieurs couches, c'est le secret. On enlève au fil de la journée.",
+     "drole": "Moi, je garde l'écharpe toute la journée. Question de principe.",
+     "curieux": "Vous êtes plutôt pull ou plutôt manteau en octobre ?",
+     "sobre": "Oui, les écarts de température sont grands en ce moment."
     }
    },
    {
-    "dit": "Demain, ce sera couvert, mais un peu plus doux le matin. Moi, je garde le pull, je ne fais pas confiance.",
+    "dit": "Et demain, il paraît que ce sera couvert. Pas de soleil, mais au moins on verra la route.",
     "rep": {
-     "chaleureux": "Vous avez bien raison de vous couvrir, prenez soin de vous.",
-     "drole": "Le pull, c'est l'assurance tous risques de l'automne.",
-     "curieux": "Vous êtes plutôt frileux de nature, ou c'est l'expérience ?",
-     "sobre": "Oui, couvert demain, entre sept et seize degrés."
+     "chaleureux": "Tant mieux, ce sera plus reposant pour tout le monde.",
+     "drole": "Couvert, comme moi dès que le mois d'octobre arrive.",
+     "curieux": "Vous avez des choses prévues dehors demain ?",
+     "sobre": "Oui, couvert, entre sept et seize degrés."
     }
    }
   ],
   [
    {
-    "dit": "Vous avez vu ? Les Restos du cœur vont enfin avoir un centre à Bourgoin-Jallieu.",
+    "dit": "Vous avez vu ? Les Restos du cœur vont ouvrir un centre à Bourgoin. Franchement, il était temps.",
     "rep": {
-     "chaleureux": "C'est une belle nouvelle pour beaucoup de familles d'ici.",
+     "chaleureux": "C'est une belle nouvelle pour beaucoup de familles du coin.",
      "drole": "Enfin un resto où personne ne râle sur l'addition.",
-     "curieux": "Vous savez quand il doit ouvrir ?",
-     "sobre": "Oui, j'ai vu ça. C'est une bonne chose."
+     "curieux": "Vous savez où il va s'installer ?",
+     "sobre": "Oui, une ville comme Bourgoin en avait besoin."
     }
    },
    {
-    "dit": "Franchement, une ville comme Bourgoin sans centre, ce n'était pas normal. Je me demande comment faisaient les gens avant.",
+    "dit": "Une ville de cette taille sans centre, ce n'était pas normal. Quand on n'a pas de voiture, aller ailleurs, c'est compliqué.",
     "rep": {
-     "chaleureux": "Oui, ça va soulager pas mal de monde, j'en suis sûr.",
-     "drole": "Ils faisaient du covoiturage avec moi, peut-être ?",
-     "curieux": "Vous connaissez des gens qui en auront besoin ?",
-     "sobre": "C'est vrai, c'était un manque."
+     "chaleureux": "C'est vrai, la proximité compte énormément quand on est en difficulté.",
+     "drole": "Et le taxi, ce n'est pas donné, je suis bien placé.",
+     "curieux": "Vous connaissez des gens qui devaient faire le trajet ?",
+     "sobre": "La distance, c'est souvent le premier obstacle."
     }
    },
    {
-    "dit": "Je vais peut-être proposer d'aider. À la retraite, on a du temps, autant qu'il serve à quelque chose.",
+    "dit": "Je me dis que je pourrais donner quelques heures. Quand on a un peu de temps, autant le rendre utile.",
     "rep": {
-     "chaleureux": "C'est une très belle idée, ils auront besoin de monde.",
-     "drole": "Attention, après on ne vous lâche plus, les bénévoles sont précieux.",
+     "chaleureux": "C'est une très belle idée. Ils auront besoin de bras.",
+     "drole": "Attention, une fois qu'on y met un pied, on ne repart plus.",
      "curieux": "Vous avez déjà fait du bénévolat avant ?",
-     "sobre": "Ils cherchent souvent des bénévoles, oui."
+     "sobre": "Ils cherchent souvent des bénévoles, c'est certain."
     }
    }
   ],
   [
    {
-    "dit": "Il paraît que les Magasins généraux, c'est bientôt fini. Ils préparent un nouveau quartier vers la gare.",
+    "dit": "Il paraît que les Magasins généraux, c'est bientôt fini. Ils préparent un tout nouveau quartier vers la gare.",
     "rep": {
-     "chaleureux": "Ça va changer le paysage, ça. Vous les connaissiez bien ?",
-     "drole": "Bourgoin fait peau neuve, il ne manque plus que le lifting.",
-     "curieux": "Vous savez ce qu'ils comptent construire à la place ?",
-     "sobre": "Oui, le futur quartier Gare Ramseyer."
+     "chaleureux": "Ça va changer le visage de Bourgoin, ce coin-là.",
+     "drole": "Encore des travaux, mes clients vont adorer les déviations.",
+     "curieux": "Vous savez ce qu'ils comptent y construire ?",
+     "sobre": "Oui, le quartier Gare Ramseyer, d'après ce qu'on lit."
     }
    },
    {
-    "dit": "Ces vieux bâtiments, je les ai toujours connus. Ça me fait quelque chose de les voir partir.",
+    "dit": "Ça me fait quelque chose, quand même. Ces vieux bâtiments, je les ai toujours vus. Ça faisait partie du paysage.",
     "rep": {
-     "chaleureux": "Je comprends, ce sont des souvenirs qui s'en vont un peu.",
-     "drole": "Les vieux murs, c'est comme les vieux chauffeurs, on s'y attache.",
-     "curieux": "Vous avez un souvenir particulier lié à cet endroit ?",
-     "sobre": "Oui, ça fait partie de l'histoire de la ville."
+     "chaleureux": "Je comprends, on s'attache aux murs qu'on croise chaque jour.",
+     "drole": "Moi aussi, on vieillit avec les bâtiments, en moins solide.",
+     "curieux": "Vous avez des souvenirs particuliers liés à cet endroit ?",
+     "sobre": "C'est vrai, ils étaient là depuis longtemps."
     }
    },
    {
-    "dit": "Remarquez, un quartier neuf près de la gare, ce n'est peut-être pas plus mal. On verra bien ce que ça donne.",
+    "dit": "Remarquez, un quartier neuf juste à côté de la gare, pour ceux qui prennent le train, ce sera pratique.",
     "rep": {
-     "chaleureux": "Espérons que ce soit agréable à vivre pour tout le monde.",
-     "drole": "Tant qu'il y a une place pour mon taxi, je signe.",
-     "curieux": "Vous aimeriez y voir quoi, vous, dans ce quartier ?",
-     "sobre": "Oui, il faudra voir le résultat."
+     "chaleureux": "Oui, et ça redonnera peut-être de la vie au secteur.",
+     "drole": "Tant qu'ils laissent une place pour mon taxi devant la gare.",
+     "curieux": "Vous prenez souvent le train depuis Bourgoin ?",
+     "sobre": "Pour les trajets quotidiens, c'est un vrai avantage."
     }
    }
   ],
   [
    {
-    "dit": "Vous avez lu l'histoire de cette dame de 81 ans ? Cinquante ans derrière son comptoir, ses clients l'appellent Highlander !",
+    "dit": "Vous savez que le Palais des sports s'est transformé en école ? Les élèves de Simone-Veil y font classe.",
     "rep": {
-     "chaleureux": "Quelle belle histoire, chapeau à elle !",
-     "drole": "Highlander, il ne peut en rester qu'une. Et c'est elle !",
-     "curieux": "Cinquante ans ! Elle a dû voir passer des générations, non ?",
-     "sobre": "Oui, cinquante ans, c'est remarquable."
+     "chaleureux": "Ils ont su trouver une solution pour les enfants, c'est bien.",
+     "drole": "La récréation doit être immense, les petits doivent être ravis.",
+     "curieux": "Ça se passe comment pour les enfants, vous savez ?",
+     "sobre": "Oui, j'en ai entendu parler. C'est original."
     }
    },
    {
-    "dit": "Cinquante ans à servir des cafés, vous imaginez le nombre d'histoires qu'elle a entendues ?",
+    "dit": "Mon petit-fils m'a raconté. Faire la classe sous ce grand toit, ça doit résonner dans tous les sens.",
     "rep": {
-     "chaleureux": "Elle doit être la confidente de tout le quartier.",
-     "drole": "Elle pourrait écrire un livre. Voire une encyclopédie.",
-     "curieux": "Vous pensez qu'elle a envie de s'arrêter un jour ?",
-     "sobre": "Un comptoir, c'est un peu comme un taxi, on écoute."
+     "chaleureux": "Les maîtresses ont du mérite, il faut bien le dire.",
+     "drole": "Une dictée avec écho, ça doit donner des fautes en double.",
+     "curieux": "Et lui, il aime bien cette nouvelle école ?",
+     "sobre": "Un grand volume comme ça, c'est forcément bruyant."
     }
    },
    {
-    "dit": "Ça me rappelle le bistrot de mon village, quand j'étais {gamin|gamine}. Il n'en reste plus beaucoup, des comme ça.",
+    "dit": "Enfin, tant que les enfants apprennent bien, peu importe les murs. À cet âge, on s'habitue à tout.",
     "rep": {
-     "chaleureux": "C'est vrai, ces lieux-là font vivre un village.",
-     "drole": "Il nous faudrait une dame Highlander dans chaque commune.",
-     "curieux": "Il ressemblait à quoi, ce bistrot de votre enfance ?",
-     "sobre": "Oui, beaucoup ont fermé."
+     "chaleureux": "C'est vrai, ils ont une belle capacité d'adaptation.",
+     "drole": "Plus vite que les parents, en tout cas.",
+     "curieux": "Il est en quelle classe, votre petit-fils ?",
+     "sobre": "Le principal, c'est la qualité de l'enseignement."
     }
    }
   ],
   [
    {
-    "dit": "Ma fille est à L'Oiselet. Après la mobilisation, les cours reprennent aujourd'hui, enfin.",
+    "dit": "Ce week-end, il y avait des rencontres canines au parc des Lilattes. Mon chien s'est fait plein de copains.",
     "rep": {
-     "chaleureux": "Elle doit être contente de retrouver ses copains, au moins.",
-     "drole": "Retour au bahut, le réveil a dû sonner fort ce matin.",
-     "curieux": "Elle avait participé à la mobilisation, votre fille ?",
-     "sobre": "Oui, j'ai vu que ça reprenait ce lundi."
+     "chaleureux": "Ça devait être un joli moment, pour lui comme pour vous.",
+     "drole": "Il a une vie sociale plus remplie que la mienne, alors.",
+     "curieux": "C'est quelle race, votre chien ?",
+     "sobre": "Le parc des Lilattes se prête bien à ça."
     }
    },
    {
-    "dit": "Je comprends les jeunes, hein, mais elle a raté pas mal de cours. Je suis un peu {inquiet|inquiète} pour son année.",
+    "dit": "Il y avait des petites boules de poils et des chiens énormes. Et tout ce petit monde s'entendait très bien.",
     "rep": {
-     "chaleureux": "Elle va rattraper, j'en suis sûr. Les jeunes ont de la ressource.",
-     "drole": "À cet âge-là, on rattrape tout. Sauf le sommeil.",
-     "curieux": "Les professeurs ont prévu quelque chose pour le rattrapage ?",
-     "sobre": "C'est compréhensible, oui."
+     "chaleureux": "Les chiens nous donnent parfois des leçons de savoir-vivre.",
+     "drole": "Comme quoi, la taille ne fait pas le caractère.",
+     "curieux": "Il y avait beaucoup de monde, ce week-end ?",
+     "sobre": "C'est souvent le cas quand ils sont bien encadrés."
     }
    },
    {
-    "dit": "Et il paraît qu'il y a une nouvelle journée de mobilisation mardi. Ça ne va pas s'arrêter tout de suite.",
+    "dit": "Le mien, maintenant, il boude à la maison. Il voudrait retourner au parc tous les jours.",
     "rep": {
-     "chaleureux": "Espérons que tout le monde finisse par trouver un terrain d'entente.",
-     "drole": "Mardi, je prévois des détours. Les cortèges, ça bouche les routes.",
-     "curieux": "Vous pensez qu'elle ira manifester, mardi ?",
-     "sobre": "Oui, et les vacances commencent la semaine prochaine."
+     "chaleureux": "Il a goûté au bonheur, il ne veut plus le lâcher.",
+     "drole": "Il faudra lui expliquer que le week-end, ça ne dure pas.",
+     "curieux": "Vous le promenez souvent aux Lilattes ?",
+     "sobre": "Une promenade de plus lui fera du bien."
     }
    }
   ],
   [
    {
-    "dit": "Vous avez vu ? La justice a rejeté la demande d'annulation des municipales à Bourgoin-Jallieu.",
-    "rep": {
-     "chaleureux": "Au moins, c'est clair maintenant pour tout le monde.",
-     "drole": "Pas de deuxième tour bonus, alors. Les affiches peuvent rester rangées.",
-     "curieux": "Vous suiviez cette histoire de près ?",
-     "sobre": "Oui, l'élection est donc confirmée."
-    }
-   },
-   {
-    "dit": "Moi, je trouve ça bien que ce soit tranché. On a besoin que la mairie travaille, pas qu'on revote.",
-    "rep": {
-     "chaleureux": "Oui, un peu de calme, ça fera du bien à la ville.",
-     "drole": "Voter, c'est bien. Revoter tous les six mois, c'est fatigant.",
-     "curieux": "Il y a des dossiers qui vous tiennent à cœur en ville ?",
-     "sobre": "Ça permet d'avancer, oui."
-    }
-   },
-   {
-    "dit": "Pendant ce temps, à Saint-Fons, dans le Rhône, la justice a annulé l'élection. Ce n'est pas partout pareil.",
-    "rep": {
-     "chaleureux": "Chaque cas est différent, j'imagine. Courage aux habitants là-bas.",
-     "drole": "Saint-Fons, retour aux urnes. Ils vont connaître le chemin par cœur.",
-     "curieux": "Vous savez pourquoi elle a été annulée là-bas ?",
-     "sobre": "Oui, pour des irrégularités sur une liste concurrente."
-    }
-   }
-  ],
-  [
-   {
-    "dit": "J'ai encore trouvé des punaises dans ma cuisine ce matin. Il paraît qu'elles cherchent un abri avant l'hiver.",
-    "rep": {
-     "chaleureux": "Ah, vous n'êtes pas {le seul|la seule}, c'est la saison.",
-     "drole": "Elles visitent pour l'hiver. Elles ont réservé, au moins ?",
-     "curieux": "Elles rentrent par où, chez vous ?",
-     "sobre": "Oui, c'est fréquent en cette saison."
-    }
-   },
-   {
-    "dit": "Ma voisine les attrape avec un bocal. Moi, je les mets dehors, mais elles reviennent aussitôt !",
-    "rep": {
-     "chaleureux": "Vous êtes bien patient, c'est gentil de les épargner.",
-     "drole": "Elles ont dû vous adopter. Vous êtes leur résidence secondaire.",
-     "curieux": "Le coup du bocal, ça marche vraiment ?",
-     "sobre": "Elles sont tenaces, c'est vrai."
-    }
-   },
-   {
-    "dit": "Bon, elles ne sont pas méchantes. Mais l'odeur quand on les écrase, alors là, c'est une autre histoire.",
-    "rep": {
-     "chaleureux": "Ça, on s'en souvient. Courage avec vos colocataires.",
-     "drole": "C'est leur parfum de saison. Pas sûr qu'il se vende bien.",
-     "curieux": "Vous avez essayé de calfeutrer les fenêtres ?",
-     "sobre": "Mieux vaut éviter de les écraser, oui."
-    }
-   }
-  ],
-  [
-   {
-    "dit": "Vous avez entendu ? À Grenoble, une centaine de voitures se sont fait crever les pneus en une seule nuit.",
+    "dit": "Vous avez vu à Grenoble ? Une centaine de voitures avec les pneus crevés en une seule nuit. N'importe quoi.",
     "rep": {
      "chaleureux": "Les pauvres gens, quelle mauvaise surprise au réveil.",
-     "drole": "Mon pire cauchemar de chauffeur. Je vais dormir dans mon taxi.",
+     "drole": "Heureusement que mon taxi dort au garage.",
      "curieux": "On sait qui a fait ça ?",
-     "sobre": "Oui, j'ai entendu. Une centaine, c'est beaucoup."
+     "sobre": "Oui, c'est un sacré acte de vandalisme."
     }
    },
    {
-    "dit": "Imaginez le matin, vous partez au travail et votre voiture est à plat. Moi, je serais {furieux|furieuse}.",
+    "dit": "Imaginez, vous descendez le matin pour aller au travail et votre voiture est à plat. Moi, je serais {furieux|furieuse}.",
     "rep": {
-     "chaleureux": "On le serait tous. J'espère qu'ils ont trouvé de l'aide.",
-     "drole": "Moi, je serais à plat aussi. Comme les pneus.",
-     "curieux": "Ça vous est déjà arrivé, une crevaison au mauvais moment ?",
-     "sobre": "Oui, c'est rageant."
+     "chaleureux": "Je vous comprends, c'est toute la journée qui est gâchée.",
+     "drole": "Et ce jour-là, les taxis ont dû faire le plein de clients.",
+     "curieux": "Ça vous est déjà arrivé, un pneu crevé exprès ?",
+     "sobre": "C'est rageant, et ça coûte cher."
     }
    },
    {
-    "dit": "Les gens espèrent que l'assurance va payer. Avec le prix des pneus aujourd'hui, je les comprends.",
+    "dit": "Et maintenant, les gens se demandent si leur assurance va payer. Ça, c'est la vraie question.",
     "rep": {
-     "chaleureux": "Espérons qu'ils soient bien couverts, ce serait la moindre des choses.",
-     "drole": "Quatre pneus neufs, c'est presque le prix d'une voiture d'occasion.",
-     "curieux": "Vous savez si votre assurance couvre ce genre de chose ?",
-     "sobre": "Ça dépend des contrats, je crois."
+     "chaleureux": "J'espère pour eux que oui, ce serait la moindre des choses.",
+     "drole": "Avec les assurances, il faut lire les petites lignes à la loupe.",
+     "curieux": "Vous savez ce que couvre votre contrat, vous ?",
+     "sobre": "Ça dépend des contrats, il faut vérifier."
     }
    }
   ],
   [
    {
-    "dit": "Le club des Lilas de Charantonnay fait sa matinée boudin. Il paraît qu'il faut absolument réserver !",
+    "dit": "Au lycée de L'Oiselet, les cours reprennent aujourd'hui, après la mobilisation des lycéens. On va voir si ça tient.",
     "rep": {
-     "chaleureux": "Voilà une belle occasion de se retrouver entre voisins.",
-     "drole": "Une matinée boudin, c'est mon genre de réunion.",
-     "curieux": "Vous y êtes déjà {allé|allée}, les autres années ?",
-     "sobre": "Oui, j'ai vu qu'il fallait réserver."
+     "chaleureux": "Espérons que tout le monde retrouve un peu de sérénité.",
+     "drole": "Les cahiers ont dû prendre la poussière, quelques jours.",
+     "curieux": "Vous avez quelqu'un au lycée, à L'Oiselet ?",
+     "sobre": "Oui, la reprise est prévue ce lundi."
     }
    },
    {
-    "dit": "Moi, le boudin, j'adore ça, avec des pommes. C'est mon péché mignon depuis toujours.",
+    "dit": "Ma fille y est. Elle dit que les jeunes ne bougent pas pour rien, qu'ils ont vraiment des choses à dire.",
     "rep": {
-     "chaleureux": "Avec des pommes, c'est le meilleur, je suis bien d'accord.",
-     "drole": "Le boudin aux pommes, c'est presque une portion de fruits.",
-     "curieux": "Plutôt pommes poêlées ou purée, vous ?",
-     "sobre": "C'est un classique, oui."
+     "chaleureux": "C'est beau, une jeunesse qui s'intéresse et qui s'exprime.",
+     "drole": "À leur âge, je manifestais surtout pour aller au cinéma.",
+     "curieux": "Et qu'est-ce qu'elle réclame, elle, en premier ?",
+     "sobre": "C'est important de les écouter."
     }
    },
    {
-    "dit": "J'appelle cet après-midi. Si c'est complet, je vais bouder toute la semaine.",
+    "dit": "Et demain, il y a encore une journée de mobilisation dans tout le pays. Franchement, je ne sais pas comment ça va finir.",
     "rep": {
-     "chaleureux": "J'espère qu'il restera une place pour vous.",
-     "drole": "Bouder pour du boudin, c'est presque un jeu de mots.",
-     "curieux": "Vous y allez seul ou avec des amis ?",
-     "sobre": "Mieux vaut appeler tôt, oui."
+     "chaleureux": "Pourvu que ça se passe dans le calme, pour tout le monde.",
+     "drole": "Demain, je prévois des détours, ça c'est sûr.",
+     "curieux": "Votre fille compte y aller, demain ?",
+     "sobre": "On verra demain quelle sera l'ampleur."
     }
    }
   ],
   [
    {
-    "dit": "À Saint-Savin, ils ont lancé une navette pour emmener les aînés au marché. Ma mère va adorer.",
+    "dit": "Le club des Lilas de Charantonnay organise une matinée boudin. Il paraît qu'il faut absolument réserver. Moi, je fonce !",
     "rep": {
-     "chaleureux": "C'est une très belle initiative pour les anciens.",
-     "drole": "Attention, je vais avoir de la concurrence, moi.",
-     "curieux": "Votre mère habite à Saint-Savin ?",
-     "sobre": "Oui, c'est pratique pour ceux qui ne conduisent plus."
+     "chaleureux": "Ce genre de matinée, c'est toujours convivial. Régalez-vous.",
+     "drole": "Le boudin au petit-déjeuner, voilà un vrai programme.",
+     "curieux": "Vous préférez le boudin aux pommes ou aux oignons ?",
+     "sobre": "Réservez vite, alors, ça part toujours très vite."
     }
    },
    {
-    "dit": "Elle ne conduit plus, et elle n'aime pas déranger. Là, elle pourra y aller toute seule.",
+    "dit": "Un boudin bien chaud au petit matin, avec des copains, il n'y a rien de mieux pour commencer la journée.",
     "rep": {
-     "chaleureux": "Garder son autonomie, c'est tellement important à son âge.",
-     "drole": "Elle va revenir avec des paniers pleins, préparez le frigo.",
-     "curieux": "Qu'est-ce qu'elle aime acheter au marché ?",
-     "sobre": "Ça lui rendra de l'indépendance."
+     "chaleureux": "C'est surtout le plaisir d'être ensemble qui compte.",
+     "drole": "Et le régime commencera lundi, comme d'habitude.",
+     "curieux": "Vous y allez chaque année ?",
+     "sobre": "C'est une tradition qui plaît beaucoup."
     }
    },
    {
-    "dit": "C'est le genre d'idée simple qui change la vie. Il en faudrait partout dans les villages.",
+    "dit": "Et à Savas-Mépin, il y a choucroute et thé dansant. L'automne, c'est vraiment la saison des bonnes tables.",
     "rep": {
-     "chaleureux": "Oui, ça crée du lien, et ça, ça n'a pas de prix.",
-     "drole": "Une navette par village, et les taxis au chômage. Bon, d'accord.",
-     "curieux": "Vous pensez à d'autres villages qui en auraient besoin ?",
-     "sobre": "C'est une idée qui pourrait s'étendre."
+     "chaleureux": "Et le thé dansant aide à digérer, c'est bien pensé.",
+     "drole": "Choucroute puis danse, il faut un sacré entraînement.",
+     "curieux": "Vous allez danser, vous aussi ?",
+     "sobre": "Oui, c'est les derniers jours pour réserver."
     }
    }
   ],
   [
    {
-    "dit": "C'est déjà la fin des Orgues Festival au musée. Je ne l'ai pas vu passer.",
+    "dit": "À Saint-Savin, ils ont lancé une navette pour emmener les aînés au marché. C'est une bonne idée, non ?",
     "rep": {
-     "chaleureux": "C'est le signe que c'était réussi, quand ça passe vite.",
-     "drole": "Les orgues ont joué leur dernière note. Rideau !",
-     "curieux": "Vous avez pu assister à des concerts ?",
-     "sobre": "Oui, le festival vient de se terminer."
+     "chaleureux": "Excellente idée. Ça permet de garder du lien.",
+     "drole": "Attention, ils vont me piquer des clients.",
+     "curieux": "Vous savez comment on s'inscrit pour la prendre ?",
+     "sobre": "Oui, c'est utile dans une commune comme celle-là."
     }
    },
    {
-    "dit": "Il y avait même un duo au Kinepolis, un organiste avec un réalisateur. Original, non ?",
+    "dit": "Ma mère n'a plus le permis. Le marché, c'était sa sortie de la semaine. Sans voiture, tout devient compliqué.",
     "rep": {
-     "chaleureux": "Oui, c'est joli de mélanger la musique et le cinéma.",
-     "drole": "De l'orgue au cinéma, il ne manquait que le pop-corn.",
-     "curieux": "Ça ressemblait à quoi, un film avec de l'orgue en direct ?",
-     "sobre": "Oui, c'est une association originale."
+     "chaleureux": "Je comprends. Perdre ce petit rendez-vous, c'est dur.",
+     "drole": "Le marché, c'est un peu le réseau social de nos parents.",
+     "curieux": "Elle habite pas loin de Saint-Savin ?",
+     "sobre": "À la campagne, la voiture reste indispensable."
     }
    },
    {
-    "dit": "L'orgue, avant, pour moi c'était l'église et les mariages. Je découvre qu'on peut en faire autre chose.",
+    "dit": "Et puis au marché, on discute, on voit du monde. Pour les anciens, ça vaut tous les médicaments.",
     "rep": {
-     "chaleureux": "C'est beau de se laisser surprendre, à tout âge.",
-     "drole": "Prochaine étape, l'orgue en boîte de nuit.",
-     "curieux": "Vous retournerez au festival l'année prochaine ?",
-     "sobre": "C'est un instrument plus varié qu'on le croit."
+     "chaleureux": "C'est tellement vrai. La compagnie, ça fait du bien.",
+     "drole": "Et c'est remboursé à cent pour cent par la bonne humeur.",
+     "curieux": "Qu'est-ce qu'elle aimait acheter au marché ?",
+     "sobre": "Le lien social, c'est essentiel à tout âge."
     }
    }
   ],
   [
    {
-    "dit": "Vous avez entendu, pour le collège d'Aubagne ? Un principal et une enseignante blessés par des tirs. Ça me glace.",
+    "dit": "Vous avez lu l'histoire de cette dame de quatre-vingt-un ans ? Elle fête ses cinquante ans derrière son comptoir.",
     "rep": {
-     "chaleureux": "Oui, c'est terrible. On pense à eux et à leurs proches.",
-     "drole": "Il y a des jours où l'on n'a vraiment pas envie de plaisanter.",
-     "curieux": "On sait comment ils vont ?",
-     "sobre": "Oui, j'ai entendu. C'est très grave."
+     "chaleureux": "Quelle belle fidélité. Chapeau bas à elle.",
+     "drole": "Cinquante ans de comptoir, elle en a entendu, des histoires.",
+     "curieux": "Elle tient quel genre d'endroit ?",
+     "sobre": "Cinquante ans, c'est une sacrée carrière."
     }
    },
    {
-    "dit": "Il paraît que c'est un collégien de quatorze ans qui a été interpellé. Quatorze ans, vous vous rendez compte ?",
+    "dit": "Les gens l'appellent le monument, la figure du coin. Moi, ça me rappelle les cafés de ma jeunesse.",
     "rep": {
-     "chaleureux": "C'est difficile à imaginer. On espère que tout le monde sera accompagné.",
-     "drole": "Franchement, là, je n'ai pas le cœur à faire de l'humour.",
-     "curieux": "L'enquête dira peut-être ce qui s'est passé, vous croyez ?",
-     "sobre": "Oui, une enquête est ouverte."
+     "chaleureux": "Ces lieux-là ont une âme qu'on ne retrouve nulle part.",
+     "drole": "On l'appelle aussi Highlander, paraît-il. Immortelle derrière le zinc.",
+     "curieux": "Vous alliez dans quel café, quand vous étiez jeune ?",
+     "sobre": "Ce genre de personnage marque un quartier."
     }
    },
    {
-    "dit": "Heureusement, leur vie n'est pas en danger. Je pense aussi aux élèves, ils doivent être sous le choc.",
+    "dit": "Aujourd'hui, les bistrots ferment un peu partout. Des gens comme elle, il en faudrait davantage.",
     "rep": {
-     "chaleureux": "Oui, j'espère qu'ils seront bien entourés dans les jours qui viennent.",
-     "drole": "Une bonne nouvelle dans tout ça, au moins. On s'y accroche.",
-     "curieux": "Vous avez des enfants au collège, vous aussi ?",
-     "sobre": "Oui, leur pronostic vital n'est pas engagé."
+     "chaleureux": "Oui, ils font vivre nos villages. Il faut les soutenir.",
+     "drole": "Il faudrait la cloner, avec le comptoir.",
+     "curieux": "Il en reste, des bons bistrots, près de chez vous ?",
+     "sobre": "C'est vrai, beaucoup ont disparu."
     }
    }
   ],
@@ -374,86 +315,115 @@
    {
     "dit": "Il paraît que des magasins Système U et Intermarché ont subi une cyberattaque. Sur leurs frigos, vous vous rendez compte ?",
     "rep": {
-     "chaleureux": "C'est fou. J'espère que les employés n'ont pas trop galéré.",
-     "drole": "Des pirates qui s'attaquent aux yaourts, on aura tout vu.",
-     "curieux": "Comment on peut pirater un frigo, à votre avis ?",
+     "chaleureux": "Pauvres employés, ils doivent avoir une drôle de journée.",
+     "drole": "Même les frigos se font pirater. Le mien, je le surveille.",
+     "curieux": "On sait ce que voulaient les pirates ?",
+     "sobre": "Oui, sur les meubles réfrigérés, d'après les informations."
+    }
+   },
+   {
+    "dit": "Avant, les pirates s'attaquaient aux banques, aux ordinateurs. Maintenant, c'est le rayon frais. On n'arrête pas le progrès.",
+    "rep": {
+     "chaleureux": "Tout est connecté aujourd'hui, c'est un peu inquiétant.",
+     "drole": "Bientôt, ils prendront le grille-pain en otage.",
+     "curieux": "Vous avez des appareils connectés chez vous ?",
+     "sobre": "Tout ce qui est relié à internet devient une cible."
+    }
+   },
+   {
+    "dit": "Moi, ce qui m'inquiète, ce sont les yaourts. Quand le frigo s'arrête, ils deviennent quoi, les pauvres ?",
+    "rep": {
+     "chaleureux": "J'espère qu'ils ont pu sauver la marchandise, quel gâchis sinon.",
+     "drole": "Ils fermentent en silence, en attendant les secours.",
+     "curieux": "Vous faites vos courses dans un de ces magasins ?",
+     "sobre": "Les magasins ont sûrement des procédures pour ça."
+    }
+   }
+  ],
+  [
+   {
+    "dit": "Vous savez qu'en septembre, quarante-deux pour cent des voitures neuves immatriculées étaient électriques ? Ça va vite, quand même.",
+    "rep": {
+     "chaleureux": "Les gens cherchent des solutions, et c'est bien normal.",
+     "drole": "Bientôt, mon vieux diesel sera une pièce de musée.",
+     "curieux": "Vous y pensez, vous, à passer à l'électrique ?",
+     "sobre": "Oui, deux fois plus que l'an dernier, paraît-il."
+    }
+   },
+   {
+    "dit": "Avec le prix de l'essence, je comprends. Remarquez, Leclerc promet des baisses à la pompe en novembre.",
+    "rep": {
+     "chaleureux": "Ce serait un vrai soulagement pour beaucoup de foyers.",
+     "drole": "Je noterai la date. Et je viendrai lui rappeler.",
+     "curieux": "Vous faites beaucoup de kilomètres chaque semaine ?",
+     "sobre": "Grâce aux stocks stratégiques, d'après ce qu'on annonce."
+    }
+   },
+   {
+    "dit": "Moi, je regarde les petites voitures électriques du Mondial de l'auto. Faciles à garer et moins chères, il paraît.",
+    "rep": {
+     "chaleureux": "Pour la ville, ça peut être une bonne solution.",
+     "drole": "Plus petite que mon coffre, mais bien plus économique.",
+     "curieux": "Vous la voudriez avec ou sans permis ?",
+     "sobre": "Le marché commence tout juste à se développer."
+    }
+   }
+  ],
+  [
+   {
+    "dit": "Vous avez entendu ? À Paris, le marché des Enfants rouges a été complètement détruit par un incendie.",
+    "rep": {
+     "chaleureux": "Quelle tristesse pour les commerçants qui y travaillaient.",
+     "drole": "Je n'ai pas envie de plaisanter avec ça, c'est triste.",
+     "curieux": "On sait comment le feu a démarré ?",
      "sobre": "Oui, j'ai entendu ça ce matin."
     }
    },
    {
-    "dit": "Ce sont les meubles réfrigérés qui étaient visés. Même un frigo peut se faire pirater maintenant !",
+    "dit": "Heureusement, il n'y a pas de victime, d'après la préfecture. C'est déjà ça, on peut reconstruire.",
     "rep": {
-     "chaleureux": "Tout est connecté aujourd'hui, ça devient compliqué pour tout le monde.",
-     "drole": "Mon frigo à moi, il n'est connecté qu'à la prise.",
-     "curieux": "Vous avez des appareils connectés chez vous ?",
-     "sobre": "Oui, tout est relié à internet maintenant."
+     "chaleureux": "C'est le principal. Les murs, on peut les relever.",
+     "drole": "Les pompiers parisiens ont encore fait des miracles, j'imagine.",
+     "curieux": "Vous pensez qu'ils vont le reconstruire à l'identique ?",
+     "sobre": "Oui, c'est le plus important."
     }
    },
    {
-    "dit": "Je me demande ce qu'ils font des produits frais quand ça arrive. J'espère qu'ils ne les vendent pas tièdes.",
+    "dit": "J'y étais {allé|allée} une fois. Un vieux marché couvert plein de charme. Ça me fait vraiment de la peine.",
     "rep": {
-     "chaleureux": "Ils ont sûrement des règles strictes pour protéger les clients.",
-     "drole": "Le fromage, passe encore. Le poisson tiède, non merci.",
-     "curieux": "Vous faites vos courses dans ces magasins, vous ?",
-     "sobre": "Ils doivent respecter la chaîne du froid."
+     "chaleureux": "Ces lieux chargés d'histoire nous touchent, c'est normal.",
+     "drole": "Vous y aviez goûté quelque chose de bon, j'espère ?",
+     "curieux": "Qu'est-ce qui vous avait marqué, là-bas ?",
+     "sobre": "C'est une perte pour le quartier."
     }
    }
   ],
   [
    {
-    "dit": "Vous avez vu ? Les voitures électriques, c'est quarante-deux pour cent des voitures neuves immatriculées en septembre.",
+    "dit": "Les deux tableaux de Renoir volés à Cagnes-sur-Mer ont été retrouvés. On se croirait dans un film !",
     "rep": {
-     "chaleureux": "Ça bouge vite, hein. On sent que les gens franchissent le pas.",
-     "drole": "Bientôt, mon taxi sera le dernier à faire du bruit.",
-     "curieux": "Vous seriez {tenté|tentée} par une électrique, vous ?",
-     "sobre": "Oui, deux fois plus que l'année dernière."
-    }
-   },
-   {
-    "dit": "Avec le prix de l'essence en ce moment, je comprends. Moi aussi, j'y pense sérieusement.",
-    "rep": {
-     "chaleureux": "Prenez le temps de bien comparer, c'est un gros achat.",
-     "drole": "Le plein à la prise, ça fait rêver en ce moment.",
-     "curieux": "Vous faites beaucoup de kilomètres chaque jour ?",
-     "sobre": "C'est un calcul à faire, oui."
-    }
-   },
-   {
-    "dit": "Au Mondial de l'auto, ils montrent même des mini-voitures électriques, avec ou sans permis. Plus faciles à garer, paraît-il.",
-    "rep": {
-     "chaleureux": "Pour la ville, ça peut être bien pratique, c'est vrai.",
-     "drole": "Une voiture qui se gare toute seule dans une poche, j'achète.",
-     "curieux": "Vous vous verriez rouler dans une si petite voiture ?",
-     "sobre": "Oui, et elles sont moins chères."
-    }
-   }
-  ],
-  [
-   {
-    "dit": "Vous savez, les deux tableaux de Renoir volés à Cagnes-sur-Mer en septembre ? Ils ont été retrouvés !",
-    "rep": {
-     "chaleureux": "Ah, ça fait plaisir, une bonne nouvelle pour une fois !",
-     "drole": "Ils avaient juste pris des vacances, comme tout le monde.",
+     "chaleureux": "Quelle bonne nouvelle pour le musée et pour les visiteurs.",
+     "drole": "Il ne manque plus que le gentleman cambrioleur.",
      "curieux": "On sait où ils les ont retrouvés ?",
-     "sobre": "Oui, j'ai entendu ça."
+     "sobre": "Oui, ils avaient été volés en septembre."
     }
    },
    {
-    "dit": "Avant de retourner au musée, des scientifiques vont les examiner. Et les restaurer si besoin.",
+    "dit": "Avant de revenir au musée, des scientifiques vont les examiner. Et les restaurer si besoin.",
     "rep": {
-     "chaleureux": "C'est bien qu'on en prenne soin, ce sont des trésors.",
-     "drole": "Un petit bilan de santé pour Renoir. Docteur, c'est grave ?",
-     "curieux": "Vous pensez qu'ils ont pu être abîmés ?",
+     "chaleureux": "C'est rassurant, ils sont entre de bonnes mains.",
+     "drole": "Une visite médicale pour tableaux, j'aime bien l'idée.",
+     "curieux": "Vous pensez qu'ils ont été abîmés pendant le vol ?",
      "sobre": "C'est la procédure normale, j'imagine."
     }
    },
    {
-    "dit": "Moi, je me demande où ils étaient cachés tout ce temps. On dirait un film, cette histoire.",
+    "dit": "Moi, je me demande qui achète des tableaux volés. On ne peut même pas les montrer aux amis !",
     "rep": {
-     "chaleureux": "L'essentiel, c'est qu'ils reviennent pour que tout le monde les voie.",
-     "drole": "Sous un lit, dans un garage ? Le mystère reste entier.",
-     "curieux": "Vous aimeriez aller les voir, une fois revenus au musée ?",
-     "sobre": "On le saura peut-être plus tard."
+     "chaleureux": "C'est vrai, l'art est fait pour être partagé.",
+     "drole": "Il faut des amis très discrets, ou pas d'amis du tout.",
+     "curieux": "Vous aimez la peinture, vous ? Renoir en particulier ?",
+     "sobre": "Ces œuvres sont très difficiles à revendre."
     }
    }
   ]
