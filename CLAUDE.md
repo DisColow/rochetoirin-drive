@@ -22,7 +22,7 @@
   l'utilisateur) : à chaque push sur `godot` touchant `godot/`, l'action prend le projet + la branche `donnees`
   (fichiers générés par `pipeline/`), exporte, signe (secret `ANDROID_KEYSTORE`) et dépose
   `releases/RochetoirinSimulator-vX.Y.apk` (X.Y = `config/version` de `godot/project.godot`, à incrémenter avec
-  `version/code` d'`export_presets.cfg` à chaque livraison). Après toute régénération de données :
+  `version/code` d'`export_presets.cfg` **à chaque livraison : APK complet à chaque version depuis la v6.13**). Après toute régénération de données :
   `pipeline/publier_donnees.sh` (n'envoie que les fichiers modifiés) **avant** de pousser le code. Mettre à jour le
   lien « Télécharger » du README ; captures et comparatifs dans `docs/apercus/`.
 - Les données brutes (`tools/data/`) ne sont pas versionnées : elles se régénèrent avec les scripts `tools/fetch_*`.
@@ -173,14 +173,17 @@
   `INSTANCE_CUSTOM`, teinte dans `COLOR`, éclairage par le soleil d'après la normale de la texture, tri arrière→avant
   en GDScript, débris en volume avec rebond. **Ne pas utiliser `hint_depth_texture`** (soft particles) : tout le rendu
   3D devient noir en Compatibility. Essai visuel : `-- --fx-demo` (chaque roue émet une matière en continu).
-- **Mises à jour incrémentales** (depuis la v5.5) : `scenes/boot.tscn` (`scripts/boot.gd`, jamais mis à jour lui-même)
+- **Mises à jour incrémentales : DÉSACTIVÉES depuis la v6.13** (demande de l'utilisateur : impossible de tester ;
+  `MAJ := false` dans `boot.gd`, étape « paquet » retirée d'`apk.yml`, catalogue de la branche `maj` vidé ; chaque
+  version = APK complet, `version/code` + `config/version` montés à chaque livraison). Ancien fonctionnement, pour
+  mémoire (depuis la v5.5) : `scenes/boot.tscn` (`scripts/boot.gd`, jamais mis à jour lui-même)
   écran de démarrage (depuis la v5.8) : lit le catalogue `raw.githubusercontent.com/…/maj/catalogue.json` (branche
   `maj`), télécharge le paquet de la base de l'APK installé avec barre de progression (bouton « Jouer sans attendre »),
   charge `user://maj/maj-X.Y.pck` puis lance `main.tscn` ; `scripts/maj.gd` ne fait plus que valider après 40 s
   (et télécharge en arrière-plan pour les APK d'avant la v5.8). Essai sur PC : `MAJ_ESSAI_BASE=<code> godot --path godot`. `apk.yml` : le premier build d'un `version/code` exporte la base (`--export-pack`, release `base-CODE`) ; les
   suivants exportent un paquet cumulatif (`--export-patch --patches base.pck`) joint à la release `vX.Y` et inscrit
-  au catalogue. **Ne changer `version/code` que si un APK complet est nécessaire** (moteur Godot, permissions Android,
-  `boot.gd`, réglages du projet : `project.godot` n'est pas pris des paquets) ; sinon ne monter que `config/version`.
+  au catalogue. (Ancienne règle, caduque : ne changer `version/code` que si un APK complet était nécessaire (moteur Godot, permissions Android,
+  `boot.gd`, réglages du projet).)
 - **Éditeur de monde** : bâtiments refaits sur demande dans `pipeline/sources/bati_editeur.txt` (cleabs + relevé
   Street View, photos dans le cache privé `streetview/editeur/`), appliqués par `build_buildings.py`.
 - **Performances** : `scripts/perf_monitor.gd` (images/s mesurées en temps réel — le delta de Godot est plafonné

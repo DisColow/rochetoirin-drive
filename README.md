@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.2.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.2/RochetoirinSimulator-v6.2.apk)**
+**[RochetoirinSimulator-v6.13.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.13/RochetoirinSimulator-v6.13.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,7 +16,12 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.12 (mise à jour automatique) :
+Nouveautés de la v6.13 (APK complet à installer) :
+- **plus de mises à jour incrémentales** : chaque version est un APK complet à installer, sans téléchargement au
+  lancement ; les paquets des anciennes mises à jour sont supprimés du téléphone. Contient tout jusqu'à la v6.12
+  (rebonds des clients du taxi, actualité du jour, décor destructible, détection de l'image figée…).
+
+Nouveautés de la v6.12 :
 - **les clients du taxi rebondissent sur vos réponses** : ils répondent à vos questions, renvoient vos blagues,
   prolongent votre idée, puis enchaînent ; chaleureusement si votre ton leur plaît, plus sèchement sinon. À la fin de
   chaque sujet, ils ont le dernier mot.

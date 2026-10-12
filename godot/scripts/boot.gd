@@ -5,8 +5,12 @@
 ## Ce script ne fait jamais partie d'une mise à jour : il doit rester simple et sûr. Sécurité : si le jeu s'est arrêté
 ## deux fois de suite sans tenir 40 s après une mise à jour (scripts/maj.gd), elle est mise de côté et on repart de
 ## l'APK installé.
+## v6.13 (demande de l'utilisateur, impossible de tester avec les paquets) : MISES À JOUR INCRÉMENTALES DÉSACTIVÉES.
+## Chaque version est un APK complet ; l'écran ne fait plus que charger le jeu (barre de progression) et supprime les
+## paquets téléchargés par les versions précédentes. Pour réactiver : MAJ = true (et l'étape « paquet » d'apk.yml).
 extends Control
 
+const MAJ := false
 const DIR := "user://maj/"
 const CATALOGUE := "https://raw.githubusercontent.com/DisColow/rochetoirin-drive/maj/catalogue.json"
 
@@ -30,6 +34,10 @@ func _ready() -> void:
 		base = OS.get_environment("MAJ_ESSAI_BASE")
 	elif OS.has_feature("editor") or OS.get_cmdline_user_args().size() > 0 or OS.get_name() != "Android":
 		_lancer.call_deferred()     # essais, éditeur, PC : pas de mise à jour incrémentale (paquets Android)
+		return
+	if not MAJ:
+		_ecran()
+		_lancer.call_deferred()
 		return
 	_ecran()
 	_http = HTTPRequest.new()
@@ -154,7 +162,7 @@ func _lancer() -> void:
 	if _http:
 		_http.cancel_request()
 		DirAccess.remove_absolute(DIR + "telechargement.tmp")
-	var pck: String = etat.get_value("maj", "fichier", "")
+	var pck: String = etat.get_value("maj", "fichier", "") if MAJ else ""
 	var ok := pck != "" and str(etat.get_value("maj", "base", "")) == base and FileAccess.file_exists(DIR + pck)
 	var essais := int(etat.get_value("maj", "essais", 0))
 	if ok and essais >= 2:
@@ -172,11 +180,14 @@ func _lancer() -> void:
 	etat.save(DIR + "etat.cfg")
 	# anciennes mises à jour
 	for f in DirAccess.get_files_at(DIR):
-		if f.ends_with(".pck") and f != str(etat.get_value("maj", "fichier", "")):
+		if f.ends_with(".pck") and (not MAJ or f != str(etat.get_value("maj", "fichier", ""))):
 			DirAccess.remove_absolute(DIR + f)
-	var m = load("res://scripts/maj.gd").new()
-	m.name = "Maj"
-	get_tree().root.add_child.call_deferred(m)
+	if MAJ:
+		var m = load("res://scripts/maj.gd").new()
+		m.name = "Maj"
+		get_tree().root.add_child.call_deferred(m)
+	else:
+		DirAccess.remove_absolute(DIR + "etat.cfg")
 	if _info == null:
 		get_tree().change_scene_to_file.call_deferred("res://scenes/main.tscn")
 		return
