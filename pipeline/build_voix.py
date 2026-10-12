@@ -70,7 +70,14 @@ def collecte():
         for fil in fils:
             for n in fil:
                 client.append(n["dit"])
-                joueur += list(n["rep"].values())
+                for r in n["rep"].values():
+                    if isinstance(r, dict):           # v6.12 : réponse + rebonds du client
+                        joueur.append(r["t"])
+                        client += [r["ok"], r["ko"]]
+                    else:
+                        joueur.append(r)
+                if "silence" in n:
+                    client += [n["silence"]["ok"], n["silence"]["ko"]]
     client += d["bonjour"] + sum(d["fin"].values(), []) + d["trop"] + d["derange"] + d["esquive"] + d["silence"]
     # valeurs des variables
     vals = {"f": set(), "m": set()}

@@ -8,7 +8,7 @@
 ##   « bulle » ou touche P) ; ce qu'on apprend de ses goûts reste affiché.
 ## - Voix (v6.8) : chaque réplique est lue par la synthèse vocale du téléphone (voix_tel.gd), voix d'homme ou de
 ##   femme selon le client, hauteur et débit propres à chacun ; la réplique suivante attend la fin de la lecture.
-##   Sans voix française sur l'appareil : répliques enregistrées par pipeline/build_voix.py (Piper + talkie-walkie).
+##   Sans voix française sur l'appareil : le texte seul (les voix enregistrées de build_voix.py ne servent plus, v6.12).
 ## - Actualité (v6.11, issue #6) : une conversation sur deux porte sur la vraie actualité du jour (fils écrits chaque
 ##   matin par pipeline/actu.py dans l'action « Actualité du taxi », branche « actu ») ; paquet téléchargé au
 ##   lancement dans user://actu.json, gardé trois jours ; sans paquet récent, sujets habituels seulement.
@@ -49,6 +49,8 @@ var _hold := 0.0
 var _wait := 0.0
 var _wait_max := 1.0
 var _fil: Array = []              # fil de conversation en cours
+var _rebond := ""                 # rebond du client sur notre dernière réponse (dit avant sa réplique suivante)
+const SEP := " ¦ "                # entre le rebond et la suite (une bulle, une lecture ; morceaux des voix enregistrées)
 var _node := 0
 var _next := 0.0                  # le client reprend la parole dans…
 var _since := 99.0
@@ -197,6 +199,7 @@ func stop() -> void:
 	_queue.clear()
 	_step = {}
 	_fil = []
+	_rebond = ""
 	_box.visible = false
 	_stop_voice()
 	_clear_choices()
@@ -346,6 +349,7 @@ func _topic() -> String:
 	return subjects[0]
 
 func _start_fil(subject: String) -> void:
+	_rebond = ""
 	if subject == "actu":
 		var libres := range(_actu.size()).filter(func(i): return not _actu_vus.has(i))
 		var i: int = libres[_rng.randi() % libres.size()]
@@ -364,11 +368,17 @@ func _start_fil(subject: String) -> void:
 
 func _exchange() -> void:
 	if _node >= _fil.size():
+		# fin du fil : le dernier rebond du client clôt le sujet
+		if _rebond != "":
+			_client_says(_rebond, 1.0)
+			_rebond = ""
 		_fil = []
 		_next = lerpf(55.0, 14.0, client.bavard) * _rng.randf_range(0.8, 1.3)
 		return
 	var n: Dictionary = _fil[_node]
-	_client_says(n.dit, 0.3)
+	# le client rebondit sur notre réponse, puis enchaîne, dans la même bulle
+	_client_says((_rebond + SEP + str(n.dit)) if _rebond != "" else str(n.dit), 0.3)
+	_rebond = ""
 	# trois réponses sur quatre (toujours au moins une qui plaît), dans le désordre
 	var tons: Array = (n.rep as Dictionary).keys()
 	tons.sort_custom(func(a, b): return float(client.gouts.get(a, 0.0)) > float(client.gouts.get(b, 0.0)))
@@ -379,7 +389,7 @@ func _exchange() -> void:
 	pick.shuffle()
 	var opts := []
 	for t in pick:
-		opts.append({"t": n.rep[t], "ton": t})
+		opts.append({"t": n.rep[t].t if n.rep[t] is Dictionary else n.rep[t], "ton": t})
 	_queue.append({"kind": "choix", "options": opts, "timeout": func(): _answer("", "silence")})
 
 func _answer(text: String, ton: String) -> void:
@@ -392,11 +402,18 @@ func _answer(text: String, ton: String) -> void:
 	_verdict.text = ""
 	if text != "":
 		_player_says(text)
+	# rebond (v6.12) : sur ce qu'on vient de dire, plus chaleureux si le ton lui plaît (« ok »), plus sec sinon (« ko »)
+	_rebond = ""
+	if _node < _fil.size():
+		var n: Dictionary = _fil[_node]
+		var r = n.get("silence", null) if ton == "silence" else n.rep.get(ton, null)
+		if r is Dictionary and r.has("ok"):
+			_rebond = str(r.ok if d > 0.0 else r.ko)
 	# pas de réplique d'appréciation après notre réponse (elle cassait le rythme, v6.6) : le client enchaîne
 	# directement ; son humeur évolue en silence (jauge et pourboire)
 	# un client agacé deux fois de suite écourte le fil
 	if cat == "mal" and _node > 0 and _rng.randf() < 0.5:
-		_node = 99
+		_node = 99                # le rebond « ko » clôt alors le fil
 	_node += 1
 	_queue.append({"kind": "appel", "f": _exchange})
 	if _step.is_empty():
@@ -495,7 +512,7 @@ func _clear_choices() -> void:
 	_timer_bar.visible = false
 
 func _say(t: String, who: String) -> void:
-	var filled := _fill(t)
+	var filled := _fill(t.replace(SEP, " "))
 	_full = filled
 	_shown = 0.0
 	_text.text = ""
@@ -547,7 +564,8 @@ var _index := {}
 var _clips: Array = []
 
 func _make_voice() -> void:
-	if FileAccess.file_exists("res://assets/voix/index.json"):
+	# v6.12 (choix de l'utilisateur) : plus de voix enregistrées ; sans voix française sur le téléphone, le texte seul
+	if false and FileAccess.file_exists("res://assets/voix/index.json"):
 		var d = JSON.parse_string(FileAccess.get_file_as_string("res://assets/voix/index.json"))
 		if d is Dictionary:
 			_index = d
@@ -622,7 +640,7 @@ func _speak(t: String, who: String) -> float:
 	if VT.dispo():
 		# chauffeur : voix d'homme fixe ; client : voix de son sexe, propre à lui
 		var ch := VT.choisir("m", 7) if who == "joueur" else VT.choisir("f" if client.get("fem", false) else "m", int(client.get("graine", 0)))
-		var txt := _fill(t)
+		var txt := _fill(t.replace(SEP, " "))
 		var AU := preload("res://scripts/audio.gd")
 		AU.volume_db("voix")
 		_tts_id = VT.dire(txt, ch, float(AU.volumes["voix"]))
@@ -635,17 +653,18 @@ func _speak(t: String, who: String) -> float:
 	if not _index.has(v):
 		return 0.0
 	var idx: Dictionary = _index[v]
-	var a := _accord(t)
 	var parts: Array = []
-	if _re_var.search(a) == null:
-		parts.append(a)
-	else:
-		var pos := 0
-		for m in _re_var.search_all(a):
-			parts.append(a.substr(pos, m.get_start() - pos))
-			parts.append(str(client.get(m.get_string(1), "")))
-			pos = m.get_end()
-		parts.append(a.substr(pos))
+	for seg in _accord(t).split(SEP):
+		var a: String = seg
+		if _re_var.search(a) == null:
+			parts.append(a)
+		else:
+			var pos := 0
+			for m in _re_var.search_all(a):
+				parts.append(a.substr(pos, m.get_start() - pos))
+				parts.append(str(client.get(m.get_string(1), "")))
+				pos = m.get_end()
+			parts.append(a.substr(pos))
 	var dur := 0.0
 	for p in parts:
 		var s: String = (p as String).strip_edges()

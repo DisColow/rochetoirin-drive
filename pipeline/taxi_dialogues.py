@@ -614,7 +614,15 @@ DERANGE = ["Je préfère le silence, si ça ne vous dérange pas.", "Désolé{e}
 SILENCE = ["Hm.", "…", "Vous ne dites rien ?"]
 
 
+# rebonds du client (v6.12) : fils réécrits par taxi_rebonds.py, relus, versionnés ici ; ils remplacent FILS :
+# rep[ton] = {t: réponse du joueur, ok: rebond si le ton plaît au client, ko: sinon}, silence = {ok, ko}
+FILS_REBONDS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sources", "taxi_fils.json")
+
+
 def main():
+    global FILS
+    if os.path.exists(FILS_REBONDS):
+        FILS = json.load(open(FILS_REBONDS, encoding="utf-8"))
     data = dict(version=6, tons=TONS, caracteres=CARACTERES, prenoms=PRENOMS, metiers=METIERS, loisirs=LOISIRS,
                 animaux=ANIMAUX, familles=FAMILLES, questions=QUESTIONS, esquive=ESQUIVE, fils=FILS, bonjour=BONJOUR,
                 fin=FIN, trop=TROP, derange=DERANGE, silence=SILENCE)

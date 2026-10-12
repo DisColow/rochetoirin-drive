@@ -121,7 +121,15 @@
   commandes de conduite (◀ ▶ FREIN GAZ) restent des disques translucides. Toute nouvelle fenêtre : `UI.panel()`.
 - **Taxi : conversations** (`scripts/taxi_talk.gd`, textes `data/taxi.json` générés par `pipeline/taxi_dialogues.py`,
   versionnés) : caractères aux goûts cachés, fils de trois échanges (le client parle, on répond sur un ton —
-  chaleureux, drôle, curieux, sobre, ou silence —, puis il enchaîne : **pas de réplique d'appréciation** après notre réponse, demande de l'utilisateur, v6.6 ; son humeur évolue en silence), jauge d'humeur (plus d'indicateurs ♥ / • / ✗ depuis la v6.2), indices
+  chaleureux, drôle, curieux, sobre, ou silence —, puis il enchaîne : **pas de réplique d'appréciation** après notre réponse, demande de l'utilisateur, v6.6 ; son humeur évolue en silence).
+  **Rebonds** (v6.12, demande de l'utilisateur) : le client rebondit sur ce qu'on vient de dire (répond à la question,
+  renvoie la blague) **sans jamais juger la réponse**, au début de sa réplique suivante (même bulle, même lecture,
+  séparateur `SEP` « ¦ ») ; au dernier nœud, le rebond clôt le fil. Deux rebonds par réponse : `ok` si le ton plaît
+  au client (goût > 0), `ko` sinon (plus sec, toujours sur le fond), et `silence: {ok, ko}`. Format :
+  `rep[ton] = {t, ok, ko}` (l'ancien format texte reste lu). Écrits par l'API Claude (`pipeline/taxi_rebonds.py`,
+  action `taxi_rebonds.yml` -> branche `rebonds`), relus, versionnés dans `pipeline/sources/taxi_fils.json`, repris
+  par `taxi_dialogues.py` ; l'actualité du matin (`actu.py`) les écrit aussi. **Plus de voix enregistrées** (choix de
+  l'utilisateur, v6.12) : voix du téléphone, sinon texte seul. Jauge d'humeur (plus d'indicateurs ♥ / • / ✗ depuis la v6.2), indices
   (allure du client, préférences apprises en lui posant des questions avec le bouton « bulle »), pourboire selon la
   satisfaction. **Voix du téléphone** (depuis la v6.8, demande de l'utilisateur, `scripts/voix_tel.gd`) : synthèse
   vocale du système (`DisplayServer.tts_*`, réglage `audio/general/text_to_speech` déjà actif) ; voix française

@@ -16,6 +16,12 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v6.12 (mise à jour automatique) :
+- **les clients du taxi rebondissent sur vos réponses** : ils répondent à vos questions, renvoient vos blagues,
+  prolongent votre idée, puis enchaînent ; chaleureusement si votre ton leur plaît, plus sèchement sinon. À la fin de
+  chaque sujet, ils ont le dernier mot.
+- sans voix française sur le téléphone, les répliques s'affichent seulement (plus de voix enregistrées).
+
 Nouveautés de la v6.11 (mise à jour automatique) :
 - **les clients du taxi parlent de la vraie actualité** : une conversation sur deux porte sur ce qui se passe en ce
   moment (Le Dauphiné Libéré pour Bourgoin-Jallieu et l'Isère, France Info pour le national, la météo du jour à
