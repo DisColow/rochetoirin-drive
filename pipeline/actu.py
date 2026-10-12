@@ -92,6 +92,7 @@ def meteo():
 
 
 TONS = ["chaleureux", "drole", "curieux", "sobre"]
+_TXT = {"type": "string"}
 SCHEMA = {
     "type": "object",
     "properties": {
@@ -100,18 +101,24 @@ SCHEMA = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "sujet": {"type": "string"},
+                    "sujet": _TXT,
                     "noeuds": {
                         "type": "array",
                         "items": {
                             "type": "object",
                             "properties": {
-                                "dit": {"type": "string"},
+                                "dit": _TXT,
+                                # réponse du joueur et rebonds du client (v6.12) : ok si le ton lui plaît, ko sinon
                                 "rep": {"type": "object",
-                                        "properties": {t: {"type": "string"} for t in TONS},
+                                        "properties": {t: {"type": "object",
+                                                           "properties": {"t": _TXT, "ok": _TXT, "ko": _TXT},
+                                                           "required": ["t", "ok", "ko"], "additionalProperties": False}
+                                                       for t in TONS},
                                         "required": TONS, "additionalProperties": False},
+                                "silence": {"type": "object", "properties": {"ok": _TXT, "ko": _TXT},
+                                            "required": ["ok", "ko"], "additionalProperties": False},
                             },
-                            "required": ["dit", "rep"], "additionalProperties": False,
+                            "required": ["dit", "rep", "silence"], "additionalProperties": False,
                         },
                     },
                 },
@@ -129,9 +136,13 @@ l'actualité du jour, comme dans un vrai taxi. Les répliques sont lues à voix 
 Écris des fils de conversation, chacun sur UN sujet d'actualité tiré de la liste fournie (ou de la météo du jour) :
 - chaque fil a exactement 3 nœuds ; dans chaque nœud, « dit » est ce que dit le client, puis « rep » donne quatre
   réponses possibles du chauffeur, une par ton : chaleureux, drole, curieux, sobre ;
-- le nœud suivant enchaîne naturellement, quelle que soit la réponse choisie (le client poursuit son idée, raconte,
-  donne son avis) ; il ne commente jamais la réponse du chauffeur (pas de « ah, c'est gentil », « vous avez raison »,
-  « très drôle ») : le jeu choisit le nœud suivant sans savoir ce qu'a répondu le joueur ;
+- pour chaque réponse du chauffeur (« t »), écris deux REBONDS du client, dits juste avant sa réplique suivante
+  (dans la même bulle) : « ok » si ce ton lui plaît (il rebondit volontiers), « ko » s'il ne lui plaît pas (plus sec,
+  plus court, mais toujours sur le fond) ; et pour le silence du chauffeur (« silence » : ok, ko) ; le rebond reprend
+  ce que le chauffeur vient de dire (répond à sa question, renvoie sa blague, prolonge son idée), en 6 à 20 mots ; il
+  ne JUGE JAMAIS la réponse (pas de « c'est gentil », « vous avez raison », « très drôle », « bonne question ») ;
+- la réplique « dit » suivante doit aller après n'importe quel rebond (le client poursuit son idée) ; aux nœuds 1 et 2,
+  le rebond ne pose pas de question et s'enchaîne avec le « dit » suivant ; au nœud 3, le rebond clôt le sujet ;
 - le premier « dit » amène le sujet comme un vrai passager (« Vous avez vu, pour… ? », « Il paraît que… ») ;
 - reformule toujours, ne recopie jamais un titre ; reste fidèle aux faits des titres, n'invente aucun détail
   factuel (chiffres, noms, lieux) qui n'y figure pas ; le client peut en revanche donner un avis personnel, nuancé,
@@ -158,7 +169,7 @@ def generer(loc, nat, met, jour):
     lignes += ["- [%s] %s%s" % (t["date"], t["titre"], (" — " + t["resume"]) if t["resume"] else "") for t in nat]
     with client.beta.messages.stream(
         model=MODELE,
-        max_tokens=32000,
+        max_tokens=64000,
         betas=["server-side-fallback-2026-07-01"],
         fallbacks="default",                    # repli serveur si un modèle décline (aucun sujet n'est exclu)
         system=CONSIGNES,
@@ -194,11 +205,18 @@ def valider(fils):
         noeuds = []
         for n in f.get("noeuds", [])[:3]:
             dit = propre(n.get("dit", ""), 220)
-            rep = {t: propre(n.get("rep", {}).get(t, ""), 110) for t in TONS}
-            if dit is None or any(v is None for v in rep.values()) or SPORT.search(dit):
+            rep, ok = {}, dit is not None and not SPORT.search(dit or "")
+            for t in TONS:
+                r = n.get("rep", {}).get(t, {})
+                v = {"t": propre(r.get("t", ""), 110), "ok": propre(r.get("ok", ""), 170), "ko": propre(r.get("ko", ""), 170)}
+                ok = ok and None not in v.values()
+                rep[t] = v
+            si = n.get("silence", {})
+            sil = {"ok": propre(si.get("ok", ""), 170), "ko": propre(si.get("ko", ""), 170)}
+            if not ok or None in sil.values():
                 noeuds = []
                 break
-            noeuds.append({"dit": dit, "rep": rep})
+            noeuds.append({"dit": dit, "rep": rep, "silence": sil})
         if len(noeuds) == 3:
             out.append({"sujet": propre(f.get("sujet", ""), 120) or "", "noeuds": noeuds})
     return out
