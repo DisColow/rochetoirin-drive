@@ -58,7 +58,8 @@ func _ready() -> void:
 
 var settings: Control
 
-const CREDITS := """Voix du taxi : synthèse vocale de l'appareil ; à défaut, synthèse Piper (rhasspy) ; voix « Siwis » (Université d'Édimbourg, CC BY 4.0) et « Gilles » (CC0), effet talkie-walkie ffmpeg.
+const CREDITS := """Enseigne de la boulangerie : polices Kaushan Script et Caveat (Pablo Impallari, SIL Open Font License).
+Voix du taxi : synthèse vocale de l'appareil ; à défaut, synthèse Piper (rhasspy) ; voix « Siwis » (Université d'Édimbourg, CC BY 4.0) et « Gilles » (CC0), effet talkie-walkie ffmpeg.
 Voiture : « Ford Ranger Raptor 2019 » par David_Holiday (Sketchfab, licence CC BY 4.0), repeint en noir.
 Lampadaires : « Street Lantern » par Samuel Francis Johnson (Oneironauticus) (Sketchfab, licence CC BY 4.0).
 Soucoupe du gardien : « UFO » par sebslom (sketchfab.com/3d-models), licence CC BY 4.0.

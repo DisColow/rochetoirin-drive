@@ -246,3 +246,16 @@
   sinon grille de secours `world/relief/hauteurs.bin`) — **ne plus appeler `terrain.data.get_height`**. Essais :
   `godot --path godot --script res://tools/essai_relief.gd -- --relief-debug` (trajet de 16 km, mémoire, durées),
   captures `{"relief": 99999}` (tout le vrai relief) contre `{"relief": 1800}`, `"nuages": false` pour comparer.
+- **Bâtiments sur mesure** (v6.17, `scripts/sur_mesure.gd` + `sur_mesure.gdshader`, `world/sur_mesure.json`) : un
+  modèle par bâtiment refait d'après Street View, façades « en aplat » (choix de l'utilisateur : ouvertures, volets,
+  devanture, enseignes peintes dans un atlas avec leurs ombres ; en volume seulement toits, débords, annexes,
+  escaliers, rampes, enseignes en drapeau…). Le bâtiment BD TOPO et la devanture remplacés (`remplace_bati`,
+  `remplace_commerce`) sont sautés par `build_buildings.py` et `build_shops.py`. **Boulangerie de Rochetoirin**
+  (`pipeline/boulangerie/` : `releve.md` = relevé, `calage.py` = fil de fer projeté sur les photos,
+  `build_boulangerie.py` = atlas + modèle, `abords.py` = haie/grillage retirés devant la façade, à relancer après
+  `build_fences.py`) ; photos dans le cache privé `streetview/boulangerie/` (index : position exacte de chaque
+  caméra). Mesures par visée depuis plusieurs panoramas (position, cap, inclinaison, champ connus). Comparatif :
+  captures `--shots` aux mêmes positions/caps que les photos, `--resolution 640x640` (champ vertical = horizontal).
+  **Photos Google jamais dans ce dépôt** (planches photo/jeu : cache privé seulement). Régénérer les bâtiments
+  refait toutes les tuiles : vérifier que seules celles du bâtiment changent (empreintes contre la branche
+  `donnees`) et remettre les `.import` publiés (Godot leur donne de nouveaux identifiants).

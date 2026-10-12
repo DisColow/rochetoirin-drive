@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.16.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.16/RochetoirinSimulator-v6.16.apk)**
+**[RochetoirinSimulator-v6.17.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.17/RochetoirinSimulator-v6.17.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,15 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v6.17 (APK complet à installer) :
+- **la boulangerie de Rochetoirin, refaite d'après Street View** (à l'angle du carrefour, à côté du restaurant) :
+  dimensions relevées sur les photos (9,3 × 7,7 m, deux niveaux et combles, faîtage à 9,3 m), toit à deux pans avec
+  son petit pignon côté rue, pignon de la devanture côté carrefour, annexe à terrasse et escalier extérieur en bois,
+  rampe d'accès avec sa rambarde, enseigne en drapeau. Façades « en aplat » comme dans les anciens GTA : fenêtres,
+  volets, rideaux métalliques, devanture violette et lettrage doré peints sur les murs. Enseigne parodique « Chez
+  Flonflon », affiche des horaires (gribouillée). La haie et le grillage qui n'existent pas devant la façade sont
+  retirés.
 
 Nouveautés de la v6.16 (APK complet à installer) :
 - **relief chargé autour de la voiture** (issue #11) : au lieu de lire d'un bloc les 173 kilomètres carrés de relief

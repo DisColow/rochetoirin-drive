@@ -39,17 +39,17 @@ ESC = dict(a0=-0.45, a1=0.55, b_pied=12.9, b_haut=9.8)    # escalier extérieur 
 RAMPE = dict(a0=-1.35, b0=0.45, b_plat=3.3, b1=5.6, h=0.15)  # plateforme devant la vitrine, rampe vers le sud
 
 # couleurs relevées sur les photos (corrigées de l'éclairage)
-C_MUR = (206, 189, 175)
+C_MUR = (198, 181, 162)
 C_VIOLET = (92, 54, 70)
 C_ORANGE = (226, 146, 92)
 C_CREME = (241, 205, 170)
 C_OR = (222, 182, 96)
-C_RIDEAU = (206, 200, 190)
+C_RIDEAU = (178, 172, 162)
 C_VOLET_GRIS = (44, 46, 50)
-C_VOLET_BOIS = (98, 62, 40)
+C_VOLET_BOIS = (80, 50, 34)
 C_TUILE = (150, 78, 56)
-C_BOIS = (98, 74, 58)
-C_BOIS_GRIS = (112, 98, 86)
+C_BOIS = (122, 96, 76)
+C_BOIS_GRIS = (128, 114, 100)
 C_ZINC = (150, 150, 146)
 
 ATLAS = 2048
@@ -465,14 +465,16 @@ def construire(Z):
     M = Mesh()
     C = []          # collisions : boîtes (a0, a1, b0, b1, y0, y1)
     zE, zN, zS, zW = Z["E"], Z["N"], Z["S"], Z["W"]
-    V0 = -0.05          # sous le sol, la texture reprend le pied du mur (pas la zone voisine de l'atlas)
+    V0 = 0.02           # sous le sol, la texture reprend le pied du mur (pas la zone voisine de l'atlas)
     # ---- murs du corps principal (façade est : a = 0 ; nord : b = 0 ; ouest : a = L ; sud : b = D)
     U = lambda b: D - b
-    M.quad([(0, D, BAS), (0, 0, BAS), (0, 0, EGOUT), (0, D, EGOUT)],
-           [zE.uv(U(D), V0), zE.uv(U(0), V0), zE.uv(U(0), EGOUT), zE.uv(U(D), EGOUT)], MUR)
+    for (y0, y1, v0, v1) in ((BAS, 0.0, V0, V0), (0.0, EGOUT, 0.0, EGOUT)):   # partie enterrée : pied du mur étiré
+        M.quad([(0, D, y0), (0, 0, y0), (0, 0, y1), (0, D, y1)],
+               [zE.uv(U(D), v0), zE.uv(U(0), v0), zE.uv(U(0), v1), zE.uv(U(D), v1)], MUR)
     M.tri([(0, D, EGOUT), (0, 0, EGOUT), (0, BR, FAITE)], [zE.uv(0, EGOUT), zE.uv(D, EGOUT), zE.uv(D / 2, FAITE)], MUR)
-    M.quad([(0, 0, BAS), (L, 0, BAS), (L, 0, EGOUT), (0, 0, EGOUT)],
-           [zN.uv(0, V0), zN.uv(L, V0), zN.uv(L, EGOUT), zN.uv(0, EGOUT)], MUR)
+    for (y0, y1, v0, v1) in ((BAS, 0.0, V0, V0), (0.0, EGOUT, 0.0, EGOUT)):
+        M.quad([(0, 0, y0), (L, 0, y0), (L, 0, y1), (0, 0, y1)],
+               [zN.uv(0, v0), zN.uv(L, v0), zN.uv(L, v1), zN.uv(0, v1)], MUR)
     g0, g1 = XG["c"] - XG["l"] / 2, XG["c"] + XG["l"] / 2
     M.tri([(g0, 0, EGOUT), (g1, 0, EGOUT), (XG["c"], 0, XG["h"])], [zN.uv(g0, EGOUT), zN.uv(g1, EGOUT), zN.uv(XG["c"], XG["h"])], MUR)
     M.quad([(L, D, 0), (0, D, 0), (0, D, EGOUT), (L, D, EGOUT)],
@@ -520,10 +522,11 @@ def construire(Z):
     za, zas = Z["AE"], Z["AS"]
     Ua = lambda b: ANX["b1"] - b
     a0, a1, b0, b1, h = ANX["a0"], ANX["a1"], ANX["b0"], ANX["b1"], ANX["h"]
-    M.quad([(a0, b1, BAS), (a0, b0, BAS), (a0, b0, h), (a0, b1, h)],
-           [za.uv(Ua(b1), -0.05), za.uv(Ua(b0), -0.05), za.uv(Ua(b0), h), za.uv(Ua(b1), h)], MUR)
-    M.quad([(a1, b1, BAS), (a0, b1, BAS), (a0, b1, h), (a1, b1, h)],
-           [zas.uv(0, -0.05), zas.uv(a1 - a0, -0.05), zas.uv(a1 - a0, h), zas.uv(0, h)], MUR)
+    for (y0, y1, v0, v1) in ((BAS, 0.0, V0, V0), (0.0, h, 0.0, h)):
+        M.quad([(a0, b1, y0), (a0, b0, y0), (a0, b0, y1), (a0, b1, y1)],
+               [za.uv(Ua(b1), v0), za.uv(Ua(b0), v0), za.uv(Ua(b0), v1), za.uv(Ua(b1), v1)], MUR)
+        M.quad([(a1, b1, y0), (a0, b1, y0), (a0, b1, y1), (a1, b1, y1)],
+               [zas.uv(0, v0), zas.uv(a1 - a0, v0), zas.uv(a1 - a0, v1), zas.uv(0, v1)], MUR)
     boite(M, Z, "beton", a0, a1, b0, b1, h - 0.05, h, PETIT)                        # dalle de la terrasse
     C.append((a0, a1, b0, b1, BAS, h))
     # balustrade : lisse haute, lisse basse, lames verticales (côtés est et sud)
