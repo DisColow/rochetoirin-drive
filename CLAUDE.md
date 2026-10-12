@@ -182,7 +182,10 @@
 - **Mémoire vidéo** (image figée sur le téléphone : la 3D cesse d'être dessinée quand la mémoire vidéo sature, l'écran
   alterne alors entre les deux dernières images) : **toute texture de plus de 4 Mo doit être importée compressée**
   (`compress/mode=2`, sauf pixel art de `assets/ui` et `assets/cockpit`) ; le sprite de la voiture n'est chargé qu'à
-  la demande (`car.set_sprite_mode`). Contrôle : `-- --mem-test` (mémoire vidéo, textures, tampons).
+  la demande (`car.set_sprite_mode`). Contrôle : `-- --mem-test` (mémoire vidéo, textures, tampons). **Le gel persiste
+  en v6.7 (issue #4)** : témoin de rendu depuis la v6.10 (`crash_report.gd` : vignette 4 × 4 px relue toutes les 5 s de
+  temps réel ; deux échecs -> `[figé]` dans le journal, `user://fige.txt`, bandeau « Image figée » au lancement
+  suivant avec rapport) ; essai : `-- --fige-test` (simule l'arrêt du rendu). Attendre un rapport avant de corriger.
 - **Décor destructible** (v6.9, issue #7, `scripts/casse.gd`) : panneaux de signalisation (positions
   `world/panneaux.bin` relevées dans les tuiles de routes par `pipeline/build_casse.py`), lampadaires (`poles.pieds`,
   `poles.casser`), clôtures (grillages, panneaux, poteaux : `fences.lignes`, `fences.breche` ; **pas les murets ni les
