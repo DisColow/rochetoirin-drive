@@ -418,6 +418,11 @@ def xf(model, origin, right, scale=(1, 1, 1), custom=(0, 0, 0, 0)):
     return (MID[model],) + tuple(B.T.ravel()) + tuple(origin) + tuple(custom)
 
 
+SUR_MESURE = set()
+if os.path.exists("../godot/world/sur_mesure.json"):
+    SUR_MESURE = {c for v in json.load(open("../godot/world/sur_mesure.json")).values() for c in v.get("remplace_commerce", [])}
+
+
 def main():
     os.makedirs(OUT_A, exist_ok=True)
     shutil.rmtree(OUT_W, ignore_errors=True); os.makedirs(OUT_W)
@@ -525,6 +530,8 @@ def main():
         if not zone.contains(P):
             continue
         key = e["id"]
+        if (key if isinstance(key, str) else "%s%d" % (e["type"][0], key)) in SUR_MESURE:
+            continue                        # commerce refait sur mesure (sur_mesure.json)
         title, sub, bg, fg, font, style, acc = sign_for(t, kind, key)
         fi = FICHES.get(key if isinstance(key, str) else "%s%d" % (e["type"][0], key))
         typ = fi["type"] if fi and fi["type"] != "X" else None

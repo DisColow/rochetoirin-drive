@@ -1,0 +1,12 @@
+{
+ "origine": [40.3, 408.5],
+ "angle": 24.6,
+ "longueur": 9.1,
+ "profondeur": 8.0,
+ "egout": 6.0,
+ "faitage": 8.6,
+ "debord_bas": 0.5,
+ "debord_pignon": 0.4,
+ "pignon_rue": {"centre": 4.5, "largeur": 2.6, "sommet": 7.6},
+ "ouvertures": []
+}
