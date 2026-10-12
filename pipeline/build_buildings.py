@@ -1045,6 +1045,12 @@ def main():
     ortho = Ortho()
     blds = load()
     print(len(blds), "bâtiments dans la zone")
+    # bâtiments refaits sur mesure (boulangerie/build_boulangerie.py…) : modèles à part, posés par sur_mesure.gd
+    sm = "../godot/world/sur_mesure.json"
+    if os.path.exists(sm):
+        hors = {c for v in json.load(open(sm)).values() for c in v.get("remplace_bati", [])}
+        blds = [(p, g) for p, g in blds if p.get("cleabs") not in hors]
+        print(len(hors), "bâtiments remplacés par des modèles sur mesure")
     lim = os.environ.get("BLD_BOX")
     if lim:
         x0, z0, x1, z1 = map(float, lim.split(","))

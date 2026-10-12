@@ -203,6 +203,7 @@ func _ready() -> void:
 	add_child(shops)
 	shops.target = car
 	shops.update_now()
+	add_child(preload("res://scripts/sur_mesure.gd").new())      # bâtiments refaits d'après Street View (boulangerie)
 	await _etape("Terrains de sport")
 	sport = preload("res://scripts/sport.gd").new()
 	sport.terrain = terrain
