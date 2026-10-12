@@ -220,6 +220,14 @@
   points, simple/fence), débris physique 15 s, poussière et éclats (`dust.gd`), son selon la matière, vitesse réduite
   selon l'objet. Tout réapparaît au rechargement de la tuile. Essai : `-- --casse-test [--casse-debug]` (captures
   `user://shots/casse_*.png`).
+- **Écran de chargement** (v6.14, `scripts/chargement.gd`) : `main._ready` construit le monde par **étapes nommées**
+  (`await _etape("Routes")`…), une image dessinée entre chaque ; le voile (`voile_demarrage.gd`, posé aussi sur PC)
+  affiche l'étape et une barre calée sur la durée de chaque étape mesurée au lancement précédent
+  (`user://chargement.cfg`, défauts `DEFAUT`). Pendant le chargement : `set_process(false)`, voiture tenue
+  (`car.hold`) ; les essais attendent `Chargement.fini`. Terrain3D lit ses 173 régions d'un bloc et ignore le cache de
+  Godot (les précharger doublait le temps) : l'étape « Relief » reste la seule longue sans image. Essai :
+  `-- --capture-chargement` (captures `user://shots/chargement_N.png`). Toute nouvelle grosse initialisation :
+  l'ajouter dans une étape (ou en créer une, avec sa durée par défaut).
 - **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
   souples, pas d'à-coups de chargement). Voiture coincée (gaz ou frein enfoncé, moins de 1,5 m parcouru en 3 s, même
   si la vitesse calculée reste élevée en vibrant contre un obstacle) : remise sur la route automatique (`car.gd`).

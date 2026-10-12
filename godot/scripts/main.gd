@@ -36,6 +36,7 @@ var perf: Node                     # mesure des performances (scripts/perf_monit
 ## Mode sûr : si le démarrage précédent n'est pas allé jusqu'au bout (plantage pendant le chargement ou les
 ## premières images), on démarre sans le shader remplaçant du relief et avec moins d'anticrénelage.
 const BOOT_FLAG := "user://demarrage.flag"
+const Chargement := preload("res://scripts/chargement.gd")
 var safe_mode := false
 
 ## Préchauffage des shaders : sur le téléphone, chaque matériau est compilé la première fois qu'il est dessiné (à-coup
@@ -77,11 +78,13 @@ func _prechauffer() -> void:
 
 ## Voile de démarrage (boot.gd) : effacé après les premières images du jeu et le préchauffage des shaders.
 func _fermer_voile() -> void:
+	Chargement.etape_suivante("Préparation des effets")
 	for k in 2:
 		await get_tree().process_frame
 	await _prechauffer()
 	for k in 2:
 		await get_tree().process_frame
+	Chargement.terminer()
 	var v := get_tree().root.get_node_or_null("VoileDemarrage")
 	if v and v.has_method("fermer"):
 		v.fermer()
@@ -96,10 +99,21 @@ func _ready() -> void:
 	RenderingServer.frame_pre_draw.connect(_env_cam)
 	if safe_mode:
 		print("mode sûr : le démarrage précédent a planté")
+	# démarrage par étapes (v6.14) : une image est dessinée entre chaque étape, le voile affiche l'étape et la barre
+	set_process(false)
+	set_physics_process(false)
+	Chargement.commencer()
 	var skip := OS.get_environment("RS_SKIP")
+	await _etape("Ciel et lumière")
 	if not skip.contains("env"): _environment()
-	if not skip.contains("terrain"): _terrain()
+	await _etape("Relief")
+	if not skip.contains("terrain"):
+		# (Terrain3D lit toutes ses régions d'un bloc et ignore le cache de Godot : les lire avant en arrière-plan
+		# doublait le temps, essai v6.14 ; cette étape reste donc la seule longue sans image)
+		_terrain()
+	await _etape("Horizon")
 	if not skip.contains("far"): _far()
+	await _etape("Routes")
 	roads = preload("res://scripts/roads.gd").new()
 	add_child(roads)
 	var spawn: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://world/spawn.json"))
@@ -107,6 +121,7 @@ func _ready() -> void:
 	car.road_pts = FileAccess.get_file_as_bytes("res://world/teleport.bin").to_float32_array()
 	add_child(car)
 	car.place(Vector3(spawn.x, spawn.y + 0.6, spawn.z), float(spawn.heading))
+	car.hold(600.0)                    # immobile pendant la suite du chargement (relâchée à la fin)
 	# essai : --drive-from=x,y,z,cap (départ de l'essai de conduite ailleurs qu'au point de départ)
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--drive-from="):
@@ -114,18 +129,22 @@ func _ready() -> void:
 			car.place(Vector3(float(v[0]), float(v[1]), float(v[2])), float(v[3]))
 	roads.target = car
 	roads.update_now()
+	await _etape("Bâtiments")
 	buildings = preload("res://scripts/buildings.gd").new()
 	add_child(buildings)
 	buildings.target = car
 	buildings.update_now()
+	await _etape("Clôtures et haies")
 	fences = preload("res://scripts/fences.gd").new()
 	add_child(fences)
 	fences.target = car
 	fences.update_now()
+	await _etape("Rivières et étangs")
 	water = preload("res://scripts/water.gd").new()
 	add_child(water)
 	water.target = car
 	water.update_now()
+	await _etape("Arbres")
 	vegetation = preload("res://scripts/vegetation.gd").new()
 	var cfg := ConfigFile.new()
 	cfg.load("user://reglages.cfg")
@@ -134,6 +153,7 @@ func _ready() -> void:
 	add_child(vegetation)
 	vegetation.target = car
 	vegetation.update_now()
+	await _etape("Champs et herbe")
 	crops = preload("res://scripts/crops.gd").new()
 	crops.level = vegetation.level
 	crops.terrain = terrain
@@ -157,10 +177,12 @@ func _ready() -> void:
 	weather = int(cfg.get_value("affichage", "meteo", 0))
 	set_time(int(cfg.get_value("affichage", "heure", 0)))
 	_wet = _wet_target                                    # au démarrage : sol déjà mouillé s'il pleut
+	await _etape("Poteaux et lampadaires")
 	poles = preload("res://scripts/poles.gd").new()
 	add_child(poles)
 	poles.target = car
 	poles.update_now()
+	await _etape("Voitures garées et mobilier")
 	props = preload("res://scripts/props.gd").new()
 	add_child(props)
 	props.target = car
@@ -169,24 +191,29 @@ func _ready() -> void:
 	add_child(pools)
 	pools.target = car
 	pools.update_now()
+	await _etape("Commerces")
 	shops = preload("res://scripts/shops.gd").new()
 	add_child(shops)
 	shops.target = car
 	shops.update_now()
+	await _etape("Terrains de sport")
 	sport = preload("res://scripts/sport.gd").new()
 	sport.terrain = terrain
 	add_child(sport)
 	sport.target = car
 	sport.update_now()
+	await _etape("Animaux")
 	animaux = preload("res://scripts/animaux.gd").new()
 	add_child(animaux)
 	animaux.target = car
 	animaux.update_now()
+	await _etape("Autoroutes")
 	autoroute = preload("res://scripts/autoroute.gd").new()
 	add_child(autoroute)
 	autoroute.target = car
 	autoroute.update_now()
 	poles.set_night(1.0 if time_of_day == 3 else (0.35 if time_of_day == 2 else 0.0))
+	await _etape("Voiture, sons et radio")
 	# gardien des limites de la carte
 	guardian = preload("res://scripts/guardian.gd").new()
 	guardian.car = car
@@ -252,6 +279,7 @@ func _ready() -> void:
 	add_child(gl)
 	post.visible = not OS.get_environment("RS_SKIP").contains("post")
 	set_post(vegetation.level)
+	await _etape("Interface")
 	var hud = preload("res://scripts/hud.gd").new()
 	hud.name = "HUD"
 	hud.car = car
@@ -277,9 +305,17 @@ func _ready() -> void:
 	perf.car = car; perf.names = hud.names
 	add_child(perf)
 	perf.releve_fini.connect(hud.releve_perf_fini)
+	set_process(true)
+	set_physics_process(true)
+	car.hold(0.5)
 	if OS.get_cmdline_user_args().has("--perf-breakdown"):
 		_perf_breakdown()
 	_fermer_voile()
+
+## Étape suivante du démarrage : affichée par le voile, puis une image est dessinée avant de continuer.
+func _etape(nom: String) -> void:
+	Chargement.etape_suivante(nom)
+	await get_tree().process_frame
 
 ## Téléportation sans à-coup : appliquée une fois le jeu repris (un déplacement fait pendant la pause est annulé par
 ## le moteur physique), routes et bâtiments de la destination chargés d'abord, voiture maintenue immobile 0,6 s.
@@ -667,6 +703,8 @@ func _enter_tree() -> void:
 			_shots.call_deferred(a.trim_prefix("--shots="))
 
 func _shots(path: String) -> void:
+	while not Chargement.fini:                 # le monde se construit par étapes (v6.14)
+		await get_tree().process_frame
 	var list: Array = JSON.parse_string(FileAccess.get_file_as_string(path))
 	set_process(false)
 	cam_rig.set_process(false)

@@ -370,7 +370,9 @@ func _vieillir(dt: float) -> void:
 ## Lance la voiture (vitesse imposée, 45 km/h) sur l'objet le plus proche de chaque genre et enregistre des captures
 ## dans user://shots/casse_<genre>_<n>.png ; le journal dit ce qui a été renversé.
 func essai() -> void:
-	for i in 240:
+	while not preload("res://scripts/chargement.gd").fini:
+		await get_tree().process_frame
+	for i in 120:
 		await get_tree().physics_frame
 	DirAccess.make_dir_recursive_absolute("user://shots")
 	var genres := ["panneau", "lampadaire", "arbre", "cloture"]

@@ -189,6 +189,9 @@ func _lancer() -> void:
 	else:
 		DirAccess.remove_absolute(DIR + "etat.cfg")
 	if _info == null:
+		# PC, essais : pas d'écran de boot, mais le voile de démarrage montre quand même les étapes
+		if not Array(OS.get_cmdline_user_args()).any(func(a): return a.begins_with("--shots=")):
+			_voile()
 		get_tree().change_scene_to_file.call_deferred("res://scenes/main.tscn")
 		return
 	# chargement du monde en tâche de fond, barre qui avance (sinon l'écran reste figé une minute sur le téléphone)
@@ -210,12 +213,12 @@ func _charger(dt: float) -> void:
 	var pr := []
 	var st := ResourceLoader.load_threaded_get_status(MAIN, pr)
 	var cible: float = pr[0] if pr.size() > 0 else 0.0
-	# Godot ne détaille pas la progression d'une grosse scène : estimation qui avance en continu (jamais au bout
-	# avant la fin), remplacée par la vraie valeur quand elle est plus grande
+	# lecture de la scène : début de la barre (0 … 4 %) ; la construction du monde suit, étape par étape, sur le
+	# voile de démarrage (voile_demarrage.gd, chargement.gd)
 	_t_charge += dt
-	_affiche = maxf(_affiche, maxf(cible, 0.95 * (1.0 - exp(-_t_charge / 18.0))))
+	_affiche = maxf(_affiche, cible * preload("res://scripts/chargement.gd").DEPART)
 	_barre.value = _affiche
-	_info.text = "Chargement de Rochetoirin… %d %%" % int(round(_affiche * 100.0))
+	_info.text = "Lecture du jeu… %d %%" % int(round(_affiche * 100.0))
 	if st == ResourceLoader.THREAD_LOAD_LOADED:
 		_charge = false
 		_info.text = "Démarrage…"

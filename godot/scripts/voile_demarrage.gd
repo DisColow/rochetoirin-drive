@@ -8,6 +8,9 @@ var _fluide := 0.0
 var _present := 0.0
 var _boite: Control
 var _roue: Control
+var _info: Label
+var _barre: ProgressBar
+const Chargement := preload("res://scripts/chargement.gd")
 
 func _ready() -> void:
 	layer = 120
@@ -38,20 +41,36 @@ func _ready() -> void:
 	_roue.custom_minimum_size = Vector2(0, 84)
 	_roue.draw.connect(_dessine)
 	v.add_child(_roue)
-	var i := Label.new()
-	i.text = "Démarrage…"
-	i.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	i.add_theme_font_size_override("font_size", 28)
-	i.modulate = Color(1, 1, 1, 0.8)
-	v.add_child(i)
+	# étape en cours et barre de progression réelle (v6.14, chargement.gd)
+	_barre = ProgressBar.new()
+	_barre.custom_minimum_size = Vector2(760, 30)
+	_barre.max_value = 1.0
+	_barre.show_percentage = false
+	_barre.value = Chargement.DEPART
+	v.add_child(_barre)
+	_info = Label.new()
+	_info.text = "Démarrage…"
+	_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info.add_theme_font_size_override("font_size", 28)
+	_info.modulate = Color(1, 1, 1, 0.8)
+	v.add_child(_info)
 
 func _process(dt: float) -> void:
 	_a = fmod(_a + minf(dt, 0.1) * TAU * 0.9, TAU)
 	_roue.queue_redraw()
+	if OS.get_cmdline_user_args().has("--capture-chargement"):
+		_capture()
+	# la barre suit la progression (sans jamais reculer) ; texte : étape en cours et pourcentage
+	var p := Chargement.progres()
+	_barre.value = maxf(_barre.value, p)
+	if Chargement.fini:
+		_info.text = "C'est parti !"
+	elif Chargement.etape != "":
+		_info.text = "%s… %d %%" % [Chargement.etape, mini(int(_barre.value * 100.0), 99)]
 	var sc := get_tree().current_scene
 	var la := sc != null and sc.name == "Main"
 	_present = _present + minf(dt, 0.5) if la else 0.0
-	if la and (dt < 0.1 or _present > 8.0):
+	if la and Chargement.fini and (dt < 0.1 or _present > 8.0):
 		_fluide += minf(dt, 0.1)
 	else:
 		_fluide = 0.0
@@ -73,3 +92,15 @@ func fermer() -> void:
 	if not is_inside_tree():
 		return
 	queue_free()
+
+## Essai : -- --capture-chargement enregistre l'écran toutes les 2 s (user://shots/chargement_N.png).
+var _cap_t := 0
+var _cap_n := 0
+func _capture() -> void:
+	if Time.get_ticks_msec() < _cap_t:
+		return
+	_cap_t = Time.get_ticks_msec() + 2000
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	get_viewport().get_texture().get_image().save_png("user://shots/chargement_%02d.png" % _cap_n)
+	print("[chargement] capture %d : %s" % [_cap_n, _info.text])
+	_cap_n += 1
