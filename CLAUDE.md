@@ -116,7 +116,7 @@
   commandes de conduite (◀ ▶ FREIN GAZ) restent des disques translucides. Toute nouvelle fenêtre : `UI.panel()`.
 - **Taxi : conversations** (`scripts/taxi_talk.gd`, textes `data/taxi.json` générés par `pipeline/taxi_dialogues.py`,
   versionnés) : caractères aux goûts cachés, fils de trois échanges (le client parle, on répond sur un ton —
-  chaleureux, drôle, curieux, sobre, ou silence —, il réagit), jauge d'humeur (plus d'indicateurs ♥ / • / ✗ depuis la v6.2), indices
+  chaleureux, drôle, curieux, sobre, ou silence —, puis il enchaîne : **pas de réplique d'appréciation** après notre réponse, demande de l'utilisateur, v6.6 ; son humeur évolue en silence), jauge d'humeur (plus d'indicateurs ♥ / • / ✗ depuis la v6.2), indices
   (allure du client, préférences apprises en lui posant des questions avec le bouton « bulle »), pourboire selon la
   satisfaction. **Voix** (depuis la v6.2) : chaque réplique enregistrée par `pipeline/build_voix.py` (Piper hors ligne,
   voix Siwis et Gilles en plusieurs hauteurs ; répliques entières, sauf les 25 à variables : morceaux + valeurs), **effet talkie-walkie appliqué

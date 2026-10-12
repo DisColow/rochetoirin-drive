@@ -16,6 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
+Nouveautés de la v6.6 (mise à jour automatique) :
+- taxi : le client ne commente plus nos réponses (plus de « Ah, c'est gentil »…) ; la conversation s'enchaîne, son
+  humeur évolue en silence (jauge, pourboire).
+
 Nouveautés de la v6.5 (mise à jour automatique) :
 - **voix du taxi plus fortes** (chaque réplique normalisée, moteur et ambiance qui s'effacent quand on parle) et
   **nouvelle voix du chauffeur** ; nouveau curseur ⚙ > Son > Voix.

@@ -329,12 +329,12 @@ func _answer(text: String, ton: String) -> void:
 	_verdict.text = ""
 	if text != "":
 		_player_says(text)
-	var reaction: String = _pick(client.car[cat]) if text != "" else _pick(data.silence if cat != "mal" else client.car.mal)
+	# pas de réplique d'appréciation après notre réponse (elle cassait le rythme, v6.6) : le client enchaîne
+	# directement ; son humeur évolue en silence (jauge et pourboire)
 	# un client agacé deux fois de suite écourte le fil
 	if cat == "mal" and _node > 0 and _rng.randf() < 0.5:
 		_node = 99
 	_node += 1
-	_client_says(reaction, 0.6)
 	_queue.append({"kind": "appel", "f": _exchange})
 	if _step.is_empty():
 		_advance()
