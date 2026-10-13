@@ -1,0 +1,25 @@
+{
+ "id": "sbl_33",
+ "cleabs": "BATIMENT0000000301972512",
+ "nom": "Minoterie",
+ "mur": "bardage#c8c8c4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "extras": [
+  {
+   "t": "silo",
+   "face": "N",
+   "x": 0.8,
+   "d": 3,
+   "r": 2.5,
+   "h": 12,
+   "c": "#a8acb0"
+  }
+ ]
+}

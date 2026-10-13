@@ -1,0 +1,45 @@
+{
+ "id": "sbl_9",
+ "cleabs": "BATIMENT0000002292127003",
+ "nom": "Alumed",
+ "mur": "bardage#5a5e64",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.6,
+     2.6
+    ],
+    "n": 5,
+    "l": 1.2
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "ALUMED",
+    "c": "#5a5e64",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

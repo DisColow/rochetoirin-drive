@@ -1,0 +1,14 @@
+{
+ "id": "vas_8",
+ "cleabs": "BATIMENT0000000007583595",
+ "nom": "Tunnel",
+ "mur": "bardage#1a6a5a",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#1a6a5a",
+  "debord": 0.0
+ },
+ "egout": 0.5,
+ "faitage": 3.0,
+ "densite": 12
+}

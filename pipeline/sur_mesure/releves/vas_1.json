@@ -1,0 +1,29 @@
+{
+ "id": "vas_1",
+ "cleabs": "BATIMENT0000000301581710",
+ "nom": "Église",
+ "mur": "pierre#a8a090",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 9.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

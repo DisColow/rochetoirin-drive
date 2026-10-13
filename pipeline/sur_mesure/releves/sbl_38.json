@@ -1,0 +1,45 @@
+{
+ "id": "sbl_38",
+ "cleabs": "BATIMENT0000002001968641",
+ "nom": "Dumont",
+ "mur": "enduit#e8dcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "DUMONT",
+    "c": "#e8dcc0",
+    "tc": "#2a5a3a"
+   }
+  ]
+ }
+}

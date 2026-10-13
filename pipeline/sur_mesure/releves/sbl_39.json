@@ -1,0 +1,32 @@
+{
+ "id": "sbl_39",
+ "cleabs": "BATIMENT0000000301972133",
+ "nom": "Hangar",
+ "mur": "bardage#b8b8b0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a0",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#9aa0a4"
+   }
+  ]
+ }
+}

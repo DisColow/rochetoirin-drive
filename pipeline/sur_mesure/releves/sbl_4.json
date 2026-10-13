@@ -1,0 +1,44 @@
+{
+ "id": "sbl_4",
+ "cleabs": "BATIMENT0000000301968043",
+ "nom": "Atelier",
+ "mur": "bardage#2a3240",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#d8d8d4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.2
+    ],
+    "y": [
+     0,
+     5.0
+    ],
+    "mur": "bardage#6a4a3a"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#3a3a40"
+   }
+  ]
+ }
+}

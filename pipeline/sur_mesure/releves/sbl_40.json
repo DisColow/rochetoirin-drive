@@ -1,0 +1,14 @@
+{
+ "id": "sbl_40",
+ "cleabs": "BATIMENT0000000301971975",
+ "nom": "Transformateur",
+ "mur": "enduit#d8d0bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.0,
+ "densite": 12
+}

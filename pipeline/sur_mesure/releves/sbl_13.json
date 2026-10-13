@@ -1,0 +1,14 @@
+{
+ "id": "sbl_13",
+ "cleabs": "BATIMENT0000000290563111",
+ "nom": "Hangar",
+ "mur": "bois#6a5a42",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "densite": 12
+}

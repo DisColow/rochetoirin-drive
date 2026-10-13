@@ -1,0 +1,14 @@
+{
+ "id": "sbl_26",
+ "cleabs": "BATIMENT0000002200591395",
+ "nom": "Salle",
+ "mur": "enduit#ece6d4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12
+}

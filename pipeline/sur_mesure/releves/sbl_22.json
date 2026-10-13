@@ -1,0 +1,17 @@
+{
+ "id": "sbl_22",
+ "cleabs": "BATIMENT0000000301966519",
+ "nom": "Grange",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 6.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#6a4a32",
+ "pignons_clos": true
+}

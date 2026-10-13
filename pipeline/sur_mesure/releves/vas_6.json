@@ -1,0 +1,14 @@
+{
+ "id": "vas_6",
+ "cleabs": "BATIMENT0000000301581698",
+ "nom": "Hangar",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#b04a3a",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12
+}

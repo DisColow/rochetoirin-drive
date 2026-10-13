@@ -1,0 +1,14 @@
+{
+ "id": "sbl_19",
+ "cleabs": "BATIMENT0000000301964543",
+ "nom": "Hangar",
+ "mur": "bardage#c8c4bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12
+}
