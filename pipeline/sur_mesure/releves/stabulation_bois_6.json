@@ -5,11 +5,12 @@
  "c_poteaux": "#6a5440",
  "mur": "bois#6a5440",
  "toit": {
-  "type": "2pans",
-  "matiere": "bac#5a5048",
-  "debord": 0.6
+  "type": "appentis",
+  "matiere": "bac#4e4640",
+  "debord": 0.5,
+  "bas": "N"
  },
- "egout": 3.6,
- "faitage": 5.4,
+ "egout": 3.0,
+ "faitage": 4.8,
  "cleabs": "BATIMENT0000000301133204"
 }

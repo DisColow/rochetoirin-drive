@@ -3,11 +3,12 @@
  "nom": "Tunnel agricole",
  "mur": "bardage#4a4c50",
  "toit": {
-  "type": "2pans",
-  "matiere": "bac#5a5c62",
+  "type": "berceau",
+  "matiere": "bac#50535a",
   "debord": 0.0
  },
- "egout": 1.2,
- "faitage": 4.0,
- "cleabs": "BATIMENT0000002292127062"
+ "egout": 0.4,
+ "faitage": 4.2,
+ "cleabs": "BATIMENT0000002292127062",
+ "simplifier": 1.0
 }

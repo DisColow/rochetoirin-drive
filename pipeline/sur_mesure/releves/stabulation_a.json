@@ -3,13 +3,15 @@
  "nom": "Stabulation",
  "ouvert": true,
  "c_poteaux": "#a8323a",
- "mur": "bardage#c8ccd0",
+ "mur": "bardage#7c848a",
  "toit": {
   "type": "2pans",
-  "matiere": "fibro#d8d6ce",
+  "matiere": "fibro#b8b8b2",
   "debord": 0.6
  },
  "egout": 5.0,
  "faitage": 6.8,
- "cleabs": "BATIMENT0000000290577848"
+ "cleabs": "BATIMENT0000000290577848",
+ "pignons_clos": true,
+ "bardage_haut": 1.6
 }

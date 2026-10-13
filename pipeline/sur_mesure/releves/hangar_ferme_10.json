@@ -1,10 +1,10 @@
 {
  "id": "hangar_ferme_10",
  "nom": "Hangar de ferme",
- "mur": "bardage#8c949c",
+ "mur": "bardage#5c646c",
  "toit": {
   "type": "2pans",
-  "matiere": "bac#8a3a2e",
+  "matiere": "bac#7a3a30",
   "debord": 0.4
  },
  "egout": 3.5,

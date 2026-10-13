@@ -36,5 +36,8 @@
    "c": "#c8ccd0"
   }
  ],
- "cleabs": "BATIMENT0000000301133094"
+ "cleabs": "BATIMENT0000000301133094",
+ "mur_faces": {
+  "E": "enduit#b8a27c"
+ }
 }

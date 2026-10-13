@@ -1,7 +1,7 @@
 {
  "id": "ferme_bois",
  "nom": "Ferme à bardage bois",
- "mur": "beton#b8b4ac",
+ "mur": "bois#8a5a3a",
  "toit": {
   "type": "2pans",
   "matiere": "bac#8a3a2e",
@@ -11,18 +11,6 @@
  "faitage": 6.6,
  "faces": {
   "SO": [
-   {
-    "t": "matiere",
-    "x": [
-     0,
-     1
-    ],
-    "y": [
-     2.4,
-     5.0
-    ],
-    "mur": "bois#8a5a3a"
-   },
    {
     "t": "garage",
     "x": [
@@ -94,5 +82,7 @@
    }
   ]
  },
- "cleabs": "BATIMENT0000002001968383"
+ "cleabs": "BATIMENT0000002001968383",
+ "soubassement": "beton#b4b0a8",
+ "h_soub": 2.4
 }

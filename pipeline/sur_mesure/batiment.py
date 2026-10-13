@@ -18,8 +18,9 @@ Format du relevé (mesures approximatives : reconnaissable, pas exact) :
  "remplace_bati_extra": [cleabs…] (bâtiments BD TOPO voisins absorbés par ce modèle, ex. une aile),
  "sol": "haut" (pente : hauteurs comptées depuis le point haut de l'emprise et non le point bas),
  "simplifier": 1.5 (tolérance de simplification de l'emprise, m ; 0,3 par défaut), "decal": [dx, dz], "rot": degrés, "echelle": [sx, sz] (facultatifs : emprise recalée sur les photos, calage.py),
- "soubassement": "#rrggbb" (facultatif), "h_soub": 0.5, "chainages": "#rrggbb" (facultatif),
- "toit": {"type": "2pans|4pans|plat|appentis|sheds" (sheds : dents de scie, "pas" en m), "matiere": "tuile|tuile_brune|bac#rrggbb|fibro|ardoise",
+ "soubassement": "#rrggbb" ou "matière#rrggbb" (facultatif), "h_soub": 0.5, "chainages": "#rrggbb" (facultatif),
+ "ouvert": true (abri sur poteaux ; "pignons_clos": true = pignons bardés, "bardage_haut": 1.5 = bande de bardage sous l'égout, m),
+ "toit": {"type": "2pans|4pans|plat|appentis|sheds|berceau" (sheds : dents de scie, "pas" en m ; berceau : voûte), "matiere": "tuile|tuile_brune|bac#rrggbb|fibro|ardoise",
           "bas": "S" (appentis : côté bas), "faitage_long": true (2pans : faîtage le long du grand côté)},
  "egout": 6.0, "faitage": 8.5,
  "faces": {"S": [ouvertures…], "E": […]}    clés : N NE E SE S SO O NO (côté de l'emprise tourné vers là ; le plus long)
@@ -192,7 +193,7 @@ def ouverture(z, op, u0, v0, u1, v1, mur_c):
     if t == "matiere":                                    # bande d'une autre matière (haut en bois, bandeau anthracite…)
         a, b = z.px(u0, v1), z.px(u1, v0)
         sub = Zone(z.img, z.msk, a[0], a[1], max(1, b[0] - a[0]), max(1, b[1] - a[1]), z.s)
-        matiere(sub, op.get("mur", "bardage#404448"), int(u0 * 7 + v0 * 13))
+        matiere(sub, op.get("mur", "bardage#404448"), int(abs(u0 * 7 + v0 * 13)))
         if op.get("liseré"):
             z.rect(u0, v0 - 0.06, u1, v0, hexc(op["liseré"]))
         return
@@ -517,7 +518,11 @@ def construire(R, feat, dem, remplir=0.4):
         z = c["z"] = A.zone(c["L"], c["top"] + 0.2, s)
         matiere(z, c.get("mur", mur), seed + k)
         if R.get("soubassement"):
-            z.rect(0, -0.1, c["L"], float(R.get("h_soub", 0.5)), hexc(R["soubassement"]))
+            if R["soubassement"].startswith("#"):
+                z.rect(0, -0.1, c["L"], float(R.get("h_soub", 0.5)), hexc(R["soubassement"]))
+            else:                                            # soubassement d'une autre matière (parpaings sous bardage…)
+                ouverture(z, {"t": "matiere", "mur": R["soubassement"]}, 0, -0.1, c["L"],
+                          float(R.get("h_soub", 0.5)), None)
         if R.get("chainages"):
             chaine(z, 0, R.get("h_soub", 0.5), EG, 1, hexc(R["chainages"]))
             chaine(z, c["L"], R.get("h_soub", 0.5), EG, -1, hexc(R["chainages"]))
@@ -571,6 +576,10 @@ def construire(R, feat, dem, remplir=0.4):
             for i in range(k):
                 q = p0 + (p1 - p0) * (i / k)
                 M_box(M, zpo, q, 0.0, 0.1, 0.1, B.BAS, EG)
+            hb = float(R.get("bardage_haut", 0))            # bande de bardage sous l'égout (stabulation)
+            if hb > 0:
+                M.poly([(p0[0], EG - hb, p0[1]), (p1[0], EG - hb, p1[1]), (p1[0], EG, p1[1]), (p0[0], EG, p0[1])],
+                       [z.uv(L, EG - hb), z.uv(0, EG - hb), z.uv(0, EG), z.uv(L, EG)], MUR_C, n3)
             continue
         for (y0, y1, va, vb) in ((B.BAS, 0.0, V0, V0), (0.0, EG, 0.0, EG)):
             M.poly([(p0[0], y0, p0[1]), (p1[0], y0, p1[1]), (p1[0], y1, p1[1]), (p0[0], y1, p0[1])],
@@ -637,6 +646,27 @@ def construire(R, feat, dem, remplir=0.4):
                     for xx in (x0, x1):
                         M.poly([W3(xx, za, EG), W3(xx, zb, EG), W3(xx, zb, FA)], uv4(zm2)[:3], MUR_C)
             continue
+        if ty == "berceau":
+            # tunnel agricole (v6.31) : voûte en plein cintre de l'égout au faîtage, bouts fermés par la même bâche
+            n_ = 10
+            if lx:
+                zm, hw = (z0 + z1) / 2, (z1 - z0) / 2
+                prof = [(zm - hw * math.cos(math.pi * i / n_), EG + (FA - EG) * math.sin(math.pi * i / n_)) for i in range(n_ + 1)]
+                P_ = lambda x, k: W3(x, prof[k][0], prof[k][1])
+                ends = (x0, x1)
+            else:
+                xm, hw = (x0 + x1) / 2, (x1 - x0) / 2
+                prof = [(xm - hw * math.cos(math.pi * i / n_), EG + (FA - EG) * math.sin(math.pi * i / n_)) for i in range(n_ + 1)]
+                P_ = lambda zz, k: W3(prof[k][0], zz, prof[k][1])
+                ends = (z0, z1)
+            for k in range(n_):
+                tile_quad([P_(ends[0], k), P_(ends[0], k + 1), P_(ends[1], k + 1), P_(ends[1], k)])
+            for e in ends:
+                for k in range(n_):
+                    c0 = P_(e, 0); c1 = P_(e, n_)
+                    base = ((c0[0] + c1[0]) / 2, EG, (c0[2] + c1[2]) / 2)
+                    M.poly([base, P_(e, k), P_(e, k + 1)], uv4(zt)[:3], TOIT_C)
+            continue
         if ty == "plat":
             tile_quad([W3(x0, z0, EG), W3(x0, z1, EG), W3(x1, z1, EG), W3(x1, z0, EG)])
             for (a, b), (p, q) in (((x0, z0), (x1, z0)), ((x1, z0), (x1, z1)), ((x1, z1), (x0, z1)), ((x0, z1), (x0, z0))):
@@ -699,7 +729,7 @@ def construire(R, feat, dem, remplir=0.4):
                 for zz in np.linspace(z0, z1, max(2, int(round((z1 - z0) / 4.0)) + 1)):
                     ferme(W3(x0, zz, EG), W3(x1, zz, EG), W3(xm, zz, FA - 0.15))
     # pignons (triangles), texture du côté porteur ; abri ouvert : pignons ouverts (fermes apparentes)
-    for a, b, c in ([] if R.get("ouvert") else pignons):
+    for a, b, c in ([] if (R.get("ouvert") and not R.get("pignons_clos")) or ty == "berceau" else pignons):
         m = (a + b) / 2
         if c is not None:
             def u_de(p):

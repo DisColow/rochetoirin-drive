@@ -1,10 +1,13 @@
 {
  "id": "fumiere",
- "nom": "Fumière",
- "mur": "beton#a8a49c",
+ "nom": "Hangar en bardage gris",
+ "mur": "bardage#6a7078",
  "toit": {
-  "type": "plat"
+  "type": "2pans",
+  "matiere": "bac#5e6268",
+  "debord": 0.3
  },
- "egout": 1.0,
- "cleabs": "BATIMENT0000000301133291"
+ "egout": 4.6,
+ "cleabs": "BATIMENT0000000301133291",
+ "faitage": 5.6
 }

@@ -1,12 +1,9 @@
 {
  "id": "ferme_pise",
  "nom": "Ferme en pisé",
- "mur": "enduit#c8b494",
- "mur_faces": {
-  "O": "enduit#f0eeea"
- },
+ "mur": "enduit#b8a27c",
  "toit": {
-  "type": "2pans",
+  "type": "4pans",
   "matiere": "tuile",
   "debord": 0.4
  },

@@ -1,15 +1,17 @@
 {
  "id": "stabulation_bois_7",
  "nom": "Stabulation en bois",
- "ouvert": true,
  "c_poteaux": "#6a5440",
- "mur": "bois#6a5440",
+ "mur": "bardage#c4c6c4",
  "toit": {
-  "type": "2pans",
-  "matiere": "bac#5a5048",
-  "debord": 0.6
+  "type": "appentis",
+  "matiere": "bac#4e4640",
+  "debord": 0.5,
+  "bas": "S"
  },
- "egout": 3.6,
- "faitage": 5.4,
- "cleabs": "BATIMENT0000000301133205"
+ "egout": 3.0,
+ "faitage": 4.6,
+ "cleabs": "BATIMENT0000000301133205",
+ "soubassement": "beton#a09c94",
+ "h_soub": 1.2
 }
