@@ -1,0 +1,32 @@
+{
+ "id": "vzc_2",
+ "cleabs": "BATIMENT0000000301577912",
+ "nom": "GMV Industrie",
+ "mur": "bardage#d8d0b8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "GMV INDUSTRIE",
+    "c": "#ffffff",
+    "tc": "#c02a2a"
+   }
+  ]
+ }
+}

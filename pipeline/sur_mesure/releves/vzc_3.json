@@ -1,0 +1,31 @@
+{
+ "id": "vzc_3",
+ "cleabs": "BATIMENT0000000301577913",
+ "nom": "Hangar",
+ "mur": "enduit#ece4d0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#3a4250",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.2
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

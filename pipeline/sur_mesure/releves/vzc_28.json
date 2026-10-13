@@ -1,0 +1,58 @@
+{
+ "id": "vzc_28",
+ "cleabs": "BATIMENT0000000301582328",
+ "nom": "Immeuble",
+ "mur": "enduit#e8c8a8",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 9.0,
+ "faitage": 12.0,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 5,
+    "l": 1.2
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 5,
+    "l": 1.2
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#ecebe8"
+   }
+  ]
+ }
+}

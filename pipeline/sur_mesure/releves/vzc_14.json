@@ -1,0 +1,25 @@
+{
+ "id": "vzc_14",
+ "cleabs": "BATIMENT0000000301577029",
+ "nom": "Coopérative",
+ "mur": "bardage#8a96a4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a96a4",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "extras": [
+  {
+   "t": "silo",
+   "face": "O",
+   "x": 0.3,
+   "d": 2,
+   "r": 1.8,
+   "h": 12,
+   "c": "#c8ccd0"
+  }
+ ]
+}

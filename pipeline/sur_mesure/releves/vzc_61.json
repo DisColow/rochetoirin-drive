@@ -1,0 +1,14 @@
+{
+ "id": "vzc_61",
+ "cleabs": "BATIMENT0000000301580769",
+ "nom": "Atelier",
+ "mur": "beton#c8c4b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12
+}

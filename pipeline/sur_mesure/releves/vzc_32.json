@@ -1,0 +1,32 @@
+{
+ "id": "vzc_32",
+ "cleabs": "BATIMENT0000000301580721",
+ "nom": "Garages",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     2.4
+    ],
+    "n": 4,
+    "l": 3.6,
+    "c": "#7a7e84"
+   }
+  ]
+ }
+}

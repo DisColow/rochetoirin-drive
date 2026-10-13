@@ -1,0 +1,43 @@
+{
+ "id": "vzc_29",
+ "cleabs": "BATIMENT0000000301582270",
+ "nom": "Coiffure Capi'Style",
+ "mur": "enduit#e8d0c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.8
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "COIFFURE",
+    "c": "#5a2a3a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

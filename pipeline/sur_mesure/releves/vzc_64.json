@@ -1,0 +1,14 @@
+{
+ "id": "vzc_64",
+ "cleabs": "BATIMENT0000000301581340",
+ "nom": "Atelier",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#7a7e84",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12
+}

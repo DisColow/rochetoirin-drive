@@ -1,0 +1,32 @@
+{
+ "id": "vzc_0",
+ "cleabs": "BATIMENT0000000301577923",
+ "nom": "Entrepôt",
+ "mur": "bardage#d8d0b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c4b0",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#d8d0b8"
+   }
+  ]
+ }
+}

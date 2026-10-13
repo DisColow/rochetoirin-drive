@@ -1,0 +1,32 @@
+{
+ "id": "vzc_62",
+ "cleabs": "BATIMENT0000000301581171",
+ "nom": "Abri",
+ "mur": "beton#ecebe6",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#a8acb0",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 3.6,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     2.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#a85a3a"
+   }
+  ]
+ }
+}

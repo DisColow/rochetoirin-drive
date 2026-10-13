@@ -1,0 +1,31 @@
+{
+ "id": "vzc_6",
+ "cleabs": "BATIMENT0000002292126762",
+ "nom": "Ferme",
+ "mur": "beton#c8c0b0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.6
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

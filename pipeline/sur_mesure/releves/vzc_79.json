@@ -1,0 +1,42 @@
+{
+ "id": "vzc_79",
+ "cleabs": "BATIMENT0000000301577445",
+ "nom": "Église",
+ "mur": "pierre#a89878",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 10.0,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     2.8,
+     5.6
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "id": "vzc_76",
+ "cleabs": "BATIMENT0000000301580483",
+ "nom": "Grange",
+ "mur": "beton#a8a8a4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#7a7e84",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12
+}

@@ -1,0 +1,42 @@
+{
+ "id": "vzc_37",
+ "cleabs": "BATIMENT0000002001969656",
+ "nom": "Supermarché",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.5
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "auvent",
+   "face": "N",
+   "x": [
+    0.0,
+    0.6
+   ],
+   "y": 3.6,
+   "p": 2.0,
+   "c": "#3a3e46"
+  }
+ ]
+}

@@ -1,0 +1,56 @@
+{
+ "id": "vzc_57",
+ "cleabs": "BATIMENT0000000301582540",
+ "nom": "Diamantelle",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "soubassement": "enduit#c87878",
+ "h_soub": 0.3,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.3
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "vitrine",
+    "x": [
+     0.7,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "DIAMANTELLE",
+    "c": "#ecebe8",
+    "tc": "#c02a2a"
+   }
+  ]
+ }
+}

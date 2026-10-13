@@ -1,0 +1,14 @@
+{
+ "id": "vzc_41",
+ "cleabs": "BATIMENT0000000301581167",
+ "nom": "Local",
+ "mur": "bardage#5a5e64",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 2.6,
+ "faitage": 2.6,
+ "densite": 12
+}

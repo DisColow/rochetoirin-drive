@@ -15,11 +15,20 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 
 ## En cours : tout le #126 (demande « Fais tout le 126 », 13/10)
 - Budget : photos jusqu'à 19 $ au total (marge 1 $ sous le plafond absolu), UNE photo par bâtiment
-  (`fetch_sv_batiments.py tous <commune> --une --jusqua=19`), communes par distance à Rochetoirin
-  (boucle : scratchpad fetch_all.log). Ce qui n'a pas de photo (Bourgoin…) : méthode gratuite (orthophoto + BD TOPO).
+  (`fetch_sv_batiments.py tous <commune> --une --jusqua=19`, panoramas non Google écartés), communes par distance
+  à Rochetoirin (boucle en arrière-plan : scratchpad fetch_all.log ; à ~13,6 $ au moment d'écrire).
 - Par commune : `python3 sur_mesure/lots/planches.py <lot> <commune> <préfixe>` (liste + planches 3×3 dans le
-  scratchpad rev/), fiches dans `sur_mesure/lots/<lot>.py`, `fiches.py <lot>`, `batiment.py <ids>`, puis
-  build_buildings + build_shops + .import (voir v6.33).
+  scratchpad rev/), fiches dans `sur_mesure/lots/<lot>.py` (aides B()/O(), S = skip), `fiches.py <lot>`,
+  `batiment.py <ids>` (atlas réduit : `densite` 12 px/m, tailles 256-1024).
+- Communes faites (fiches + modèles) : Saint-Chef (sc, v6.33), Saint-Jean-de-Soudain (sjs), Montcarra (mtc),
+  Cessieu (ces), La Chapelle-de-la-Tour (lct), Vignieu (vgn), Sainte-Blandine (sbl), Vasselin (vas),
+  Ruy-Montceau (rmc), Saint-Victor (svc), Saint-Clair (scl), Dolomieu (dol), Saint-Sorlin (ssm), Sérézin (srz),
+  Saint-Didier (sdt), Montagnieu (mtg), Faverges (fav), Saint-Savin (ssv), Vézeronce-Curtin (vzc).
+- La Tour-du-Pin : boucle interrompue pour la correction des panoramas (7 bâtiments seulement) : relancer
+  `fetch_sv_batiments.py tous "La Tour-du-Pin" --une --jusqua=19` à la fin de la boucle.
+- Ensuite : build_buildings + build_shops (en cours), remettre les `.import` publiés, patcher les nouveaux atlas
+  (mode 2), import, comparatif d'échantillon, publier_donnees, version. Puis méthode gratuite (orthophoto + BD TOPO)
+  pour les bâtiments sans photo.
 
 ## Fait en v6.33 : Saint-Chef (#126)
 - Photos Street View de Saint-Chef payées (accord de l'utilisateur) : compteur 605 photos = 4,24 $ / 20 $.

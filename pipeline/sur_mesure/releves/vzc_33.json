@@ -1,0 +1,14 @@
+{
+ "id": "vzc_33",
+ "cleabs": "BATIMENT0000000301580720",
+ "nom": "Entrepôt",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12
+}

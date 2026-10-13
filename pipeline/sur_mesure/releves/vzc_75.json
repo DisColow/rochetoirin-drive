@@ -1,0 +1,32 @@
+{
+ "id": "vzc_75",
+ "cleabs": "BATIMENT0000000301580587",
+ "nom": "Grange",
+ "mur": "beton#a8a8a4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#7a7e84",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#c8c8c4"
+   }
+  ]
+ }
+}

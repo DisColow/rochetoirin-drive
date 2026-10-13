@@ -1,0 +1,40 @@
+{
+ "id": "vzc_55",
+ "cleabs": "BATIMENT0000000301582541",
+ "nom": "Salle des fêtes",
+ "mur": "enduit#e0d8c4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "porte",
+    "x": [
+     0.16,
+     0.24000000000000002
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

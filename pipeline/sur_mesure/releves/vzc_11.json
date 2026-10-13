@@ -1,0 +1,32 @@
+{
+ "id": "vzc_11",
+ "cleabs": "BATIMENT0000000301577026",
+ "nom": "Fonderie Roche",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "FONDERIE ROCHE",
+    "c": "#ecebe6",
+    "tc": "#2a2a2a"
+   }
+  ]
+ }
+}

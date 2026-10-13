@@ -1,0 +1,32 @@
+{
+ "id": "vzc_78",
+ "cleabs": "BATIMENT0000000301580468",
+ "nom": "Ferme",
+ "mur": "pierre#b8a888",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#3a2a20"
+   }
+  ]
+ }
+}
