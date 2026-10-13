@@ -1,13 +1,16 @@
 {
  "id": "pavillon_porche",
  "cleabs": "BATIMENT0000002493295898",
- "nom": "Pavillon",
+ "nom": "Préau à charpente apparente",
  "mur": "enduit#e8dcc4",
  "toit": {
   "type": "2pans",
   "matiere": "tuile",
-  "debord": 0.5
+  "debord": 0.6,
+  "faitage_long": false
  },
  "egout": 3.0,
- "faitage": 5.6
+ "faitage": 6.0,
+ "ouvert": true,
+ "c_poteaux": "#c49464"
 }
