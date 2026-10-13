@@ -1,0 +1,14 @@
+{
+ "id": "ssv_120",
+ "cleabs": "BATIMENT0000000007586378",
+ "nom": "Hangar",
+ "mur": "bardage#a8acb0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12
+}

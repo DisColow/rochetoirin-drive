@@ -1,0 +1,32 @@
+{
+ "id": "ssv_74",
+ "cleabs": "BATIMENT0000000301132345",
+ "nom": "Hangar",
+ "mur": "enduit#e8dcc4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a85a3a",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#3a3a3a"
+   }
+  ]
+ }
+}

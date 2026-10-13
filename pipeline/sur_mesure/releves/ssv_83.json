@@ -1,0 +1,42 @@
+{
+ "id": "ssv_83",
+ "cleabs": "BATIMENT0000000007586737",
+ "nom": "Garage de Saint-Savin",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "auvent",
+   "face": "O",
+   "x": [
+    0.3,
+    1.0
+   ],
+   "y": 4.0,
+   "p": 6.0,
+   "c": "#ecebe8"
+  }
+ ]
+}

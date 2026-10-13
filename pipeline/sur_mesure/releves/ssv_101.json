@@ -1,0 +1,44 @@
+{
+ "id": "ssv_101",
+ "cleabs": "BATIMENT0000000301131555",
+ "nom": "École ancienne",
+ "mur": "enduit#e8d098",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 9.0,
+ "faitage": 12.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     3.0
+    ],
+    "n": 5,
+    "l": 1.2
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     5.0,
+     7.0
+    ],
+    "n": 5,
+    "l": 1.2
+   }
+  ]
+ }
+}

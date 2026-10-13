@@ -1,0 +1,16 @@
+{
+ "id": "ssv_43",
+ "cleabs": "BATIMENT0000000290574806",
+ "nom": "Hangar à bois",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a5e64",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#5a4a3a"
+}

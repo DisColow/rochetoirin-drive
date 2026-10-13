@@ -1,0 +1,16 @@
+{
+ "id": "ssv_27",
+ "cleabs": "BATIMENT0000002209601147",
+ "nom": "Hangar à palettes",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#7a6a58",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#5a4a3a"
+}

@@ -1,0 +1,32 @@
+{
+ "id": "ssv_31",
+ "cleabs": "BATIMENT0000000330798676",
+ "nom": "Gimbe",
+ "mur": "bardage#3a4250",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 8.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     6.6,
+     7.5
+    ],
+    "txt": "GIMBE",
+    "c": "#3a4250",
+    "tc": "#f0c020"
+   }
+  ]
+ }
+}

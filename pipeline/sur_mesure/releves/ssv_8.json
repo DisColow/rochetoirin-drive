@@ -1,0 +1,42 @@
+{
+ "id": "ssv_8",
+ "cleabs": "BATIMENT0000000301130523",
+ "nom": "Commerce",
+ "mur": "enduit#d8784a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.3,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.6
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,29 @@
+{
+ "id": "ssv_113",
+ "cleabs": "BATIMENT0000002001968148",
+ "nom": "Salle",
+ "mur": "enduit#e8dcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

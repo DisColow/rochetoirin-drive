@@ -1,0 +1,42 @@
+{
+ "id": "ssv_87",
+ "cleabs": "BATIMENT0000000301130901",
+ "nom": "Tribune",
+ "mur": "enduit#d8c0a0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.4,
+     2.0
+    ],
+    "n": 8,
+    "l": 0.75
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.16,
+     0.24000000000000002
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

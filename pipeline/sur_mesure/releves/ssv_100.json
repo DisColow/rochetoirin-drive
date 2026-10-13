@@ -1,0 +1,42 @@
+{
+ "id": "ssv_100",
+ "cleabs": "BATIMENT0000000301131125",
+ "nom": "Bâtiment communal",
+ "mur": "enduit#e8d0b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.26,
+     0.33999999999999997
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

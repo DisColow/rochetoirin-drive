@@ -1,0 +1,43 @@
+{
+ "id": "ssv_16",
+ "cleabs": "BATIMENT0000000301126839",
+ "nom": "Garage poids lourds",
+ "mur": "bardage#9aa0a8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#3a3a3a"
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.76,
+     0.8400000000000001
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

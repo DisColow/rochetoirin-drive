@@ -1,0 +1,57 @@
+{
+ "id": "ssv_38",
+ "cleabs": "BATIMENT0000000301132197",
+ "nom": "Autosur",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#3a3a3a"
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.26,
+     0.33999999999999997
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "AUTOSÛR",
+    "c": "#ffffff",
+    "tc": "#2a4ab0"
+   }
+  ]
+ }
+}

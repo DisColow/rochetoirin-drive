@@ -1,0 +1,45 @@
+{
+ "id": "ssv_70",
+ "cleabs": "BATIMENT0000000301132462",
+ "nom": "Maison de bourg",
+ "mur": "enduit#d8d0c0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 10.0,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#3a3a3a"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.0
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

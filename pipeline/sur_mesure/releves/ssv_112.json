@@ -1,0 +1,58 @@
+{
+ "id": "ssv_112",
+ "cleabs": "BATIMENT0000000301130905",
+ "nom": "Garage Leny",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#7a7e84",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     2.4
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#ecebe8"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     1.0
+    ],
+    "y": [
+     0,
+     3.0
+    ],
+    "mur": "bardage#3a4250"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "GARAGE LENY",
+    "c": "#2a4ab0",
+    "tc": "#f0c020"
+   }
+  ]
+ }
+}

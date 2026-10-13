@@ -1,0 +1,14 @@
+{
+ "id": "ssv_34",
+ "cleabs": "BATIMENT0000000330798698",
+ "nom": "Entrepôt",
+ "mur": "bardage#d8dcdc",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 8.0,
+ "faitage": 8.0,
+ "densite": 12
+}

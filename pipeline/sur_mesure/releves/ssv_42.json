@@ -1,0 +1,31 @@
+{
+ "id": "ssv_42",
+ "cleabs": "BATIMENT0000000301126842",
+ "nom": "Bureaux",
+ "mur": "bardageh#7a7e84",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

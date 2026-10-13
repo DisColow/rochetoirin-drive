@@ -1,0 +1,45 @@
+{
+ "id": "ssv_24",
+ "cleabs": "BATIMENT0000000330798545",
+ "nom": "Localand",
+ "mur": "bardage#b85a2a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a5e64",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     2.0,
+     3.0
+    ],
+    "n": 1,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "LOCALAND",
+    "c": "#ecebe8",
+    "tc": "#1a1a1a"
+   }
+  ]
+ }
+}

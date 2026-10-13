@@ -1,0 +1,57 @@
+{
+ "id": "ssv_96",
+ "cleabs": "BATIMENT0000000301131554",
+ "nom": "Immeuble",
+ "mur": "enduit#ecdcb8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 9.0,
+ "faitage": 11.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.8,
+     8.0
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

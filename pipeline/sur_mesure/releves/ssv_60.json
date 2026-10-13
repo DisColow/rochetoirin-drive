@@ -1,0 +1,16 @@
+{
+ "id": "ssv_60",
+ "cleabs": "BATIMENT0000000301126845",
+ "nom": "Entrepôt",
+ "mur": "bardage#3a5ab0",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "soubassement": "enduit#e8d8b0",
+ "h_soub": 3.0
+}

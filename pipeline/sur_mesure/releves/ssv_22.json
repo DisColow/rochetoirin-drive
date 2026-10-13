@@ -1,0 +1,14 @@
+{
+ "id": "ssv_22",
+ "cleabs": "BATIMENT0000000330798718",
+ "nom": "Entrepôt",
+ "mur": "bardage#c8ccd0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8ccd0",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.0,
+ "densite": 12
+}

@@ -1,0 +1,32 @@
+{
+ "id": "ssv_52",
+ "cleabs": "BATIMENT0000002101358498",
+ "nom": "Ateliers",
+ "mur": "bardage#4a4e56",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 3,
+    "l": 3.6,
+    "c": "#ecebe8"
+   }
+  ]
+ }
+}

@@ -1,0 +1,31 @@
+{
+ "id": "ssv_15",
+ "cleabs": "BATIMENT0000000330798662",
+ "nom": "Atelier",
+ "mur": "enduit#d8d0c0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.2
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

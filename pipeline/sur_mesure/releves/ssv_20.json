@@ -1,0 +1,43 @@
+{
+ "id": "ssv_20",
+ "cleabs": "BATIMENT0000000290574798",
+ "nom": "Bowling",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "4pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "BOWLING",
+    "c": "#ffffff",
+    "tc": "#2a4ab0"
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

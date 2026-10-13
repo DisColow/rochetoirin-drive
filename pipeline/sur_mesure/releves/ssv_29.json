@@ -1,0 +1,16 @@
+{
+ "id": "ssv_29",
+ "cleabs": "BATIMENT0000000301126804",
+ "nom": "Usine",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "soubassement": "enduit#d8d4cc",
+ "h_soub": 3.0
+}

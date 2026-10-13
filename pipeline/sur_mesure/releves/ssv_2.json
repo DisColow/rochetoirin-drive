@@ -1,0 +1,56 @@
+{
+ "id": "ssv_2",
+ "cleabs": "BATIMENT0000000301130517",
+ "nom": "Usine de recyclage",
+ "mur": "beton#c8c4b8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 8.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#ecebe8"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.0
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "silo",
+   "face": "N",
+   "x": 0.5,
+   "d": 3,
+   "r": 2.0,
+   "h": 6,
+   "c": "#7a7e84"
+  }
+ ]
+}

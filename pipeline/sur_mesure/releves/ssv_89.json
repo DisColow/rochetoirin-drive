@@ -1,0 +1,14 @@
+{
+ "id": "ssv_89",
+ "cleabs": "BATIMENT0000000301130884",
+ "nom": "Gymnase",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#b8b8b4",
+  "debord": 0.0
+ },
+ "egout": 4.0,
+ "faitage": 7.0,
+ "densite": 12
+}

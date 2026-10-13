@@ -1,0 +1,14 @@
+{
+ "id": "ssv_116",
+ "cleabs": "BATIMENT0000000301131649",
+ "nom": "Atelier",
+ "mur": "enduit#d8d0c0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 4.5,
+ "densite": 12
+}
