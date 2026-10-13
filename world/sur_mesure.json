@@ -157,7 +157,8 @@
    "BATIMENT0000000330807565"
   ],
   "remplace_commerce": [],
-  "nom": "Ateliers d'artisans"
+  "nom": "Ateliers d'artisans",
+  "une_face": true
  },
  "ateliers_sud": {
   "boites": [
@@ -182,7 +183,8 @@
    "BATIMENT0000002493296036"
   ],
   "remplace_commerce": [],
-  "nom": "Ateliers d'artisans"
+  "nom": "Ateliers d'artisans",
+  "une_face": true
  },
  "ecole": {
   "boites": [
@@ -801,7 +803,8 @@
    "BATIMENT0000000301133224"
   ],
   "remplace_commerce": [],
-  "nom": "École"
+  "nom": "École",
+  "une_face": true
  },
  "ecole_preau": {
   "boites": [
@@ -1276,7 +1279,8 @@
    "BATIMENT0000000301133223"
   ],
   "remplace_commerce": [],
-  "nom": "École (préau)"
+  "nom": "École (préau)",
+  "une_face": true
  },
  "eglise": {
   "boites": [
@@ -1328,7 +1332,8 @@
    "BATIMENT0000000301133225"
   ],
   "remplace_commerce": [],
-  "nom": "Église de Rochetoirin"
+  "nom": "Église de Rochetoirin",
+  "une_face": true
  },
  "ferme_rigolo": {
   "boites": [
@@ -1353,7 +1358,8 @@
    "BATIMENT0000002001968392"
   ],
   "remplace_commerce": [],
-  "nom": "Ferme du Rigolo (vente à la ferme)"
+  "nom": "Ferme du Rigolo (vente à la ferme)",
+  "une_face": true
  },
  "grand_porche": {
   "boites": [
@@ -1378,7 +1384,8 @@
    "BATIMENT0000000330807645"
   ],
   "remplace_commerce": [],
-  "nom": "Bâtiment au grand porche"
+  "nom": "Bâtiment au grand porche",
+  "une_face": true
  },
  "grange_bois": {
   "boites": [
@@ -1403,7 +1410,8 @@
    "BATIMENT0000000301133474"
   ],
   "remplace_commerce": [],
-  "nom": "Grange (atelier)"
+  "nom": "Grange (atelier)",
+  "une_face": true
  },
  "grange_pise": {
   "boites": [
@@ -1428,7 +1436,8 @@
    "BATIMENT0000000301133601"
   ],
   "remplace_commerce": [],
-  "nom": "Grange en pisé"
+  "nom": "Grange en pisé",
+  "une_face": true
  },
  "hangar_rose": {
   "boites": [
@@ -1471,41 +1480,34 @@
    "BATIMENT0000000301132837"
   ],
   "remplace_commerce": [],
-  "nom": "Hangar rose (artisan)"
+  "nom": "Hangar rose (artisan)",
+  "une_face": true
  },
  "mairie": {
   "boites": [
    [
-    6.934,
-    2.187,
-    0.963,
-    8.09,
-    4.413,
-    4.382,
-    2.808
-   ],
-   [
-    -6.596,
-    2.187,
-    -0.6,
-    7.25,
-    4.413,
-    5.224,
-    2.808
+    0.0,
+    2.149,
+    0.0,
+    6.0,
+    4.351,
+    5.75,
+    -0.312
    ]
   ],
   "glb": "res://assets/sur_mesure/mairie.glb",
   "atlas": "res://assets/sur_mesure/mairie.png",
   "pos": [
-   81.562,
-   449.66,
-   427.502
+   89.788,
+   449.666,
+   431.57
   ],
   "remplace_bati": [
    "BATIMENT0000000301133260"
   ],
   "remplace_commerce": [],
-  "nom": "Mairie de Rochetoirin"
+  "nom": "Mairie de Rochetoirin",
+  "une_face": true
  },
  "mairie_annexe": {
   "boites": [
@@ -1530,7 +1532,8 @@
    "BATIMENT0000000301133259"
   ],
   "remplace_commerce": [],
-  "nom": "Mairie (annexe)"
+  "nom": "Mairie (annexe)",
+  "une_face": true
  },
  "mecano_plus": {
   "boites": [
@@ -1555,7 +1558,8 @@
    "BATIMENT0000000301132903"
   ],
   "remplace_commerce": [],
-  "nom": "Mécano-Plus (atelier)"
+  "nom": "Mécano-Plus (atelier)",
+  "une_face": true
  },
  "pavillon_porche": {
   "boites": [
@@ -1580,7 +1584,8 @@
    "BATIMENT0000002493295898"
   ],
   "remplace_commerce": [],
-  "nom": "Pavillon à charpente apparente"
+  "nom": "Pavillon à charpente apparente",
+  "une_face": true
  },
  "pierrin": {
   "boites": [
@@ -1605,7 +1610,8 @@
    "BATIMENT0000000330799342"
   ],
   "remplace_commerce": [],
-  "nom": "Pierrin Matériaux (hangar)"
+  "nom": "Pierrin Matériaux (hangar)",
+  "une_face": true
  },
  "rsm_cabosse": {
   "boites": [
@@ -1630,7 +1636,8 @@
    "BATIMENT0000000301132955"
   ],
   "remplace_commerce": [],
-  "nom": "RSM Cabossé (carrosserie)"
+  "nom": "RSM Cabossé (carrosserie)",
+  "une_face": true
  },
  "salle_baies": {
   "boites": [
@@ -1655,7 +1662,8 @@
    "BATIMENT0000000301132861"
   ],
   "remplace_commerce": [],
-  "nom": "Salle aux grandes baies"
+  "nom": "Salle aux grandes baies",
+  "une_face": true
  },
  "salle_cimetiere": {
   "boites": [
@@ -1680,7 +1688,8 @@
    "BATIMENT0000000301133251"
   ],
   "remplace_commerce": [],
-  "nom": "Salle près du cimetière"
+  "nom": "Salle près du cimetière",
+  "une_face": true
  },
  "salle_fetes": {
   "boites": [
@@ -1705,7 +1714,8 @@
    "BATIMENT0000000301133257"
   ],
   "remplace_commerce": [],
-  "nom": "Salle des fêtes"
+  "nom": "Salle des fêtes",
+  "une_face": true
  },
  "techni_vert": {
   "boites": [
@@ -1730,7 +1740,8 @@
    "BATIMENT0000000301132914"
   ],
   "remplace_commerce": [],
-  "nom": "Techni-Vert (atelier en bardage)"
+  "nom": "Techni-Vert (atelier en bardage)",
+  "une_face": true
  },
  "abri_camions": {
   "boites": [],
@@ -1745,7 +1756,8 @@
    "BATIMENT0000000301132810"
   ],
   "remplace_commerce": [],
-  "nom": "Abri à camions"
+  "nom": "Abri à camions",
+  "une_face": true
  },
  "atelier_ancien": {
   "boites": [
@@ -1770,7 +1782,8 @@
    "BATIMENT0000000301132884"
   ],
   "remplace_commerce": [],
-  "nom": "Ancien atelier"
+  "nom": "Ancien atelier",
+  "une_face": true
  },
  "atelier_crepi": {
   "boites": [
@@ -1822,16 +1835,17 @@
    "BATIMENT0000000301132840"
   ],
   "remplace_commerce": [],
-  "nom": "Vieil atelier crépi"
+  "nom": "Vieil atelier crépi",
+  "une_face": true
  },
  "atelier_kaki": {
   "boites": [
    [
     -0.606,
-    2.587,
+    2.487,
     0.133,
     19.941,
-    4.013,
+    3.913,
     11.777,
     1.727
    ]
@@ -1847,7 +1861,8 @@
    "BATIMENT0000000301132869"
   ],
   "remplace_commerce": [],
-  "nom": "Atelier bardage kaki"
+  "nom": "Atelier bardage kaki",
+  "une_face": true
  },
  "atelier_moderne": {
   "boites": [
@@ -1881,7 +1896,8 @@
    "BATIMENT0000000301132851"
   ],
   "remplace_commerce": [],
-  "nom": "Atelier moderne"
+  "nom": "Atelier moderne",
+  "une_face": true
  },
  "atelier_pierre": {
   "boites": [
@@ -1906,7 +1922,8 @@
    "BATIMENT0000000301132868"
   ],
   "remplace_commerce": [],
-  "nom": "Vieil atelier en pierre"
+  "nom": "Vieil atelier en pierre",
+  "une_face": true
  },
  "atelier_poteaux": {
   "boites": [
@@ -1931,7 +1948,8 @@
    "BATIMENT0000000301132912"
   ],
   "remplace_commerce": [],
-  "nom": "Atelier à poteaux"
+  "nom": "Atelier à poteaux",
+  "une_face": true
  },
  "atelier_verriere_b": {
   "boites": [
@@ -1956,7 +1974,8 @@
    "BATIMENT0000000301132867"
   ],
   "remplace_commerce": [],
-  "nom": "Atelier (porte vitrée)"
+  "nom": "Atelier (porte vitrée)",
+  "une_face": true
  },
  "atelier_verrieres": {
   "boites": [
@@ -1990,7 +2009,8 @@
    "BATIMENT0000000301132866"
   ],
   "remplace_commerce": [],
-  "nom": "Atelier aux grandes verrières"
+  "nom": "Atelier aux grandes verrières",
+  "une_face": true
  },
  "ateliers_bureaux": {
   "boites": [
@@ -2015,7 +2035,8 @@
    "BATIMENT0000000301132915"
   ],
   "remplace_commerce": [],
-  "nom": "Ateliers et bureaux"
+  "nom": "Ateliers et bureaux",
+  "une_face": true
  },
  "bandes_vertes": {
   "boites": [
@@ -2040,7 +2061,8 @@
    "BATIMENT0000000301132904"
   ],
   "remplace_commerce": [],
-  "nom": "Bâtiment à bandes vertes"
+  "nom": "Bâtiment à bandes vertes",
+  "une_face": true
  },
  "bardage_gris_a": {
   "boites": [
@@ -2065,7 +2087,8 @@
    "BATIMENT0000000301132845"
   ],
   "remplace_commerce": [],
-  "nom": "Bardage gris"
+  "nom": "Bardage gris",
+  "une_face": true
  },
  "bardage_gris_b": {
   "boites": [
@@ -2108,7 +2131,8 @@
    "BATIMENT0000000301132846"
   ],
   "remplace_commerce": [],
-  "nom": "Bardage gris"
+  "nom": "Bardage gris",
+  "une_face": true
  },
  "bardage_horizontal": {
   "boites": [
@@ -2142,7 +2166,8 @@
    "BATIMENT0000000301133261"
   ],
   "remplace_commerce": [],
-  "nom": "Bâtiment en bardage gris"
+  "nom": "Bâtiment en bardage gris",
+  "une_face": true
  },
  "bardage_horizontal_b": {
   "boites": [
@@ -2194,7 +2219,8 @@
    "BATIMENT0000000301133262"
   ],
   "remplace_commerce": [],
-  "nom": "Bâtiment en bardage gris"
+  "nom": "Bâtiment en bardage gris",
+  "une_face": true
  },
  "bardage_liseré_rouge_46": {
   "boites": [
@@ -2219,7 +2245,8 @@
    "BATIMENT0000000301132916"
   ],
   "remplace_commerce": [],
-  "nom": "Atelier gris et anthracite"
+  "nom": "Atelier gris et anthracite",
+  "une_face": true
  },
  "bardage_liseré_rouge_51": {
   "boites": [
@@ -2253,7 +2280,8 @@
    "BATIMENT0000002012514454"
   ],
   "remplace_commerce": [],
-  "nom": "Atelier gris et anthracite"
+  "nom": "Atelier gris et anthracite",
+  "une_face": true
  },
  "bardage_liseré_rouge_52": {
   "boites": [
@@ -2287,7 +2315,8 @@
    "BATIMENT0000002012514455"
   ],
   "remplace_commerce": [],
-  "nom": "Atelier gris et anthracite"
+  "nom": "Atelier gris et anthracite",
+  "une_face": true
  },
  "bureaux_atelier": {
   "boites": [
@@ -2312,7 +2341,8 @@
    "BATIMENT0000000301132849"
   ],
   "remplace_commerce": [],
-  "nom": "Bureaux et atelier"
+  "nom": "Bureaux et atelier",
+  "une_face": true
  },
  "bureaux_beiges": {
   "boites": [
@@ -2337,7 +2367,8 @@
    "BATIMENT0000000301132910"
   ],
   "remplace_commerce": [],
-  "nom": "Bureaux beiges"
+  "nom": "Bureaux beiges",
+  "une_face": true
  },
  "bureaux_blancs": {
   "boites": [
@@ -2362,7 +2393,8 @@
    "BATIMENT0000000301132879"
   ],
   "remplace_commerce": [],
-  "nom": "Bureaux blancs"
+  "nom": "Bureaux blancs",
+  "une_face": true
  },
  "bureaux_modulaires": {
   "boites": [
@@ -2387,7 +2419,8 @@
    "BATIMENT0000000301132895"
   ],
   "remplace_commerce": [],
-  "nom": "Bureaux modulaires"
+  "nom": "Bureaux modulaires",
+  "une_face": true
  },
  "chalet_bois": {
   "boites": [
@@ -2412,7 +2445,8 @@
    "BATIMENT0000000301132836"
   ],
   "remplace_commerce": [],
-  "nom": "Atelier au pignon en bois"
+  "nom": "Atelier au pignon en bois",
+  "une_face": true
  },
  "chanoux": {
   "boites": [
@@ -2446,7 +2480,8 @@
    "BATIMENT0000002493295809"
   ],
   "remplace_commerce": [],
-  "nom": "Chanoux (atelier moderne)"
+  "nom": "Chanoux (atelier moderne)",
+  "une_face": true
  },
  "enseignes_lettrage": {
   "boites": [
@@ -3047,7 +3082,8 @@
    "BATIMENT0000000301132848"
   ],
   "remplace_commerce": [],
-  "nom": "Enseignes & Lettrage"
+  "nom": "Enseignes & Lettrage",
+  "une_face": true
  },
  "entrepot_beige": {
   "boites": [
@@ -3090,7 +3126,8 @@
    "BATIMENT0000000301132908"
   ],
   "remplace_commerce": [],
-  "nom": "Entrepôt beige"
+  "nom": "Entrepôt beige",
+  "une_face": true
  },
  "entrepot_bleu": {
   "boites": [
@@ -3115,7 +3152,8 @@
    "BATIMENT0000000301132892"
   ],
   "remplace_commerce": [],
-  "nom": "Entrepôt bleu-gris"
+  "nom": "Entrepôt bleu-gris",
+  "une_face": true
  },
  "entrepot_gris": {
   "boites": [
@@ -3167,7 +3205,8 @@
    "BATIMENT0000000301132841"
   ],
   "remplace_commerce": [],
-  "nom": "Entrepôt gris"
+  "nom": "Entrepôt gris",
+  "une_face": true
  },
  "entrepot_quai": {
   "boites": [
@@ -3201,7 +3240,8 @@
    "BATIMENT0000002493295741"
   ],
   "remplace_commerce": [],
-  "nom": "Entrepôt à quai"
+  "nom": "Entrepôt à quai",
+  "une_face": true
  },
  "entrepot_toits_rouges": {
   "boites": [
@@ -3226,7 +3266,8 @@
    "BATIMENT0000000301132862"
   ],
   "remplace_commerce": [],
-  "nom": "Entrepôt aux toits rouges"
+  "nom": "Entrepôt aux toits rouges",
+  "une_face": true
  },
  "francoflex_annexe": {
   "boites": [
@@ -3251,7 +3292,8 @@
    "BATIMENT0000000301132909"
   ],
   "remplace_commerce": [],
-  "nom": "Francoflex (annexe)"
+  "nom": "Francoflex (annexe)",
+  "une_face": true
  },
  "francoflex_hangar": {
   "boites": [
@@ -3276,7 +3318,8 @@
    "BATIMENT0000000301132926"
   ],
   "remplace_commerce": [],
-  "nom": "Francoflex (hangar)"
+  "nom": "Francoflex (hangar)",
+  "une_face": true
  },
  "francoflex_quai": {
   "boites": [
@@ -3301,7 +3344,8 @@
    "BATIMENT0000000290563284"
   ],
   "remplace_commerce": [],
-  "nom": "Francoflex (quai)"
+  "nom": "Francoflex (quai)",
+  "une_face": true
  },
  "francoflex_usine": {
   "boites": [
@@ -3326,7 +3370,8 @@
    "BATIMENT0000000301132925"
   ],
   "remplace_commerce": [],
-  "nom": "Francoflex (usine)"
+  "nom": "Francoflex (usine)",
+  "une_face": true
  },
  "garage_anthracite": {
   "boites": [
@@ -3351,7 +3396,8 @@
    "BATIMENT0000000301132870"
   ],
   "remplace_commerce": [],
-  "nom": "Garage moderne"
+  "nom": "Garage moderne",
+  "une_face": true
  },
  "grand_entrepot": {
   "boites": [
@@ -3376,7 +3422,8 @@
    "BATIMENT0000000301132877"
   ],
   "remplace_commerce": [],
-  "nom": "Grand entrepôt"
+  "nom": "Grand entrepôt",
+  "une_face": true
  },
  "grand_mur_beige": {
   "boites": [
@@ -3401,7 +3448,8 @@
    "BATIMENT0000000301132911"
   ],
   "remplace_commerce": [],
-  "nom": "Hangar beige"
+  "nom": "Hangar beige",
+  "une_face": true
  },
  "grange_bardage_bois": {
   "boites": [
@@ -3426,7 +3474,8 @@
    "BATIMENT0000000301132902"
   ],
   "remplace_commerce": [],
-  "nom": "Grange en bardage bois"
+  "nom": "Grange en bardage bois",
+  "une_face": true
  },
  "grangier": {
   "boites": [
@@ -3451,7 +3500,8 @@
    "BATIMENT0000000301132881"
   ],
   "remplace_commerce": [],
-  "nom": "Grangier (industrie)"
+  "nom": "Grangier (industrie)",
+  "une_face": true
  },
  "hangar_anthracite": {
   "boites": [
@@ -3476,7 +3526,8 @@
    "BATIMENT0000002292126967"
   ],
   "remplace_commerce": [],
-  "nom": "Hangar anthracite"
+  "nom": "Hangar anthracite",
+  "une_face": true
  },
  "hangar_blanc_rouge": {
   "boites": [
@@ -3501,7 +3552,8 @@
    "BATIMENT0000000301132809"
   ],
   "remplace_commerce": [],
-  "nom": "Hangar blanc"
+  "nom": "Hangar blanc",
+  "une_face": true
  },
  "hangar_fenetres_rouges": {
   "boites": [
@@ -3526,7 +3578,8 @@
    "BATIMENT0000000301132893"
   ],
   "remplace_commerce": [],
-  "nom": "Hangar aux fenêtres rouges"
+  "nom": "Hangar aux fenêtres rouges",
+  "une_face": true
  },
  "hangar_rampe": {
   "boites": [
@@ -3551,7 +3604,8 @@
    "BATIMENT0000000301132880"
   ],
   "remplace_commerce": [],
-  "nom": "Hangar à rampe"
+  "nom": "Hangar à rampe",
+  "une_face": true
  },
  "hangar_tole": {
   "boites": [
@@ -3576,7 +3630,8 @@
    "BATIMENT0000000301132842"
   ],
   "remplace_commerce": [],
-  "nom": "Hangar en tôle"
+  "nom": "Hangar en tôle",
+  "une_face": true
  },
  "local_annexe_blanche": {
   "boites": [
@@ -3601,7 +3656,8 @@
    "BATIMENT0000002493295726"
   ],
   "remplace_commerce": [],
-  "nom": "Local et annexe"
+  "nom": "Local et annexe",
+  "une_face": true
  },
  "local_gris": {
   "boites": [
@@ -3635,7 +3691,8 @@
    "BATIMENT0000000301132889"
   ],
   "remplace_commerce": [],
-  "nom": "Local technique"
+  "nom": "Local technique",
+  "une_face": true
  },
  "local_gris_b": {
   "boites": [
@@ -3678,7 +3735,8 @@
    "BATIMENT0000002209655425"
   ],
   "remplace_commerce": [],
-  "nom": "Local crépi gris"
+  "nom": "Local crépi gris",
+  "une_face": true
  },
  "logistique_rose": {
   "boites": [
@@ -3712,7 +3770,8 @@
    "BATIMENT0000000301132872"
   ],
   "remplace_commerce": [],
-  "nom": "Plateforme logistique"
+  "nom": "Plateforme logistique",
+  "une_face": true
  },
  "maison_crepi": {
   "boites": [
@@ -3737,7 +3796,8 @@
    "BATIMENT0000000301132852"
   ],
   "remplace_commerce": [],
-  "nom": "Maison (bureaux)"
+  "nom": "Maison (bureaux)",
+  "une_face": true
  },
  "maison_maitre": {
   "boites": [
@@ -3762,7 +3822,8 @@
    "BATIMENT0000000301132882"
   ],
   "remplace_commerce": [],
-  "nom": "Maison de maître"
+  "nom": "Maison de maître",
+  "une_face": true
  },
  "materiaux_fournitures": {
   "boites": [
@@ -3787,7 +3848,8 @@
    "BATIMENT0000000301132900"
   ],
   "remplace_commerce": [],
-  "nom": "Matériaux & Fournitures"
+  "nom": "Matériaux & Fournitures",
+  "une_face": true
  },
  "papeterie": {
   "boites": [
@@ -3812,7 +3874,8 @@
    "BATIMENT0000000301132907"
   ],
   "remplace_commerce": [],
-  "nom": "Papeterie du village"
+  "nom": "Papeterie du village",
+  "une_face": true
  },
  "petit_local_gris": {
   "boites": [
@@ -3837,7 +3900,8 @@
    "BATIMENT0000002493295703"
   ],
   "remplace_commerce": [],
-  "nom": "Petit local"
+  "nom": "Petit local",
+  "une_face": true
  },
  "saumon_gris": {
   "boites": [
@@ -3889,7 +3953,8 @@
    "BATIMENT0000000301132857"
   ],
   "remplace_commerce": [],
-  "nom": "Atelier saumon et gris"
+  "nom": "Atelier saumon et gris",
+  "une_face": true
  },
  "sedeau": {
   "boites": [
@@ -3914,7 +3979,8 @@
    "BATIMENT0000000301132835"
   ],
   "remplace_commerce": [],
-  "nom": "Sedeau (sanitaire, chauffage)"
+  "nom": "Sedeau (sanitaire, chauffage)",
+  "une_face": true
  },
  "tente_industrielle": {
   "boites": [
@@ -3939,7 +4005,8 @@
    "BATIMENT0000002209655455"
   ],
   "remplace_commerce": [],
-  "nom": "Tente industrielle"
+  "nom": "Tente industrielle",
+  "une_face": true
  },
  "tribal": {
   "boites": [
@@ -3973,7 +4040,8 @@
    "BATIMENT0000000301132901"
   ],
   "remplace_commerce": [],
-  "nom": "Tribal (menuiseries)"
+  "nom": "Tribal (menuiseries)",
+  "une_face": true
  },
  "usine_blanche": {
   "boites": [
@@ -4016,7 +4084,8 @@
    "BATIMENT0000000301132850"
   ],
   "remplace_commerce": [],
-  "nom": "Usine blanche"
+  "nom": "Usine blanche",
+  "une_face": true
  },
  "usine_rose": {
   "boites": [
@@ -4050,7 +4119,8 @@
    "BATIMENT0000000007618647"
   ],
   "remplace_commerce": [],
-  "nom": "Usine rose"
+  "nom": "Usine rose",
+  "une_face": true
  },
  "usine_sheds": {
   "boites": [
@@ -4075,7 +4145,8 @@
    "BATIMENT0000000301132863"
   ],
   "remplace_commerce": [],
-  "nom": "Usine à sheds rouges"
+  "nom": "Usine à sheds rouges",
+  "une_face": true
  },
  "viannet": {
   "boites": [
@@ -4100,7 +4171,8 @@
    "BATIMENT0000000007618688"
   ],
   "remplace_commerce": [],
-  "nom": "Viannet (hangar)"
+  "nom": "Viannet (hangar)",
+  "une_face": true
  },
  "zone_activite": {
   "boites": [
@@ -4134,7 +4206,8 @@
    "BATIMENT0000000301132847"
   ],
   "remplace_commerce": [],
-  "nom": "Zone d'activité (cellules)"
+  "nom": "Zone d'activité (cellules)",
+  "une_face": true
  },
  "batiment_agricole_blanc": {
   "boites": [
@@ -4159,7 +4232,8 @@
    "BATIMENT0000002292126985"
   ],
   "remplace_commerce": [],
-  "nom": "Bâtiment agricole blanc"
+  "nom": "Bâtiment agricole blanc",
+  "une_face": true
  },
  "ferme_bois": {
   "boites": [
@@ -4184,7 +4258,8 @@
    "BATIMENT0000002001968383"
   ],
   "remplace_commerce": [],
-  "nom": "Ferme à bardage bois"
+  "nom": "Ferme à bardage bois",
+  "une_face": true
  },
  "ferme_parpaing": {
   "boites": [
@@ -4227,7 +4302,8 @@
    "BATIMENT0000000301133094"
   ],
   "remplace_commerce": [],
-  "nom": "Bâtiment de ferme"
+  "nom": "Bâtiment de ferme",
+  "une_face": true
  },
  "ferme_pise": {
   "boites": [
@@ -4252,7 +4328,8 @@
    "BATIMENT0000000301133092"
   ],
   "remplace_commerce": [],
-  "nom": "Ferme en pisé"
+  "nom": "Ferme en pisé",
+  "une_face": true
  },
  "fumiere": {
   "boites": [
@@ -4277,7 +4354,8 @@
    "BATIMENT0000000301133291"
   ],
   "remplace_commerce": [],
-  "nom": "Fumière"
+  "nom": "Fumière",
+  "une_face": true
  },
  "grange_pise_b": {
   "boites": [
@@ -4302,7 +4380,8 @@
    "BATIMENT0000000301133206"
   ],
   "remplace_commerce": [],
-  "nom": "Grange en pisé"
+  "nom": "Grange en pisé",
+  "une_face": true
  },
  "grange_rayee_4": {
   "boites": [
@@ -4327,7 +4406,8 @@
    "BATIMENT0000000301133095"
   ],
   "remplace_commerce": [],
-  "nom": "Grange"
+  "nom": "Grange",
+  "une_face": true
  },
  "grange_rayee_5": {
   "boites": [
@@ -4352,7 +4432,8 @@
    "BATIMENT0000000301133101"
   ],
   "remplace_commerce": [],
-  "nom": "Grange"
+  "nom": "Grange",
+  "une_face": true
  },
  "hangar_coulissant_12": {
   "boites": [
@@ -4377,7 +4458,8 @@
    "BATIMENT0000000301133277"
   ],
   "remplace_commerce": [],
-  "nom": "Hangar à portes coulissantes"
+  "nom": "Hangar à portes coulissantes",
+  "une_face": true
  },
  "hangar_coulissant_13": {
   "boites": [
@@ -4402,7 +4484,8 @@
    "BATIMENT0000000301133278"
   ],
   "remplace_commerce": [],
-  "nom": "Hangar à portes coulissantes"
+  "nom": "Hangar à portes coulissantes",
+  "une_face": true
  },
  "hangar_ferme_10": {
   "boites": [
@@ -4427,7 +4510,8 @@
    "BATIMENT0000000301133208"
   ],
   "remplace_commerce": [],
-  "nom": "Hangar de ferme"
+  "nom": "Hangar de ferme",
+  "une_face": true
  },
  "hangar_ferme_11": {
   "boites": [
@@ -4452,7 +4536,8 @@
    "BATIMENT0000000301133209"
   ],
   "remplace_commerce": [],
-  "nom": "Hangar de ferme"
+  "nom": "Hangar de ferme",
+  "une_face": true
  },
  "hangar_ferme_9": {
   "boites": [
@@ -4477,7 +4562,8 @@
    "BATIMENT0000000301133207"
   ],
   "remplace_commerce": [],
-  "nom": "Hangar de ferme"
+  "nom": "Hangar de ferme",
+  "une_face": true
  },
  "serre_atelier": {
   "boites": [
@@ -4502,7 +4588,8 @@
    "BATIMENT0000002292126960"
   ],
   "remplace_commerce": [],
-  "nom": "Serre et atelier"
+  "nom": "Serre et atelier",
+  "une_face": true
  },
  "stabulation_a": {
   "boites": [],
@@ -4517,7 +4604,8 @@
    "BATIMENT0000000290577848"
   ],
   "remplace_commerce": [],
-  "nom": "Stabulation"
+  "nom": "Stabulation",
+  "une_face": true
  },
  "stabulation_b": {
   "boites": [],
@@ -4532,7 +4620,8 @@
    "BATIMENT0000000290577849"
   ],
   "remplace_commerce": [],
-  "nom": "Stabulation"
+  "nom": "Stabulation",
+  "une_face": true
  },
  "stabulation_bois_15": {
   "boites": [],
@@ -4547,7 +4636,8 @@
    "BATIMENT0000000301133292"
   ],
   "remplace_commerce": [],
-  "nom": "Stabulation en bois"
+  "nom": "Stabulation en bois",
+  "une_face": true
  },
  "stabulation_bois_6": {
   "boites": [],
@@ -4562,7 +4652,8 @@
    "BATIMENT0000000301133204"
   ],
   "remplace_commerce": [],
-  "nom": "Stabulation en bois"
+  "nom": "Stabulation en bois",
+  "une_face": true
  },
  "stabulation_bois_7": {
   "boites": [],
@@ -4577,7 +4668,8 @@
    "BATIMENT0000000301133205"
   ],
   "remplace_commerce": [],
-  "nom": "Stabulation en bois"
+  "nom": "Stabulation en bois",
+  "une_face": true
  },
  "tunnel": {
   "boites": [
@@ -4602,6 +4694,55 @@
    "BATIMENT0000002292127062"
   ],
   "remplace_commerce": [],
-  "nom": "Tunnel agricole"
+  "nom": "Tunnel agricole",
+  "une_face": true
+ },
+ "mairie_1": {
+  "boites": [
+   [
+    0.0,
+    1.542,
+    -0.0,
+    6.0,
+    3.458,
+    5.75,
+    -0.312
+   ]
+  ],
+  "glb": "res://assets/sur_mesure/mairie_1.glb",
+  "atlas": "res://assets/sur_mesure/mairie_1.png",
+  "pos": [
+   73.607,
+   449.971,
+   426.356
+  ],
+  "remplace_bati": [],
+  "remplace_commerce": [],
+  "nom": "Mairie de Rochetoirin",
+  "une_face": true
+ },
+ "mairie_2": {
+  "boites": [
+   [
+    0.0,
+    1.097,
+    0.0,
+    2.75,
+    2.703,
+    2.5,
+    -1.883
+   ]
+  ],
+  "glb": "res://assets/sur_mesure/mairie_2.glb",
+  "atlas": "res://assets/sur_mesure/mairie_2.png",
+  "pos": [
+   82.618,
+   449.852,
+   426.108
+  ],
+  "remplace_bati": [],
+  "remplace_commerce": [],
+  "nom": "Mairie de Rochetoirin",
+  "une_face": true
  }
 }
