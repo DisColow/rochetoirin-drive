@@ -744,6 +744,20 @@ func _shots(path: String) -> void:
 				for i in 120:
 					await get_tree().physics_frame
 			cam_rig.set_mode(int(s.cam))
+			if s.has("cote"):
+				# voiture à l'arrêt vue de côté, à hauteur des roues (contrôle du contact des roues avec le sol)
+				for i in 120:
+					await get_tree().physics_frame
+				cam_rig.set_process(false)
+				var cm := get_viewport().get_camera_3d()
+				var c0: Vector3 = car.global_position + Vector3(0, 0.5, 0)
+				cm.global_position = c0 + car.global_basis.x * float(s.cote)
+				cm.look_at(c0, Vector3.UP)
+				for i in 10:
+					await get_tree().process_frame
+				get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % s.name)
+				cam_rig.set_process(true)
+				continue
 			if s.has("sprite"):
 				car.set_sprite_mode(bool(s.sprite))
 			if s.has("side"):
@@ -1114,6 +1128,29 @@ func _physics_process(_dt: float) -> void:
 	car.touch_brake = 1.0 if t >= dur else 0.0
 	var straight: bool = Array(OS.get_cmdline_user_args()).any(func(a): return a.begins_with("--drive-from="))
 	car.touch_steer = 0.3 if (t > 600 and t < 800 and not straight) else 0.0
+	if OS.get_cmdline_user_args().has("--roues-test") and t % 60 == 0:
+		# enfoncement des roues : bas de la roue (centre - rayon) par rapport au point de contact (cm)
+		var pe := []
+		for w in car.wheels:
+			if w.is_in_contact():
+				pe.append("%.1f" % ((w.global_position.y - w.wheel_radius - w.get_contact_point().y) * 100.0))
+		print("roues t=%.1f : %s cm (+ : au-dessus du sol)" % [t / 120.0, ", ".join(pe)])
+	if OS.get_cmdline_user_args().has("--brake-test"):
+		# essai de freinage : pleins gaz jusqu'à 100 km/h, puis frein à fond ; distance et décélération moyenne
+		car.touch_steer = 0.0
+		if not has_meta("bt_p0"):
+			car.touch_throttle = 1.0; car.touch_brake = 0.0
+			if car.kmh() >= 100.0 or t > 2400:
+				set_meta("bt_p0", car.global_position); set_meta("bt_t0", t); set_meta("bt_v0", car.kmh())
+				print("freinage depuis %.0f km/h" % car.kmh())
+		else:
+			car.touch_throttle = 0.0; car.touch_brake = 1.0
+			if car.kmh() < 1.0:
+				var d: float = car.global_position.distance_to(get_meta("bt_p0"))
+				var tt: float = (t - int(get_meta("bt_t0"))) / float(Engine.physics_ticks_per_second)
+				print("arrêt : %.1f m en %.2f s (décélération moyenne %.1f m/s²)" % [d, tt, float(get_meta("bt_v0")) / 3.6 / tt])
+				get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--reverse-test"):
 		# marche arrière depuis le départ (FREIN), puis GAZ en reculant : doit freiner puis repartir en avant
 		car.touch_steer = 0.0

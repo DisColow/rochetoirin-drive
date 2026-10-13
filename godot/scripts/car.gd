@@ -1,6 +1,6 @@
 ## Renault Espace I (1984-1988, rouge foncé et bas beige doré, la voiture du père de l'utilisateur) : physique de véhicule à roues sur rayons, boîte automatique, direction adaptée à la vitesse.
 ## Sans friction : marche arrière comme dans les jeux (FREIN freine puis recule, GAZ en reculant freine puis avance), remise sur la route automatique (sortie de zone,
-## chute, retournement, blocage), aides à la stabilité.
+## chute, retournement ; plus au blocage depuis la v6.22), aides à la stabilité.
 extends VehicleBody3D
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
@@ -10,7 +10,9 @@ const MAX_KMH := 230.0
 const POWER := 300000.0         # puissance aux roues (W)
 const ENGINE := 15000.0         # force max (N) au démarrage, toutes roues (limitée par l'adhérence)
 const DRAG := 0.98              # ½ ρ SCx : Cx 0,5 × 3,2 m² (gros pick-up)
-const BRAKE := 46.0              # freinage ≈ 9,5 m/s² (100 à 0 km/h en ~40 m, comme le vrai)
+const BRAKE := 46.0              # freins des roues ≈ 9,5 m/s² (100 à 0 km/h en ~40 m, comme le vrai)
+const BRAKE_AIDE := 7.0          # v6.22 (« le frein n'est pas assez puissant ») : décélération ajoutée (m/s²) roues au
+                                 # sol, façon jeu de conduite : ≈ 16 m/s² en tout, 100 à 0 km/h en ~25 m
 const STEER_LOW := 0.55         # braquage max à l'arrêt (rad)
 const STEER_HIGH := 0.08        # à 130 km/h
 
@@ -55,13 +57,20 @@ func _ready() -> void:
 	cs.shape = box
 	cs.position = Vector3(0, float(meta.get("box_y", 0.95)), 0)
 	add_child(cs)
-	var wb: float = meta.wheelbase; var tr: float = meta.track; var r: float = meta.radius
+	var wb: float = meta.wheelbase; var tr: float = meta.track
+	# v6.22 (« roues à moitié enfoncées ») : la roue du modèle ne fait que 0,53 m de diamètre (vrai Raptor : ~0,83 m)
+	# et la physique des roues de Godot la fait descendre de 4 à 8 cm sous le point de contact. Rayon physique
+	# 0,40 m, axe abaissé d'autant (caisse à la même hauteur), roue affichée agrandie un peu moins que le rayon
+	# physique : le bas du pneu touche juste le sol, le pneu remplit le passage de roue.
+	var r_mod: float = meta.radius
+	var r := 0.40
+	var ech_roue := (r - 0.045) / r_mod
 	var wheel_scene: PackedScene = load("res://assets/car/wheel.glb")
 	for i in 4:
 		var front := i < 2
 		var right := i % 2 == 0
 		var w := VehicleWheel3D.new()
-		w.position = Vector3((-1.0 if right else 1.0) * tr / 2, r + 0.12, (1.0 if front else -1.0) * wb / 2)
+		w.position = Vector3((-1.0 if right else 1.0) * tr / 2, r_mod + 0.12 - (r - r_mod), (1.0 if front else -1.0) * wb / 2)
 		w.wheel_radius = r
 		w.suspension_travel = 0.24                   # suspensions Fox à grand débattement
 		w.suspension_stiffness = 38.0
@@ -75,6 +84,7 @@ func _ready() -> void:
 		var v: Node3D = wheel_scene.instantiate()
 		_materials(v)
 		v.rotation.y = 0.0 if right else PI
+		v.scale = Vector3(1.1, ech_roue, ech_roue)
 		w.add_child(v)
 		add_child(w)
 		wheels.append(w)
@@ -552,6 +562,12 @@ func _physics_process(dt: float) -> void:
 			f = 0.0
 		engine_force = f if brk < 0.1 or thr > brk else 0.0
 		brake = BRAKE * brk + (2.0 if thr < 0.05 and spd < 3.0 and brk < 0.1 else 0.0)
+	# aide au freinage (pédale opposée au sens de marche), seulement roues au sol
+	var pedale := thr if reversing else brk
+	if pedale > 0.1 and linear_velocity.length() > 0.5 and wheels.any(func(w): return w.is_in_contact()):
+		var vh := linear_velocity - Vector3.UP * linear_velocity.y
+		if (not reversing and v > 0.3) or (reversing and v < -0.3):
+			apply_central_force(-vh.normalized() * mass * BRAKE_AIDE * pedale)
 	# frein moteur léger et aide à la stabilité en virage (anti-dérive latérale)
 	if thr < 0.05 and not reversing:
 		apply_central_force(-linear_velocity * 25.0)
@@ -601,22 +617,9 @@ func _recovery(dt: float) -> void:
 		return
 	# retourné ou sur le flanc plus de 1,2 s (presque à l'arrêt)
 	_flip_t = _flip_t + dt if (up < 0.5 and kmh() < 25.0) else 0.0
-	# bloqué (accélère sans avancer) plus de 4 s
-	var thr := Input.get_action_strength("accelerer") + touch_throttle
-	_stuck_t = _stuck_t + dt if (thr > 0.3 and kmh() < 1.5) else 0.0
-	# coincée en vibrant contre un obstacle : la vitesse calculée reste élevée mais la voiture ne se déplace pas ;
-	# on juge sur le déplacement réel (moins de 1,5 m en 3 s, gaz ou frein enfoncé)
-	var brk_j := Input.get_action_strength("freiner") + touch_brake
-	if (thr > 0.3 or brk_j > 0.3) and p.is_finite():
-		_jam_t += dt
-		if p.distance_to(_jam_ref) > 1.5:
-			_jam_ref = p; _jam_t = 0.0
-		elif _jam_t > 3.0:
-			print("voiture coincée en %s (vitesse calculée %.0f km/h) contre %s : remise sur la route" % [p, kmh(), _touching()])
-			reset_to_road()
-	else:
-		_jam_ref = p; _jam_t = 0.0
-	if p.y < -50.0 or _flip_t > 1.2 or _stuck_t > 4.0 or Input.is_action_just_pressed("replacer"):
+	# v6.22 (demande de l'utilisateur) : plus de remise sur la route automatique quand la voiture est bloquée ou
+	# coincée à l'arrêt ; il reste le bouton rouge (« replacer »), la voiture retournée et la chute hors du monde
+	if p.y < -50.0 or _flip_t > 1.2 or Input.is_action_just_pressed("replacer"):
 		reset_to_road()
 
 ## Objets du décor qui touchent la carrosserie (diagnostic d'une voiture coincée).

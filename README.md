@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.21.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.21/RochetoirinSimulator-v6.21.apk)**
+**[RochetoirinSimulator-v6.22.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.22/RochetoirinSimulator-v6.22.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,15 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v6.22 (APK complet à installer) :
+- **freinage bien plus puissant** : de 100 km/h à l'arrêt en ~24 m (contre 40 m).
+- **roues du pick-up corrigées** : plus enfoncées dans le sol, à la bonne taille (elles remplissent les passages de
+  roue).
+- **fracas** quand on percute le décor et que la voiture s'arrête net.
+- **plus d'arbre « fantôme »** qui surgissait cassé devant la voiture hors route : seuls les arbres affichés peuvent
+  être renversés.
+- **plus de remise sur la route automatique** quand la voiture est bloquée : le bouton rouge reste là pour ça.
 
 Nouveautés de la v6.21 (APK complet à installer) :
 - **102 bâtiments non résidentiels de Rochetoirin refaits d'après Street View**, avec la méthode du restaurant :

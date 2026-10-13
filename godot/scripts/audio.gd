@@ -309,6 +309,27 @@ func _physics_process(dt: float) -> void:
 					name = "choc_sol_%d" % (randi() % 5)
 			_one_shot(name, car.global_position, clampf(hard / 9.0, 0.25, 1.0), randf_range(0.9, 1.08))
 			_hit_cd = 0.18
+			# v6.22 (demande de l'utilisateur) : choc qui arrête net la voiture contre le décor -> fracas fort, non
+			# positionné (bus « Voiture », pas étouffé en vue conducteur), deux impacts lourds superposés
+			if kind != "sol" and hard > 6.0:
+				_fracas(hard)
+
+var _fr: Array = []
+func _fracas(hard: float) -> void:
+	if _fr.is_empty():
+		for i in 2:
+			var pl := AudioStreamPlayer.new()
+			pl.bus = AudioServer.get_bus_name(_bus_car)
+			add_child(pl)
+			_fr.append(pl)
+	var g := clampf(hard / 10.0, 0.7, 1.0)
+	print("[fracas] choc de %.1f m/s contre le décor" % hard)
+	for i in 2:
+		var pl: AudioStreamPlayer = _fr[i]
+		pl.stream = _stream("choc_dur_%d" % (randi() % 5), false)
+		pl.pitch_scale = 0.78 if i == 0 else randf_range(0.95, 1.05)    # le premier, plus grave : la masse du pick-up
+		pl.volume_db = linear_to_db(g) + 6.0
+		pl.play()
 
 ## Famille de l'objet heurté : bâtiments, poteaux, voitures garées -> dur ; arbres, clôtures, haies -> bois ;
 ## poubelles, mobilier -> plastique ; routes et relief -> "".

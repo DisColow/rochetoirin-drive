@@ -32,7 +32,7 @@ var fences: Node
 var _hw := 0.95                   # demi-largeur, demi-longueur de la voiture
 var _hl := 2.6
 var _panneaux := {}               # case de 16 m -> Array de Vector4 (x, y du pied, z, hauteur)
-var _arbres := {}                 # tuile -> {case de 16 m -> PackedInt32Array (indices des arbres cassables)}
+var _arbres := {}                 # tuile -> [arbres affichés, {case de 16 m -> PackedInt32Array (indices cassables)}]
 var _proches: Array = []          # [genre, données…] relevés toutes les 0,2 s
 var _t := 0.0
 var _casses: Array = []           # points déjà cassés (Vector3) : pas deux fois
@@ -181,15 +181,17 @@ func _grille_lignes(k: Vector2i) -> Dictionary:
 
 ## Arbres cassables d'une tuile rangés par cases de 16 m (fait une fois par tuile chargée).
 func _grille_arbres(k: Vector2i) -> Dictionary:
-	if _arbres.has(k):
-		return _arbres[k]
+	# seulement les arbres affichés (vegetation.visibles : densité réglable) ; refaite si le niveau change
+	var nv: int = vegetation.visibles(k)
+	if _arbres.has(k) and _arbres[k][0] == nv:
+		return _arbres[k][1]
 	for kk in _arbres.keys():
 		if not vegetation.data.has(kk):
 			_arbres.erase(kk)
 	var g := {}
 	var a: PackedFloat32Array = vegetation.data[k]
-	for i in a.size() / 8:
-		var o := i * 8
+	for i in nv:
+		var o: int = i * 8
 		if a[o + 3] <= 0.0 or a[o + 3] >= ARBRE_MAX:
 			continue
 		var kk := Vector2i(floori(a[o] / GRILLE), floori(a[o + 2] / GRILLE))
@@ -198,7 +200,7 @@ func _grille_arbres(k: Vector2i) -> Dictionary:
 		var l: PackedInt32Array = g[kk]
 		l.append(i)
 		g[kk] = l
-	_arbres[k] = g
+	_arbres[k] = [nv, g]
 	return g
 
 # ---------------------------------------------------------------- casse
@@ -419,8 +421,8 @@ func essai() -> void:
 			"arbre":
 				for k in vegetation.data:
 					var a: PackedFloat32Array = vegetation.data[k]
-					for i in a.size() / 8:
-						var o := i * 8
+					for i in vegetation.visibles(k):
+						var o: int = i * 8
 						if a[o + 3] > 3.0 and a[o + 3] < ARBRE_MAX:
 							var d := Vector2(a[o] - c.x, a[o + 2] - c.z).length()
 							if d < bd and d > 3.0:

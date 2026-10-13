@@ -231,9 +231,20 @@
   (`car.hold`) ; les essais attendent `Chargement.fini`. Essai :
   `-- --capture-chargement` (captures `user://shots/chargement_N.png`). Toute nouvelle grosse initialisation :
   l'ajouter dans une étape (ou en créer une, avec sa durée par défaut).
-- **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
-  souples, pas d'à-coups de chargement). Voiture coincée (gaz ou frein enfoncé, moins de 1,5 m parcouru en 3 s, même
-  si la vitesse calculée reste élevée en vibrant contre un obstacle) : remise sur la route automatique (`car.gd`).
+- **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, commandes souples, pas d'à-coups de
+  chargement). **Plus de remise sur la route automatique quand la voiture est bloquée ou coincée** (demande de
+  l'utilisateur, v6.22).
+  - Restent : le bouton rouge (« replacer »), la voiture retournée, la chute hors du monde.
+- **Conduite (v6.22)** :
+  - Freinage façon jeu : freins des roues + `BRAKE_AIDE` (7 m/s² roues au sol), soit ≈ 16 m/s², 100 à 0 km/h en
+    ~24 m. Essai : `-- --drive-test --brake-test --drive-from=-8410.95,221,-7187.25,45.2` (longue ligne droite).
+  - Roues :
+    - rayon physique 0,40 m (le modèle n'en fait que 0,267 m), axe abaissé d'autant ;
+    - roue affichée à l'échelle (0,40 − 0,045) / 0,267, car la physique de Godot enfonce la roue de ~4,5 cm ;
+    - essai `--roues-test` (enfoncement mesuré), capture `{"cam": 0, "place": [...], "cote": 4.5}` (vue de côté).
+  - Fracas fort (`audio._fracas`, bus « Voiture ») quand un choc contre le décor arrête net la voiture.
+  - Arbres cassables : seulement ceux affichés (`vegetation.visibles(k)`, densité réglable). Avant, des arbres
+    non dessinés « surgissaient » cassés devant la voiture.
 - **Relief chargé autour de la voiture** (v6.16, issue #11, `scripts/relief.gd`) : plus de `data_directory` (qui
   lisait les 173 régions d'un bloc : 765 Mo, 8 s) ; régions lues d'avance sur un fil (`R_LIRE` 2,6 km), mises dans
   Terrain3D à moins de `R_CHARGE` (1,8 km), libérées au-delà de `R_GARDE` (`remove_regionl` puis `save_region` vers
@@ -312,9 +323,20 @@
   (`car.hold`) ; les essais attendent `Chargement.fini`. Essai :
   `-- --capture-chargement` (captures `user://shots/chargement_N.png`). Toute nouvelle grosse initialisation :
   l'ajouter dans une étape (ou en créer une, avec sa durée par défaut).
-- **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, remise sur la route automatique, commandes
-  souples, pas d'à-coups de chargement). Voiture coincée (gaz ou frein enfoncé, moins de 1,5 m parcouru en 3 s, même
-  si la vitesse calculée reste élevée en vibrant contre un obstacle) : remise sur la route automatique (`car.gd`).
+- **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, commandes souples, pas d'à-coups de
+  chargement). **Plus de remise sur la route automatique quand la voiture est bloquée ou coincée** (demande de
+  l'utilisateur, v6.22).
+  - Restent : le bouton rouge (« replacer »), la voiture retournée, la chute hors du monde.
+- **Conduite (v6.22)** :
+  - Freinage façon jeu : freins des roues + `BRAKE_AIDE` (7 m/s² roues au sol), soit ≈ 16 m/s², 100 à 0 km/h en
+    ~24 m. Essai : `-- --drive-test --brake-test --drive-from=-8410.95,221,-7187.25,45.2` (longue ligne droite).
+  - Roues :
+    - rayon physique 0,40 m (le modèle n'en fait que 0,267 m), axe abaissé d'autant ;
+    - roue affichée à l'échelle (0,40 − 0,045) / 0,267, car la physique de Godot enfonce la roue de ~4,5 cm ;
+    - essai `--roues-test` (enfoncement mesuré), capture `{"cam": 0, "place": [...], "cote": 4.5}` (vue de côté).
+  - Fracas fort (`audio._fracas`, bus « Voiture ») quand un choc contre le décor arrête net la voiture.
+  - Arbres cassables : seulement ceux affichés (`vegetation.visibles(k)`, densité réglable). Avant, des arbres
+    non dessinés « surgissaient » cassés devant la voiture.
 - **Relief chargé autour de la voiture** (v6.16, issue #11, `scripts/relief.gd`) : plus de `data_directory` (qui
   lisait les 173 régions d'un bloc : 765 Mo, 8 s) ; régions lues d'avance sur un fil (`R_LIRE` 2,6 km), mises dans
   Terrain3D à moins de `R_CHARGE` (1,8 km), libérées au-delà de `R_GARDE` (`remove_regionl` puis `save_region` vers

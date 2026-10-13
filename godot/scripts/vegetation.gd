@@ -202,6 +202,13 @@ func _process_corps(dt: float) -> void:
 		_near_t = 0.2
 		_update_near()
 
+## Nombre d'arbres affichés dans la tuile k au niveau de détail courant : seuls les premiers `frac` de la tuile sont
+## dessinés (modèles 3D et imposteurs) ; casse.gd ne doit voir que ceux-là (sinon : « arbre fantôme » qui surgit).
+func visibles(k: Vector2i) -> int:
+	if not data.has(k):
+		return 0
+	return int(data[k].size() / 8 * float(LEVELS[level].frac))
+
 ## Arbre renversé (casse.gd) : retiré des modèles 3D proches et des imposteurs ; renvoie [modèle, hauteur, lacet].
 func casser(k: Vector2i, i: int) -> Array:
 	if not data.has(k):
