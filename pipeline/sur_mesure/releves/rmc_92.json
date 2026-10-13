@@ -1,0 +1,30 @@
+{
+ "id": "rmc_92",
+ "cleabs": "BATIMENT0000000301128402",
+ "nom": "Atelier",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     2.0,
+     3.4
+    ],
+    "c": "#8a8e90"
+   }
+  ]
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "id": "svc_32",
+ "cleabs": "BATIMENT0000000302570141",
+ "nom": "Grange en pisé",
+ "mur": "enduit#b89a70",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "soubassement": "pierre#9a8a78",
+ "h_soub": 0.8
+}

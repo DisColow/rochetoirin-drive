@@ -1,0 +1,32 @@
+{
+ "id": "rmc_149",
+ "cleabs": "BATIMENT0000000301126743",
+ "nom": "Entrepôt",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8ccd0",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 8.5,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#c8ccd0"
+   }
+  ]
+ }
+}

@@ -1,0 +1,30 @@
+{
+ "id": "dol_72",
+ "cleabs": "BATIMENT0000000302159236",
+ "nom": "Salle",
+ "mur": "bardage#8a2a2a",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0.6,
+     2.6
+    ],
+    "c": "#8a8e90"
+   }
+  ]
+ }
+}

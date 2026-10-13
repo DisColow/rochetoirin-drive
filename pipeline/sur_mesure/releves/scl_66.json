@@ -1,0 +1,16 @@
+{
+ "id": "scl_66",
+ "cleabs": "BATIMENT0000000301971454",
+ "nom": "Gymnase",
+ "mur": "enduit#e0c060",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "soubassement": "#ecebe6",
+ "h_soub": 0.8
+}

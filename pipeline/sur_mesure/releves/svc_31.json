@@ -1,0 +1,32 @@
+{
+ "id": "svc_31",
+ "cleabs": "BATIMENT0000000302570159",
+ "nom": "Grange",
+ "mur": "enduit#c8a878",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#2a2a2a"
+   }
+  ]
+ }
+}

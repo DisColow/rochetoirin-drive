@@ -1,0 +1,31 @@
+{
+ "id": "rmc_133",
+ "cleabs": "BATIMENT0000000301126781",
+ "nom": "Atelier",
+ "mur": "enduit#c8c8c4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

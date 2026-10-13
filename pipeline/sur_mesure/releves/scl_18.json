@@ -1,0 +1,59 @@
+{
+ "id": "scl_18",
+ "cleabs": "BATIMENT0000000301968973",
+ "nom": "Carross'Auto",
+ "mur": "bardage#c82a2a",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 3,
+    "l": 3.6,
+    "c": "#ecebe8"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.4
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "CARROSS'AUTO",
+    "c": "#2a2a2a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

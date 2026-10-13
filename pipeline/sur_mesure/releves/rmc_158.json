@@ -1,0 +1,32 @@
+{
+ "id": "rmc_158",
+ "cleabs": "BATIMENT0000000301126763",
+ "nom": "Poterie",
+ "mur": "bardage#3a4250",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#3a4250",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "LA POTERIE",
+    "c": "#c02a2a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

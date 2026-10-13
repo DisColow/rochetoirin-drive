@@ -1,0 +1,506 @@
+[
+{
+"k": 0,
+"cleabs": "BATIMENT0000000301577082",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 5.6,
+"aire": 59,
+"vue": "SO",
+"Lvue": 9,
+"R": {
+"id": "ssm_0",
+"cleabs": "BATIMENT0000000301577082",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 4.2,
+"faitage": 5.6
+}
+},
+{
+"k": 1,
+"cleabs": "BATIMENT0000000301583261",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 5.7,
+"aire": 374,
+"vue": "O",
+"Lvue": 7,
+"R": {
+"id": "ssm_1",
+"cleabs": "BATIMENT0000000301583261",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 4.3,
+"faitage": 5.7
+}
+},
+{
+"k": 2,
+"cleabs": "BATIMENT0000000007581409",
+"usage": "Agricole",
+"nature": "Industriel, agricole ou commercial",
+"h": 3.2,
+"aire": 195,
+"vue": "NE",
+"Lvue": 23,
+"R": {
+"id": "ssm_2",
+"cleabs": "BATIMENT0000000007581409",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 2.5,
+"faitage": 3.5
+}
+},
+{
+"k": 3,
+"cleabs": "BATIMENT0000000301575709",
+"usage": "Agricole",
+"nature": "Industriel, agricole ou commercial",
+"h": 6.6,
+"aire": 673,
+"vue": "O",
+"Lvue": 27,
+"R": {
+"id": "ssm_3",
+"cleabs": "BATIMENT0000000301575709",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 4.9,
+"faitage": 6.6
+}
+},
+{
+"k": 4,
+"cleabs": "BATIMENT0000000301583218",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 4.1,
+"aire": 167,
+"vue": "SO",
+"Lvue": 14,
+"R": {
+"id": "ssm_4",
+"cleabs": "BATIMENT0000000301583218",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 3.1,
+"faitage": 4.1
+}
+},
+{
+"k": 5,
+"cleabs": "BATIMENT0000000301583193",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 4.0,
+"aire": 251,
+"vue": "E",
+"Lvue": 25,
+"R": {
+"id": "ssm_5",
+"cleabs": "BATIMENT0000000301583193",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 3.0,
+"faitage": 4.0
+}
+},
+{
+"k": 6,
+"cleabs": "BATIMENT0000000301575711",
+"usage": "Agricole",
+"nature": "Industriel, agricole ou commercial",
+"h": 6.6,
+"aire": 188,
+"vue": "SE",
+"Lvue": 21,
+"R": {
+"id": "ssm_6",
+"cleabs": "BATIMENT0000000301575711",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 4.9,
+"faitage": 6.6
+}
+},
+{
+"k": 7,
+"cleabs": "BATIMENT0000000301575781",
+"usage": "Agricole",
+"nature": "Industriel, agricole ou commercial",
+"h": 4.9,
+"aire": 438,
+"vue": "SE",
+"Lvue": 22,
+"R": {
+"id": "ssm_7",
+"cleabs": "BATIMENT0000000301575781",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 3.7,
+"faitage": 4.9
+}
+},
+{
+"k": 8,
+"cleabs": "BATIMENT0000000301575782",
+"usage": "Agricole",
+"nature": "Industriel, agricole ou commercial",
+"h": 4.9,
+"aire": 44,
+"vue": "SE",
+"Lvue": 8,
+"R": {
+"id": "ssm_8",
+"cleabs": "BATIMENT0000000301575782",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 3.7,
+"faitage": 4.9
+}
+},
+{
+"k": 9,
+"cleabs": "BATIMENT0000000301575774",
+"usage": "Agricole",
+"nature": "Industriel, agricole ou commercial",
+"h": 5.0,
+"aire": 731,
+"vue": "SE",
+"Lvue": 15,
+"R": {
+"id": "ssm_9",
+"cleabs": "BATIMENT0000000301575774",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 3.8,
+"faitage": 5.0
+}
+},
+{
+"k": 10,
+"cleabs": "BATIMENT0000000301575712",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 9.4,
+"aire": 221,
+"vue": "S",
+"Lvue": 19,
+"R": {
+"id": "ssm_10",
+"cleabs": "BATIMENT0000000301575712",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 7.1,
+"faitage": 9.4
+}
+},
+{
+"k": 11,
+"cleabs": "BATIMENT0000002001968919",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 6.1,
+"aire": 516,
+"vue": "SE",
+"Lvue": 12,
+"R": {
+"id": "ssm_11",
+"cleabs": "BATIMENT0000002001968919",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 4.6,
+"faitage": 6.1
+}
+},
+{
+"k": 12,
+"cleabs": "BATIMENT0000000301575855",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 2.9,
+"aire": 15,
+"vue": "O",
+"Lvue": 5,
+"R": {
+"id": "ssm_12",
+"cleabs": "BATIMENT0000000301575855",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 2.5,
+"faitage": 3.5
+}
+},
+{
+"k": 13,
+"cleabs": "BATIMENT0000000301575793",
+"usage": "Religieux",
+"nature": "Eglise",
+"h": 10.4,
+"aire": 420,
+"vue": "S",
+"Lvue": 15,
+"R": {
+"id": "ssm_13",
+"cleabs": "BATIMENT0000000301575793",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 7.8,
+"faitage": 10.4
+}
+},
+{
+"k": 14,
+"cleabs": "BATIMENT0000000301575848",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 3.2,
+"aire": 31,
+"vue": "SO",
+"Lvue": 11,
+"R": {
+"id": "ssm_14",
+"cleabs": "BATIMENT0000000301575848",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 2.5,
+"faitage": 3.5
+}
+},
+{
+"k": 15,
+"cleabs": "BATIMENT0000000301575691",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 6.3,
+"aire": 122,
+"vue": "SO",
+"Lvue": 10,
+"R": {
+"id": "ssm_15",
+"cleabs": "BATIMENT0000000301575691",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 4.7,
+"faitage": 6.3
+}
+},
+{
+"k": 16,
+"cleabs": "BATIMENT0000000007581280",
+"usage": "Agricole",
+"nature": "Serre",
+"h": 5.2,
+"aire": 421,
+"vue": "SO",
+"Lvue": 52,
+"R": {
+"id": "ssm_16",
+"cleabs": "BATIMENT0000000007581280",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 3.9,
+"faitage": 5.2
+}
+},
+{
+"k": 17,
+"cleabs": "BATIMENT0000000301577430",
+"usage": "Industriel",
+"nature": "Industriel, agricole ou commercial",
+"h": 4.7,
+"aire": 15,
+"vue": "SO",
+"Lvue": 6,
+"R": {
+"id": "ssm_17",
+"cleabs": "BATIMENT0000000301577430",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 3.5,
+"faitage": 4.7
+}
+},
+{
+"k": 18,
+"cleabs": "BATIMENT0000000301577482",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 6.0,
+"aire": 298,
+"vue": "NE",
+"Lvue": 10,
+"R": {
+"id": "ssm_18",
+"cleabs": "BATIMENT0000000301577482",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 4.5,
+"faitage": 6.0
+}
+},
+{
+"k": 19,
+"cleabs": "BATIMENT0000000301577432",
+"usage": "Industriel",
+"nature": "Industriel, agricole ou commercial",
+"h": 4.7,
+"aire": 20,
+"vue": "SO",
+"Lvue": 6,
+"R": {
+"id": "ssm_19",
+"cleabs": "BATIMENT0000000301577432",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 3.5,
+"faitage": 4.7
+}
+},
+{
+"k": 20,
+"cleabs": "BATIMENT0000000301577431",
+"usage": "Industriel",
+"nature": "Industriel, agricole ou commercial",
+"h": 7.4,
+"aire": 2195,
+"vue": "O",
+"Lvue": 44,
+"R": {
+"id": "ssm_20",
+"cleabs": "BATIMENT0000000301577431",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 5.6,
+"faitage": 7.4
+}
+},
+{
+"k": 21,
+"cleabs": "BATIMENT0000000301577513",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 8.4,
+"aire": 163,
+"vue": "NE",
+"Lvue": 9,
+"R": {
+"id": "ssm_21",
+"cleabs": "BATIMENT0000000301577513",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 6.3,
+"faitage": 8.4
+}
+},
+{
+"k": 22,
+"cleabs": "BATIMENT0000000301577937",
+"usage": "Agricole",
+"nature": "Industriel, agricole ou commercial",
+"h": 6.3,
+"aire": 1386,
+"vue": "NE",
+"Lvue": 27,
+"R": {
+"id": "ssm_22",
+"cleabs": "BATIMENT0000000301577937",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 4.7,
+"faitage": 6.3
+}
+},
+{
+"k": 23,
+"cleabs": "BATIMENT0000000301577942",
+"usage": "Agricole",
+"nature": "Industriel, agricole ou commercial",
+"h": 3.2,
+"aire": 83,
+"vue": "SO",
+"Lvue": 20,
+"R": {
+"id": "ssm_23",
+"cleabs": "BATIMENT0000000301577942",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 2.5,
+"faitage": 3.5
+}
+}
+]

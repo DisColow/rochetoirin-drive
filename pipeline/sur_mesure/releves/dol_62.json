@@ -1,0 +1,14 @@
+{
+ "id": "dol_62",
+ "cleabs": "BATIMENT0000000302158265",
+ "nom": "Grange",
+ "mur": "bois#7a6a5a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 2.6,
+ "faitage": 4.0,
+ "densite": 12
+}

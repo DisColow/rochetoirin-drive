@@ -1,0 +1,42 @@
+{
+ "id": "scl_38",
+ "cleabs": "BATIMENT0000000301966898",
+ "nom": "Maison de bourg",
+ "mur": "enduit#ecdcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 7.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.8
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

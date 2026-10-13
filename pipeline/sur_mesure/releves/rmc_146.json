@@ -1,0 +1,14 @@
+{
+ "id": "rmc_146",
+ "cleabs": "BATIMENT0000000007609588",
+ "nom": "Serres",
+ "mur": "bardage#d8dcdc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#d8dcdc",
+  "debord": 0.4
+ },
+ "egout": 2.6,
+ "faitage": 3.4,
+ "densite": 12
+}

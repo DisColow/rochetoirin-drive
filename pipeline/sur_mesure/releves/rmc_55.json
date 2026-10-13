@@ -1,0 +1,14 @@
+{
+ "id": "rmc_55",
+ "cleabs": "BATIMENT0000000301128607",
+ "nom": "Remise",
+ "mur": "beton#a8a8a4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12
+}

@@ -1,0 +1,16 @@
+{
+ "id": "rmc_206",
+ "cleabs": "BATIMENT0000000301130416",
+ "nom": "Hangar solaire",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#2a3a5a",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#4a3a2a"
+}

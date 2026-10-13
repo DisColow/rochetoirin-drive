@@ -1,0 +1,44 @@
+{
+ "id": "rmc_90",
+ "cleabs": "BATIMENT0000000301128524",
+ "nom": "Ancien commerce",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "rideau",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.2
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

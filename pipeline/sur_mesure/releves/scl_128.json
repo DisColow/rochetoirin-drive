@@ -1,0 +1,44 @@
+{
+ "id": "scl_128",
+ "cleabs": "BATIMENT0000000301970284",
+ "nom": "Toupargel",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0.8,
+     2.0
+    ],
+    "c": "#8a8e90"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "TOUPARGÈLE",
+    "c": "#ffffff",
+    "tc": "#c03a2a"
+   }
+  ]
+ }
+}

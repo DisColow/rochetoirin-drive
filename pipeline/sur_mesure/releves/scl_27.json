@@ -1,0 +1,43 @@
+{
+ "id": "scl_27",
+ "cleabs": "BATIMENT0000000301972704",
+ "nom": "Usine",
+ "mur": "bardage#c8ccd0",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 8.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     1.0,
+     3.0
+    ],
+    "c": "#8a8e90"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     6.0
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

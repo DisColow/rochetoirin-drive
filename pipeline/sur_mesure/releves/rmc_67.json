@@ -1,0 +1,31 @@
+{
+ "id": "rmc_67",
+ "cleabs": "BATIMENT0000000301128028",
+ "nom": "Atelier",
+ "mur": "beton#c8c4bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     4.8
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

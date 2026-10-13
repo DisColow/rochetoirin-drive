@@ -1,0 +1,16 @@
+{
+ "id": "svc_1",
+ "cleabs": "BATIMENT0000000302570724",
+ "nom": "Hangar à foin",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#5a4a3a"
+}

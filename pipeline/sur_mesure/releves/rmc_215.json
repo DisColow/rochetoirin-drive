@@ -1,0 +1,54 @@
+{
+ "id": "rmc_215",
+ "cleabs": "BATIMENT0000000007600472",
+ "nom": "Hangar",
+ "mur": "bardage#a82a2a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "matiere",
+    "x": [
+     0.08,
+     0.13
+    ],
+    "y": [
+     0,
+     3.5
+    ],
+    "mur": "bardage#d8c898"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.48,
+     0.53
+    ],
+    "y": [
+     0,
+     3.5
+    ],
+    "mur": "bardage#d8c898"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.82,
+     0.87
+    ],
+    "y": [
+     0,
+     3.5
+    ],
+    "mur": "bardage#d8c898"
+   }
+  ]
+ }
+}

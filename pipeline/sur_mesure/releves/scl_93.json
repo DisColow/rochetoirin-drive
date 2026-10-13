@@ -1,0 +1,43 @@
+{
+ "id": "scl_93",
+ "cleabs": "BATIMENT0000000301970224",
+ "nom": "Mr Bricolage",
+ "mur": "bardage#c8c8c4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.5
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "MR BRICOLO",
+    "c": "#f0c020",
+    "tc": "#1a1a1a"
+   }
+  ]
+ }
+}

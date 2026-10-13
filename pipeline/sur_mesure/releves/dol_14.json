@@ -1,0 +1,14 @@
+{
+ "id": "dol_14",
+ "cleabs": "BATIMENT0000000302156840",
+ "nom": "Grange",
+ "mur": "pierre#b8a888",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 5.0,
+ "densite": 12
+}

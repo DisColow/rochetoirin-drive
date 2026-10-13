@@ -1,0 +1,32 @@
+{
+ "id": "svc_86",
+ "cleabs": "BATIMENT0000000302571948",
+ "nom": "Moulin coopératif",
+ "mur": "beton#c8c0b0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "MOULIN COOPÉRATIF",
+    "c": "#ffffff",
+    "tc": "#1a3a5a"
+   }
+  ]
+ }
+}

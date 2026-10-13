@@ -1,0 +1,16 @@
+{
+ "id": "scl_91",
+ "cleabs": "BATIMENT0000000301970306",
+ "nom": "Entrepôt",
+ "mur": "bardage#c8bc98",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "soubassement": "bardage#4a4e56",
+ "h_soub": 2.4
+}

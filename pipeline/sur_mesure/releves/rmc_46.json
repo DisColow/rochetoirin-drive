@@ -1,0 +1,16 @@
+{
+ "id": "rmc_46",
+ "cleabs": "BATIMENT0000000301127375",
+ "nom": "Hangar",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#7a7e82",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#5a4a3a"
+}

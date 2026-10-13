@@ -1,0 +1,56 @@
+{
+ "id": "dol_68",
+ "cleabs": "BATIMENT0000000302158569",
+ "nom": "Boucherie Charcuterie",
+ "mur": "enduit#d8ccb4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 9.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.8
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.6,
+     6.5
+    ],
+    "txt": "BOUCHERIE CHARCUTERIE",
+    "c": "#ece0c8",
+    "tc": "#8a2a2a"
+   }
+  ]
+ }
+}

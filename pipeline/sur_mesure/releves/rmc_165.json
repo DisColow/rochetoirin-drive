@@ -1,0 +1,14 @@
+{
+ "id": "rmc_165",
+ "cleabs": "BATIMENT0000002292127643",
+ "nom": "Local",
+ "mur": "enduit#e8d088",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 2.6,
+ "faitage": 3.4,
+ "densite": 12
+}

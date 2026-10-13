@@ -1,0 +1,42 @@
+{
+ "id": "rmc_110",
+ "cleabs": "BATIMENT0000000301128445",
+ "nom": "École maternelle",
+ "mur": "bardage#3a4048",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0.8,
+     2.6
+    ],
+    "c": "#8a8e90"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     1.0
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "mur": "bardage#3a4048"
+   }
+  ]
+ }
+}

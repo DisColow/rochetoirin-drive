@@ -1,0 +1,32 @@
+{
+ "id": "scl_28",
+ "cleabs": "BATIMENT0000002200387510",
+ "nom": "Iwoodlove",
+ "mur": "bois#7a6a5a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8ccd0",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "soubassement": "bois#7a6a5a",
+ "h_soub": 3.0,
+ "faces": {
+  "NO": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     1.0
+    ],
+    "y": [
+     0,
+     6.0
+    ],
+    "mur": "bardage#d8dcdc"
+   }
+  ]
+ }
+}

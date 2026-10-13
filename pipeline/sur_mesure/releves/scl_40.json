@@ -1,0 +1,14 @@
+{
+ "id": "scl_40",
+ "cleabs": "BATIMENT0000000007614157",
+ "nom": "Hangar",
+ "mur": "bardage#5a5e64",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#5a5e64",
+  "debord": 0.0
+ },
+ "egout": 1.0,
+ "faitage": 4.0,
+ "densite": 12
+}

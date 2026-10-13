@@ -1,0 +1,30 @@
+{
+ "id": "rmc_14",
+ "cleabs": "BATIMENT0000000301127075",
+ "nom": "Restaurant",
+ "mur": "enduit#e8dcc8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0.6,
+     2.6
+    ],
+    "c": "#8a8e90"
+   }
+  ]
+ }
+}

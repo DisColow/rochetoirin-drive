@@ -1,0 +1,32 @@
+{
+ "id": "svc_74",
+ "cleabs": "BATIMENT0000000302572117",
+ "nom": "Ateliers municipaux",
+ "mur": "enduit#e8c8a8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 3,
+    "l": 3.6,
+    "c": "#ecebe8"
+   }
+  ]
+ }
+}

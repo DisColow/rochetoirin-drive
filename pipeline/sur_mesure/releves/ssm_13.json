@@ -1,0 +1,42 @@
+{
+ "id": "ssm_13",
+ "cleabs": "BATIMENT0000000301575793",
+ "nom": "Église",
+ "mur": "pierre#d8ccb0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 10.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.0,
+     5.4
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.36000000000000004,
+     0.44
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

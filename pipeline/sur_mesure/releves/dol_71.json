@@ -1,0 +1,14 @@
+{
+ "id": "dol_71",
+ "cleabs": "BATIMENT0000000302159009",
+ "nom": "Gymnase",
+ "mur": "bardage#d8dcd8",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#5a8a6a",
+  "debord": 0.0
+ },
+ "egout": 3.0,
+ "faitage": 7.0,
+ "densite": 12
+}

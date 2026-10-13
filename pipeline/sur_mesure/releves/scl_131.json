@@ -1,0 +1,34 @@
+{
+ "id": "scl_131",
+ "cleabs": "BATIMENT0000000301969351",
+ "nom": "Hangar",
+ "mur": "beton#c8c4bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "soubassement": "beton#c8c4bc",
+ "h_soub": 3.0,
+ "faces": {
+  "SO": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#ecebe8"
+   }
+  ]
+ }
+}

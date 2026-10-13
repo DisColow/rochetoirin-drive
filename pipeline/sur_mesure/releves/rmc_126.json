@@ -1,0 +1,16 @@
+{
+ "id": "rmc_126",
+ "cleabs": "BATIMENT0000000301128190",
+ "nom": "Grange en pisé",
+ "mur": "enduit#b8a07a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "soubassement": "pierre#9a8a78",
+ "h_soub": 0.6
+}

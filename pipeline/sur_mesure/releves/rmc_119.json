@@ -1,0 +1,58 @@
+{
+ "id": "rmc_119",
+ "cleabs": "BATIMENT0000000301128063",
+ "nom": "Plastic Alpes",
+ "mur": "enduit#e8dcc4",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.4
+    ],
+    "n": 6,
+    "l": 0.9999999999999999
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.0
+    ],
+    "n": 6,
+    "l": 0.9999999999999999
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.6,
+     6.5
+    ],
+    "txt": "PLASTIC ALPES",
+    "c": "#2a5a3a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

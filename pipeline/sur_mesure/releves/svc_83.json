@@ -1,0 +1,16 @@
+{
+ "id": "svc_83",
+ "cleabs": "BATIMENT0000002001968015",
+ "nom": "Préau",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#ecebe6"
+}

@@ -1,0 +1,32 @@
+{
+ "id": "ssm_3",
+ "cleabs": "BATIMENT0000000301575709",
+ "nom": "Stabulation",
+ "mur": "bardage#8a8e92",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#a8a8a0",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#5a5e62"
+   }
+  ]
+ }
+}

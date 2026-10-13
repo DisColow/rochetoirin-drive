@@ -1,0 +1,45 @@
+{
+ "id": "dol_1",
+ "cleabs": "BATIMENT0000000302157973",
+ "nom": "Atelier",
+ "mur": "bardage#a8acb0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     2.9
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#a8acb0"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

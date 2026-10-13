@@ -1,0 +1,16 @@
+{
+ "id": "rmc_86",
+ "cleabs": "BATIMENT0000000301128003",
+ "nom": "Remise",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "appentis",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 2.4,
+ "faitage": 3.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#6a4a32"
+}

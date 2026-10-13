@@ -1,0 +1,14 @@
+{
+ "id": "svc_72",
+ "cleabs": "BATIMENT0000000007629886",
+ "nom": "Serre",
+ "mur": "bardage#d8dcdc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#e0e4e4",
+  "debord": 0.4
+ },
+ "egout": 2.6,
+ "faitage": 3.6,
+ "densite": 12
+}

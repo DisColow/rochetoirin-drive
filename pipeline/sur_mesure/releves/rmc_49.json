@@ -1,0 +1,14 @@
+{
+ "id": "rmc_49",
+ "cleabs": "BATIMENT0000000301127376",
+ "nom": "Hangar",
+ "mur": "beton#b8b4ac",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#7a7e82",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12
+}

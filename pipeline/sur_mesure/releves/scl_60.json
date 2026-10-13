@@ -1,0 +1,42 @@
+{
+ "id": "scl_60",
+ "cleabs": "BATIMENT0000000301971324",
+ "nom": "Mairie",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.8,
+     2.6
+    ],
+    "n": 6,
+    "l": 0.9999999999999999
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.41000000000000003,
+     0.49
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

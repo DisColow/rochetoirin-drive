@@ -1,0 +1,14 @@
+{
+ "id": "scl_51",
+ "cleabs": "BATIMENT0000000301971319",
+ "nom": "Marché couvert",
+ "mur": "bardage#2a8a4a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#e8eae8",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 5.0,
+ "densite": 12
+}

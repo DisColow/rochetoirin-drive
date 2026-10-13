@@ -1,0 +1,32 @@
+{
+ "id": "rmc_163",
+ "cleabs": "BATIMENT0000000301127610",
+ "nom": "Grange",
+ "mur": "brique#a8603a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#5a4a3a"
+   }
+  ]
+ }
+}

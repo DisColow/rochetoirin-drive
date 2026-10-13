@@ -1,0 +1,43 @@
+{
+ "id": "rmc_18",
+ "cleabs": "BATIMENT0000000301127221",
+ "nom": "Entreprise",
+ "mur": "bardage#3a3e46",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.4
+    ],
+    "n": 6,
+    "l": 0.9999999999999999
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.3
+    ],
+    "y": [
+     0,
+     5.0
+    ],
+    "mur": "brique#a0503a"
+   }
+  ]
+ }
+}

@@ -1,0 +1,32 @@
+{
+ "id": "svc_25",
+ "cleabs": "BATIMENT0000002209655067",
+ "nom": "Stabulation",
+ "mur": "beton#a8a8a4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#7a7e82",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "soubassement": "beton#a8a8a4",
+ "h_soub": 2.0,
+ "faces": {
+  "N": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     1.0
+    ],
+    "y": [
+     0,
+     5.0
+    ],
+    "mur": "bardage#9aa0a4"
+   }
+  ]
+ }
+}

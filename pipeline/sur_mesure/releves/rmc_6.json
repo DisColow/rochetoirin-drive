@@ -1,0 +1,43 @@
+{
+ "id": "rmc_6",
+ "cleabs": "BATIMENT0000000301127155",
+ "nom": "Elvis Motors",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.7
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "ELVIS MOTORS",
+    "c": "#1a3a8a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

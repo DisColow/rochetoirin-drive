@@ -1,0 +1,14 @@
+{
+ "id": "svc_95",
+ "cleabs": "BATIMENT0000000302574239",
+ "nom": "Grange",
+ "mur": "enduit#c8c4b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "densite": 12
+}

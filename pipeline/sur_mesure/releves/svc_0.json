@@ -1,0 +1,32 @@
+{
+ "id": "svc_0",
+ "cleabs": "BATIMENT0000000302570742",
+ "nom": "Stabulation",
+ "mur": "bois#7a4a32",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#7a5a40",
+  "debord": 0.4
+ },
+ "egout": 4.5,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.9
+    ],
+    "n": 3,
+    "l": 3.6,
+    "c": "#5a3a26"
+   }
+  ]
+ }
+}

@@ -1,0 +1,45 @@
+{
+ "id": "svc_102",
+ "cleabs": "BATIMENT0000000302574170",
+ "nom": "Usine ancienne",
+ "mur": "pierre#b8a888",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#6a6e72"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.6
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "id": "dol_18",
+ "cleabs": "BATIMENT0000000302158239",
+ "nom": "Bâtiment",
+ "mur": "enduit#b8b0a4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12
+}

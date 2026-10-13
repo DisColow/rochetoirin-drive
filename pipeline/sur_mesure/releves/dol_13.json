@@ -1,0 +1,16 @@
+{
+ "id": "dol_13",
+ "cleabs": "BATIMENT0000000302156836",
+ "nom": "Hangar",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 5.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#6a5a42"
+}

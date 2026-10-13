@@ -1,0 +1,56 @@
+{
+ "id": "scl_104",
+ "cleabs": "BATIMENT0000000301970297",
+ "nom": "Fixtout",
+ "mur": "enduit#e8d8b0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#2e3036",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.5599999999999999,
+     0.64
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "FIXTOUT",
+    "c": "#2e3036",
+    "tc": "#c02a2a"
+   }
+  ]
+ }
+}

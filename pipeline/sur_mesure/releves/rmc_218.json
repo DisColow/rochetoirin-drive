@@ -1,0 +1,14 @@
+{
+ "id": "rmc_218",
+ "cleabs": "BATIMENT0000002209655248",
+ "nom": "Tunnel",
+ "mur": "bardage#5a5e64",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#5a5e64",
+  "debord": 0.0
+ },
+ "egout": 0.5,
+ "faitage": 3.0,
+ "densite": 12
+}

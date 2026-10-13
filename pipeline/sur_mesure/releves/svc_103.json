@@ -1,0 +1,14 @@
+{
+ "id": "svc_103",
+ "cleabs": "BATIMENT0000000351557659",
+ "nom": "Usine",
+ "mur": "bardage#d8dcdc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8ccd0",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 10.0,
+ "densite": 12
+}

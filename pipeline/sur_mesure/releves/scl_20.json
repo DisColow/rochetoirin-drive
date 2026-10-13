@@ -1,0 +1,46 @@
+{
+ "id": "scl_20",
+ "cleabs": "BATIMENT0000000301968982",
+ "nom": "Pneus",
+ "mur": "bardage#2a4a8a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#3a3a3a"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "PNEUS HIVER",
+    "c": "#2a4a8a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

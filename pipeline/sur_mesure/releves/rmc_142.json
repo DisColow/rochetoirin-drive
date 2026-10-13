@@ -1,0 +1,14 @@
+{
+ "id": "rmc_142",
+ "cleabs": "BATIMENT0000000301126663",
+ "nom": "Serre de la jardinerie",
+ "mur": "bardage#5a5e64",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#d8dcdc",
+  "debord": 0.0
+ },
+ "egout": 2.6,
+ "faitage": 4.5,
+ "densite": 12
+}

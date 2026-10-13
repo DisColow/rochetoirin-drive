@@ -1,0 +1,59 @@
+{
+ "id": "scl_125",
+ "cleabs": "BATIMENT0000000301970292",
+ "nom": "Groupe Piquet",
+ "mur": "bardage#d8dadc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#7a7e84"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.6,
+     2.4
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "GROUPE PIQUET",
+    "c": "#ffffff",
+    "tc": "#c02a2a"
+   }
+  ]
+ }
+}

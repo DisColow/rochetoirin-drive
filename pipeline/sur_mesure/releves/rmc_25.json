@@ -1,0 +1,30 @@
+{
+ "id": "rmc_25",
+ "cleabs": "BATIMENT0000000301129565",
+ "nom": "Entrepôt",
+ "mur": "bardage#3a3e46",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.2
+    ],
+    "y": [
+     0,
+     6.0
+    ],
+    "mur": "bardage#ecebe8"
+   }
+  ]
+ }
+}

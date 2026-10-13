@@ -1,0 +1,42 @@
+{
+ "id": "dol_49",
+ "cleabs": "BATIMENT0000000302158690",
+ "nom": "Église",
+ "mur": "pierre#a89070",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 9.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     2.4,
+     5.0
+    ],
+    "n": 5,
+    "l": 1.2
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.51,
+     0.5900000000000001
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

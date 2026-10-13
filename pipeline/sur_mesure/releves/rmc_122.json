@@ -1,0 +1,16 @@
+{
+ "id": "rmc_122",
+ "cleabs": "BATIMENT0000000301128210",
+ "nom": "Abri",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#6a6e72",
+  "debord": 0.4
+ },
+ "egout": 2.6,
+ "faitage": 3.2,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#8a8a86"
+}

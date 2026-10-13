@@ -1,0 +1,14 @@
+{
+ "id": "rmc_182",
+ "cleabs": "BATIMENT0000000301127461",
+ "nom": "Grange",
+ "mur": "pierre#9a8a70",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12
+}

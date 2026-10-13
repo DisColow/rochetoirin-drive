@@ -1,0 +1,14 @@
+{
+ "id": "rmc_23",
+ "cleabs": "BATIMENT0000000301127205",
+ "nom": "Entrepôt",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#b04a3a",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12
+}

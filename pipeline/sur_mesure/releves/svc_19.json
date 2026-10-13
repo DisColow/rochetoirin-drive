@@ -1,0 +1,16 @@
+{
+ "id": "svc_19",
+ "cleabs": "BATIMENT0000000302570164",
+ "nom": "Hangar",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#a8a8a0",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#a82a2a"
+}

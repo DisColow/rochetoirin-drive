@@ -1,0 +1,14 @@
+{
+ "id": "rmc_101",
+ "cleabs": "BATIMENT0000000301128474",
+ "nom": "Salle",
+ "mur": "enduit#ecdcb8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 9.0,
+ "densite": 12
+}

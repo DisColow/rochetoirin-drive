@@ -1,0 +1,45 @@
+{
+ "id": "rmc_185",
+ "cleabs": "BATIMENT0000000301129800",
+ "nom": "Henri Bouvier Bois",
+ "mur": "enduit#ece4d0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "soubassement": "#2e3a4a",
+ "h_soub": 0.8,
+ "faces": {
+  "N": [
+   {
+    "t": "porte",
+    "x": [
+     0.16,
+     0.24000000000000002
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "HENRI BOUVIER",
+    "c": "#1a3a5a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

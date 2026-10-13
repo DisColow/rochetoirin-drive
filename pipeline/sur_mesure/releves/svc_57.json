@@ -1,0 +1,32 @@
+{
+ "id": "svc_57",
+ "cleabs": "BATIMENT0000000302572177",
+ "nom": "Étable",
+ "mur": "beton#a8a8a4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#9a4a3a",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 5.0,
+ "densite": 12,
+ "soubassement": "beton#a8a8a4",
+ "h_soub": 1.6,
+ "faces": {
+  "S": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     1.0
+    ],
+    "y": [
+     0,
+     3.5
+    ],
+    "mur": "bois#6a5a4a"
+   }
+  ]
+ }
+}

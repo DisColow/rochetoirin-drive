@@ -1,0 +1,32 @@
+{
+ "id": "rmc_40",
+ "cleabs": "BATIMENT0000000301129618",
+ "nom": "Atelier",
+ "mur": "bardage#4a4e56",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#4a4e56",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#2a2a2a"
+   }
+  ]
+ }
+}

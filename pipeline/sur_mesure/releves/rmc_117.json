@@ -1,0 +1,31 @@
+{
+ "id": "rmc_117",
+ "cleabs": "BATIMENT0000000301127901",
+ "nom": "Atelier",
+ "mur": "bardageh#5a6878",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#5a6878",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.2
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

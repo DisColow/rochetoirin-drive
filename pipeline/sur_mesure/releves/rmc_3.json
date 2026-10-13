@@ -1,0 +1,56 @@
+{
+ "id": "rmc_3",
+ "cleabs": "BATIMENT0000002493295305",
+ "nom": "Usine",
+ "mur": "bardage#4a5058",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 10.0,
+ "faitage": 10.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.6
+    ],
+    "n": 8,
+    "l": 0.75
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     5.0,
+     6.4
+    ],
+    "n": 8,
+    "l": 0.75
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.55,
+     0.65
+    ],
+    "y": [
+     0,
+     10.0
+    ],
+    "mur": "bardage#c02a4a"
+   }
+  ]
+ }
+}

@@ -1,0 +1,43 @@
+{
+ "id": "rmc_148",
+ "cleabs": "BATIMENT0000000301126742",
+ "nom": "Baffert",
+ "mur": "bardage#e8c020",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "BAFFERT",
+    "c": "#e8c020",
+    "tc": "#1a1a1a"
+   }
+  ]
+ }
+}

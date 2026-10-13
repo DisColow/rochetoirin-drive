@@ -1,0 +1,14 @@
+{
+ "id": "rmc_125",
+ "cleabs": "BATIMENT0000000301128187",
+ "nom": "Hangar",
+ "mur": "bardage#d8dcdc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8ccd0",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.0,
+ "densite": 12
+}

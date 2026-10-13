@@ -1,0 +1,14 @@
+{
+ "id": "scl_10",
+ "cleabs": "BATIMENT0000000301969218",
+ "nom": "Atelier",
+ "mur": "enduit#ece4cc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12
+}

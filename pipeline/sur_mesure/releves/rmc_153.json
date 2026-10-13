@@ -1,0 +1,43 @@
+{
+ "id": "rmc_153",
+ "cleabs": "BATIMENT0000000301125871",
+ "nom": "Pôle santé",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.6,
+     0.9
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "mur": "bois#c8906a"
+   }
+  ]
+ }
+}

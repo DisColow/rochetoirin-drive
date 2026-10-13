@@ -1,0 +1,29 @@
+{
+ "id": "svc_97",
+ "cleabs": "BATIMENT0000000302573955",
+ "nom": "Boutique",
+ "mur": "enduit#e8d8b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.6
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   }
+  ]
+ }
+}

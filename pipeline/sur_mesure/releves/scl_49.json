@@ -1,0 +1,43 @@
+{
+ "id": "scl_49",
+ "cleabs": "BATIMENT0000000301971400",
+ "nom": "Boulangerie Pâtisserie",
+ "mur": "enduit#c8a888",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "BOULANGERIE PÂTISSERIE",
+    "c": "#ecebe6",
+    "tc": "#3a2a1a"
+   }
+  ]
+ }
+}

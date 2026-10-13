@@ -1,0 +1,30 @@
+{
+ "id": "svc_114",
+ "cleabs": "BATIMENT0000000302573792",
+ "nom": "Usine à sheds",
+ "mur": "enduit#d8d4cc",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#b8b8b4",
+  "debord": 0.0
+ },
+ "egout": 8.0,
+ "faitage": 11.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     4.0,
+     7.0
+    ],
+    "c": "#8a8e90"
+   }
+  ]
+ }
+}

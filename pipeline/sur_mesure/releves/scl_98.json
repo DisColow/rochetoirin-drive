@@ -1,0 +1,46 @@
+{
+ "id": "scl_98",
+ "cleabs": "BATIMENT0000000301970294",
+ "nom": "Raff",
+ "mur": "beton#b8b8b4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#9aa0a8"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "RAFF",
+    "c": "#ffffff",
+    "tc": "#c02a2a"
+   }
+  ]
+ }
+}

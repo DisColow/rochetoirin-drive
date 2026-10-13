@@ -1,0 +1,46 @@
+{
+ "id": "dol_40",
+ "cleabs": "BATIMENT0000000302158943",
+ "nom": "Ramstor",
+ "mur": "bardage#3a6aa0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#3a6aa0",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "soubassement": "enduit#ecebe6",
+ "h_soub": 3.0,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.8
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

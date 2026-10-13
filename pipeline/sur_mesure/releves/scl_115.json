@@ -1,0 +1,31 @@
+{
+ "id": "scl_115",
+ "cleabs": "BATIMENT0000000301970236",
+ "nom": "Atelier",
+ "mur": "bardage#a8acb0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.6,
+     2.4
+    ],
+    "n": 6,
+    "l": 0.9999999999999999
+   }
+  ]
+ }
+}

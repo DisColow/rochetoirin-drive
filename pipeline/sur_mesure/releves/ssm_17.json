@@ -1,0 +1,43 @@
+{
+ "id": "ssm_17",
+ "cleabs": "BATIMENT0000000301577430",
+ "nom": "Usine de béton",
+ "mur": "enduit#d8ccb4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#2a4aa0"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "silo",
+   "face": "N",
+   "x": 0.85,
+   "d": 2.5,
+   "r": 1.5,
+   "h": 9,
+   "c": "#d8d4cc"
+  }
+ ]
+}

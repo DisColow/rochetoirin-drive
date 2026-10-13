@@ -1,0 +1,14 @@
+{
+ "id": "rmc_145",
+ "cleabs": "BATIMENT0000000290577680",
+ "nom": "Serre",
+ "mur": "bardage#d8dcdc",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#e0e4e4",
+  "debord": 0.0
+ },
+ "egout": 0.5,
+ "faitage": 3.0,
+ "densite": 12
+}

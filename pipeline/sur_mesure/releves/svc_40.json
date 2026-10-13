@@ -1,0 +1,14 @@
+{
+ "id": "svc_40",
+ "cleabs": "BATIMENT0000002292126952",
+ "nom": "Atelier",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8ccd0",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12
+}

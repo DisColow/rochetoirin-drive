@@ -1,0 +1,32 @@
+{
+ "id": "rmc_132",
+ "cleabs": "BATIMENT0000000301126596",
+ "nom": "Magasin de stores",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "STORES DU DAUPHINÉ",
+    "c": "#ffffff",
+    "tc": "#c03a2a"
+   }
+  ]
+ }
+}

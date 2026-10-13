@@ -1,0 +1,45 @@
+{
+ "id": "rmc_33",
+ "cleabs": "BATIMENT0000000301127282",
+ "nom": "Menuiserie",
+ "mur": "enduit#ece4d0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "MENUISERIE",
+    "c": "#ffffff",
+    "tc": "#2a5a9a"
+   }
+  ]
+ }
+}

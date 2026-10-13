@@ -1,0 +1,45 @@
+{
+ "id": "scl_95",
+ "cleabs": "BATIMENT0000000301970356",
+ "nom": "Usine",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 8.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#c02a2a"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.4,
+     5.4
+    ],
+    "n": 6,
+    "l": 0.9999999999999999
+   }
+  ]
+ }
+}

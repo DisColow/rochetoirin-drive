@@ -1,0 +1,45 @@
+{
+ "id": "rmc_71",
+ "cleabs": "BATIMENT0000000301128564",
+ "nom": "Maison de bourg",
+ "mur": "pierre#b8a888",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.0,
+     4.4
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#a82a2a"
+   }
+  ]
+ }
+}

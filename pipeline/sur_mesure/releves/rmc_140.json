@@ -1,0 +1,44 @@
+{
+ "id": "rmc_140",
+ "cleabs": "BATIMENT0000000301126731",
+ "nom": "Atelier",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     2.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#ecebe8"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.6,
+     1.0
+    ],
+    "y": [
+     0,
+     3.0
+    ],
+    "mur": "bois#c8906a"
+   }
+  ]
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "id": "svc_5",
+ "cleabs": "BATIMENT0000000302570740",
+ "nom": "Remise",
+ "mur": "pierre#a89a84",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "densite": 12
+}

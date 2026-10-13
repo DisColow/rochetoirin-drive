@@ -1,0 +1,43 @@
+{
+ "id": "rmc_5",
+ "cleabs": "BATIMENT0000000301127157",
+ "nom": "Top Garage",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.3,
+     0.8
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "TOP GARAGE",
+    "c": "#1a3a8a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

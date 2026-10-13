@@ -1,0 +1,33 @@
+{
+ "id": "dol_24",
+ "cleabs": "BATIMENT0000000302158422",
+ "nom": "École",
+ "mur": "enduit#ece8dc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "soubassement": "#2a7a6a",
+ "h_soub": 0.2,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,45 @@
+{
+ "id": "rmc_17",
+ "cleabs": "BATIMENT0000000301127087",
+ "nom": "Boucherie Charcuterie",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "BOUCHERIE CHARCUTERIE",
+    "c": "#c02a2a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

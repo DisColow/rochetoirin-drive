@@ -1,0 +1,31 @@
+{
+ "id": "svc_61",
+ "cleabs": "BATIMENT0000000302572344",
+ "nom": "Grange",
+ "mur": "enduit#c8c4bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a82a2a",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.0
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,29 @@
+{
+ "id": "rmc_52",
+ "cleabs": "BATIMENT0000000301129574",
+ "nom": "Concession",
+ "mur": "bardage#2e3036",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   }
+  ]
+ }
+}

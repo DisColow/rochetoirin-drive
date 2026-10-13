@@ -1,0 +1,42 @@
+{
+ "id": "rmc_191",
+ "cleabs": "BATIMENT0000000301129992",
+ "nom": "Église",
+ "mur": "pierre#b8a888",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 9.0,
+ "faitage": 12.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     7.0
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

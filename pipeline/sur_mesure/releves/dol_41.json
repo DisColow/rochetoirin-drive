@@ -1,0 +1,16 @@
+{
+ "id": "dol_41",
+ "cleabs": "BATIMENT0000000302158946",
+ "nom": "Hangar",
+ "mur": "bardage#8a8e84",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e84",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "soubassement": "beton#c8c4bc",
+ "h_soub": 1.4
+}

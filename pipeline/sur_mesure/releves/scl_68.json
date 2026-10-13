@@ -1,0 +1,31 @@
+{
+ "id": "scl_68",
+ "cleabs": "BATIMENT0000000301971455",
+ "nom": "École",
+ "mur": "enduit#e8dcc0",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

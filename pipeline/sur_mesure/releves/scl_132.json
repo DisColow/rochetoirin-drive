@@ -1,0 +1,14 @@
+{
+ "id": "scl_132",
+ "cleabs": "BATIMENT0000000301972813",
+ "nom": "Local",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12
+}

@@ -1,0 +1,42 @@
+{
+ "id": "rmc_2",
+ "cleabs": "BATIMENT0000002493295449",
+ "nom": "Laiterie",
+ "mur": "enduit#ecebe8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.4
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "cuve",
+   "face": "O",
+   "x": 0.2,
+   "d": 2.5,
+   "r": 1.4,
+   "h": 8.0,
+   "c": "#c8ccd0"
+  }
+ ]
+}

@@ -1,0 +1,43 @@
+{
+ "id": "rmc_175",
+ "cleabs": "BATIMENT0000000301132710",
+ "nom": "Grange",
+ "mur": "bardage#9a3a3a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8a86",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#7a2a2a"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "silo",
+   "face": "S",
+   "x": 0.0,
+   "d": 2.5,
+   "r": 1.4,
+   "h": 7.0,
+   "c": "#b8bcc0"
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "id": "svc_10",
+ "cleabs": "BATIMENT0000000302570848",
+ "nom": "Grange",
+ "mur": "pierre#b8a888",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     2.4,
+     3.4
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

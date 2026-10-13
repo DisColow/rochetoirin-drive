@@ -1,0 +1,46 @@
+{
+ "id": "dol_8",
+ "cleabs": "BATIMENT0000000302157005",
+ "nom": "Garage",
+ "mur": "enduit#ece8dc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#a8a8a0",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#3a3a3a"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "GARAGE",
+    "c": "#1a3a8a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

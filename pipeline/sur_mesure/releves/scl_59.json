@@ -1,0 +1,14 @@
+{
+ "id": "scl_59",
+ "cleabs": "BATIMENT0000002490987122",
+ "nom": "Local",
+ "mur": "enduit#d8d4cc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 2.6,
+ "faitage": 3.4,
+ "densite": 12
+}

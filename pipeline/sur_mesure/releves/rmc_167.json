@@ -1,0 +1,14 @@
+{
+ "id": "rmc_167",
+ "cleabs": "BATIMENT0000000301127795",
+ "nom": "Ferme",
+ "mur": "beton#a8a8a4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 7.5,
+ "densite": 12
+}

@@ -1,0 +1,14 @@
+{
+ "id": "scl_33",
+ "cleabs": "BATIMENT0000000301967071",
+ "nom": "Grange en pisé",
+ "mur": "enduit#b8a888",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12
+}

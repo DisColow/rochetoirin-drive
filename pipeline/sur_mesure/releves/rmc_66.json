@@ -1,0 +1,46 @@
+{
+ "id": "rmc_66",
+ "cleabs": "BATIMENT0000000290577592",
+ "nom": "Machines agricoles",
+ "mur": "bardage#e0e2e2",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#3a3e46"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "AGRI SERVICE",
+    "c": "#ffffff",
+    "tc": "#2a8a3a"
+   }
+  ]
+ }
+}

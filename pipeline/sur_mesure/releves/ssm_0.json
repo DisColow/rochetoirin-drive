@@ -1,0 +1,31 @@
+{
+ "id": "ssm_0",
+ "cleabs": "BATIMENT0000000301577082",
+ "nom": "Grange",
+ "mur": "enduit#c8c4b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.0,
+     4.0
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}
