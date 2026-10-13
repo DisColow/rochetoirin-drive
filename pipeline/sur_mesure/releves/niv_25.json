@@ -1,0 +1,56 @@
+{
+ "id": "niv_25",
+ "cleabs": "BATIMENT0000000302140915",
+ "nom": "MSE",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "matiere",
+    "x": [
+     0.2,
+     0.25
+    ],
+    "y": [
+     0,
+     7.0
+    ],
+    "mur": "bardage#5a8a3a"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.6,
+     0.65
+    ],
+    "y": [
+     0,
+     7.0
+    ],
+    "mur": "bardage#5a8a3a"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.6,
+     6.5
+    ],
+    "txt": "MSE",
+    "c": "#ffffff",
+    "tc": "#2a2a2a"
+   }
+  ]
+ }
+}

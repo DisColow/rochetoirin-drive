@@ -1,0 +1,32 @@
+{
+ "id": "niv_140",
+ "cleabs": "BATIMENT0000000302141382",
+ "nom": "Remise",
+ "mur": "beton#c8c4bc",
+ "toit": {
+  "type": "appentis",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#a8acb0"
+   }
+  ]
+ }
+}

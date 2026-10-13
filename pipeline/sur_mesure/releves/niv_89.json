@@ -1,0 +1,14 @@
+{
+ "id": "niv_89",
+ "cleabs": "BATIMENT0000002001965814",
+ "nom": "Usine",
+ "mur": "bardage#b86a4a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#b86a4a",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12
+}

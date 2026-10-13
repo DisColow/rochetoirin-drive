@@ -1,0 +1,14 @@
+{
+ "id": "niv_83",
+ "cleabs": "BATIMENT0000000302140933",
+ "nom": "Usine à sheds",
+ "mur": "enduit#c8c4b8",
+ "toit": {
+  "type": "sheds",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 11.0,
+ "densite": 12
+}

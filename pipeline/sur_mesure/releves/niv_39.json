@@ -1,0 +1,32 @@
+{
+ "id": "niv_39",
+ "cleabs": "BATIMENT0000000302140024",
+ "nom": "Centre équestre",
+ "mur": "bois#7a5a3a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a5e64",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     2.4
+    ],
+    "n": 4,
+    "l": 3.6,
+    "c": "#5a3a2a"
+   }
+  ]
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "id": "niv_129",
+ "cleabs": "BATIMENT0000000302138856",
+ "nom": "Vestiaires",
+ "mur": "enduit#e8dcc4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "densite": 12
+}

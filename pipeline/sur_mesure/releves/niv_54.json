@@ -1,0 +1,29 @@
+{
+ "id": "niv_54",
+ "cleabs": "BATIMENT0000000290576136",
+ "nom": "Concession",
+ "mur": "bardage#1e2e5a",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.6
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   }
+  ]
+ }
+}

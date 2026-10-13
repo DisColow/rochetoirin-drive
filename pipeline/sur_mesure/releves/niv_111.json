@@ -1,0 +1,43 @@
+{
+ "id": "niv_111",
+ "cleabs": "BATIMENT0000000302140997",
+ "nom": "Super U",
+ "mur": "bardage#d8d4c8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.3,
+     0.6
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "MOCASH",
+    "c": "#ffffff",
+    "tc": "#2a8a3a"
+   }
+  ]
+ }
+}

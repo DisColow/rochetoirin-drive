@@ -1,0 +1,14 @@
+{
+ "id": "niv_92",
+ "cleabs": "BATIMENT0000000302140181",
+ "nom": "Tribune",
+ "mur": "bois#8a5a3a",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#7a7e84",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12
+}

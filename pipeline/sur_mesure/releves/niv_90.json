@@ -1,0 +1,14 @@
+{
+ "id": "niv_90",
+ "cleabs": "BATIMENT0000000302139915",
+ "nom": "Gymnase",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12
+}

@@ -1,0 +1,32 @@
+{
+ "id": "niv_137",
+ "cleabs": "BATIMENT0000000302141461",
+ "nom": "Abri de chantier",
+ "mur": "beton#c8c4bc",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#a8443a",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     2.4
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#3a3a3a"
+   }
+  ]
+ }
+}

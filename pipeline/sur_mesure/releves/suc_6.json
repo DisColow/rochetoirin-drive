@@ -1,0 +1,16 @@
+{
+ "id": "suc_6",
+ "cleabs": "BATIMENT0000000007633636",
+ "nom": "Grange en pisé",
+ "mur": "enduit#c8a878",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "soubassement": "pierre#a89a84",
+ "h_soub": 0.8
+}

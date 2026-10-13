@@ -1,0 +1,43 @@
+{
+ "id": "niv_127",
+ "cleabs": "BATIMENT0000000302139924",
+ "nom": "École",
+ "mur": "enduit#ecdcc0",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.6,
+     1.0
+    ],
+    "y": [
+     0,
+     6.0
+    ],
+    "mur": "bardage#2a4ab0"
+   }
+  ]
+ }
+}

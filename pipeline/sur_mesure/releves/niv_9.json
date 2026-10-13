@@ -1,0 +1,29 @@
+{
+ "id": "niv_9",
+ "cleabs": "BATIMENT0000000302140807",
+ "nom": "Showroom",
+ "mur": "bardage#3a4250",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#3a4250",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.6
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   }
+  ]
+ }
+}

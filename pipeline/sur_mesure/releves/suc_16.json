@@ -1,0 +1,14 @@
+{
+ "id": "suc_16",
+ "cleabs": "BATIMENT0000000302569671",
+ "nom": "Hangar",
+ "mur": "bardage#c8ccd0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8ccd0",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12
+}

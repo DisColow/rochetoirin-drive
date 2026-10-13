@@ -1,0 +1,31 @@
+{
+ "id": "niv_93",
+ "cleabs": "BATIMENT0000000302139860",
+ "nom": "Salle",
+ "mur": "enduit#ecdcc4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "id": "niv_10",
+ "cleabs": "BATIMENT0000000302140913",
+ "nom": "Atelier",
+ "mur": "bardage#e8e0c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.0,
+ "densite": 12
+}

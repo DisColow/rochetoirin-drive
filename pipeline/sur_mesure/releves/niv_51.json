@@ -1,0 +1,30 @@
+{
+ "id": "niv_51",
+ "cleabs": "BATIMENT0000000302140688",
+ "nom": "Atelier",
+ "mur": "bardage#8aa0a8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.5
+    ],
+    "y": [
+     0,
+     3.0
+    ],
+    "mur": "enduit#d8c890"
+   }
+  ]
+ }
+}

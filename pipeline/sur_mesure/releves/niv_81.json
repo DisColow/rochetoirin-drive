@@ -1,0 +1,32 @@
+{
+ "id": "niv_81",
+ "cleabs": "BATIMENT0000000302140686",
+ "nom": "Garage Ford",
+ "mur": "bardage#c8ccd0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8ccd0",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#3a3a3a"
+   }
+  ]
+ }
+}

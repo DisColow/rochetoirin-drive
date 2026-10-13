@@ -1,0 +1,14 @@
+{
+ "id": "suc_8",
+ "cleabs": "BATIMENT0000000302569686",
+ "nom": "Hangar",
+ "mur": "bardage#a86a4a",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#a86a4a",
+  "debord": 0.0
+ },
+ "egout": 1.0,
+ "faitage": 4.0,
+ "densite": 12
+}

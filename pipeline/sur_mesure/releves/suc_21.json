@@ -1,0 +1,32 @@
+{
+ "id": "suc_21",
+ "cleabs": "BATIMENT0000000302570304",
+ "nom": "Ferme",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#9a6a5a",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     2.9
+    ],
+    "n": 5,
+    "l": 3.6,
+    "c": "#5a3a2a"
+   }
+  ]
+ }
+}

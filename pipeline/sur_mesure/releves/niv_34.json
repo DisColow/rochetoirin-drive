@@ -1,0 +1,45 @@
+{
+ "id": "niv_34",
+ "cleabs": "BATIMENT0000000302139846",
+ "nom": "Atelier",
+ "mur": "bardageh#2e3240",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#2e3240",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#3a5a4a"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.0
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

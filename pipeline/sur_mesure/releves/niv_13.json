@@ -1,0 +1,14 @@
+{
+ "id": "niv_13",
+ "cleabs": "BATIMENT0000002292120620",
+ "nom": "Serre tunnel",
+ "mur": "bardage#e0e4e0",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#e8ece8",
+  "debord": 0.0
+ },
+ "egout": 0.5,
+ "faitage": 3.5,
+ "densite": 12
+}

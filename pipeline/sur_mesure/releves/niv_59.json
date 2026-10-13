@@ -1,0 +1,14 @@
+{
+ "id": "niv_59",
+ "cleabs": "BATIMENT0000000302139853",
+ "nom": "Location matériel",
+ "mur": "bardage#d8d4c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.0,
+ "densite": 12
+}

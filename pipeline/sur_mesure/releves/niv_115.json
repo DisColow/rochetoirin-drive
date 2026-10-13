@@ -1,0 +1,14 @@
+{
+ "id": "niv_115",
+ "cleabs": "BATIMENT0000000330800668",
+ "nom": "Magasin",
+ "mur": "bardage#b8bcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#b8bcc0",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12
+}

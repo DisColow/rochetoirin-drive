@@ -1,0 +1,128 @@
+[
+{
+"k": 0,
+"cleabs": "BATIMENT0000002209655052",
+"usage": "Agricole",
+"nature": "Industriel, agricole ou commercial",
+"h": 2.6,
+"aire": 185,
+"vue": "N",
+"Lvue": 20,
+"R": {
+"id": "srm_0",
+"cleabs": "BATIMENT0000002209655052",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 2.5,
+"faitage": 3.5
+}
+},
+{
+"k": 1,
+"cleabs": "BATIMENT0000000301579737",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 6.1,
+"aire": 1282,
+"vue": "E",
+"Lvue": 31,
+"R": {
+"id": "srm_1",
+"cleabs": "BATIMENT0000000301579737",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 4.6,
+"faitage": 6.1
+}
+},
+{
+"k": 2,
+"cleabs": "BATIMENT0000000290569268",
+"usage": "Industriel",
+"nature": "Industriel, agricole ou commercial",
+"h": 5.1,
+"aire": 373,
+"vue": "N",
+"Lvue": 14,
+"R": {
+"id": "srm_2",
+"cleabs": "BATIMENT0000000290569268",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 3.8,
+"faitage": 5.1
+}
+},
+{
+"k": 3,
+"cleabs": "BATIMENT0000002001969515",
+"usage": "Commercial et services",
+"nature": "Industriel, agricole ou commercial",
+"h": 5.0,
+"aire": 332,
+"vue": "N",
+"Lvue": 15,
+"R": {
+"id": "srm_3",
+"cleabs": "BATIMENT0000002001969515",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 3.8,
+"faitage": 5.0
+}
+},
+{
+"k": 4,
+"cleabs": "BATIMENT0000000290569263",
+"usage": "Industriel",
+"nature": "Industriel, agricole ou commercial",
+"h": 5.8,
+"aire": 745,
+"vue": "N",
+"Lvue": 31,
+"R": {
+"id": "srm_4",
+"cleabs": "BATIMENT0000000290569263",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 4.3,
+"faitage": 5.8
+}
+},
+{
+"k": 5,
+"cleabs": "BATIMENT0000000301579089",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 6.2,
+"aire": 86,
+"vue": "NE",
+"Lvue": 12,
+"R": {
+"id": "srm_5",
+"cleabs": "BATIMENT0000000301579089",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 4.7,
+"faitage": 6.2
+}
+}
+]

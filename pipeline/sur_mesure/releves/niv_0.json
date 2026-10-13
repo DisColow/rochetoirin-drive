@@ -1,0 +1,32 @@
+{
+ "id": "niv_0",
+ "cleabs": "BATIMENT0000000302140920",
+ "nom": "Garage",
+ "mur": "bardage#7a7e84",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#7a7e84",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#3a3a3a"
+   }
+  ]
+ }
+}
