@@ -1,0 +1,29 @@
+{
+ "id": "grange_bardage_bois",
+ "nom": "Grange en bardage bois",
+ "mur": "bois#5a4836",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8c9094",
+  "debord": 0.3
+ },
+ "egout": 3.6,
+ "faitage": 4.6,
+ "faces": {
+  "N": [
+   {
+    "t": "porte_grange",
+    "x": [
+     0.3,
+     0.6
+    ],
+    "y": [
+     0,
+     3.0
+    ],
+    "c": "#4a3a2a"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132902"
+}

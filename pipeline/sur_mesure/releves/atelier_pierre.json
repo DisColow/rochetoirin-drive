@@ -1,0 +1,40 @@
+{
+ "id": "atelier_pierre",
+ "nom": "Vieil atelier en pierre",
+ "mur": "pierre#a08460",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.3
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.3,
+     0.5
+    ],
+    "y": [
+     2.0,
+     3.0
+    ]
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.6,
+     0.75
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#5a4a3a"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132868"
+}

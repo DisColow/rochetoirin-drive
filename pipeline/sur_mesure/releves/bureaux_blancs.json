@@ -1,0 +1,62 @@
+{
+ "id": "bureaux_blancs",
+ "nom": "Bureaux blancs",
+ "mur": "bardage#f2f2f0",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 6.6,
+ "faces": {
+  "N": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.1,
+     0.6
+    ],
+    "y": [
+     1.0,
+     2.0
+    ],
+    "c": "#30363c"
+   },
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.1,
+     0.6
+    ],
+    "y": [
+     3.8,
+     4.8
+    ],
+    "c": "#30363c"
+   },
+   {
+    "t": "vitrine",
+    "x": [
+     0.65,
+     0.75
+    ],
+    "y": [
+     0,
+     6.2
+    ],
+    "c": "#3c7a4a"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0,
+     1
+    ],
+    "y": [
+     6.3,
+     6.6
+    ],
+    "mur": "bardage#3c7a4a"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132879"
+}

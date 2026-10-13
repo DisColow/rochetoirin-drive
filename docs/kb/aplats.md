@@ -28,7 +28,8 @@
     - couleurs et matériaux ;
     - éléments extérieurs (porches, auvents, marches, poubelles, appliques…) ;
     - affichettes.
-  - Modèle sur mesure à la manière de `pipeline/boulangerie/build_restaurant.py` :
+  - Modèle sur mesure : moteur commun `pipeline/sur_mesure/batiment.py` (relevé JSON par bâtiment), dérivé de
+    `pipeline/boulangerie/build_restaurant.py` :
     - façades en aplat peintes dans un atlas ;
     - volume seulement pour les structures extérieures ;
     - **seuls les titres lisibles**, le reste en gribouillis ;

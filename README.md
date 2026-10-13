@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.20.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.20/RochetoirinSimulator-v6.20.apk)**
+**[RochetoirinSimulator-v6.21.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.21/RochetoirinSimulator-v6.21.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,19 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v6.21 (APK complet à installer) :
+- **102 bâtiments non résidentiels de Rochetoirin refaits d'après Street View**, avec la méthode du restaurant :
+  - bonnes couleurs et matières (enduits, bardages, bois, pierre de l'église) ;
+  - toits refaits : tuiles, bac acier, fibrociment, toits plats ;
+  - portes, rideaux, fenêtres et vitrines en aplat ;
+  - enseignes aux noms parodiques : RSM Cabossé, Ferme du Rigolo, Pierrin Matériaux, Francoflex, Sedeau, Grangier,
+    Chanoux, Viannet, Tribal… ; affichettes (seuls les titres lisibles) ;
+  - auvents, stores, porches, silos, abris ouverts sur poteaux ;
+  - parmi eux : la mairie, l'église (clocher et contreforts), l'école, la salle des fêtes, les zones d'activité et
+    les fermes.
+  - Les bâtiments qu'on ne voit d'aucune route gardent leur volume habituel.
+- ces bâtiments ne sont chargés qu'autour de la voiture (moins de mémoire).
 
 Nouveautés de la v6.20 (APK complet à installer) :
 - **le restaurant de Rochetoirin refait d'après Street View**, sous le nom parodique **« Le Rochefestin »** :

@@ -1,0 +1,13 @@
+{
+ "id": "hangar_anthracite",
+ "nom": "Hangar anthracite",
+ "mur": "bardage#3c4046",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#3c4046",
+  "debord": 0.2
+ },
+ "egout": 6.0,
+ "faitage": 7.4,
+ "cleabs": "BATIMENT0000002292126967"
+}

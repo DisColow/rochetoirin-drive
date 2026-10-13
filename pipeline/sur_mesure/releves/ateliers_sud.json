@@ -1,0 +1,41 @@
+{
+ "id": "ateliers_sud",
+ "cleabs": "BATIMENT0000002493296036",
+ "nom": "Ateliers d'artisans",
+ "mur": "enduit#e6d8bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile"
+ },
+ "egout": 3.4,
+ "faitage": 5.4,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0,
+     2.6
+    ],
+    "n": 4,
+    "l": 2.8,
+    "c": "#e4e2dc"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.3,
+     0.36
+    ],
+    "y": [
+     1.0,
+     2.0
+    ]
+   }
+  ]
+ }
+}

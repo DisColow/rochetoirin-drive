@@ -1,0 +1,40 @@
+{
+ "id": "hangar_rampe",
+ "nom": "Hangar à rampe",
+ "mur": "enduit#e6cbb4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#a8a6a0",
+  "debord": 0.2
+ },
+ "egout": 5.0,
+ "faitage": 6.0,
+ "faces": {
+  "N": [
+   {
+    "t": "rideau",
+    "x": [
+     0.4,
+     0.5
+    ],
+    "y": [
+     0,
+     3.0
+    ]
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.55,
+     0.58
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#c8c8c4"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132880"
+}

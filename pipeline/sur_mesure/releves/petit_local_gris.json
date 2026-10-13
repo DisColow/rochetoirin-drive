@@ -1,0 +1,28 @@
+{
+ "id": "petit_local_gris",
+ "nom": "Petit local",
+ "mur": "enduit#c8c6c0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#a8a6a0",
+  "debord": 0.3
+ },
+ "egout": 3.6,
+ "faitage": 4.7,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.3,
+     0.6
+    ],
+    "y": [
+     1.0,
+     2.0
+    ]
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000002493295703"
+}

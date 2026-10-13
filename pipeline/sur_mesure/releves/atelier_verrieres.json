@@ -1,0 +1,43 @@
+{
+ "id": "atelier_verrieres",
+ "nom": "Atelier aux grandes verrières",
+ "mur": "enduit#e8dcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.3
+ },
+ "egout": 5.0,
+ "faitage": 7.2,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0.4,
+     3.2
+    ],
+    "n": 6,
+    "l": 4.0,
+    "c": "#3a4048"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.08
+    ],
+    "y": [
+     0,
+     5.0
+    ],
+    "mur": "beton#9a968e"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132866"
+}

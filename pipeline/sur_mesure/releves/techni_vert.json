@@ -1,0 +1,102 @@
+{
+ "id": "techni_vert",
+ "cleabs": "BATIMENT0000000301132914",
+ "nom": "Techni-Vert (atelier en bardage)",
+ "mur": "bardage#9ea3a8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8c9096",
+  "debord": 0.3
+ },
+ "egout": 4.2,
+ "faitage": 5.4,
+ "faces": {
+  "E": [
+   {
+    "t": "garage",
+    "x": [
+     0.05,
+     0.28
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#e2e2de"
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.33,
+     0.37
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#5a5e64"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.42,
+     0.5
+    ],
+    "y": [
+     1.0,
+     2.2
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.58,
+     0.74
+    ],
+    "y": [
+     2.9,
+     3.6
+    ],
+    "txt": "TECHNI-VERT",
+    "c": "#2e7d4f",
+    "tc": "#ffffff"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.78,
+     0.95
+    ],
+    "y": [
+     0,
+     3.6
+    ],
+    "c": "#e2e2de"
+   }
+  ],
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.2,
+     0.45
+    ],
+    "y": [
+     1.0,
+     2.2
+    ]
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.55,
+     0.65
+    ],
+    "y": [
+     0,
+     2.3
+    ]
+   }
+  ]
+ }
+}

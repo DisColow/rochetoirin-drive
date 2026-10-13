@@ -1,0 +1,40 @@
+{
+ "id": "ferme_parpaing",
+ "nom": "Bâtiment de ferme",
+ "mur": "beton#a8a49c",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.6,
+ "faitage": 5.4,
+ "faces": {
+  "NO": [
+   {
+    "t": "porte",
+    "x": [
+     0.5,
+     0.58
+    ],
+    "y": [
+     0,
+     2.1
+    ],
+    "c": "#f0f0ee"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "silo",
+   "face": "O",
+   "x": 0.2,
+   "d": 3,
+   "r": 1.2,
+   "h": 6.0,
+   "c": "#c8ccd0"
+  }
+ ],
+ "cleabs": "BATIMENT0000000301133094"
+}

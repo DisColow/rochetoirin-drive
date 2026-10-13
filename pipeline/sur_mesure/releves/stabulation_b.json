@@ -1,0 +1,15 @@
+{
+ "id": "stabulation_b",
+ "nom": "Stabulation",
+ "ouvert": true,
+ "c_poteaux": "#a8323a",
+ "mur": "bardage#c8ccd0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#d8d6ce",
+  "debord": 0.6
+ },
+ "egout": 4.0,
+ "faitage": 5.4,
+ "cleabs": "BATIMENT0000000290577849"
+}

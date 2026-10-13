@@ -1,0 +1,42 @@
+{
+ "id": "materiaux_fournitures",
+ "nom": "Matériaux & Fournitures",
+ "mur": "bardage#b0b6bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a9096",
+  "debord": 0.3
+ },
+ "egout": 4.0,
+ "faitage": 5.2,
+ "faces": {
+  "E": [
+   {
+    "t": "logo",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     3.0,
+     4.0
+    ],
+    "txt": "M",
+    "c": "#2a5aa8"
+   },
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.4
+    ],
+    "c": "#e8e2c8"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132900"
+}

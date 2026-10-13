@@ -1,0 +1,91 @@
+{
+ "id": "salle_baies",
+ "cleabs": "BATIMENT0000000301132861",
+ "nom": "Salle aux grandes baies",
+ "mur": "enduit#e2c9a8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.6
+ },
+ "egout": 3.4,
+ "faitage": 5.2,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.0,
+     0.17
+    ],
+    "y": [
+     0.2,
+     2.6
+    ],
+    "c": "#5a3a28"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.27,
+     0.33
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "c": "#5a3a28"
+   },
+   {
+    "t": "vitrine",
+    "x": [
+     0.4,
+     0.58
+    ],
+    "y": [
+     0.3,
+     2.6
+    ],
+    "c": "#5a3a28"
+   },
+   {
+    "t": "vitrine",
+    "x": [
+     0.62,
+     0.82
+    ],
+    "y": [
+     0.3,
+     2.6
+    ],
+    "c": "#5a3a28"
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.87,
+     0.91
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#6a4a30"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "poubelle",
+   "face": "S",
+   "x": [
+    0.36
+   ]
+  },
+  {
+   "t": "cheminee",
+   "x": 0.85,
+   "y": 0.5
+  }
+ ]
+}

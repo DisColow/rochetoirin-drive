@@ -1,0 +1,39 @@
+{
+ "id": "bureaux_atelier",
+ "nom": "Bureaux et atelier",
+ "mur": "bardage#e8e8e6",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 5.5,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 5,
+    "l": 2.0
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.45,
+     0.52
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#5a5e64"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132849"
+}

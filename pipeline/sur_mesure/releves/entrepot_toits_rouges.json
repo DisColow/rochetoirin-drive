@@ -1,0 +1,31 @@
+{
+ "id": "entrepot_toits_rouges",
+ "nom": "Entrepôt aux toits rouges",
+ "mur": "enduit#f0f0ec",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#b84c32",
+  "debord": 0.6
+ },
+ "egout": 7.0,
+ "faitage": 10.0,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0,
+     5.5
+    ],
+    "c": "#3a3a3c",
+    "n": 3,
+    "l": 12
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132862"
+}

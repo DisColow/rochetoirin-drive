@@ -1,0 +1,49 @@
+{
+ "id": "bureaux_beiges",
+ "nom": "Bureaux beiges",
+ "mur": "enduit#e8dcc0",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 4.0,
+ "faces": {
+  "S": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.45
+    ],
+    "y": [
+     1.4,
+     2.4
+    ],
+    "c": "#30363c"
+   },
+   {
+    "t": "rideau",
+    "x": [
+     0.5,
+     0.6
+    ],
+    "y": [
+     0,
+     3.0
+    ]
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.7,
+     1
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "mur": "bardage#e2d8c0"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132910"
+}

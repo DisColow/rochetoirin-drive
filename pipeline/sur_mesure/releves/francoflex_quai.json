@@ -1,0 +1,90 @@
+{
+ "id": "francoflex_quai",
+ "nom": "Francoflex (quai)",
+ "mur": "bardage#e6e4dc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8c9096",
+  "debord": 0.2
+ },
+ "egout": 6.0,
+ "faitage": 7.0,
+ "faces": {
+  "S": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.15,
+     0.6
+    ],
+    "y": [
+     3.6,
+     5.0
+    ],
+    "txt": "FRANCOFLEX",
+    "c": "#ffffff",
+    "tc": "#1d3f8a",
+    "sous": true
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.1,
+     0.3
+    ],
+    "y": [
+     1.0,
+     2.0
+    ]
+   }
+  ],
+  "E": [
+   {
+    "t": "garage",
+    "x": [
+     0.1,
+     0.4
+    ],
+    "y": [
+     0,
+     3.5
+    ],
+    "c": "#d8d8d2"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.5,
+     0.8
+    ],
+    "y": [
+     0,
+     3.5
+    ],
+    "c": "#d8d8d2"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "auvent",
+   "face": "E",
+   "x": [
+    0.02,
+    0.98
+   ],
+   "y": 4.2,
+   "p": 4.0,
+   "c": "#2c4c8c"
+  },
+  {
+   "t": "poubelle",
+   "face": "E",
+   "x": [
+    0.9
+   ],
+   "c": "#b0a070"
+  }
+ ],
+ "cleabs": "BATIMENT0000000290563284"
+}

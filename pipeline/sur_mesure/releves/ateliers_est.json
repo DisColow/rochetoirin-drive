@@ -1,0 +1,42 @@
+{
+ "id": "ateliers_est",
+ "cleabs": "BATIMENT0000000330807565",
+ "nom": "Ateliers d'artisans",
+ "mur": "enduit#e9dcc2",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile"
+ },
+ "egout": 3.6,
+ "faitage": 5.4,
+ "faces": {
+  "E": [
+   {
+    "t": "garage",
+    "x": [
+     0.1,
+     0.96
+    ],
+    "y": [
+     0,
+     2.8
+    ],
+    "n": 6,
+    "l": 3.0,
+    "c": "#e8e6e0"
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.02,
+     0.06
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#7a6a58"
+   }
+  ]
+ }
+}

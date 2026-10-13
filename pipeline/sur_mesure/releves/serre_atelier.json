@@ -1,0 +1,29 @@
+{
+ "id": "serre_atelier",
+ "nom": "Serre et atelier",
+ "mur": "bardage#d0d4d8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8ccd0",
+  "debord": 0.2
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0,
+     2.8
+    ],
+    "c": "#e8e8e8"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000002292126960"
+}

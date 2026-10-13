@@ -1,0 +1,69 @@
+{
+ "id": "tribal",
+ "nom": "Tribal (menuiseries)",
+ "mur": "enduit#f2f2f0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#9aa0a6",
+  "debord": 0.3
+ },
+ "egout": 3.9,
+ "faitage": 5.0,
+ "faces": {
+  "E": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.6,
+     0.95
+    ],
+    "y": [
+     3.0,
+     3.8
+    ],
+    "txt": "TRIBAL",
+    "c": "#2a6ab8",
+    "tc": "#ffffff",
+    "sous": false
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.4,
+     0.5
+    ],
+    "y": [
+     0,
+     2.4
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.1,
+     0.35
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "auvent",
+   "face": "E",
+   "x": [
+    0.38,
+    0.52
+   ],
+   "y": 2.8,
+   "p": 1.5,
+   "c": "#6a6e72"
+  }
+ ],
+ "cleabs": "BATIMENT0000000301132901"
+}

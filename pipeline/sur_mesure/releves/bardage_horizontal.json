@@ -1,0 +1,25 @@
+{
+ "id": "bardage_horizontal",
+ "nom": "Bâtiment en bardage gris",
+ "mur": "bardage#9ea6ae",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 6.2,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.3,
+     0.4
+    ],
+    "y": [
+     2.5,
+     3.5
+    ]
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301133261"
+}

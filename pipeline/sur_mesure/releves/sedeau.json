@@ -1,0 +1,94 @@
+{
+ "id": "sedeau",
+ "nom": "Sedeau (sanitaire, chauffage)",
+ "mur": "enduit#f4f4f2",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#b8b6ae",
+  "debord": 0.2
+ },
+ "egout": 5.0,
+ "faitage": 6.2,
+ "faces": {
+  "O": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.0,
+     0.12
+    ],
+    "y": [
+     4.0,
+     4.6
+    ],
+    "txt": "SEDEAU",
+    "c": "#ffffff",
+    "tc": "#1a3a8c",
+    "sous": false
+   },
+   {
+    "t": "bandeau",
+    "x": [
+     0.13,
+     0.6
+    ],
+    "y": [
+     4.1,
+     4.4
+    ],
+    "txt": "SANITAIRE · CHAUFFAGE · PLOMBERIE",
+    "c": "#f4f4f2",
+    "tc": "#1a3a8c"
+   },
+   {
+    "t": "bandeau",
+    "x": [
+     0.0,
+     1.0
+    ],
+    "y": [
+     3.85,
+     3.95
+    ],
+    "c": "#1a3a8c"
+   },
+   {
+    "t": "rideau",
+    "x": [
+     0.4,
+     0.5
+    ],
+    "y": [
+     0,
+     2.8
+    ]
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.12,
+     0.16
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#e0e0dc"
+   },
+   {
+    "t": "lettres",
+    "x": [
+     0.8,
+     0.95
+    ],
+    "y": [
+     4.0,
+     4.5
+    ],
+    "txt": "sedeau.fr",
+    "tc": "#1a3a8c"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132835"
+}

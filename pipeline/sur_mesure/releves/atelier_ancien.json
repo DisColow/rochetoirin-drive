@@ -1,0 +1,53 @@
+{
+ "id": "atelier_ancien",
+ "nom": "Ancien atelier",
+ "mur": "enduit#f0efea",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.3
+ },
+ "egout": 8.0,
+ "faitage": 9.9,
+ "faces": {
+  "N": [
+   {
+    "t": "volets_clos",
+    "x": [
+     0.2,
+     0.35
+    ],
+    "y": [
+     4.2,
+     5.6
+    ],
+    "c": "#7a3a2a"
+   },
+   {
+    "t": "volets_clos",
+    "x": [
+     0.65,
+     0.8
+    ],
+    "y": [
+     4.2,
+     5.6
+    ],
+    "c": "#7a3a2a"
+   },
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0,
+     2.4
+    ],
+    "c": "#6a7a80"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132884"
+}

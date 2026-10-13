@@ -1,0 +1,41 @@
+{
+ "id": "francoflex_usine",
+ "nom": "Francoflex (usine)",
+ "mur": "bardage#ddd4c0",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 10.0,
+ "faces": {
+  "S": [
+   {
+    "t": "matiere",
+    "x": [
+     0,
+     1
+    ],
+    "y": [
+     0,
+     1.2
+    ],
+    "mur": "beton#c8c6c0"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.35,
+     0.6
+    ],
+    "y": [
+     6.0,
+     8.0
+    ],
+    "txt": "FRANCOFLEX",
+    "c": "#ffffff",
+    "tc": "#1d3f8a",
+    "sous": true
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132925"
+}

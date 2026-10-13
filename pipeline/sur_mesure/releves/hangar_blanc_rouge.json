@@ -1,0 +1,65 @@
+{
+ "id": "hangar_blanc_rouge",
+ "nom": "Hangar blanc",
+ "mur": "bardage#ececea",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#9a9ea2",
+  "debord": 0.3
+ },
+ "egout": 5.6,
+ "faitage": 6.8,
+ "faces": {
+  "E": [
+   {
+    "t": "matiere",
+    "x": [
+     0,
+     0.05
+    ],
+    "y": [
+     4.6,
+     5.6
+    ],
+    "mur": "bardage#c83a32"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.95,
+     1
+    ],
+    "y": [
+     4.6,
+     5.6
+    ],
+    "mur": "bardage#c83a32"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.3,
+     0.5
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#e4e4e0"
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.6,
+     0.64
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#5a5e64"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132809"
+}

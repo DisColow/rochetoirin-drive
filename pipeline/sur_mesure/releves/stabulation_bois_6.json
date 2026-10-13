@@ -1,0 +1,15 @@
+{
+ "id": "stabulation_bois_6",
+ "nom": "Stabulation en bois",
+ "ouvert": true,
+ "c_poteaux": "#6a5440",
+ "mur": "bois#6a5440",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a5048",
+  "debord": 0.6
+ },
+ "egout": 3.6,
+ "faitage": 5.4,
+ "cleabs": "BATIMENT0000000301133204"
+}

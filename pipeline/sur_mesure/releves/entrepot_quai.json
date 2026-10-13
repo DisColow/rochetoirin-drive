@@ -1,0 +1,26 @@
+{
+ "id": "entrepot_quai",
+ "nom": "Entrepôt à quai",
+ "mur": "bardage#d4d6d8",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 10.6,
+ "faces": {
+  "SO": [
+   {
+    "t": "garage",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     0,
+     5.0
+    ],
+    "c": "#2e3034"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000002493295741"
+}

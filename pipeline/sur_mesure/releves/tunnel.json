@@ -1,0 +1,13 @@
+{
+ "id": "tunnel",
+ "nom": "Tunnel agricole",
+ "mur": "bardage#4a4c50",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a5c62",
+  "debord": 0.0
+ },
+ "egout": 1.2,
+ "faitage": 4.0,
+ "cleabs": "BATIMENT0000002292127062"
+}

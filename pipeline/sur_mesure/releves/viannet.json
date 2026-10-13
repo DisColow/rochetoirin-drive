@@ -1,0 +1,69 @@
+{
+ "id": "viannet",
+ "nom": "Viannet (hangar)",
+ "mur": "bardage#eceae6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8acb0",
+  "debord": 0.2
+ },
+ "egout": 6.4,
+ "faitage": 7.4,
+ "faces": {
+  "N": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.25,
+     0.5
+    ],
+    "y": [
+     4.6,
+     5.4
+    ],
+    "txt": "Viannet",
+    "c": "#eceae6",
+    "tc": "#3c4046",
+    "sous": false
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.05,
+     0.15
+    ],
+    "y": [
+     0,
+     4.4
+    ],
+    "c": "#e8e8e4"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.25,
+     0.9
+    ],
+    "y": [
+     1.4,
+     2.4
+    ],
+    "mur": "bardage#26282c"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.55,
+     0.75
+    ],
+    "y": [
+     1.0,
+     2.0
+    ],
+    "n": 3,
+    "l": 1.2
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000007618688"
+}

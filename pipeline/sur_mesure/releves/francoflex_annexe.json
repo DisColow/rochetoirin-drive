@@ -1,0 +1,26 @@
+{
+ "id": "francoflex_annexe",
+ "nom": "Francoflex (annexe)",
+ "mur": "enduit#e4c88a",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 6.0,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#ecebe6"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132909"
+}

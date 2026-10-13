@@ -418,9 +418,11 @@ def xf(model, origin, right, scale=(1, 1, 1), custom=(0, 0, 0, 0)):
     return (MID[model],) + tuple(B.T.ravel()) + tuple(origin) + tuple(custom)
 
 
-SUR_MESURE = set()
+SUR_MESURE, SUR_BATI = set(), set()
 if os.path.exists("../godot/world/sur_mesure.json"):
-    SUR_MESURE = {c for v in json.load(open("../godot/world/sur_mesure.json")).values() for c in v.get("remplace_commerce", [])}
+    _sm = json.load(open("../godot/world/sur_mesure.json")).values()
+    SUR_MESURE = {c for v in _sm for c in v.get("remplace_commerce", [])}
+    SUR_BATI = {c for v in _sm for c in v.get("remplace_bati", [])}
 
 
 def main():
@@ -438,7 +440,11 @@ def main():
     rbuf = [LineString(w["P"]).buffer(w["w"] / 2 + 0.3, cap_style="flat") for w in ways if not w["bridge"]]
     rtr = STRtree(rbuf)
     blds = []
+    refaits = []                      # bâtiments refaits sur mesure : ni devanture générique, ni commerce OSM accroché
     for p, g in load_buildings():
+        if p.get("cleabs") in SUR_BATI:
+            refaits.append(g)
+            continue
         hits = [rbuf[k] for k in rtr.query(g) if rbuf[k].intersects(g)]
         if hits and g.intersection(unary_union(hits)).area > 0.3:
             g2 = g.difference(unary_union(hits))
@@ -452,6 +458,7 @@ def main():
             continue
         blds.append((p, shapely.geometry.polygon.orient(g, 1.0)))
     BT = STRtree([g for _, g in blds])
+    REFAITS = Local(refaits)
     BLD = Local([g for _, g in blds])
     d = json.load(open("data/osm_shops.json"))
     FICHES = load_fiches()
@@ -532,6 +539,8 @@ def main():
         key = e["id"]
         if (key if isinstance(key, str) else "%s%d" % (e["type"][0], key)) in SUR_MESURE:
             continue                        # commerce refait sur mesure (sur_mesure.json)
+        if REFAITS.near(P, 6.0):
+            continue                        # dans un bâtiment refait sur mesure (sa devanture est peinte dans le modèle)
         title, sub, bg, fg, font, style, acc = sign_for(t, kind, key)
         fi = FICHES.get(key if isinstance(key, str) else "%s%d" % (e["type"][0], key))
         typ = fi["type"] if fi and fi["type"] != "X" else None

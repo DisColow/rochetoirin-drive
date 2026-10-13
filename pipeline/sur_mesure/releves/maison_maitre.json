@@ -1,0 +1,56 @@
+{
+ "id": "maison_maitre",
+ "nom": "Maison de maître",
+ "mur": "enduit#e2d4b6",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile"
+ },
+ "egout": 7.4,
+ "faitage": 10.5,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     4.2,
+     5.6
+    ],
+    "n": 3,
+    "l": 1.0,
+    "volets": "#d0d0cc"
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     1.0,
+     2.6
+    ],
+    "n": 3,
+    "l": 1.0,
+    "volets": "#d0d0cc"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "cheminee",
+   "x": 0.3,
+   "y": 0.5
+  },
+  {
+   "t": "cheminee",
+   "x": 0.7,
+   "y": 0.5
+  }
+ ],
+ "cleabs": "BATIMENT0000000301132882"
+}

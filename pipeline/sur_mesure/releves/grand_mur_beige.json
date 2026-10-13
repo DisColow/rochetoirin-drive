@@ -1,0 +1,26 @@
+{
+ "id": "grand_mur_beige",
+ "nom": "Hangar beige",
+ "mur": "bardage#d8d0bc",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 10.0,
+ "faces": {
+  "S": [
+   {
+    "t": "matiere",
+    "x": [
+     0,
+     1
+    ],
+    "y": [
+     0,
+     1.2
+    ],
+    "mur": "beton#c4c2bc"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132911"
+}

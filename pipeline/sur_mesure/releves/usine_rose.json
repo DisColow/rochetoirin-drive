@@ -1,0 +1,37 @@
+{
+ "id": "usine_rose",
+ "nom": "Usine rose",
+ "mur": "bardage#d8b0b8",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 5.7,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#3a3c40"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "silo",
+   "face": "S",
+   "x": 0.2,
+   "d": 4,
+   "r": 3.0,
+   "h": 7.0,
+   "c": "#b8bcc0"
+  }
+ ],
+ "cleabs": "BATIMENT0000000007618647"
+}

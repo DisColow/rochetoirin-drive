@@ -1,0 +1,14 @@
+{
+ "id": "abri_camions",
+ "nom": "Abri à camions",
+ "mur": "bardage#d0d0cc",
+ "ouvert": true,
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#c8c6be",
+  "debord": 0.4
+ },
+ "egout": 5.6,
+ "faitage": 6.6,
+ "cleabs": "BATIMENT0000000301132810"
+}

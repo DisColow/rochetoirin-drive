@@ -1,0 +1,51 @@
+{
+ "id": "logistique_rose",
+ "nom": "Plateforme logistique",
+ "mur": "bardage#9a6a6a",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 8.3,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.05,
+     0.9
+    ],
+    "y": [
+     0,
+     3.2
+    ],
+    "c": "#4a4a50",
+    "n": 10,
+    "l": 3.2
+   },
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.0,
+     1
+    ],
+    "y": [
+     5.0,
+     6.0
+    ],
+    "c": "#30363c"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "silo",
+   "face": "S",
+   "x": 0.95,
+   "d": 6,
+   "r": 4.0,
+   "h": 8.0,
+   "c": "#b8bcc0"
+  }
+ ],
+ "cleabs": "BATIMENT0000000301132872"
+}

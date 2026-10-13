@@ -1,0 +1,65 @@
+{
+ "id": "maison_crepi",
+ "nom": "Maison (bureaux)",
+ "mur": "enduit#d4d0c8",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile_brune"
+ },
+ "egout": 7.0,
+ "faitage": 10.2,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     4.2,
+     5.4
+    ],
+    "n": 2,
+    "l": 1.2
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.6,
+     0.8
+    ],
+    "y": [
+     0.9,
+     2.2
+    ]
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.2,
+     0.32
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#7a2a2a"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "marquise",
+   "face": "N",
+   "x": [
+    0.18,
+    0.34
+   ],
+   "y": 2.5,
+   "p": 0.8,
+   "c": "#3a6a4a"
+  }
+ ],
+ "cleabs": "BATIMENT0000000301132852"
+}

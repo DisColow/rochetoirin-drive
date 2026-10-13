@@ -1,0 +1,45 @@
+{
+ "id": "ferme_pise",
+ "nom": "Ferme en pisé",
+ "mur": "enduit#c8b494",
+ "mur_faces": {
+  "O": "enduit#f0eeea"
+ },
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.4,
+ "faces": {
+  "O": [
+   {
+    "t": "porte_grange",
+    "x": [
+     0.3,
+     0.6
+    ],
+    "y": [
+     0,
+     2.8
+    ],
+    "c": "#6a5440"
+   }
+  ],
+  "SO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.4,
+     0.5
+    ],
+    "y": [
+     2.6,
+     3.4
+    ]
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301133092"
+}

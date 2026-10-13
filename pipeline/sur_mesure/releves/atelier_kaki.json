@@ -1,0 +1,71 @@
+{
+ "id": "atelier_kaki",
+ "nom": "Atelier bardage kaki",
+ "mur": "bardage#b8b49a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8c8c86",
+  "debord": 0.3
+ },
+ "egout": 6.6,
+ "faitage": 7.6,
+ "faces": {
+  "SO": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.6,
+     0.85
+    ],
+    "y": [
+     4.0,
+     5.0
+    ],
+    "txt": "TECHNO-PRO",
+    "c": "#2a5aa8",
+    "tc": "#ffffff",
+    "sous": false
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.1,
+     0.14
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#5a5e64"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.2,
+     0.5
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 2,
+    "l": 1.2
+   }
+  ],
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.3,
+     0.6
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#e4e4e0"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132869"
+}

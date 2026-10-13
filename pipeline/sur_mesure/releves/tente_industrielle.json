@@ -1,0 +1,32 @@
+{
+ "id": "tente_industrielle",
+ "nom": "Tente industrielle",
+ "mur": "bardage#c8ccd0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#d8dadc",
+  "debord": 0.1
+ },
+ "egout": 4.5,
+ "faitage": 6.5,
+ "faces": {
+  "S": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.42,
+     0.58
+    ],
+    "y": [
+     5.0,
+     5.5
+    ],
+    "txt": "STOCKAGE",
+    "c": "#e8e8e6",
+    "tc": "#c8a020",
+    "sous": false
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000002209655455"
+}

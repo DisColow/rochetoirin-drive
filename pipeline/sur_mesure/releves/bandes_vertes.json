@@ -1,0 +1,37 @@
+{
+ "id": "bandes_vertes",
+ "nom": "Bâtiment à bandes vertes",
+ "mur": "bardage#f0f0ee",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 7.0,
+ "faces": {
+  "E": [
+   {
+    "t": "matiere",
+    "x": [
+     0.33,
+     0.66
+    ],
+    "y": [
+     0,
+     7.0
+    ],
+    "mur": "bardage#b4ccb0"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.1,
+     0.25
+    ],
+    "y": [
+     1.0,
+     2.0
+    ]
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132904"
+}

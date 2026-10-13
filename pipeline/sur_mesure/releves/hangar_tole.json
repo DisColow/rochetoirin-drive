@@ -1,0 +1,41 @@
+{
+ "id": "hangar_tole",
+ "nom": "Hangar en tôle",
+ "mur": "bardage#a8aeb4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#d4d6d4",
+  "debord": 0.2
+ },
+ "egout": 6.4,
+ "faitage": 8.0,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.35,
+     0.55
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#2e3034"
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.2,
+     0.25
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#5a5e64"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132842"
+}

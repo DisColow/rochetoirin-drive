@@ -1,0 +1,101 @@
+{
+ "id": "atelier_poteaux",
+ "nom": "Atelier à poteaux",
+ "mur": "enduit#b8bcbc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#8a8c8c",
+  "debord": 0.4
+ },
+ "egout": 4.4,
+ "faitage": 6.0,
+ "faces": {
+  "N": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.02
+    ],
+    "y": [
+     0,
+     4.4
+    ],
+    "mur": "bardage#8a4a3a"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.2,
+     0.22
+    ],
+    "y": [
+     0,
+     4.4
+    ],
+    "mur": "bardage#8a4a3a"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.4,
+     0.42
+    ],
+    "y": [
+     0,
+     4.4
+    ],
+    "mur": "bardage#8a4a3a"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.6,
+     0.62
+    ],
+    "y": [
+     0,
+     4.4
+    ],
+    "mur": "bardage#8a4a3a"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.8,
+     0.82
+    ],
+    "y": [
+     0,
+     4.4
+    ],
+    "mur": "bardage#8a4a3a"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.98,
+     1
+    ],
+    "y": [
+     0,
+     4.4
+    ],
+    "mur": "bardage#8a4a3a"
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.5,
+     0.56
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#8a8e92"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132912"
+}

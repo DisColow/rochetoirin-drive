@@ -1,0 +1,53 @@
+{
+ "id": "zone_activite",
+ "nom": "Zone d'activité (cellules)",
+ "mur": "bardage#e2e4e4",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 6.0,
+ "faces": {
+  "E": [
+   {
+    "t": "garage",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#3a8a9a",
+    "n": 6,
+    "l": 5.0
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0,
+     1
+    ],
+    "y": [
+     4.4,
+     6.0
+    ],
+    "mur": "bardage#8aa0b4"
+   },
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     4.6,
+     5.6
+    ],
+    "n": 6,
+    "l": 3.0
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132847"
+}

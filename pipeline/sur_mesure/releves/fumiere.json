@@ -1,0 +1,10 @@
+{
+ "id": "fumiere",
+ "nom": "Fumière",
+ "mur": "beton#a8a49c",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 1.0,
+ "cleabs": "BATIMENT0000000301133291"
+}

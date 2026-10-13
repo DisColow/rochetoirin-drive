@@ -1,0 +1,39 @@
+{
+ "id": "local_gris_b",
+ "nom": "Local crépi gris",
+ "mur": "enduit#c4c2bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#b0aea8",
+  "debord": 0.3
+ },
+ "egout": 3.6,
+ "faitage": 4.8,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.3,
+     0.4
+    ],
+    "y": [
+     1.0,
+     2.0
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.6,
+     0.7
+    ],
+    "y": [
+     1.0,
+     2.0
+    ]
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000002209655425"
+}

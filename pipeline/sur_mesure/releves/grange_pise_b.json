@@ -1,0 +1,29 @@
+{
+ "id": "grange_pise_b",
+ "nom": "Grange en pisé",
+ "mur": "enduit#b8a688",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8323a",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "faces": {
+  "E": [
+   {
+    "t": "porte_grange",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     0,
+     2.4
+    ],
+    "c": "#5a4a3a"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301133206"
+}

@@ -1,0 +1,27 @@
+{
+ "id": "grange_pise",
+ "cleabs": "BATIMENT0000000301133601",
+ "nom": "Grange en pisé",
+ "mur": "enduit#b89a74",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile"
+ },
+ "egout": 3.2,
+ "faitage": 5.4,
+ "faces": {
+  "NE": [
+   {
+    "t": "grille",
+    "x": [
+     0.46,
+     0.53
+    ],
+    "y": [
+     1.0,
+     1.8
+    ]
+   }
+  ]
+ }
+}

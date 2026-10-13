@@ -1,0 +1,55 @@
+{
+ "id": "papeterie",
+ "nom": "Papeterie du village",
+ "mur": "enduit#e8dcc4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.3
+ },
+ "egout": 4.2,
+ "faitage": 6.4,
+ "faces": {
+  "O": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     0.3,
+     2.5
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.7,
+     3.3
+    ],
+    "txt": "PAPETERIE",
+    "c": "#2a4a8a",
+    "tc": "#ffffff",
+    "sous": false
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.72,
+     0.78
+    ],
+    "y": [
+     0,
+     2.4
+    ],
+    "c": "#5a4a3a"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132907"
+}

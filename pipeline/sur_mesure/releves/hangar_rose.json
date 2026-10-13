@@ -1,0 +1,54 @@
+{
+ "id": "hangar_rose",
+ "cleabs": "BATIMENT0000000301132837",
+ "nom": "Hangar rose (artisan)",
+ "mur": "enduit#d9b8ae",
+ "mur_faces": {
+  "O": "beton#aaa69e"
+ },
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#b4b2aa"
+ },
+ "egout": 4.2,
+ "faitage": 5.6,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.12,
+     0.26
+    ],
+    "y": [
+     0,
+     2.6
+    ],
+    "c": "#6f8f5e"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.55,
+     0.68
+    ],
+    "y": [
+     0,
+     2.6
+    ],
+    "c": "#6f8f5e"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.36,
+     0.42
+    ],
+    "y": [
+     1.2,
+     2.1
+    ]
+   }
+  ]
+ }
+}

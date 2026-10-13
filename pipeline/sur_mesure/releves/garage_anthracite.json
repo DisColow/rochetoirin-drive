@@ -1,0 +1,52 @@
+{
+ "id": "garage_anthracite",
+ "nom": "Garage moderne",
+ "mur": "bardage#5a5e64",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 5.0,
+ "faces": {
+  "E": [
+   {
+    "t": "matiere",
+    "x": [
+     0,
+     1
+    ],
+    "y": [
+     4.2,
+     4.4
+    ],
+    "mur": "bardage#c83a32"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.05,
+     0.85
+    ],
+    "y": [
+     0,
+     3.6
+    ],
+    "c": "#d8dadc",
+    "n": 5,
+    "l": 4.0
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.86,
+     1
+    ],
+    "y": [
+     0,
+     6.5
+    ],
+    "mur": "bardage#80868c"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132870"
+}

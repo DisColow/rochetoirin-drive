@@ -13,6 +13,10 @@ static func add(m: ShaderMaterial) -> ShaderMaterial:
 		m.set_shader_parameter(k, vals[k])
 	return m
 
+## Matériau libéré (objet déchargé) : on l'oublie, sinon il garderait ses textures en mémoire (sur_mesure.gd).
+static func remove(m: ShaderMaterial) -> void:
+	mats.erase(m)
+
 static func set_value(k: String, v) -> void:
 	vals[k] = v
 	for m in mats:

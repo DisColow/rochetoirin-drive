@@ -1,0 +1,45 @@
+{
+ "id": "pierrin",
+ "cleabs": "BATIMENT0000000330799342",
+ "nom": "Pierrin Matériaux (hangar)",
+ "mur": "bardage#9aa0a4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a9096",
+  "debord": 0.5
+ },
+ "egout": 4.6,
+ "faitage": 6.0,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.03,
+     0.97
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "n": 4,
+    "l": 8,
+    "c": "#3a3c40"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.02,
+     0.2
+    ],
+    "y": [
+     4.05,
+     4.55
+    ],
+    "txt": "PIERRIN MATÉRIAUX",
+    "c": "#1d4f9a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

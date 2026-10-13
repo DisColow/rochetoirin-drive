@@ -1,0 +1,52 @@
+{
+ "id": "saumon_gris",
+ "nom": "Atelier saumon et gris",
+ "mur": "enduit#e4b894",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 4.9,
+ "faces": {
+  "N": [
+   {
+    "t": "matiere",
+    "x": [
+     0,
+     1
+    ],
+    "y": [
+     3.2,
+     4.9
+    ],
+    "mur": "bardage#9ea2a6"
+   },
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 4,
+    "l": 2.5,
+    "c": "#30363c"
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.45,
+     0.5
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#3a3e44"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132857"
+}

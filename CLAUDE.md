@@ -368,4 +368,25 @@
   - Après `build_shops.py`, publier **toutes** les tuiles `world/shops` avec les atlas d'enseignes. Retirer un commerce
     décale les cases des enseignes suivantes, donc remettre d'anciennes tuiles afficherait de mauvaises enseignes
     (erreur corrigée avant la livraison de la v6.20).
+- **Bâtiments non résidentiels sur mesure** (v6.21, `pipeline/sur_mesure/`) :
+  - `fetch_sv_batiments.py [commerces|industriels|agricoles]` : 2 à 3 photos par bâtiment visible depuis une route
+    (moins de 70 m), dans le cache privé `streetview/batiments/` (index : caméra, cap, champ). Plafond de 700 photos ;
+    1,73 $ dépensés pour les 138 bâtiments de Rochetoirin.
+  - `releves/<id>.json` : un relevé par bâtiment, écrit en regardant les photos (format en tête de `batiment.py`) :
+    - matière des murs, toit, hauteurs ;
+    - ouvertures par façade, en fractions vues de dehors ;
+    - enseignes au nom parodique, affichettes (seuls les titres lisibles), extras (auvents, stores, porches,
+      silos, clocher, contreforts…), `ouvert` pour les abris sur poteaux.
+  - `batiment.py [id…]` : le moteur.
+    - Emprise du cadastre, sol du relief terrassé.
+    - Murs peints dans un atlas de 1024 px, compressé à l'import.
+    - Enseignes et affichettes en aplats haute définition, 1,2 cm devant le mur.
+    - Toits par rectangles (`decompose`), sinon toit plat qui suit l'emprise.
+    - Collisions en boîtes ; entrée dans `world/sur_mesure.json`.
+  - 102 bâtiments faits : 20 commerces et services, l'église et la mairie, 62 industriels, 20 agricoles. Les 34 qui ne
+    se voient d'aucune route gardent leur volume généré.
+  - `sur_mesure.gd` les charge autour de la caméra (1,1 km, en arrière-plan) et les libère au-delà de 1,4 km ;
+    `Env.remove` oublie leurs matériaux.
+  - `build_shops.py` ne pose plus de devanture générique sur un bâtiment refait, ni de commerce OSM à moins de
+    6 m de lui.
 

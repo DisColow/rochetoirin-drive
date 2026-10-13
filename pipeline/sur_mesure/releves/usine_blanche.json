@@ -1,0 +1,54 @@
+{
+ "id": "usine_blanche",
+ "nom": "Usine blanche",
+ "mur": "bardage#eeeeec",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a0a4a8",
+  "debord": 0.2
+ },
+ "egout": 5.3,
+ "faitage": 6.4,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.2,
+     0.3
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#e4e4e0"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.6,
+     0.7
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#e4e4e0"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.35,
+     0.55
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132850"
+}

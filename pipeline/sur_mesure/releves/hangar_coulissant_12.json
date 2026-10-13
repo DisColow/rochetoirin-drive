@@ -1,0 +1,53 @@
+{
+ "id": "hangar_coulissant_12",
+ "nom": "Hangar à portes coulissantes",
+ "mur": "bardage#e8e4d6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#c8c6be",
+  "debord": 0.3
+ },
+ "egout": 4.6,
+ "faitage": 6.2,
+ "faces": {
+  "S": [
+   {
+    "t": "matiere",
+    "x": [
+     0,
+     1
+    ],
+    "y": [
+     0,
+     1.0
+    ],
+    "mur": "beton#b8b4ac"
+   },
+   {
+    "t": "porte_grange",
+    "x": [
+     0.2,
+     0.82
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#ecebe4"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.85,
+     1
+    ],
+    "y": [
+     1.0,
+     4.6
+    ],
+    "mur": "bardage#c8b880"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301133277"
+}

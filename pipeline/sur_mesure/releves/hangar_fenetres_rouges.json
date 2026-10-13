@@ -1,0 +1,40 @@
+{
+ "id": "hangar_fenetres_rouges",
+ "nom": "Hangar aux fenêtres rouges",
+ "mur": "bardage#c8ccd0",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 7.5,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.6,
+     0.9
+    ],
+    "y": [
+     1.0,
+     4.0
+    ],
+    "n": 3,
+    "l": 0.6,
+    "c": "#c8323a"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.7,
+     0.8
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#2e3034"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132893"
+}

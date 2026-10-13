@@ -1,0 +1,29 @@
+{
+ "id": "atelier_verriere_b",
+ "nom": "Atelier (porte vitrée)",
+ "mur": "enduit#e8dcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.3
+ },
+ "egout": 5.0,
+ "faitage": 6.4,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#2e3238"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132867"
+}

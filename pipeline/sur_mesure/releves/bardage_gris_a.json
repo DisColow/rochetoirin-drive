@@ -1,0 +1,10 @@
+{
+ "id": "bardage_gris_a",
+ "nom": "Bardage gris",
+ "mur": "bardage#a6acb2",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 4.4,
+ "cleabs": "BATIMENT0000000301132845"
+}

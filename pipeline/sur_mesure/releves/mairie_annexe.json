@@ -1,0 +1,10 @@
+{
+ "id": "mairie_annexe",
+ "cleabs": "BATIMENT0000000301133259",
+ "nom": "Mairie (annexe)",
+ "mur": "enduit#ecd2b4",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 4.5
+}

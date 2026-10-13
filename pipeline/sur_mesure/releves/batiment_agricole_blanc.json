@@ -1,0 +1,42 @@
+{
+ "id": "batiment_agricole_blanc",
+ "nom": "Bâtiment agricole blanc",
+ "mur": "bardage#eeeeec",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#b0b4b8",
+  "debord": 0.3
+ },
+ "egout": 6.0,
+ "faitage": 7.4,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     1.2,
+     2.2
+    ],
+    "n": 6,
+    "l": 1.6
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.45,
+     0.55
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "c": "#3a3c40"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000002292126985"
+}

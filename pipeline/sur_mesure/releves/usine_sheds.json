@@ -1,0 +1,65 @@
+{
+ "id": "usine_sheds",
+ "nom": "Usine à sheds rouges",
+ "mur": "bardage#e8e8e4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8323a",
+  "debord": 0.2
+ },
+ "egout": 6.5,
+ "faitage": 9.9,
+ "faces": {
+  "N": [
+   {
+    "t": "matiere",
+    "x": [
+     0,
+     1
+    ],
+    "y": [
+     0,
+     1.0
+    ],
+    "mur": "beton#b8b4ac"
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.1,
+     0.12
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#a8323a"
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.4,
+     0.42
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#a8323a"
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.7,
+     0.72
+    ],
+    "y": [
+     0,
+     2.2
+    ],
+    "c": "#a8323a"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132863"
+}

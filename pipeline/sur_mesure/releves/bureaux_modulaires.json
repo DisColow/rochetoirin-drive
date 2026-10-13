@@ -1,0 +1,42 @@
+{
+ "id": "bureaux_modulaires",
+ "nom": "Bureaux modulaires",
+ "mur": "bardage#a8b0b8",
+ "toit": {
+  "type": "plat"
+ },
+ "egout": 6.0,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 3,
+    "l": 0.8,
+    "c": "#c8323a"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     3.8,
+     5.0
+    ],
+    "n": 3,
+    "l": 0.8,
+    "c": "#c8323a"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301132895"
+}

@@ -1,0 +1,28 @@
+{
+ "id": "ecole_preau",
+ "cleabs": "BATIMENT0000000301133223",
+ "nom": "École (préau)",
+ "mur": "enduit#efe6d6",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile_brune"
+ },
+ "egout": 2.6,
+ "faitage": 4.2,
+ "faces": {
+  "E": [
+   {
+    "t": "garage",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0,
+     2.3
+    ],
+    "c": "#5a5048"
+   }
+  ]
+ }
+}

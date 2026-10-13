@@ -1,0 +1,29 @@
+{
+ "id": "hangar_ferme_10",
+ "nom": "Hangar de ferme",
+ "mur": "bardage#8c949c",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a3a2e",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 4.6,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.1,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "c": "#3a3c40"
+   }
+  ]
+ },
+ "cleabs": "BATIMENT0000000301133208"
+}
