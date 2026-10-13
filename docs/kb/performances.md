@@ -38,16 +38,20 @@ Directives données après la v6.18. Ce qui est fait, ce qui existait déjà, et
   - commerces : un `shop.gdshader` paramétré par `kind` et trois pages d'atlas d'enseignes ;
   - bâtiments sur mesure : un atlas par bâtiment (`sur_mesure.gdshader`).
   - Pour un nouvel objet, on ajoute une couche ou une case à l'atlas existant, pas un nouveau matériau.
-- **Aucune transparence mélangée (blend)**. Pour un effet translucide, utiliser `ALPHA_HASH` (couverture tramée,
-  rendu opaque) ou `ALPHA_SCISSOR` ; ne jamais utiliser `TRANSPARENCY_ALPHA`, `blend_mix`/`blend_add` avec `ALPHA`,
-  ni `GeometryInstance3D.transparency`. Conversions faites :
+- **Aucune transparence mélangée (blend)**. Pour un effet translucide, deux solutions :
+  - tramage ordonné dans le shader : matrice de Bayer 4 × 4 et `discard`, voir `env_dither_keep` dans
+    `env.gdshaderinc` ;
+  - `ALPHA_SCISSOR` (StandardMaterial3D).
+  **`ALPHA_HASH` ne marche pas en Compatibility** : l'alpha est ignoré, et le quad sort plein (vérifié v6.19).
+  Ne jamais utiliser `TRANSPARENCY_ALPHA`, `blend_mix`/`blend_add` avec `ALPHA`, ni `GeometryInstance3D.transparency`.
+  Conversions faites :
   - vitres de la voiture : opaques, verre fumé sombre, reflets par `metallic` 0,6 / `roughness` 0,04 ;
   - eau des piscines : opaque, avec un reflet du ciel en vue rasante ;
-  - fumée des roues (`fumee.gdshader`) et pluie : `ALPHA_HASH` ;
-  - ombre douce de la voiture : `ALPHA_HASH`, effacée par `albedo_color.a` ;
-  - ombre pixel : `ALPHA_SCISSOR` ;
+  - fumée des roues (`fumee.gdshader`) : tramage Bayer ;
+  - pluie : gouttes pleines en `ALPHA_SCISSOR` ;
+  - ombres de la voiture : `ALPHA_SCISSOR` ;
   - colonnes de lumière (activités) et halo/rayon de la soucoupe (gardien) : plus de mélange additif. La
-    luminosité devient la couverture tramée (`ALPHA`), avec `ALPHA_HASH_SCALE = 1`.
+    luminosité devient la couverture tramée (Bayer + `discard`).
 - **Vitrines des commerces** (`shop.gdshader`, `kind == 6`) : aplat opaque avec **Interior Mapping**.
   - Chaque case UV 0…1 cache une pièce d'une profondeur de 1.
   - Le rayon de vue, passé dans le repère de la vitre (TANGENT, BINORMAL, −NORMAL), touche le fond (rayons et
