@@ -4301,10 +4301,10 @@
   "boites": [
    [
     0.056,
-    -1.375,
+    0.25,
     -0.041,
     15.277,
-    2.725,
+    4.35,
     4.598,
     -1.647
    ]
@@ -4320,7 +4320,7 @@
    "BATIMENT0000000301133291"
   ],
   "remplace_commerce": [],
-  "nom": "Fumière",
+  "nom": "Hangar en bardage gris",
   "une_face": true
  },
  "grange_pise_b": {
@@ -4622,7 +4622,26 @@
   "une_face": true
  },
  "stabulation_bois_7": {
-  "boites": [],
+  "boites": [
+   [
+    1.486,
+    0.033,
+    -0.371,
+    14.729,
+    2.967,
+    4.451,
+    3.098
+   ],
+   [
+    -9.303,
+    0.033,
+    -0.954,
+    3.926,
+    2.967,
+    7.56,
+    3.098
+   ]
+  ],
   "glb": "res://assets/sur_mesure/stabulation_bois_7.glb",
   "atlas": "res://assets/sur_mesure/stabulation_bois_7.png",
   "pos": [
@@ -4641,10 +4660,10 @@
   "boites": [
    [
     0.029,
-    -0.076,
+    -0.476,
     0.0,
     19.887,
-    1.276,
+    0.876,
     4.36,
     -1.452
    ]
