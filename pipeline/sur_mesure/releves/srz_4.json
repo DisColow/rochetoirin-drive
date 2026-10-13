@@ -1,0 +1,32 @@
+{
+ "id": "srz_4",
+ "cleabs": "BATIMENT0000000302570280",
+ "nom": "Grange",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#9aa0a4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#6a4a32"
+   }
+  ]
+ }
+}

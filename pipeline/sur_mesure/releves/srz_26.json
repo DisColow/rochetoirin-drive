@@ -1,0 +1,58 @@
+{
+ "id": "srz_26",
+ "cleabs": "BATIMENT0000000302570719",
+ "nom": "Mairie",
+ "mur": "enduit#e8a890",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 9.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.6
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.6,
+     6.5
+    ],
+    "txt": "MAIRIE",
+    "c": "#e8a890",
+    "tc": "#2a2a2a"
+   }
+  ]
+ }
+}

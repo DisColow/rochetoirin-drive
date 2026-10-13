@@ -1,0 +1,14 @@
+{
+ "id": "srz_18",
+ "cleabs": "BATIMENT0000000302570718",
+ "nom": "Grange",
+ "mur": "enduit#c8c4b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12
+}

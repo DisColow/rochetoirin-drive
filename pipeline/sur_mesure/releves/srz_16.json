@@ -1,0 +1,14 @@
+{
+ "id": "srz_16",
+ "cleabs": "BATIMENT0000000302570401",
+ "nom": "Hangar",
+ "mur": "bardage#7a8a9a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12
+}

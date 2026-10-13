@@ -1,0 +1,14 @@
+{
+ "id": "srz_17",
+ "cleabs": "BATIMENT0000000302570555",
+ "nom": "Bâtiment",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12
+}

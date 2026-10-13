@@ -1,0 +1,29 @@
+{
+ "id": "srz_36",
+ "cleabs": "BATIMENT0000000302571021",
+ "nom": "Grange",
+ "mur": "beton#c8b898",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "porte",
+    "x": [
+     0.26,
+     0.33999999999999997
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "id": "srz_14",
+ "cleabs": "BATIMENT0000000302570400",
+ "nom": "Séchoir",
+ "mur": "bois#9a8a68",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "soubassement": "beton#a8a49c",
+ "h_soub": 1.4
+}
