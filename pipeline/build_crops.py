@@ -22,6 +22,8 @@ TYPES = {"MIS": 0, "MIE": 0, "MID": 0, "SOG": 0, "SGH": 0, "SGP": 0,
 def main():
     shutil.rmtree(OUT, ignore_errors=True); os.makedirs(OUT)
     zone = Polygon(json.load(open("data/routes_plan.json"))["zone"]).buffer(200)
+    # v6.22 : les champs s'arrêtent au bord de la carte (sinon les tiges traversent le talus de build_bord.py)
+    dedans = Polygon(json.load(open("../godot/world/zone.json"))["pts"]).buffer(-1.0)
     # chaussées (+ 1,2 m) : les cultures s'arrêtent avant la route
     import pickle
     from shapely.geometry import LineString
@@ -39,6 +41,9 @@ def main():
             continue
         g = transform(lambda x, y, z=None: geo.to_local(x, y), shape(f["geometry"])).buffer(-1.5)   # tournière
         if g.is_empty or not g.intersects(zone):
+            continue
+        g = g.intersection(dedans)
+        if g.is_empty:
             continue
         near = [roads[k] for k in rtree.query(g)]
         if near:

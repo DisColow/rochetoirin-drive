@@ -17,6 +17,14 @@ var tiles := {}
 var loaded := {}
 var meshes := {}
 var _t := 0.0
+# v6.22 (« collisions physiques sur les véhicules garés ») : près du joueur, chaque voiture garée (et tracteur)
+# devient un corps rigide qu'on peut pousser, faire pivoter ou renverser ; loin de lui et immobile, elle redevient un
+# exemplaire de son lot, à sa nouvelle place. MASSES : kg.
+const MASSES := {1: 1100.0, 2: 1250.0, 3: 1400.0, 4: 1300.0, 5: 4500.0}
+const R_ACTIF := 20.0
+const R_RENDU := 45.0
+var items := {}                       # tuile -> Array de {t, xf, col, cs, mm, i, rb}
+var _ta := 0.0
 
 func _ready() -> void:
 	if not DirAccess.dir_exists_absolute("res://world/props"):
@@ -84,6 +92,10 @@ func _process(dt: float) -> void:
 func _process_corps(dt: float) -> void:
 	if target == null:
 		return
+	_ta -= dt
+	if _ta <= 0.0:
+		_ta = 0.25
+		_physique(target.global_position)
 	_t -= dt
 	if _t > 0.0:
 		return
@@ -96,6 +108,10 @@ func _process_corps(dt: float) -> void:
 			_add(k); n += 1
 	for k in loaded.keys():
 		if not ws.has(k):
+			for it in items.get(k, []):
+				if it.rb:
+					it.rb.queue_free()
+			items.erase(k)
 			loaded[k].queue_free()
 			loaded.erase(k)
 
@@ -109,6 +125,7 @@ func _add(k: Vector2i) -> void:
 	var body := StaticBody3D.new()
 	root.add_child(body)
 	var by := {}
+	var its := []
 	for i in cnt:
 		var o := i * 8
 		var t := int(f[o])
@@ -122,7 +139,85 @@ func _add(k: Vector2i) -> void:
 		cs.shape = bs
 		cs.transform = xf * Transform3D(Basis.IDENTITY, Vector3(0, BOXES[t].y / 2, 0))
 		body.add_child(cs)
+		if MASSES.has(t):
+			its.append({"t": t, "xf": xf, "col": Color(f[o + 5], f[o + 6], f[o + 7]), "cs": cs, "mm": null, "i": -1, "rb": null})
+	var par_origine := {}
 	for t in by:
-		Cells.add(root, meshes[t], by[t], 420.0 if t != 6 else 200.0, true)
+		for mmi in Cells.add(root, meshes[t], by[t], 420.0 if t != 6 else 200.0, true):
+			var org: PackedVector3Array = mmi.get_meta("origines")
+			for j in org.size():
+				par_origine[org[j]] = [mmi, j]
+	for it in its:
+		var r = par_origine.get((it.xf as Transform3D).origin)
+		if r:
+			it.mm = r[0]; it.i = r[1]
 	add_child(root)
 	loaded[k] = root
+	items[k] = its
+
+## Voitures garées physiques autour du joueur (voir MASSES).
+func _physique(c: Vector3) -> void:
+	var kc := Vector2i(floori(c.x / TILE), floori(c.z / TILE))
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			for it in items.get(kc + Vector2i(dx, dz), []):
+				if it.mm == null:
+					continue
+				if it.rb == null:
+					var o: Vector3 = (it.xf as Transform3D).origin
+					if Vector2(o.x - c.x, o.z - c.z).length() < R_ACTIF:
+						_activer(it)
+				else:
+					var rb: RigidBody3D = it.rb
+					var o2 := rb.global_position
+					if OS.get_cmdline_user_args().has("--props-debug") and rb.linear_velocity.length() > 0.2:
+						print("[props] voiture garée en %s, %.1f m/s, contacts %s" % [o2.snapped(Vector3.ONE * 0.1), rb.linear_velocity.length(), rb.get_colliding_bodies()])
+					if Vector2(o2.x - c.x, o2.z - c.z).length() > R_RENDU and rb.linear_velocity.length() < 0.3:
+						_rendre(it)
+
+func _activer(it: Dictionary) -> void:
+	var t: int = it.t
+	var rb := RigidBody3D.new()
+	rb.mass = MASSES[t]
+	rb.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
+	rb.center_of_mass = Vector3(0, BOXES[t].y * 0.35, 0)
+	rb.angular_damp = 1.5
+	rb.linear_damp = 0.4
+	var cs := CollisionShape3D.new()
+	var bs := BoxShape3D.new()
+	bs.size = BOXES[t]
+	cs.shape = bs
+	cs.position = Vector3(0, BOXES[t].y / 2, 0)
+	rb.add_child(cs)
+	var mm := MultiMesh.new()                      # un seul exemplaire : même matériau, couleur par instance
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_custom_data = true
+	mm.mesh = meshes[t]
+	mm.instance_count = 1
+	mm.set_instance_transform(0, Transform3D.IDENTITY)
+	mm.set_instance_custom_data(0, it.col)
+	var mi := MultiMeshInstance3D.new()
+	mi.multimesh = mm
+	rb.add_child(mi)
+	add_child(rb)
+	rb.global_transform = it.xf
+	rb.sleeping = true
+	rb.contact_monitor = OS.get_cmdline_user_args().has("--props-debug")
+	rb.max_contacts_reported = 4
+	if rb.contact_monitor:
+		print("[props] voiture garée active en ", rb.global_position)
+	(it.mm as MultiMeshInstance3D).multimesh.set_instance_transform(it.i, Transform3D(Basis.from_scale(Vector3.ONE * 0.001), (it.xf as Transform3D).origin - Vector3(0, 50, 0)))
+	(it.cs as CollisionShape3D).disabled = true
+	it.rb = rb
+
+func _rendre(it: Dictionary) -> void:
+	var rb: RigidBody3D = it.rb
+	var xf := rb.global_transform
+	it.xf = xf
+	(it.mm as MultiMeshInstance3D).multimesh.set_instance_transform(it.i, xf)
+	var cs: CollisionShape3D = it.cs
+	cs.transform = xf * Transform3D(Basis.IDENTITY, Vector3(0, BOXES[int(it.t)].y / 2, 0))
+	cs.disabled = false
+	rb.queue_free()
+	it.rb = null
+

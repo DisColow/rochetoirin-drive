@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.22.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.22/RochetoirinSimulator-v6.22.apk)**
+**[RochetoirinSimulator-v6.23.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.23/RochetoirinSimulator-v6.23.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,14 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v6.23 (APK complet à installer) :
+- **bords de la carte façon Motocross Madness** :
+  - une grande colline tout autour de la carte, de plus en plus raide ; on peut la grimper, avec du mal ;
+  - si on insiste pour voir au-delà, la voiture est renvoyée en arrière comme par un ressort ;
+  - la soucoupe volante ne vient plus.
+- **voitures garées physiques** : on peut les pousser, les faire pivoter, les renverser.
+- les champs s'arrêtent au bord de la carte.
 
 Nouveautés de la v6.22 (APK complet à installer) :
 - **freinage bien plus puissant** : de 100 km/h à l'arrêt en ~24 m (contre 40 m).

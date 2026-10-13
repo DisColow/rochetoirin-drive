@@ -227,6 +227,12 @@ func _ready() -> void:
 	guardian.car = car
 	guardian.terrain = terrain
 	add_child(guardian)
+	# v6.22 : soucoupe désactivée (code conservé), remplacée par les bords façon Motocross Madness (bord.gd)
+	guardian.process_mode = Node.PROCESS_MODE_DISABLED
+	guardian.visible = false
+	var bord := preload("res://scripts/bord.gd").new()
+	bord.car = car
+	add_child(bord)
 	if "collision_target" in terrain:
 		terrain.set("collision_target", car)
 	# vie : oiseaux qui passent, poussière derrière les roues hors du bitume
@@ -1159,6 +1165,28 @@ func _physics_process(_dt: float) -> void:
 		if t % 30 == 0:
 			print("  t=%.2f v=%.1f km/h (avant=%.2f) arrière=%s pos=%s" % [t / 120.0, car.kmh(), car.forward_speed(), car.reversing, car.global_position.snapped(Vector3(0.1, 0.1, 0.1))])
 		if t > 1500:
+			get_tree().quit()
+		return
+	if OS.get_cmdline_user_args().has("--bord-test"):
+		# bords façon Motocross Madness : posée à 50 m de la limite, pleins gaz vers l'extérieur pendant 20 s
+		car.touch_steer = 0.0; car.touch_brake = 0.0
+		car.touch_throttle = 1.0 if t > 240 else 0.0
+		var bd: Node = get_node("Bord")
+		if t == 240:
+			var cp := Vector2(car.global_position.x, car.global_position.z)
+			var nr: Array = guardian._nearest(cp)
+			var q: Vector2 = nr[0]
+			var out := (q - cp).normalized()
+			var p := q - out * 50.0
+			car.place(Vector3(p.x, Relief.hauteur(Vector3(p.x, 0, p.y)) + 1.0, p.y), rad_to_deg(atan2(out.x, -out.y)))
+			car.hold(1.5)
+		if t > 240 and t % 30 == 0:
+			var h: Array = bd.hors_carte(car.global_position)
+			print("  t=%.2f hors carte %.1f m, %.0f km/h, haut %.1f m %s" % [(t - 240) / 120.0, h[0], car.kmh(), car.global_position.y, car._touching() if car.kmh() < 20.0 else ""])
+		if OS.get_cmdline_user_args().has("--snap") and t in [240 + 480, 240 + 840, 240 + 1200]:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/bord_%d.png" % ((t - 240) / 120))
+		if t > 240 + 120 * 20:
 			get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--void-test"):

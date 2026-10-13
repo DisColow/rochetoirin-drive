@@ -104,7 +104,20 @@
   session. Lien : `https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/<apk>`.
 - Rendu Mobile (Vulkan) essayé en v2.8 : moins joli que Compatibility sur le téléphone de l'utilisateur, abandonné.
 - Captures de contrôle : `xvfb-run godot --path godot -- --shots=<json>` ; essai de conduite : `-- --drive-test`.
-- Gardien des limites (`scripts/guardian.gd`) : soucoupe volante « UFO » de sebslom (Sketchfab, CC BY 4.0 ;
+- **Bords de la carte façon Motocross Madness** (v6.23, demande de l'utilisateur, `pipeline/build_bord.py` +
+  `scripts/bord.gd`) :
+  - Talus tout autour de la zone (`world/bord/`, tuiles de 256 m). Grille de 5 m dont la hauteur ne dépend que de
+    la distance au bord : relief + 32 m × (d / 64)^2,2, puis un dos sous le relief. Aucun pli aux angles.
+  - Collisions : maillage près de la voiture (surface de roulage, comme le relief).
+  - Au-delà de 26 m hors de la carte, ressort vers l'intérieur et rebond si on insiste.
+  - Les champs s'arrêtent au bord (`build_crops.py`).
+  - Essai : `-- --drive-test --bord-test [--bord-debug] [--snap]`. À relancer après `build_zone.py`.
+  - **Soucoupe du gardien désactivée** (choix de l'utilisateur, code conservé : `guardian.process_mode` désactivé
+    dans `main.gd`).
+- **Voitures garées physiques** (v6.23, `props.gd`, `_physique`) : à moins de 20 m du joueur, chaque voiture
+  garée (et chaque tracteur) devient un `RigidBody3D` (`MASSES`) qu'on pousse ou renverse. Elle redevient un
+  exemplaire de son lot, à sa nouvelle place, au-delà de 45 m quand elle est immobile.
+- Ancien gardien des limites (`scripts/guardian.gd`, désactivé depuis la v6.23) : soucoupe volante « UFO » de sebslom (Sketchfab, CC BY 4.0 ;
   `fetch_ufo.py` + `blender_ufo.py` -> `assets/ufo/ufo.glb`), invisible jusqu'à ce que la voiture tombe hors de la carte,
   rayon tracteur qui la ramène sur la route (`car.carried`), puis repart ; essai : `-- --drive-test --void-test --void-drop [--snap]`. Crédits dans ⚙ > Crédits (`hud.gd`, `CREDITS`) : y ajouter toute nouvelle ressource sous licence.
 - **Éléments graphiques : modèles existants d'abord, au choix de l'utilisateur.** Pour tout élément graphique ajouté
