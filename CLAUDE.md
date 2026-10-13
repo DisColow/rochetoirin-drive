@@ -287,7 +287,9 @@
   - relevé à `volumes` (rectangles [u0, v0, u1, v1] en m, chacun sa hauteur, son toit, ses façades) ;
   - `batiment.py <id>` puis import Godot (nouvel atlas : `compress/mode=2` + mipmaps dans son `.import`) ;
   - `comparatif.py <id…>` : captures du jeu depuis les caméras exactes des photos, planche photo | jeu.
-  - Planches dans le cache privé (`streetview/planches/`), jamais dans le dépôt. Faits : mairie, atelier_kaki.
+  - Planches dans le cache privé (`streetview/planches/`), jamais dans le dépôt. Faits : mairie, atelier_kaki,
+    église, salle des fêtes, salle du cimetière (liste à jour dans `docs/REPRISE.md`).
+  - Options du relevé : `cams`, `sol: haut` (pente), `entourage` (encadrements), `remplace_bati_extra`.
   - Shader `sur_mesure_une_face.gdshader` (entrées `une_face`) : triangles orientés, toits doublés dans le
     maillage ; en deux faces, les murs s'ombraient eux-mêmes (acné en anneaux). Boulangerie et restaurant : ancien
     shader à deux faces.

@@ -15,6 +15,8 @@ Format du relevé (mesures approximatives : reconnaissable, pas exact) :
  "mur": "enduit#e8dcc8" | "bardage#a0a4a8" | "bois#6a4a30" | "pierre#9a8466" | "brique" | "beton#c8c4bc",
  "volumes": [{"rect": [u0, v0, u1, v1], "egout", "faitage", "toit", "faces", …}] (facultatif : plusieurs volumes en
    mètres dans le repère cadre() — coin du rectangle orienté de l'emprise, u le long du grand côté ; grille du calage),
+ "remplace_bati_extra": [cleabs…] (bâtiments BD TOPO voisins absorbés par ce modèle, ex. une aile),
+ "sol": "haut" (pente : hauteurs comptées depuis le point haut de l'emprise et non le point bas),
  "simplifier": 1.5 (tolérance de simplification de l'emprise, m ; 0,3 par défaut), "decal": [dx, dz], "rot": degrés, "echelle": [sx, sz] (facultatifs : emprise recalée sur les photos, calage.py),
  "soubassement": "#rrggbb" (facultatif), "h_soub": 0.5, "chainages": "#rrggbb" (facultatif),
  "toit": {"type": "2pans|4pans|plat|appentis", "matiere": "tuile|tuile_brune|bac#rrggbb|fibro|ardoise",
@@ -22,7 +24,8 @@ Format du relevé (mesures approximatives : reconnaissable, pas exact) :
  "egout": 6.0, "faitage": 8.5,
  "faces": {"S": [ouvertures…], "E": […]}    clés : N NE E SE S SO O NO (côté de l'emprise tourné vers là ; le plus long)
  ouverture : {"t": type, "x": [début, fin] en fraction de la façade vue de dehors (0 = gauche), "y": [bas, haut] (m),
-              "n": nombre (répété régulièrement sur x), "c": "#couleur", "txt": "texte", "titre": "TITRE"}
+              "n": nombre (répété régulièrement sur x), "c": "#couleur", "txt": "texte", "titre": "TITRE",
+              "entourage": "#couleur" (encadrement peint autour, "e_ent" : largeur en m, 0,16 par défaut)}
    types : fenetre, fenetre_volets (volets ouverts), volets_clos, porte, porte_vitree, vitrine, garage, rideau,
            grille, bandeau, enseigne, lettres, affiche, logo, ogive (église), rosace, bande_vitree, porte_grange
  "extras": [{"t": "auvent|store|porche|marquise", "face": "S", "x": [f0, f1], "y": 3.0, "p": 1.2, "c": "#…"},
@@ -173,6 +176,10 @@ def ouverture(z, op, u0, v0, u1, v1, mur_c):
     t = op["t"]
     c = hexc(op.get("c"), None)
     w, h = u1 - u0, v1 - v0
+    if op.get("entourage"):                               # encadrement (pierre, enduit lissé) autour de l'ouverture
+        e = float(op.get("e_ent", 0.16))
+        z.rect(u0 - e, v0 - e * 0.6, u1 + e, v1 + e, hexc(op["entourage"]))
+        ombre(z, u0 - e, v0 - e * 0.6, u1 + e, v1 + e, 0.03, 0.15)
     if t == "matiere":                                    # bande d'une autre matière (haut en bois, bandeau anthracite…)
         a, b = z.px(u0, v1), z.px(u1, v0)
         sub = Zone(z.img, z.msk, a[0], a[1], max(1, b[0] - a[0]), max(1, b[1] - a[1]), z.s)
@@ -380,6 +387,8 @@ class Batiment:
         ring = np.asarray(g.exterior.coords)
         gr = dem.h(ring[:, 0], ring[:, 1])
         self.sol, self.pente = float(gr.min()), float(gr.max() - gr.min())
+        if R.get("sol") == "haut":                       # terrain en pente, entrée côté haut : hauteurs depuis le haut
+            self.sol = float(gr.max())
         self.c = np.array([g.centroid.x, g.centroid.y])
         self.BAS = -(self.pente + 1.0)
         self.EG = float(R.get("egout", 4.0))
@@ -860,7 +869,7 @@ def main():
         pose[R["id"]] = {"boites": [[round(float(v), 3) for v in b] for b in boites],
                          "glb": "res://assets/sur_mesure/%s.glb" % R["id"], "atlas": "res://assets/sur_mesure/%s.png" % R["id"],
                          "pos": [round(float(B.c[0]), 3), round(B.sol, 3), round(float(B.c[1]), 3)],
-                         "remplace_bati": [R["cleabs"]] if premier else [], "remplace_commerce": R.get("remplace_commerce", []),
+                         "remplace_bati": ([R["cleabs"]] + R.get("remplace_bati_extra", [])) if premier else [], "remplace_commerce": R.get("remplace_commerce", []),
                          "nom": R.get("nom", R["id"]), "une_face": True}
         print("%-22s %5d triangles, %d boîtes, atlas %d px/m" % (R["id"], len(M.I) // 3, len(boites),
                                                                   int(B.cotes[0]["z"].s)))

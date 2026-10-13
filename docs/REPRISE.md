@@ -13,6 +13,13 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## Fait en v6.27
+- Refaits : église (3 volumes, caméras Google corrigées de ~6 m via `cams`), salle des fêtes, salle du cimetière
+  (`"sol": "haut"` : pente), mairie (encadrements `entourage`, annexe absorbée `remplace_bati_extra`).
+- Leçon : lire les hauteurs sur le comparatif (pied / corniche), pas sur le calage seul ; si le modèle paraît trop
+  grand ou petit sur toutes les vues, corriger la caméra (`cams`), pas les dimensions.
+- École : ailes en biais, il faudra des volumes tournés (à ajouter au moteur : "rot" par volume).
+
 ## Fait en v6.26
 - Églises (landmarks.py `hors_chaussee`) décalées hors de la route : #125 terminé.
 - #141 en cours : outils plan.py / calage.py / comparatif.py, relevés à volumes ; faits : mairie, atelier_kaki.

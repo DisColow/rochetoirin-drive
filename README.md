@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.26.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.26/RochetoirinSimulator-v6.26.apk)**
+**[RochetoirinSimulator-v6.27.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.27/RochetoirinSimulator-v6.27.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.26 :
-- **bâtiments sur mesure plus beaux** : fini les rayures en anneaux sur les grands murs, couleurs fidèles.
-- **mairie de Rochetoirin refaite** en trois volumes (mairie, salle, aile basse) d'après les photos.
-- les églises ne mordent plus sur la route.
+Nouveautés de la v6.27 :
+- **église de Rochetoirin refaite** d'après les photos : nef haute à contreforts, clocher et sacristie.
+- **salle des fêtes** et **salle du cimetière** refaites (vraies formes de toit, ouvertures, pente du terrain).
+- mairie : encadrements blancs des fenêtres ; l'aile basse n'est plus en double.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

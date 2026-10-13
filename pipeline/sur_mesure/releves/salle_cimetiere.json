@@ -2,54 +2,56 @@
  "id": "salle_cimetiere",
  "cleabs": "BATIMENT0000000301133251",
  "nom": "Salle près du cimetière",
- "mur": "enduit#ece6da",
+ "mur": "enduit#d9cfbd",
  "chainages": "#b6ae9e",
  "toit": {
-  "type": "2pans",
-  "matiere": "tuile"
+  "type": "4pans",
+  "matiere": "tuile_brune",
+  "debord": 0.5
  },
  "egout": 4.8,
- "faitage": 7.4,
+ "faitage": 8.1,
  "faces": {
   "N": [
    {
-    "t": "porte_vitree",
-    "x": [
-     0.28,
-     0.74
-    ],
-    "y": [
-     0,
-     2.7
-    ],
-    "c": "#3d6b4a"
-   },
-   {
     "t": "bande_vitree",
     "x": [
-     0.28,
-     0.74
+     0.32,
+     0.84
     ],
     "y": [
-     3.1,
-     3.6
+     3.7,
+     4.3
     ],
     "c": "#40443f"
    },
    {
-    "t": "enseigne",
+    "t": "porte_vitree",
     "x": [
-     0.36,
-     0.66
+     0.32,
+     0.84
     ],
     "y": [
-     3.85,
-     4.3
+     0,
+     2.6
     ],
-    "txt": "ACCUEIL",
-    "c": "#ffffff",
-    "tc": "#3a4a3a"
+    "c": "#3a3e3c"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.06,
+     0.28
+    ],
+    "y": [
+     2.9,
+     3.4
+    ],
+    "txt": "SALLE DES ANCIENS",
+    "c": "#f2f2ee",
+    "tc": "#3a5a8a"
    }
   ]
- }
+ },
+ "sol": "haut"
 }

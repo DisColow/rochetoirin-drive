@@ -30,7 +30,7 @@ def main(ids):
             d = (math.sin(h) * math.cos(p), math.sin(p), -math.cos(h) * math.cos(p))
             pos = [v["cam"][0], y, v["cam"][1]]
             shots.append(dict(name="cmp_" + v["nom"], pos=pos, look=[pos[i] + d[i] * 10 for i in range(3)],
-                              fov=v["fov"], hud=False))
+                              fov=v["fov"], hud=False, time=0))
             par.setdefault(ident, []).append(v["nom"])
     js = os.path.join(TMP, "cmp_shots.json")
     json.dump(shots, open(js, "w"))
