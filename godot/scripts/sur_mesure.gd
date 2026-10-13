@@ -82,7 +82,8 @@ func _poser(k: String, sc: PackedScene, atlas: Texture2D) -> void:
 	var e: Dictionary = _defs[k]
 	var n := sc.instantiate()
 	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://scripts/sur_mesure.gdshader")
+	# v6.26 : modèles du moteur batiment.py (orientés, toits doublés) en une face ; boulangerie et restaurant en deux
+	mat.shader = preload("res://scripts/sur_mesure_une_face.gdshader") if e.get("une_face", false) else preload("res://scripts/sur_mesure.gdshader")
 	mat.set_shader_parameter("atlas", atlas)
 	Env.add(mat)
 	var corps := StaticBody3D.new()

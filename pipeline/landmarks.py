@@ -512,6 +512,34 @@ def flag_pole(M, C, x, z, gnd, layer, h=7.0):
 
 
 # ------------------------------------------------------------------------------------------------ ensemble
+ROUTES = None          # (tampons des chaussées, STRtree) : posé par build_buildings.main()
+
+
+def hors_chaussee(g):
+    """Église posée sur son emprise OSM (rectangle orienté) qui empiète sur une chaussée : décalée par pas de 0,5 m
+    à l'opposé de la route (jusqu'à 10 m) — v6.26, « bâtiments qui débordent sur la chaussée »."""
+    if ROUTES is None:
+        return g
+    from shapely.ops import unary_union
+    import shapely.affinity
+    rb, tr = ROUTES
+    r = g.minimum_rotated_rectangle
+    hits = [rb[k] for k in tr.query(r.buffer(12)) if rb[k].distance(r) < 12]
+    if not hits:
+        return g
+    U = unary_union(hits)
+    I = r.intersection(U)
+    if I.area < 0.2:
+        return g
+    d = np.array([r.centroid.x - I.centroid.x, r.centroid.y - I.centroid.y])
+    d /= max(np.hypot(*d), 1e-6)
+    for k in range(1, 21):
+        r2 = shapely.affinity.translate(r, d[0] * 0.5 * k, d[1] * 0.5 * k)
+        if r2.intersection(U).area < 0.2:
+            return shapely.affinity.translate(g, d[0] * 0.5 * k, d[1] * 0.5 * k)
+    return g
+
+
 class Landmarks:
     def __init__(self, polys, blds, road_tree, dem):
         self.dem = dem; self.road_tree = road_tree
@@ -564,7 +592,7 @@ class Landmarks:
             M, C = tiles.setdefault(tk, (Mesh(), []))
             gnd = float(self.dem.h(c.x, c.y)[0])
             if kind == "church":
-                k = church(M, C, cfg, g, self.dem, self.road_tree, key)
+                k = church(M, C, cfg, hors_chaussee(g), self.dem, self.road_tree, key)
             elif kind == "ruin":
                 r = math.sqrt(g.area / math.pi)
                 round_tower(M, C, (c.x, c.y), r, gnd - 1.5, gnd + 8.0, IDX["pierre"], srgb((1.05, 1.0, 0.92)), ruin=True, key=7)

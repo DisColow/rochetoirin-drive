@@ -1,71 +1,121 @@
 {
  "id": "atelier_kaki",
  "nom": "Atelier bardage kaki",
- "mur": "bardage#b8b49a",
+ "mur": "bardage#a3a07c",
  "toit": {
   "type": "2pans",
   "matiere": "bac#8c8c86",
-  "debord": 0.3
+  "debord": 0.2
  },
- "egout": 6.6,
- "faitage": 7.6,
+ "egout": 6.4,
+ "faitage": 7.0,
  "faces": {
   "SO": [
    {
-    "t": "enseigne",
+    "t": "bande_vitree",
     "x": [
-     0.6,
-     0.85
+     0.07,
+     0.14
     ],
     "y": [
-     4.0,
-     5.0
+     1.0,
+     6.0
+    ]
+   },
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.38,
+     0.48
     ],
-    "txt": "TECHNO-PRO",
-    "c": "#2a5aa8",
-    "tc": "#ffffff",
-    "sous": false
+    "y": [
+     1.0,
+     6.0
+    ]
+   },
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.69,
+     0.79
+    ],
+    "y": [
+     1.0,
+     6.0
+    ]
    },
    {
     "t": "porte",
     "x": [
-     0.1,
-     0.14
+     0.86,
+     0.92
     ],
     "y": [
      0,
-     2.2
+     1.3
     ],
-    "c": "#5a5e64"
+    "c": "#d8b030"
    },
    {
-    "t": "fenetre",
+    "t": "bandeau",
     "x": [
-     0.2,
-     0.5
+     0.0,
+     1.0
     ],
     "y": [
-     1.0,
-     2.2
+     6.12,
+     6.4
     ],
-    "n": 2,
-    "l": 1.2
+    "c": "#c9a43c"
    }
   ],
   "S": [
    {
+    "t": "bandeau",
+    "x": [
+     0.0,
+     1.0
+    ],
+    "y": [
+     6.12,
+     6.4
+    ],
+    "c": "#c9a43c"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.56,
+     0.69
+    ],
+    "y": [
+     4.4,
+     5.6
+    ],
+    "txt": "ÉLEC-PRO",
+    "c": "#2f5fae",
+    "tc": "#ffffff"
+   },
+   {
     "t": "garage",
     "x": [
-     0.3,
-     0.6
+     0.82,
+     0.9
     ],
     "y": [
      0,
-     4.0
+     6.2
     ],
-    "c": "#e4e4e0"
+    "c": "#dcdcd4"
    }
   ]
  },
- "cleabs": "BATIMENT0000000301132869"
+ "cleabs": "BATIMENT0000000301132869",
+ "cams": {
+  "BATIMENT0000000301132869_0": [
+   0,
+   0,
+   5.5
+  ]
+ }
 }

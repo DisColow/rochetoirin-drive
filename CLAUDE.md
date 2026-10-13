@@ -278,6 +278,19 @@
   - rien sous 30 km/h, en marche arrière, aux carrefours, hors de la chaussée ou à contresens d'un sens unique ;
   - témoin (deux lignes de voie) sur le compteur ; réglage ⚙ > Conduite (`conduite/aide_voie`, actif par défaut).
   - Essai : `-- --drive-test --voie-test [--voie-off] --drive-from=-8410.95,221,-7187.25,45.2`.
+- **Bâtiments non résidentiels refaits « comme la boulangerie »** (v6.26, demande du 13/10 : la méthode du
+  restaurant était insuffisante) — `pipeline/sur_mesure/` :
+  - `plan.py <id>` : vue en plan (orthophoto IGN 20 cm, cache `data/ortho_bat/`), emprise, grille en mètres du
+    repère `cadre()` (u le long du grand côté) : on y découpe les **volumes** ;
+  - `calage.py <id>` : fil de fer du relevé sur chaque photo (façades nommées, repère vert = x 0, grille au sol) ;
+    `cams` corrige une caméra Google décalée ; `simplifier`, `decal`, `rot`, `echelle` recalent l'emprise ;
+  - relevé à `volumes` (rectangles [u0, v0, u1, v1] en m, chacun sa hauteur, son toit, ses façades) ;
+  - `batiment.py <id>` puis import Godot (nouvel atlas : `compress/mode=2` + mipmaps dans son `.import`) ;
+  - `comparatif.py <id…>` : captures du jeu depuis les caméras exactes des photos, planche photo | jeu.
+  - Planches dans le cache privé (`streetview/planches/`), jamais dans le dépôt. Faits : mairie, atelier_kaki.
+  - Shader `sur_mesure_une_face.gdshader` (entrées `une_face`) : triangles orientés, toits doublés dans le
+    maillage ; en deux faces, les murs s'ombraient eux-mêmes (acné en anneaux). Boulangerie et restaurant : ancien
+    shader à deux faces.
 - **Bâtiments redressés hors de la chaussée** (v6.25) : le rectangle orienté qui remplace une emprise presque
   rectangulaire (`decompose`) regonflait l'emprise découpée au bord de la route (murs et collisions sur la
   chaussée, jusqu'à 450 m²) ; `rogner_routes` rogne ces rectangles côté route, sinon toit plat sur l'emprise réelle.

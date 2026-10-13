@@ -13,6 +13,13 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## Fait en v6.26
+- Églises (landmarks.py `hors_chaussee`) décalées hors de la route : #125 terminé.
+- #141 en cours : outils plan.py / calage.py / comparatif.py, relevés à volumes ; faits : mairie, atelier_kaki.
+  Suite : église, école, salle des fêtes, puis les autres commerces/services, puis industriels et agricoles.
+  Une itération = relevé -> batiment.py -> import Godot -> comparatif.py (≈ 10 min de calcul).
+- Acné d'ombre des bâtiments sur mesure corrigée (shader une face).
+
 ## Fait en v6.25
 - Aide au maintien dans la voie (`scripts/voie.gd`, `world/voies.bin` de `pipeline/build_voies.py`).
 - Taxi : lieu de prise en charge annoncé (`activities.gd`, `_cl_nom`).

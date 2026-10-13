@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.25.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.25/RochetoirinSimulator-v6.25.apk)**
+**[RochetoirinSimulator-v6.26.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.26/RochetoirinSimulator-v6.26.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.25 :
-- **aide au maintien dans la voie** : lâchez le volant, la voiture reste dans sa voie (désactivable dans ⚙ > Conduite).
-- **taxi** : le lieu où attend le client est annoncé par son nom.
-- **plus de bâtiments sur la route** : fini les murs invisibles qui bloquaient la chaussée.
+Nouveautés de la v6.26 :
+- **bâtiments sur mesure plus beaux** : fini les rayures en anneaux sur les grands murs, couleurs fidèles.
+- **mairie de Rochetoirin refaite** en trois volumes (mairie, salle, aile basse) d'après les photos.
+- les églises ne mordent plus sur la route.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

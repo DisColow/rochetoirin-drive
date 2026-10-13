@@ -13,6 +13,9 @@ Format du relevé (mesures approximatives : reconnaissable, pas exact) :
 {
  "id": "ecole", "cleabs": "BATIMENT…", "nom": "Nom parodique (vrai rôle)", "remplace_commerce": [],
  "mur": "enduit#e8dcc8" | "bardage#a0a4a8" | "bois#6a4a30" | "pierre#9a8466" | "brique" | "beton#c8c4bc",
+ "volumes": [{"rect": [u0, v0, u1, v1], "egout", "faitage", "toit", "faces", …}] (facultatif : plusieurs volumes en
+   mètres dans le repère cadre() — coin du rectangle orienté de l'emprise, u le long du grand côté ; grille du calage),
+ "simplifier": 1.5 (tolérance de simplification de l'emprise, m ; 0,3 par défaut), "decal": [dx, dz], "rot": degrés, "echelle": [sx, sz] (facultatifs : emprise recalée sur les photos, calage.py),
  "soubassement": "#rrggbb" (facultatif), "h_soub": 0.5, "chainages": "#rrggbb" (facultatif),
  "toit": {"type": "2pans|4pans|plat|appentis", "matiere": "tuile|tuile_brune|bac#rrggbb|fibro|ardoise",
           "bas": "S" (appentis : côté bas), "faitage_long": true (2pans : faîtage le long du grand côté)},
@@ -103,12 +106,13 @@ def matiere(z, mur, seed):
     d.rectangle((x0, y0, x1, y1), fill=c)
     r = random.Random(seed)
     s = z.s
-    if kind == "bardage":                                  # nervures verticales tous les 25 cm
+    if kind == "bardage":                                  # nervures verticales (25 cm, 50 cm si l'atlas est serré)
         k = 0
-        while x0 + k * 0.25 * s < x1:
-            x = x0 + k * 0.25 * s
-            d.line((x, y0, x, y1), fill=assombrir(c, 0.78), width=max(1, int(0.03 * s)))
-            d.line((x + max(1, 0.04 * s), y0, x + max(1, 0.04 * s), y1), fill=assombrir(c, 1.08), width=1)
+        pas = 0.25 if s >= 32 else 0.5                     # moins de 8 px par nervure : moiré au loin (v6.26)
+        while x0 + k * pas * s < x1:
+            x = x0 + k * pas * s
+            d.line((x, y0, x, y1), fill=assombrir(c, 0.88), width=max(1, int(0.03 * s)))
+            d.line((x + max(1, 0.04 * s), y0, x + max(1, 0.04 * s), y1), fill=assombrir(c, 1.04), width=1)
             k += 1
     elif kind == "bois":                                    # planches verticales
         k = 0
@@ -315,13 +319,63 @@ def boite(M, z, c0, c1, ax, h0, h1, col=PETIT_C, dessous=False):
         M.poly([W(u0, v0, h0), W(u1, v0, h0), W(u1, v1, h0), W(u0, v1, h0)], uv, col)
 
 
+def emprise(feat):
+    g = transform(lambda x, y, z=None: geo.to_local(x, y), shape(feat["geometry"])).buffer(0)
+    if g.geom_type == "MultiPolygon":
+        g = max(g.geoms, key=lambda q: q.area)
+    return g
+
+
+def cadre(feat):
+    """Repère en mètres du bâtiment (volumes, grille du calage) : origine au coin du rectangle orienté de l'emprise
+    BD TOPO, u le long du grand côté, v en travers. Retourne (origine, u, v, L, W)."""
+    from build_buildings import obb_frame
+    g = emprise(feat)
+    a, c, r = obb_frame(g)
+    u = np.array([math.cos(a), math.sin(a)]); v = np.array([-math.sin(a), math.cos(a)])
+    P = np.asarray(r.exterior.coords)[:4] - np.asarray(c)
+    us, vs = P @ u, P @ v
+    o = np.asarray(c) + u * us.min() + v * vs.min()
+    return o, u, v, float(us.max() - us.min()), float(vs.max() - vs.min())
+
+
+def volumes(R, feat):
+    """Relevé à plusieurs volumes -> sous-relevés (un modèle chacun). "volumes": [{"rect": [u0, v0, u1, v1] (m, repère
+    cadre()), "egout", "faitage", "toit", "faces", "mur", "extras"…}] ; le reste du relevé sert de valeurs par défaut."""
+    if not R.get("volumes"):
+        return [R]
+    o, u, v, L, W = cadre(feat)
+    base = {k: x for k, x in R.items() if k not in ("volumes", "faces", "extras")}
+    out = []
+    for k, V in enumerate(R["volumes"]):
+        u0, v0, u1, v1 = V["rect"]
+        poly = [tuple(o + u * a + v * b) for a, b in ((u0, v0), (u1, v0), (u1, v1), (u0, v1))]
+        sub = dict(base, **{x: y for x, y in V.items() if x != "rect"})
+        sub.update(id="%s_%d" % (R["id"], k) if k else R["id"], poly=poly, simplifier=0.05)
+        if k:
+            sub["remplace_commerce"] = []
+        out.append(sub)
+    return out
+
+
 class Batiment:
     def __init__(self, R, feat, dem):
         self.R = R
-        g = transform(lambda x, y, z=None: geo.to_local(x, y), shape(feat["geometry"])).buffer(0)
-        if g.geom_type == "MultiPolygon":
-            g = max(g.geoms, key=lambda q: q.area)
-        g = shapely.geometry.polygon.orient(shapely.simplify(g, 0.3), 1.0)
+        if R.get("poly"):                                  # volume (main : "volumes") : emprise imposée
+            g = Polygon(R["poly"])
+        else:
+            g = emprise(feat)
+        g = shapely.geometry.polygon.orient(shapely.simplify(g, float(R.get("simplifier", 0.3))), 1.0)
+        # calage sur les photos (sur_mesure/calage.py) : emprise BD TOPO décalée / tournée / redimensionnée
+        if R.get("rot") or R.get("decal") or R.get("echelle"):
+            import shapely.affinity as sa
+            if R.get("echelle"):
+                e = R["echelle"]
+                g = sa.scale(g, e[0], e[1] if len(e) > 1 else e[0], origin="centroid")
+            if R.get("rot"):
+                g = sa.rotate(g, float(R["rot"]), origin="centroid")
+            if R.get("decal"):
+                g = sa.translate(g, float(R["decal"][0]), float(R["decal"][1]))
         self.g = g
         ring = np.asarray(g.exterior.coords)
         gr = dem.h(ring[:, 0], ring[:, 1])
@@ -754,6 +808,21 @@ def toiture(z, mt, seed):
     bruit(img, (x0, y0, x1, y1), 4, grain=2.0, seed=seed)
 
 
+def deux_faces(P, N, UV, I, C):
+    """v6.26 : le shader est en cull_back (en cull_disabled, les faces arrière des grands murs plats s'ombraient
+    elles-mêmes : acné d'ombre en anneaux). Triangles orientés selon leurs normales (write_glb fix_winding) ; seuls
+    les toits et les petits volumes (débords, auvents, marquises : leur dessous se voit de la rue) sont doublés côté
+    intérieur, normales inversées. Les murs (couleur de sommet b > 0,5) restent à une face."""
+    T = I.reshape(-1, 3)
+    dbl = T[C[T[:, 0], 2] < 0.5]
+    if len(dbl):
+        u = np.unique(dbl)
+        remap = np.full(len(P), -1, np.int64); remap[u] = len(P) + np.arange(len(u))
+        P = np.vstack([P, P[u]]); N = np.vstack([N, -N[u]]); UV = np.vstack([UV, UV[u]]); C = np.vstack([C, C[u]])
+        T = np.vstack([T, remap[dbl][:, ::-1]])
+    return ("facade", P, N, UV, T.astype(np.uint32).ravel(), C)
+
+
 def main():
     from build_buildings import CarvedDEM
     dem = CarvedDEM()
@@ -762,10 +831,17 @@ def main():
     sp = os.path.join(GOD, "world", "sur_mesure.json")
     pose = json.load(open(sp)) if os.path.exists(sp) else {}
     os.makedirs(OUT_A, exist_ok=True)
+    todo = []
     for p in sorted(glob.glob(os.path.join(ICI, "releves", "*.json"))):
-        R = json.load(open(p))
-        if voulus and R["id"] not in voulus:
+        R0 = json.load(open(p))
+        if voulus and R0["id"] not in voulus:
             continue
+        for k in list(pose):                               # anciens volumes de ce bâtiment
+            if k.startswith(R0["id"] + "_") and k[len(R0["id"]) + 1:].isdigit():
+                del pose[k]
+        vols = volumes(R0, feats[R0["cleabs"]])
+        todo += [(R, k == 0) for k, R in enumerate(vols)]
+    for R, premier in todo:
         B = None
         for remplir in (0.4, 0.3, 0.22, 0.15, 0.1, 0.06):  # atlas plein : façades moins détaillées
             try:
@@ -778,14 +854,14 @@ def main():
             continue
         out = Image.merge("RGBA", (*A.img.split(), A.msk))
         out.save(os.path.join(OUT_A, R["id"] + ".png"))
-        prim = ("facade", np.array(M.P, np.float32), np.array(M.N, np.float32), np.array(M.UV, np.float32),
-                np.array(M.I, np.uint32), np.array(M.C, np.float32))
-        write_glb(os.path.join(OUT_A, R["id"] + ".glb"), {R["id"]: [prim]}, fix_winding=False)
+        prim = deux_faces(np.array(M.P, np.float32), np.array(M.N, np.float32), np.array(M.UV, np.float32),
+                          np.array(M.I, np.uint32), np.array(M.C, np.float32))
+        write_glb(os.path.join(OUT_A, R["id"] + ".glb"), {R["id"]: [prim]}, fix_winding=True)
         pose[R["id"]] = {"boites": [[round(float(v), 3) for v in b] for b in boites],
                          "glb": "res://assets/sur_mesure/%s.glb" % R["id"], "atlas": "res://assets/sur_mesure/%s.png" % R["id"],
                          "pos": [round(float(B.c[0]), 3), round(B.sol, 3), round(float(B.c[1]), 3)],
-                         "remplace_bati": [R["cleabs"]], "remplace_commerce": R.get("remplace_commerce", []),
-                         "nom": R.get("nom", R["id"])}
+                         "remplace_bati": [R["cleabs"]] if premier else [], "remplace_commerce": R.get("remplace_commerce", []),
+                         "nom": R.get("nom", R["id"]), "une_face": True}
         print("%-22s %5d triangles, %d boîtes, atlas %d px/m" % (R["id"], len(M.I) // 3, len(boites),
                                                                   int(B.cotes[0]["z"].s)))
     json.dump(pose, open(sp, "w"), indent=1, ensure_ascii=False)

@@ -1275,6 +1275,7 @@ def main():
     stats = {}
     # bâtiments emblématiques : modèles dédiés (remplacent les bâtiments BD TOPO recouverts) et habillages
     import landmarks
+    landmarks.ROUTES = ROUTES
     LM = landmarks.Landmarks(polys, blds, road_tree, dem)
     BOV = bati_overrides(blds)
     print(len(BOV), "bâtiments de commerces d'après les photos Street View")
