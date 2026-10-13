@@ -2,4 +2,3 @@
 # volume généré d'après la BD TOPO et on le rend reconnaissable — directives de l'utilisateur : docs/kb/aplats.md.
 # « cleabs niveaux toit façade volets [usage=… chainage=#rrggbb porche=tuile|verre h=…]  # commentaire »
 # façade : code de shops_bati.txt ou crepi#rrggbb ; volets : code, #rrggbb, roulant ou « - ». Commentaire après « ␣␣# ».
-BATIMENT0000000301133202 2 2p crepi#b4473a #c9d2d8 usage=maison chainage=#e3c35c porche=tuile  # restaurant Le Rochetoirin (photos de la boulangerie, 2023) : enduit rouge, chaînages jaunes, volets gris-bleu clair, porche en tuiles

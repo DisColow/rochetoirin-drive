@@ -644,10 +644,12 @@ def main():
         a0, a1, b0, b1, y0, y1 = c[1:] if isinstance(c[0], str) else c
         cx, cy, cz = loc((a0 + a1) / 2, (b0 + b1) / 2, (y0 + y1) / 2)
         boites.append([round(v, 3) for v in (cx, cy, cz, abs(a1 - a0) / 2, abs(y1 - y0) / 2, abs(b1 - b0) / 2, lacet)])
-    pose = {"boulangerie": {"boites": boites, "glb": "res://assets/sur_mesure/boulangerie.glb", "atlas": "res://assets/sur_mesure/boulangerie.png",
+    sp = os.path.join(GOD, "world", "sur_mesure.json")
+    pose = json.load(open(sp)) if os.path.exists(sp) else {}     # autres bâtiments sur mesure gardés (restaurant…)
+    pose.update({"boulangerie": {"boites": boites, "glb": "res://assets/sur_mesure/boulangerie.glb", "atlas": "res://assets/sur_mesure/boulangerie.png",
                             "pos": [NE[0], sol, NE[1]], "remplace_bati": ["BATIMENT0000000301133203"],
-                            "remplace_commerce": ["n3646424189"], "nom": "Chez Flonflon (boulangerie de Rochetoirin)"}}
-    json.dump(pose, open(os.path.join(GOD, "world", "sur_mesure.json"), "w"), indent=1, ensure_ascii=False)
+                            "remplace_commerce": ["n3646424189"], "nom": "Chez Flonflon (boulangerie de Rochetoirin)"}})
+    json.dump(pose, open(sp, "w"), indent=1, ensure_ascii=False)
     print("boulangerie : %d sommets, %d triangles, %d boîtes de collision" % (len(M.P), len(M.I) // 3, len(C)))
 
 

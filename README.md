@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.19.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.19/RochetoirinSimulator-v6.19.apk)**
+**[RochetoirinSimulator-v6.20.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.20/RochetoirinSimulator-v6.20.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,16 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v6.20 (APK complet à installer) :
+- **le restaurant de Rochetoirin refait d'après Street View**, sous le nom parodique **« Le Rochefestin »** :
+  - bon nombre de fenêtres, à leur place : trois travées, volets gris-bleu clos sauf une fenêtre ouverte ;
+  - enduit rouge, chaînages, encadrements et soubassement jaunes ;
+  - corps est plus haut, en retrait, avec un rez-de-chaussée en briques sous un porche en tuiles (poteau et jambe de
+    force en bois, marche) ;
+  - logo carré « F. » et plaque « Cosy · Trad · Festin », lettres sur la façade, appliques, poubelle ;
+  - affichettes « MENU », « LA CARTE » et « HORAIRES » (titres lisibles, le reste griffonné) ;
+  - à l'arrière, une salle à toit plat et une véranda grise vitrée.
 
 Nouveautés de la v6.19 (APK complet à installer) :
 - **collisions allégées** : bâtiments, clôtures, piscines et troncs n'ont plus que des boîtes de collision simples

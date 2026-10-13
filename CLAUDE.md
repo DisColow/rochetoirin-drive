@@ -280,3 +280,10 @@
     `ALPHA_HASH_SCALE` des shaders maison ignoré en Compatibility ; vitres opaques) ; vitrines en Interior Mapping (`shop.gdshader`, kind 6) ;
   - collisions du décor en **BoxShape3D seulement** (bâtiments : `c_<tuile>.bin` produit par `boites()` dans
     `build_buildings.py` ; clôtures : une boîte par segment). Routes et relief exclus : c'est la surface de roulage.
+- **Restaurant « Le Rochefestin »** (v6.20, `pipeline/boulangerie/build_restaurant.py`, relevé `releve_restaurant.md`) :
+  - sur mesure comme la boulangerie, avec ses outils de peinture et de maillage et le même repère ;
+  - photos du cache seulement ; seuls les titres sont lisibles ;
+  - `sur_mesure.json` est maintenant **fusionné** : chaque script n'y met que sa propre entrée.
+  - Après `build_shops.py`, ne garder que la tuile du commerce remplacé : les autres ne diffèrent que par l'altitude
+    (relief refait en v6.16). On les remet depuis la branche `donnees`.
+
