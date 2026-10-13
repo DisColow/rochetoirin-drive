@@ -1,0 +1,14 @@
+{
+ "id": "fav_23",
+ "cleabs": "BATIMENT0000000302155610",
+ "nom": "Préau",
+ "mur": "enduit#e8c8b0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 5.0,
+ "densite": 12
+}

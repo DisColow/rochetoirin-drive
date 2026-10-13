@@ -1,0 +1,31 @@
+{
+ "id": "fav_0",
+ "cleabs": "BATIMENT0000002493300923",
+ "nom": "Hangar",
+ "mur": "bardage#a8b0a8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#b04a3a",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.6,
+     2.2
+    ],
+    "n": 5,
+    "l": 1.2
+   }
+  ]
+ }
+}

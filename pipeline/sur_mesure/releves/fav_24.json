@@ -1,0 +1,52 @@
+{
+ "id": "fav_24",
+ "cleabs": "BATIMENT0000000302156658",
+ "nom": "Église",
+ "mur": "pierre#ece8e0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 10.0,
+ "faitage": 14.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.0,
+     7.0
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "clocher",
+   "face": "N",
+   "x": 0.5,
+   "w": 5,
+   "h": 24,
+   "fleche": 2
+  }
+ ]
+}

@@ -1,0 +1,42 @@
+{
+ "id": "fav_19",
+ "cleabs": "BATIMENT0000000302155818",
+ "nom": "Bâtiment",
+ "mur": "enduit#ecdcd0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.6
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

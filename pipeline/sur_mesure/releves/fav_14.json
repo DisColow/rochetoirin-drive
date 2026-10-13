@@ -1,0 +1,14 @@
+{
+ "id": "fav_14",
+ "cleabs": "BATIMENT0000000302155585",
+ "nom": "Négoce bois",
+ "mur": "bois#7a6a5a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a5e64",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12
+}

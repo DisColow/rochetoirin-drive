@@ -1,0 +1,30 @@
+{
+ "id": "fav_26",
+ "cleabs": "BATIMENT0000002101353953",
+ "nom": "Médiathèque",
+ "mur": "bois#6a5a4a",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0.6,
+     2.6
+    ],
+    "c": "#8a8e90"
+   }
+  ]
+ }
+}
