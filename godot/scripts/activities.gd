@@ -58,6 +58,7 @@ var _client: Node3D
 var _cl_pos := Vector2.ZERO
 var _dest := -1
 var _dest_name := ""
+var _cl_nom := ""                  # lieu de prise en charge annoncé (v6.25)
 var _fare_d := 0.0
 var _expected := 60.0
 var _shocks := 0
@@ -584,13 +585,34 @@ func _taxi_new_client() -> void:
 	_beacons.clear()
 	var c := _car2()
 	var pick := -1
+	# v6.25 : le client attend le plus souvent devant un lieu nommé (places.json), annoncé par son nom pour que les
+	# connaisseurs prennent des raccourcis ; sinon au bord d'une route, annoncée par son nom et sa commune
+	_cl_nom = ""
+	var lieux := []
+	for k in places.size():
+		var d := c.distance_to(Vector2(places[k].x, places[k].z))
+		if d > 250.0 and d < 1500.0 and str(places[k].n) != str(places[k].get("c", "")):
+			lieux.append(k)
+	if not lieux.is_empty() and randf() < 0.8:
+		var pl = places[lieux[randi() % lieux.size()]]
+		var i := _nearest(Vector2(pl.x, pl.z))
+		if i >= 0 and _rp(i).distance_to(Vector2(pl.x, pl.z)) < 60.0:
+			pick = i
+			var com := str(pl.get("c", ""))
+			_cl_nom = "%s (%s)" % [pl.n, com] if com != "" and not str(pl.n).contains(com) else str(pl.n)
 	for k in 300:
+		if pick >= 0:
+			break
 		var i := (randi() % (pts.size() / 4)) * 4
 		var d := _rp(i).distance_to(c)
 		if d > 220.0 and d < 900.0:
-			pick = i; break
+			pick = i
 	if pick < 0:
 		pick = _nearest(c + Vector2(300, 0))
+	if _cl_nom == "" and hud and hud.get("names"):
+		var q := Vector3(_rp(pick).x, 0, _rp(pick).y)
+		var com: String = hud.names.commune_at(q)
+		_cl_nom = hud.names.road_at_fixe(q) + (" (%s)" % com if com != "" else "")
 	var h := deg_to_rad(pts[pick + 3])
 	var fwd := Vector2(sin(h), -cos(h))
 	var side := Vector2(-fwd.y, fwd.x)          # à droite de la voie
@@ -609,6 +631,8 @@ func _taxi_new_client() -> void:
 	main.add_child(_client)
 	_beacon(Vector3(_cl_pos.x, pts[pick + 2], _cl_pos.y), Color(0.25, 0.75, 1.0), 6.0, 40.0)
 	marks = [{p = _cl_pos, col = Color(0.25, 0.75, 1.0), txt = "Client", gps = true}]
+	if _cl_nom != "":
+		hud.toast("Client à prendre : " + _cl_nom, 5.0)
 	_shocks = 0
 	_stop_t = 0.0
 
@@ -618,7 +642,10 @@ func _taxi_process(dt: float) -> void:
 	var head := "TAXI  ·  %d course(s)  ·  %s" % [_rides, _euros(_total)]
 	if _phase == "attente":
 		var d := c.distance_to(_cl_pos)
-		_set_status("%s\nUn client attend à %d m (repère bleu)" % [head, int(d)])
+		if _cl_nom != "":
+			_set_status("%s\nClient : %s\n%d m (repère bleu)" % [head, _cl_nom, int(d)])
+		else:
+			_set_status("%s\nUn client attend à %d m (repère bleu)" % [head, int(d)])
 		if d < TAXI_STOP_R and slow:
 			_stop_t += dt
 			if _stop_t > 0.6:

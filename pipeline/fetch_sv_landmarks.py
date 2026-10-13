@@ -14,7 +14,11 @@ KINDS = ("place_of_worship", "townhall", "castle", "tower", "chapel", "memorial"
 
 
 def get(u, binary=False):
+    payant = "/streetview?" in u                     # image (payante) ; /streetview/metadata? est gratuit
     for k in range(4):
+        if payant:
+            import sv_budget
+            sv_budget.payer()                        # règle absolue des 20 $ : compté avant chaque essai
         try:
             r = urllib.request.urlopen(u, timeout=60).read()
             return r if binary else json.loads(r)

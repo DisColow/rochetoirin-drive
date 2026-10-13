@@ -19,6 +19,8 @@ const STEER_HIGH := 0.08        # à 130 km/h
 var touch_throttle := 0.0
 var touch_brake := 0.0
 var touch_steer := 0.0
+var aide_voie := true            # aide au maintien dans la voie (v6.25, ⚙ > Conduite)
+var voie = preload("res://scripts/voie.gd").new()
 var steer_value := 0.0
 var reversing := false
 var thr_in := 0.0                # pédales lues à ce pas (moteur sonore)
@@ -536,6 +538,10 @@ func _physics_process(dt: float) -> void:
 		reversing = true
 	elif thr > 0.1 and brk < 0.1 and v > -0.6:
 		reversing = false
+	if aide_voie and not reversing:
+		st = clampf(st + voie.correction(global_position, global_transform.basis.z, v, st, dt), -1.0, 1.0)
+	else:
+		voie.actif = false
 	var k := clampf(absf(v) * 3.6 / 130.0, 0.0, 1.0)
 	var max_steer := lerpf(STEER_LOW, STEER_HIGH, sqrt(k))
 	# direction progressive, retour au centre plus rapide

@@ -182,6 +182,7 @@ func _ready() -> void:
 	add_child(grass)
 	grass.target = car
 	weather = int(cfg.get_value("affichage", "meteo", 0))
+	car.aide_voie = bool(cfg.get_value("conduite", "aide_voie", true))
 	set_time(int(cfg.get_value("affichage", "heure", 0)))
 	_wet = _wet_target                                    # au démarrage : sol déjà mouillé s'il pleut
 	await _etape("Poteaux et lampadaires")
@@ -1156,6 +1157,17 @@ func _physics_process(_dt: float) -> void:
 				var tt: float = (t - int(get_meta("bt_t0"))) / float(Engine.physics_ticks_per_second)
 				print("arrêt : %.1f m en %.2f s (décélération moyenne %.1f m/s²)" % [d, tt, float(get_meta("bt_v0")) / 3.6 / tt])
 				get_tree().quit()
+		return
+	if OS.get_cmdline_user_args().has("--voie-test"):
+		# aide au maintien dans la voie : sans toucher au volant après une embardée, la voiture regagne sa voie
+		car.aide_voie = not OS.get_cmdline_user_args().has("--voie-off")
+		car.touch_brake = 0.0
+		car.touch_throttle = 1.0 if car.kmh() < 70.0 else 0.3
+		car.touch_steer = 0.35 if t > 600 and t < 640 else 0.0       # coup de volant à gauche à 5 s
+		if t % 60 == 0:
+			print("  [voie] t=%.1f %d km/h écart %.2f m actif=%s pos=%s" % [t / 120.0, car.kmh(), car.voie.ecart, car.voie.actif, car.global_position.snapped(Vector3(0.1, 0.1, 0.1))])
+		if t > 2400:
+			get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--reverse-test"):
 		# marche arrière depuis le départ (FREIN), puis GAZ en reculant : doit freiner puis repartir en avant

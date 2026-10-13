@@ -1,5 +1,16 @@
 # Consignes du projet
 
+- **RÈGLE ABSOLUE — Street View : jamais plus de 20 $ de photos au total** (utilisateur, 13/10/2026). Aucune
+  exception, aucun contournement, même avec un accord oral : le compteur `pipeline/sources/sv_depenses.json`
+  (versionné) compte chaque essai d'image à 0,007 $ et `pipeline/sv_budget.py` arrête le programme avant tout
+  dépassement ; toute requête d'image Street View doit passer par `get()` de `fetch_sv_landmarks.py` (qui appelle
+  `sv_budget.payer()`). Ne jamais modifier, relever ni remettre à zéro ce plafond ou ce compteur. Métadonnées
+  (gratuites) non comptées. Avant chaque lot : annoncer à l'utilisateur la dépense prévue et le total.
+
+- **Reprise** : lire `docs/REPRISE.md` en début de session ; le tenir à jour et le pousser après chaque livraison
+  et chaque étape importante (état, ce qui reste, pièges), pour qu'une autre session reprenne sans rien perdre
+  (demande de l'utilisateur : la limite d'utilisation peut couper la session à tout moment, son pourcentage n'est
+  pas visible depuis la session).
 - **Issues GitHub** : quand l'utilisateur demande de faire des choses, lire les issues ouvertes de
   `DisColow/rochetoirin-drive` (`curl -s https://api.github.com/repos/DisColow/rochetoirin-drive/issues?state=open`)
   et les ajouter à la liste des tâches ; poser des questions si une issue n'est pas claire.
@@ -99,7 +110,9 @@
 - **Releases GitHub** : à chaque nouvelle version, les actions créent la release « vX.Y » (notes = section « Nouveautés
   de la vX.Y » du README, `.github/scripts/notes_release.py`) et y joignent l'APK (`apk.yml`) puis les versions Windows
   et Steam Deck (`desktop.yml`, déclenchée par une modification de `godot/project.godot`, donc à chaque nouvelle version,
-  ou à la demande) : écrire la section « Nouveautés » du README **avant** de pousser la version.
+  ou à la demande) : écrire la section « Nouveautés » du README **avant** de pousser la version. **Notes courtes et
+  seulement celles de la version actuelle** (demande de l'utilisateur, 13/10) : remplacer la section précédente
+  (elle reste dans sa release GitHub), 3 à 5 lignes, pas de détails techniques.
 - L'APK (> 100 Mo) va aussi dans `releases/` via **Git LFS** (premier build de chaque version seulement) (`.gitattributes`) ; les GitHub Releases sont interdites à cette
   session. Lien : `https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/<apk>`.
 - Rendu Mobile (Vulkan) essayé en v2.8 : moins joli que Compatibility sur le téléphone de l'utilisateur, abandonné.
@@ -258,6 +271,16 @@
   - Fracas fort (`audio._fracas`, bus « Voiture ») quand un choc contre le décor arrête net la voiture.
   - Arbres cassables : seulement ceux affichés (`vegetation.visibles(k)`, densité réglable). Avant, des arbres
     non dessinés « surgissaient » cassés devant la voiture.
+- **Aide au maintien dans la voie** (v6.25, demande de l'utilisateur, `scripts/voie.gd`, données
+  `world/voies.bin` de `pipeline/build_voies.py`, après `build_map.py`) :
+  - quand le joueur lâche le volant (0,8 s), léger braquage vers le milieu de la voie de droite (double sens) ou
+    de la voie la plus proche (sens unique à plusieurs voies) ; axe des routes étroites ;
+  - rien sous 30 km/h, en marche arrière, aux carrefours, hors de la chaussée ou à contresens d'un sens unique ;
+  - témoin (deux lignes de voie) sur le compteur ; réglage ⚙ > Conduite (`conduite/aide_voie`, actif par défaut).
+  - Essai : `-- --drive-test --voie-test [--voie-off] --drive-from=-8410.95,221,-7187.25,45.2`.
+- **Bâtiments redressés hors de la chaussée** (v6.25) : le rectangle orienté qui remplace une emprise presque
+  rectangulaire (`decompose`) regonflait l'emprise découpée au bord de la route (murs et collisions sur la
+  chaussée, jusqu'à 450 m²) ; `rogner_routes` rogne ces rectangles côté route, sinon toit plat sur l'emprise réelle.
 - **Relief chargé autour de la voiture** (v6.16, issue #11, `scripts/relief.gd`) : plus de `data_directory` (qui
   lisait les 173 régions d'un bloc : 765 Mo, 8 s) ; régions lues d'avance sur un fil (`R_LIRE` 2,6 km), mises dans
   Terrain3D à moins de `R_CHARGE` (1,8 km), libérées au-delà de `R_GARDE` (`remove_regionl` puis `save_region` vers

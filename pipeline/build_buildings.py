@@ -889,6 +889,54 @@ def bati_overrides(blds):
     return out
 
 
+ROUTES = None          # (tampons des chaussées, STRtree) : posé par main()
+
+
+def _rogner_rect(R, U):
+    """Rectangle (x0, z0, x1, z1) du repère tourné rogné côté route jusqu'à ne plus toucher U ; None si trop entamé."""
+    x0, z0, x1, z1 = R
+    aire = (x1 - x0) * (z1 - z0)
+    for _ in range(4):
+        I = shapely.geometry.box(x0, z0, x1, z1).intersection(U)
+        if I.area < 0.2:
+            return (x0, z0, x1, z1) if (x1 - x0) * (z1 - z0) > 0.5 * aire else None
+        ix0, iz0, ix1, iz1 = I.bounds
+        opts = [o for o in ((ix1, z0, x1, z1), (x0, z0, ix0, z1), (x0, iz1, x1, z1), (x0, z0, x1, iz0))
+                if o[2] - o[0] > 2.0 and o[3] - o[1] > 2.0]
+        if not opts:
+            return None
+        x0, z0, x1, z1 = max(opts, key=lambda o: shapely.geometry.box(*o).area
+                             - 20 * shapely.geometry.box(*o).intersection(U).area)
+    return None
+
+
+def rogner_routes(dec):
+    """Bâtiment redressé (decompose / rectangle orienté) qui déborde sur une chaussée : rectangles rognés du côté de
+    la route (l'emprise BD TOPO a déjà été découpée, mais le rectangle orienté la regonfle) ; None si impossible."""
+    if ROUTES is None:
+        return dec
+    foot_r, rects, a, c = dec
+    rb, tr = ROUTES
+    fw = Polygon(rot(np.asarray(foot_r.exterior.coords), a, c))
+    hits = [rb[k] for k in tr.query(fw) if rb[k].intersects(fw)]
+    if not hits:
+        return dec
+    U = shapely.affinity.rotate(unary_union(hits), -a, origin=(c[0], c[1]), use_radians=True)
+    if foot_r.intersection(U).area < 0.2:
+        return dec
+    nr = []
+    for R in rects:
+        r2 = _rogner_rect(R, U)
+        if r2 is None:
+            return None
+        nr.append(r2)
+    f2 = foot_r.intersection(unary_union([shapely.geometry.box(*r) for r in nr])).buffer(0)
+    if f2.geom_type != "Polygon" or f2.area < 0.6 * foot_r.area or f2.intersection(U).area >= 0.2:
+        return None
+    f2 = shapely.geometry.polygon.orient(shapely.simplify(f2, 0.02), 1.0)
+    return f2, nr, a, c
+
+
 def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, others, my_i, ov=None):
     """Construit un bâtiment ; ov : réglages imposés (bâtiments emblématiques : mairies, châteaux) — wall, wtint, roof,
     roof_tint, hip, modern, shutters. Retourne un résumé (forme, hauteurs, côté rue) pour les ajouts éventuels."""
@@ -957,6 +1005,11 @@ def build_one(M, C, p, poly, dem, ortho, road_tree, road_pts, others_tree, other
             x0, z0, x1, z1 = rr.bounds
             dec = (Polygon([(x0, z0), (x1, z0), (x1, z1), (x0, z1)]), [(x0, z0, x1, z1)], a, c)
         else:
+            flat = True
+    if not flat and dec is not None:
+        # le redressement (rectangle orienté) ne doit pas ressortir sur la chaussée (v6.25) : rectangles rognés
+        dec = rogner_routes(dec)
+        if dec is None:
             flat = True
     if not flat:
         foot_r, rects, ang, cen = dec
@@ -1212,6 +1265,10 @@ def main():
         kept.append((p, g))
     blds = kept
     print("chaussées : %d bâtiments découpés, %d supprimés" % (cut, dropped))
+    global ROUTES
+    rb2 = [LineString(w["P"]).buffer(w["w"] / 2 + 0.15, cap_style="flat") for w in ways
+           if len(w["P"]) > 1 and not w["bridge"] and w["cls"] != "track"]
+    ROUTES = (rb2, STRtree(rb2))
     polys = [g for _, g in blds]
     tree = STRtree(polys)
     tiles = {}

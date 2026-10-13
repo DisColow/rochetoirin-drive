@@ -169,6 +169,20 @@ func _open_settings() -> void:
 			for c in hw.get_children():
 				c.button_pressed = c == b)
 		hw.add_child(b)
+	# conduite (v6.25) : aide au maintien dans la voie
+	var lc := Label.new(); lc.text = "Conduite"; lc.add_theme_font_size_override("font_size", 30); v.add_child(lc)
+	var b_voie := Button.new()
+	b_voie.toggle_mode = true
+	b_voie.button_pressed = car != null and car.aide_voie
+	b_voie.text = "Aide au maintien dans la voie"
+	b_voie.custom_minimum_size = Vector2(460, 70)
+	b_voie.add_theme_font_size_override("font_size", 28)
+	b_voie.toggled.connect(func(on: bool):
+		if car:
+			car.aide_voie = on
+		var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+		cfg.set_value("conduite", "aide_voie", on); cfg.save("user://reglages.cfg"))
+	v.add_child(b_voie)
 	# son : volumes de l'ambiance, des effets (voiture, voix) et de la musique (radio), de 0 à 150 %
 	var ls := Label.new(); ls.text = "Son"; ls.add_theme_font_size_override("font_size", 30); v.add_child(ls)
 	var hs := HBoxContainer.new(); hs.add_theme_constant_override("separation", 24); v.add_child(hs)
@@ -400,6 +414,14 @@ func _draw_speed() -> void:
 	speed_panel.draw_string(_lcd, Vector2(x, cy + fs2 * 0.5), "888", HORIZONTAL_ALIGNMENT_RIGHT, w, fs2, Color(lit, 0.08))
 	speed_panel.draw_string(_lcd, Vector2(x, cy + fs2 * 0.5), str(kmh), HORIZONTAL_ALIGNMENT_RIGHT, w, fs2, lit)
 	speed_panel.draw_string(f, Vector2(win.end.x - 92, cy + 12), "km/h", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color(lit, 0.75))
+	# témoin de l'aide au maintien dans la voie (v6.25) : deux lignes de voie, vertes quand elle corrige
+	if car and car.aide_voie:
+		var on: bool = car.voie.actif
+		var tc := Color8(120, 255, 190) if on else Color(lit, 0.18)
+		var bx := win.end.x - 60
+		var by := win.position.y + 6
+		speed_panel.draw_line(Vector2(bx - 10, by + 22), Vector2(bx - 4, by), tc, 4.0)
+		speed_panel.draw_line(Vector2(bx + 10, by + 22), Vector2(bx + 4, by), tc, 4.0)
 
 func _disc(r: int, col: Color, text_col: Color) -> ImageTexture:
 	var img := Image.create(r * 2, r * 2, false, Image.FORMAT_RGBA8)

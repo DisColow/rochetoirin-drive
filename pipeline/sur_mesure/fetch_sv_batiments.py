@@ -19,7 +19,7 @@ KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "")
 OUT = os.environ.get("SV_DIR", "../../rochetoirin-streetview/streetview/batiments")
 API = "https://maps.googleapis.com/maps/api/streetview"
 VISIBLE = 70.0          # m : au-delà, le bâtiment n'est pas assez visible depuis la route
-PLAFOND = 700           # photos payantes au plus pour toute l'opération (0,007 $ l'une : 4,90 $)
+PLAFOND = 700           # photos de cette opération ; le plafond absolu de 20 $ est tenu par sv_budget.py (get)
 LOTS = {"commerces": ("Commercial et services", "Religieux"), "industriels": ("Industriel",), "agricoles": ("Agricole",)}
 
 

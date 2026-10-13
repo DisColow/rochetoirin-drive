@@ -50,6 +50,14 @@ func road_at(p: Vector3) -> String:
 	speed_limit = int(pts[best_i * 4 + 3]) if best_i >= 0 else 0
 	return meta.names[best] if best >= 0 else "Hors route"
 
+## Nom de la route la plus proche sans toucher à la route suivie (taxi : lieu de prise en charge).
+func road_at_fixe(p: Vector3) -> String:
+	var cur := current; var lim := speed_limit
+	current = -1
+	var n := road_at(p)
+	current = cur; speed_limit = lim
+	return n
+
 func commune_at(p: Vector3) -> String:
 	var c := _cell(p.x, p.z)
 	if c.x < 0 or c.y < 0 or c.x >= int(meta.nx) or c.y >= int(meta.nz):
