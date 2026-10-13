@@ -17,8 +17,25 @@
 
 ## Fidélité : reconnaissable, pas exact
 - Le but est qu'on **reconnaisse le bâtiment**, point. Dimensions approximatives acceptées.
-- **Réutiliser le bâtiment déjà généré** (volume BD TOPO) et le corriger par une **fiche d'une ligne**
-  (`pipeline/sources/bati_fiches.txt`) : couleur de l'enduit, matériaux, toit, niveaux, volets, chaînages, porche…
-  Pas de modèle sur mesure ni de relevé au centimètre (la boulangerie de la v6.17 a été jugée beaucoup trop longue).
-- Méthode rapide pour les bâtiments non résidentiels : regarder 1 ou 2 photos (cache Street View d'abord), écrire la
-  fiche, passer au suivant. Les photos Street View payantes demandent l'accord de l'utilisateur avec le coût estimé.
+- **Bâtiments non résidentiels : méthode du restaurant « Le Rochefestin »** (directive du 13/10, v6.20 ; remplace
+  la fiche d'une ligne) :
+  - Une ou deux photos Street View par bâtiment : le cache d'abord. Les photos payantes demandent l'accord de
+    l'utilisateur, avec le coût estimé.
+  - Relevé rapide (`releve_*.md`), sur l'emprise du cadastre :
+    - volumes et travées ;
+    - bon nombre de fenêtres et de portes, à leur place ;
+    - devanture et enseigne, avec un **nom parodique** ;
+    - couleurs et matériaux ;
+    - éléments extérieurs (porches, auvents, marches, poubelles, appliques…) ;
+    - affichettes.
+  - Modèle sur mesure à la manière de `pipeline/boulangerie/build_restaurant.py` :
+    - façades en aplat peintes dans un atlas ;
+    - volume seulement pour les structures extérieures ;
+    - **seuls les titres lisibles**, le reste en gribouillis ;
+    - collisions en boîtes ;
+    - entrée dans `world/sur_mesure.json`, qui remplace le bâtiment BD TOPO et la devanture générique.
+  - Une seule passe de correction, d'après une planche photo/jeu prise sous les mêmes angles. Cette planche reste
+    dans le cache privé.
+  - Reconnaissable, pas exact : pas de relevé au centimètre, la boulangerie de la v6.17 avait été jugée trop longue.
+- Fiche d'une ligne (`pipeline/sources/bati_fiches.txt`) : seulement pour un bâtiment qu'on ne voit pas assez sur les
+  photos pour la méthode complète.
