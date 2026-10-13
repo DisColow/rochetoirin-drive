@@ -7,7 +7,7 @@ l'emprise, le bâtiment est noté invisible (aucune photo payée). Sinon : vue c
 et une troisième pour les grands bâtiments. 640 × 640 (champ vertical = horizontal, pour le calage).
 Sortie : SV_DIR/<cleabs>_<k>.jpg + index.json {cleabs: {"vues": [{nom, pano, date, cam[x,z], heading, pitch, fov}],
 "dist"} ou {"invisible": dist}}.
-Lancer depuis pipeline/ : python3 sur_mesure/fetch_sv_batiments.py [lot]   (lot : commerces, industriels, agricoles)"""
+Lancer depuis pipeline/ : python3 sur_mesure/fetch_sv_batiments.py [lot] [commune] [--estimer]\n(lot : commerces, industriels, agricoles, tous ; --estimer : métadonnées gratuites seulement, photos à prévoir)"""
 import json, math, os, sys, time, urllib.parse
 from shapely.geometry import shape, Point
 from shapely.ops import transform
@@ -23,9 +23,9 @@ PLAFOND = 700           # photos de cette opération ; le plafond absolu de 20 $
 LOTS = {"commerces": ("Commercial et services", "Religieux"), "industriels": ("Industriel",), "agricoles": ("Agricole",)}
 
 
-def batiments():
-    """Bâtiments non résidentiels de la commune de Rochetoirin : [(cleabs, usage, polygone local)]."""
-    R = shape(json.load(open("data/communes.json"))["Rochetoirin"])
+def batiments(commune="Rochetoirin"):
+    """Bâtiments non résidentiels d'une commune (Rochetoirin par défaut) : [(cleabs, usage, polygone local)]."""
+    R = shape(json.load(open("data/communes.json"))[commune])
     out = []
     for f in json.load(open("data/batiments.json"))["features"]:
         p = f["properties"]
@@ -78,13 +78,17 @@ def photo(v, chemin):
 
 
 def main():
-    lot = sys.argv[1] if len(sys.argv) > 1 else "commerces"
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    lot = args[0] if args else "commerces"
+    commune = args[1] if len(args) > 1 else "Rochetoirin"
+    estimer = "--estimer" in sys.argv                  # métadonnées seulement (gratuites) : photos à prévoir
+    prevues = 0
     os.makedirs(OUT, exist_ok=True)
     idx_p = os.path.join(OUT, "index.json")
     index = json.load(open(idx_p)) if os.path.exists(idx_p) else {}
     payees = sum(len(v.get("vues", [])) for v in index.values())
     faits = {c for v in json.load(open("../godot/world/sur_mesure.json")).values() for c in v.get("remplace_bati", [])}
-    B = [b for b in batiments() if b[1] in LOTS[lot] and b[0] not in faits]
+    B = [b for b in batiments(commune) if (lot == "tous" or b[1] in LOTS[lot]) and b[0] not in faits]
     todo = [b for b in B if b[0] not in index]
     print(len(B), "bâtiments (%s)," % lot, len(todo), "à photographier ; déjà payées :", payees)
     if todo and not KEY:
@@ -94,9 +98,13 @@ def main():
         m1 = meta(c.x, c.y, 60)
         d1 = g.exterior.distance(Point(m1["cam"])) if m1 else 1e9
         if d1 > VISIBLE:
-            index[cl] = {"invisible": round(d1, 1) if m1 else None, "usage": usage}
+            if not estimer:
+                index[cl] = {"invisible": round(d1, 1) if m1 else None, "usage": usage}
             continue
         vues = [m1]
+        if estimer:
+            prevues += 3 if g.area > 400 else 2
+            continue
         # panoramas voisins : 22 m de part et d'autre, perpendiculairement à la ligne de visée
         dx, dz = c.x - m1["cam"][0], c.y - m1["cam"][1]
         n = math.hypot(dx, dz) or 1.0
@@ -119,6 +127,10 @@ def main():
             time.sleep(0.05)
         index[cl] = {"vues": ok, "dist": round(d1, 1), "usage": usage}
         json.dump(index, open(idx_p, "w"), indent=0)
+    if estimer:
+        n_ = prevues
+        print("estimation : au plus %d photos (%.2f $) ; aucune image payée" % (n_, n_ * 0.007))
+        return
     json.dump(index, open(idx_p, "w"), indent=0)
     vis = [k for k in index if index[k].get("vues")]
     print("photos payées au total :", payees, "(%.2f $)" % (payees * 0.007), "; bâtiments photographiés :", len(vis),
