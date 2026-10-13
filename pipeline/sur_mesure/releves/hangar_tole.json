@@ -1,7 +1,7 @@
 {
  "id": "hangar_tole",
  "nom": "Hangar en tôle",
- "mur": "bardage#a8aeb4",
+ "mur": "bardage#a9aeb0",
  "toit": {
   "type": "2pans",
   "matiere": "fibro#d4d6d4",

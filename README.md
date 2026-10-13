@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.29.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.29/RochetoirinSimulator-v6.29.apk)**
+**[RochetoirinSimulator-v6.30.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.30/RochetoirinSimulator-v6.30.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.29 :
-- **lumière plus douce** : ombres moins dures, façades à l'ombre plus lisibles ; vitrines sombres comme vues de la rue.
-- **bâtiments industriels retouchés** d'après les photos : couleurs des bardages, bardage à nervures horizontales,
-  ancien atelier (crépi gris, encadrements de brique), entrepôts, Enseignes Lettrage.
+Nouveautés de la v6.30 :
+- **taxi : itinéraire GPS** tracé en bleu sur la carte et la mini-carte jusqu'au client puis à la destination,
+  recalculé si vous changez de route (sens uniques respectés).
+- **usine à sheds** (toits en dents de scie) et une trentaine de bâtiments industriels retouchés (teintes, crépis).
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

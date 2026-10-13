@@ -59,6 +59,10 @@ var _cl_pos := Vector2.ZERO
 var _dest := -1
 var _dest_name := ""
 var _cl_nom := ""                  # lieu de prise en charge annoncé (v6.25)
+var route_gps := PackedVector2Array()   # itinéraire affiché sur la carte et le GPS (v6.30, taxi)
+var _itin = null
+var _itin_t := 0.0
+var _itin_cible := Vector2.INF
 var _fare_d := 0.0
 var _expected := 60.0
 var _shocks := 0
@@ -228,6 +232,8 @@ void fragment() {
 
 func _clear_world() -> void:
 	_status_t = 0.0
+	route_gps = PackedVector2Array()
+	_itin_cible = Vector2.INF
 	for b in _beacons:
 		if is_instance_valid(b):
 			b.queue_free()
@@ -636,7 +642,24 @@ func _taxi_new_client() -> void:
 	_shocks = 0
 	_stop_t = 0.0
 
+## Itinéraire GPS vers la cible (client puis destination) : recalculé si la cible change ou si l'on s'en écarte.
+func _itineraire(dt: float, cible: Vector2) -> void:
+	if _itin == null:
+		_itin = preload("res://scripts/itineraire.gd").new()
+	_itin.suivre()
+	if _itin.pret:
+		route_gps = _itin.route
+	_itin_t -= dt
+	if _itin_t > 0.0:
+		return
+	_itin_t = 1.0
+	var c := _car2()
+	if cible != _itin_cible or route_gps.size() < 2 or _itin.ecart(c) > 35.0:
+		_itin_cible = cible
+		_itin.calculer(c, cible)
+
 func _taxi_process(dt: float) -> void:
+	_itineraire(dt, _cl_pos if _phase == "attente" else _rp(_dest))
 	var c := _car2()
 	var slow: bool = car.kmh() < 10.0
 	var head := "TAXI  ·  %d course(s)  ·  %s" % [_rides, _euros(_total)]

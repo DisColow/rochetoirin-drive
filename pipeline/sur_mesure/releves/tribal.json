@@ -1,7 +1,7 @@
 {
  "id": "tribal",
  "nom": "Tribal (menuiseries)",
- "mur": "enduit#f2f2f0",
+ "mur": "bardage#8e959b",
  "toit": {
   "type": "2pans",
   "matiere": "bac#9aa0a6",

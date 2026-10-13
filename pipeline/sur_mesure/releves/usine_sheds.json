@@ -3,12 +3,12 @@
  "nom": "Usine à sheds rouges",
  "mur": "bardage#e8e8e4",
  "toit": {
-  "type": "2pans",
+  "type": "sheds",
   "matiere": "bac#a8323a",
-  "debord": 0.2
+  "pas": 6.5
  },
  "egout": 6.5,
- "faitage": 9.9,
+ "faitage": 9.1,
  "faces": {
   "N": [
    {

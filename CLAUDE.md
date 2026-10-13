@@ -271,6 +271,11 @@
   - Fracas fort (`audio._fracas`, bus « Voiture ») quand un choc contre le décor arrête net la voiture.
   - Arbres cassables : seulement ceux affichés (`vegetation.visibles(k)`, densité réglable). Avant, des arbres
     non dessinés « surgissaient » cassés devant la voiture.
+- **Itinéraire GPS du taxi** (v6.30, demande de l'utilisateur, `scripts/itineraire.gd`, données `world/graphe.bin`
+  de `pipeline/build_itineraire.py`, d'après `data/roads.pkl`) : A* sur le graphe des voies carrossables (sens
+  uniques respectés, chemins de terre pénalisés ×2,5), calculé sur un fil de travail ; recalculé si la cible change
+  ou si la voiture s'écarte de plus de 35 m. Tracé bleu cerné de noir sur la mini-carte (`gps.gd`) et la carte
+  (`map.gd`), `activities.route_gps`. Capture : `{"act": "taxi"}`.
 - **Aide au maintien dans la voie** (v6.25, demande de l'utilisateur, `scripts/voie.gd`, données
   `world/voies.bin` de `pipeline/build_voies.py`, après `build_map.py`) :
   - quand le joueur lâche le volant (0,8 s), léger braquage vers le milieu de la voie de droite (double sens) ou
@@ -289,7 +294,8 @@
   - `comparatif.py <id…>` : captures du jeu depuis les caméras exactes des photos, planche photo | jeu.
   - Planches dans le cache privé (`streetview/planches/`), jamais dans le dépôt. Faits : mairie, atelier_kaki,
     église, salle des fêtes, salle du cimetière (liste à jour dans `docs/REPRISE.md`).
-  - Options du relevé : `cams`, `sol: haut` (pente), `entourage` (encadrements), `remplace_bati_extra`.
+  - Options du relevé : `cams`, `sol: haut` (pente), `entourage` (encadrements), `remplace_bati_extra`, volumes
+    tournés (`rot`), toits `sheds` (dents de scie), extra `charpente` (préau à ferme apparente), murs `bardageh`.
   - Shader `sur_mesure_une_face.gdshader` (entrées `une_face`) : triangles orientés, toits doublés dans le
     maillage ; en deux faces, les murs s'ombraient eux-mêmes (acné en anneaux). Boulangerie et restaurant : ancien
     shader à deux faces.

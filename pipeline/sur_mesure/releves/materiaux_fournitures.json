@@ -1,7 +1,7 @@
 {
  "id": "materiaux_fournitures",
  "nom": "Matériaux & Fournitures",
- "mur": "bardage#b0b6bc",
+ "mur": "bardage#8e959b",
  "toit": {
   "type": "2pans",
   "matiere": "bac#8a9096",

@@ -71,6 +71,14 @@ func _draw_activity(anchor: Vector2) -> void:
 		return
 	if not act.circle.is_empty():
 		overlay.draw_arc(_xf * act.circle.c, act.circle.r * _ppm, 0, TAU, 96, Color(1.0, 0.45, 0.25, 0.95), 3.0, true)
+	# itinéraire (taxi, v6.30) : trait bleu vif cerné de noir, comme un GPS de voiture
+	var rt: PackedVector2Array = act.get("route_gps") if act.get("route_gps") != null else PackedVector2Array()
+	if rt.size() > 1:
+		var sc := PackedVector2Array()
+		for q in rt:
+			sc.append(_xf * q)
+		overlay.draw_polyline(sc, Color(0, 0, 0, 0.8), 9.0, true)
+		overlay.draw_polyline(sc, Color(0.25, 0.65, 1.0), 6.0, true)
 	var inner := Rect2(Vector2(16, 16), size - Vector2(32, 32))
 	for m in act.marks:
 		if not m.get("gps", true):

@@ -330,6 +330,7 @@ func _ready() -> void:
 ## Étape suivante du démarrage : affichée par le voile, puis une image est dessinée avant de continuer.
 func _etape(nom: String) -> void:
 	Chargement.etape_suivante(nom)
+	print("[étape] ", nom, " ", Time.get_ticks_msec())
 	await get_tree().process_frame
 
 ## Téléportation sans à-coup : appliquée une fois le jeu repris (un déplacement fait pendant la pause est annulé par

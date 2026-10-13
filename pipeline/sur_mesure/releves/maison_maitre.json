@@ -1,10 +1,10 @@
 {
  "id": "maison_maitre",
  "nom": "Maison de maître",
- "mur": "enduit#e2d4b6",
+ "mur": "enduit#c8b48c",
  "toit": {
   "type": "4pans",
-  "matiere": "tuile"
+  "matiere": "tuile_brune"
  },
  "egout": 7.4,
  "faitage": 10.5,

@@ -167,6 +167,13 @@ func _draw_activity(f: Font) -> void:
 		var rr: float = act.circle.r / _mpp()
 		overlay.draw_circle(cc, rr, Color(1.0, 0.35, 0.2, 0.12))
 		overlay.draw_arc(cc, rr, 0, TAU, 96, Color(1.0, 0.45, 0.25, 0.95), 4.0, true)
+	var rt: PackedVector2Array = act.get("route_gps") if act.get("route_gps") != null else PackedVector2Array()
+	if rt.size() > 1:                       # itinéraire du taxi (v6.30)
+		var sc := PackedVector2Array()
+		for q in rt:
+			sc.append(world_to_screen(q))
+		overlay.draw_polyline(sc, Color(0, 0, 0, 0.8), 10.0, true)
+		overlay.draw_polyline(sc, Color(0.25, 0.65, 1.0), 6.0, true)
 	var prev := Vector2.INF
 	for m in act.marks:
 		var sp := world_to_screen(m.p)

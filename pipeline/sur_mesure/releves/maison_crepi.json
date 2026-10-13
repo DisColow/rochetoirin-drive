@@ -1,7 +1,7 @@
 {
  "id": "maison_crepi",
  "nom": "Maison (bureaux)",
- "mur": "enduit#d4d0c8",
+ "mur": "enduit#a8a69f",
  "toit": {
   "type": "4pans",
   "matiere": "tuile_brune"

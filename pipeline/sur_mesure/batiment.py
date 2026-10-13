@@ -19,7 +19,7 @@ Format du relevé (mesures approximatives : reconnaissable, pas exact) :
  "sol": "haut" (pente : hauteurs comptées depuis le point haut de l'emprise et non le point bas),
  "simplifier": 1.5 (tolérance de simplification de l'emprise, m ; 0,3 par défaut), "decal": [dx, dz], "rot": degrés, "echelle": [sx, sz] (facultatifs : emprise recalée sur les photos, calage.py),
  "soubassement": "#rrggbb" (facultatif), "h_soub": 0.5, "chainages": "#rrggbb" (facultatif),
- "toit": {"type": "2pans|4pans|plat|appentis", "matiere": "tuile|tuile_brune|bac#rrggbb|fibro|ardoise",
+ "toit": {"type": "2pans|4pans|plat|appentis|sheds" (sheds : dents de scie, "pas" en m), "matiere": "tuile|tuile_brune|bac#rrggbb|fibro|ardoise",
           "bas": "S" (appentis : côté bas), "faitage_long": true (2pans : faîtage le long du grand côté)},
  "egout": 6.0, "faitage": 8.5,
  "faces": {"S": [ouvertures…], "E": […]}    clés : N NE E SE S SO O NO (côté de l'emprise tourné vers là ; le plus long)
@@ -614,6 +614,29 @@ def construire(R, feat, dem, remplir=0.4):
         q = monde(px, pz)
         return (q[0], y, q[1])
     for (x0, z0, x1, z1, lx) in plans:
+        if ty == "sheds":
+            # toit en dents de scie (v6.30) : pans de couverture inclinés et verrières verticales, dents de « pas » m
+            # le long du grand côté, pignons triangulaires sur les deux longs côtés
+            pas = float(toit.get("pas", 6.0))
+            zv = uni("verriere_shed", (70, 84, 96))
+            zm2 = uni("mur_shed", mur_c)
+            if lx:
+                n_ = max(1, int(round((x1 - x0) / pas))); w_ = (x1 - x0) / n_
+                for i in range(n_):
+                    xa, xb = x0 + i * w_, x0 + (i + 1) * w_
+                    tile_quad([W3(xa, z0, EG), W3(xa, z1, EG), W3(xb, z1, FA), W3(xb, z0, FA)])
+                    M.poly([W3(xb, z0, EG), W3(xb, z1, EG), W3(xb, z1, FA), W3(xb, z0, FA)], uv4(zv), PETIT_C)
+                    for zz in (z0, z1):
+                        M.poly([W3(xa, zz, EG), W3(xb, zz, EG), W3(xb, zz, FA)], uv4(zm2)[:3], MUR_C)
+            else:
+                n_ = max(1, int(round((z1 - z0) / pas))); w_ = (z1 - z0) / n_
+                for i in range(n_):
+                    za, zb = z0 + i * w_, z0 + (i + 1) * w_
+                    tile_quad([W3(x0, za, EG), W3(x1, za, EG), W3(x1, zb, FA), W3(x0, zb, FA)])
+                    M.poly([W3(x0, zb, EG), W3(x1, zb, EG), W3(x1, zb, FA), W3(x0, zb, FA)], uv4(zv), PETIT_C)
+                    for xx in (x0, x1):
+                        M.poly([W3(xx, za, EG), W3(xx, zb, EG), W3(xx, zb, FA)], uv4(zm2)[:3], MUR_C)
+            continue
         if ty == "plat":
             tile_quad([W3(x0, z0, EG), W3(x0, z1, EG), W3(x1, z1, EG), W3(x1, z0, EG)])
             for (a, b), (p, q) in (((x0, z0), (x1, z0)), ((x1, z0), (x1, z1)), ((x1, z1), (x0, z1)), ((x0, z1), (x0, z0))):

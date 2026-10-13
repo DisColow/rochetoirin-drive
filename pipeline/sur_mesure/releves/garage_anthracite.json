@@ -1,7 +1,7 @@
 {
  "id": "garage_anthracite",
  "nom": "Garage moderne",
- "mur": "bardage#5a5e64",
+ "mur": "bardage#33373c",
  "toit": {
   "type": "plat"
  },
@@ -30,7 +30,7 @@
      0,
      3.6
     ],
-    "c": "#d8dadc",
+    "c": "#8e949a",
     "n": 5,
     "l": 4.0
    },
@@ -44,7 +44,7 @@
      0,
      6.5
     ],
-    "mur": "bardage#80868c"
+    "mur": "bardage#2a2d31"
    }
   ]
  },

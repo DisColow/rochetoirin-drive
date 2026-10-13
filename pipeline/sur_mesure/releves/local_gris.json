@@ -1,7 +1,7 @@
 {
  "id": "local_gris",
  "nom": "Local technique",
- "mur": "enduit#c8c6c0",
+ "mur": "enduit#9d9c97",
  "toit": {
   "type": "2pans",
   "matiere": "fibro#b0aea8",

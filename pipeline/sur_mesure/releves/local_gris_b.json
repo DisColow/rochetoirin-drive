@@ -1,7 +1,7 @@
 {
  "id": "local_gris_b",
  "nom": "Local crépi gris",
- "mur": "enduit#c4c2bc",
+ "mur": "enduit#9d9c97",
  "toit": {
   "type": "2pans",
   "matiere": "fibro#b0aea8",

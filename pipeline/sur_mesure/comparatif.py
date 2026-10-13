@@ -34,6 +34,11 @@ def main(ids):
             par.setdefault(ident, []).append(v["nom"])
     js = os.path.join(TMP, "cmp_shots.json")
     json.dump(shots, open(js, "w"))
+    # un speech-dispatcher planté bloque Godot au démarrage (synthèse vocale du taxi) : on le tue avant (par PID)
+    for l in subprocess.run(["ps", "-eo", "pid,comm"], capture_output=True, text=True).stdout.splitlines()[1:]:
+        pid, comm = l.split(None, 1)
+        if comm.startswith(("speech-dispatch", "sd_")):
+            subprocess.run(["kill", "-9", pid])
     subprocess.run(["timeout", "1500", "xvfb-run", "-a", "godot", "--path", GOD, "--resolution", "640x640", "--",
                     "--shots=" + js], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     os.makedirs(PLANCHES, exist_ok=True)

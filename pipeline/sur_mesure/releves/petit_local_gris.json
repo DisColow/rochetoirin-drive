@@ -1,7 +1,7 @@
 {
  "id": "petit_local_gris",
  "nom": "Petit local",
- "mur": "enduit#c8c6c0",
+ "mur": "enduit#9b9a95",
  "toit": {
   "type": "2pans",
   "matiere": "fibro#a8a6a0",
