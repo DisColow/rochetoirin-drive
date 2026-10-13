@@ -548,10 +548,15 @@ func set_time(i: int) -> void:
 	_env.fog_density = P[6]
 	# lumière ambiante : ciel le jour ; chaude au coucher, bleutée la nuit (sinon tout devient noir)
 	if time_of_day < 2:
+		# v6.28 : ciel seul = ombres gris-bleu (murs beiges gris à l'ombre) ; on y mêle la lumière renvoyée par le sol,
+		# gris chaud, comme sur les photos (une façade à l'ombre garde sa couleur)
 		_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-		_env.ambient_light_energy = 1.0
+		_env.ambient_light_color = Color(0.80, 0.75, 0.68)
+		_env.ambient_light_sky_contribution = 0.55
+		_env.ambient_light_energy = 1.25
 	else:
 		_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+		_env.ambient_light_sky_contribution = 1.0
 		_env.ambient_light_color = Color(0.62, 0.50, 0.45) if time_of_day == 2 else Color(0.20, 0.25, 0.40)
 		_env.ambient_light_energy = 0.9 if time_of_day == 2 else 0.75
 	var night: float = P[7]

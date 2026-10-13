@@ -13,7 +13,7 @@ Format du relevé (mesures approximatives : reconnaissable, pas exact) :
 {
  "id": "ecole", "cleabs": "BATIMENT…", "nom": "Nom parodique (vrai rôle)", "remplace_commerce": [],
  "mur": "enduit#e8dcc8" | "bardage#a0a4a8" | "bois#6a4a30" | "pierre#9a8466" | "brique" | "beton#c8c4bc",
- "volumes": [{"rect": [u0, v0, u1, v1], "egout", "faitage", "toit", "faces", …}] (facultatif : plusieurs volumes en
+ "volumes": [{"rect": [u0, v0, u1, v1], "rot": degrés, "egout", "faitage", "toit", "faces", …}] (facultatif : plusieurs volumes en
    mètres dans le repère cadre() — coin du rectangle orienté de l'emprise, u le long du grand côté ; grille du calage),
  "remplace_bati_extra": [cleabs…] (bâtiments BD TOPO voisins absorbés par ce modèle, ex. une aile),
  "sol": "haut" (pente : hauteurs comptées depuis le point haut de l'emprise et non le point bas),
@@ -31,7 +31,9 @@ Format du relevé (mesures approximatives : reconnaissable, pas exact) :
  "extras": [{"t": "auvent|store|porche|marquise", "face": "S", "x": [f0, f1], "y": 3.0, "p": 1.2, "c": "#…"},
             {"t": "applique|poubelle", "face": "S", "x": [f…], "y": 3.0}, {"t": "cuve|silo", "face": "E", "x": 0.5,
              "d": 3.0, "r": 1.5, "h": 6}, {"t": "clocher", "face": "O", "x": 0.5, "w": 4, "h": 16, "fleche": 9},
-            {"t": "contreforts", "face": "S", "x": [f…], "h": 5}, {"t": "cheminee", "x": 0.3, "y": 0.5}]
+            {"t": "contreforts", "face": "S", "x": [f…], "h": 5}, {"t": "cheminee", "x": 0.3, "y": 0.5},
+            {"t": "charpente", "face": "N", "x": [f0, f1], "y": 3.0 (égout), "p": 5.0 (avancée), "h": 5.6 (faîtage),
+             "c": "#bois"} (grand porche ouvert à ferme apparente)]
 }
 Lancer depuis pipeline/ : python3 sur_mesure/batiment.py [id…]"""
 import glob, json, math, os, random, sys
@@ -356,8 +358,12 @@ def volumes(R, feat):
     out = []
     for k, V in enumerate(R["volumes"]):
         u0, v0, u1, v1 = V["rect"]
-        poly = [tuple(o + u * a + v * b) for a, b in ((u0, v0), (u1, v0), (u1, v1), (u0, v1))]
-        sub = dict(base, **{x: y for x, y in V.items() if x != "rect"})
+        q = np.array([(u0, v0), (u1, v0), (u1, v1), (u0, v1)], float)
+        if V.get("rot"):                                   # volume en biais : tourné autour de son centre (degrés)
+            t = math.radians(float(V["rot"])); m = q.mean(0)
+            q = (q - m) @ np.array([[math.cos(t), math.sin(t)], [-math.sin(t), math.cos(t)]]) + m
+        poly = [tuple(o + u * a + v * b) for a, b in q]
+        sub = dict(base, **{x: y for x, y in V.items() if x not in ("rect", "rot")})
         sub.update(id="%s_%d" % (R["id"], k) if k else R["id"], poly=poly, simplifier=0.05)
         if k:
             sub["remplace_commerce"] = []
@@ -572,6 +578,17 @@ def construire(R, feat, dem, remplir=0.4):
                [zd.uv(0, 0), zd.uv(w_, 0), zd.uv(w_, h_), zd.uv(0, h_)], PETIT_C, (c["n"][0], 0.0, c["n"][1]))
     # ---- toits
     deb = 0.0 if ty == "plat" else float(toit.get("debord", 0.4))
+    zbo = uni("bois_ferme", hexc(R.get("c_poteaux"), (150, 104, 62)))
+
+    def ferme(pa, pb, pm):
+        """Ferme de charpente apparente (abri ouvert) : entrait, arbalétriers, poinçon, contrefiches."""
+        pa, pb, pm = np.asarray(pa, float), np.asarray(pb, float), np.asarray(pm, float)
+        pc = (pa + pb) / 2
+        poutre(M, zbo, pa, pb, 0.2)
+        poutre(M, zbo, pa, pm, 0.18); poutre(M, zbo, pb, pm, 0.18)
+        poutre(M, zbo, pc, pm, 0.16)
+        for s_ in (pa, pb):
+            poutre(M, zbo, pc + [0, 0.15, 0], (s_ + pm) / 2, 0.12)
     zr = uni("rive", (226, 222, 214) if ty != "plat" else assombrir(mur_c, 0.9))
     def tile_quad(Q, col=TOIT_C):
         """Pan de toit (4 points monde) découpé en cases de 12 m (l'atlas ne se répète pas)."""
@@ -628,6 +645,9 @@ def construire(R, feat, dem, remplir=0.4):
                         W3(X0, zm + 0.12, FA + 0.12)], uv4(zr), TOIT_C)
             for zz in (Z0, Z1):
                 M.poly([W3(X0, zz, yb - 0.12), W3(X1, zz, yb - 0.12), W3(X1, zz, yb), W3(X0, zz, yb)], uv4(zr), PETIT_C)
+            if R.get("ouvert") and ty == "2pans":
+                for xx in np.linspace(x0, x1, max(2, int(round((x1 - x0) / 4.0)) + 1)):
+                    ferme(W3(xx, z0, EG), W3(xx, z1, EG), W3(xx, zm, FA - 0.15))
         else:
             xm = (x0 + x1) / 2; pente = (FA - EG) / max(0.5, (x1 - x0) / 2)
             yb = EG - deb * pente
@@ -645,8 +665,11 @@ def construire(R, feat, dem, remplir=0.4):
                         W3(xm + 0.12, Z0, FA + 0.12)], uv4(zr), TOIT_C)
             for xx in (X0, X1):
                 M.poly([W3(xx, Z0, yb - 0.12), W3(xx, Z1, yb - 0.12), W3(xx, Z1, yb), W3(xx, Z0, yb)], uv4(zr), PETIT_C)
-    # pignons (triangles), texture du côté porteur
-    for a, b, c in pignons:
+            if R.get("ouvert") and ty == "2pans":
+                for zz in np.linspace(z0, z1, max(2, int(round((z1 - z0) / 4.0)) + 1)):
+                    ferme(W3(x0, zz, EG), W3(x1, zz, EG), W3(xm, zz, FA - 0.15))
+    # pignons (triangles), texture du côté porteur ; abri ouvert : pignons ouverts (fermes apparentes)
+    for a, b, c in ([] if R.get("ouvert") else pignons):
         m = (a + b) / 2
         if c is not None:
             def u_de(p):
@@ -709,6 +732,41 @@ def construire(R, feat, dem, remplir=0.4):
                 zm_ = uni("auvent" + e.get("c", ""), col)
                 M.poly([(a[0], y, a[1]), (b[0], y, b[1]), (bo[0], y - 0.15, bo[1]), (ao[0], y - 0.15, ao[1])], uv4(zm_), PETIT_C)
                 M.poly([(ao[0], y - 0.15, ao[1]), (bo[0], y - 0.15, bo[1]), (bo[0], y - 0.35, bo[1]), (ao[0], y - 0.35, ao[1])], uv4(zm_), PETIT_C)
+        elif t == "charpente" and c is not None:
+            # grand porche ouvert à charpente apparente (v6.28) : toit à deux pans sorti de la façade, pignon vers
+            # l'extérieur, poteaux et ferme en bois (entrait, arbalétriers, poinçon, contrefiches) en volume
+            f0, f1 = e.get("x", [0.2, 0.6])
+            y, p = float(e.get("y", 3.0)), float(e.get("p", 5.0))
+            hf = float(e.get("h", y + 2.4))
+            a, b = B.pt_face(c, f0), B.pt_face(c, f1)
+            n = c["n"]
+            m = (a + b) / 2
+            dbd = 0.5
+            A3 = lambda q, yy: (float(q[0]), yy, float(q[1]))
+            ao, bo, mo = a + n * (p + dbd), b + n * (p + dbd), m + n * (p + dbd)
+            tile_quad([A3(a, y), A3(ao, y), A3(mo, hf), A3(m, hf)])
+            tile_quad([A3(m, hf), A3(mo, hf), A3(bo, y), A3(b, y)])
+            zb = uni("bois" + e.get("c", ""), hexc(e.get("c"), (128, 84, 48)))
+            ap, bp, mp = a + n * p, b + n * p, m + n * p
+            nb = max(1, int(round(p / 4.0)))
+            for k in range(nb + 1):                               # fermes : en façade, puis tous les ~4 m
+                t_ = k / nb
+                if t_ == 0:
+                    continue
+                aa, bb, mm = a + n * p * t_, b + n * p * t_, m + n * p * t_
+                poutre(M, zb, A3(aa, y), A3(bb, y), 0.2)                  # entrait
+                poutre(M, zb, A3(aa, y), A3(mm, hf - 0.1), 0.18)          # arbalétriers
+                poutre(M, zb, A3(bb, y), A3(mm, hf - 0.1), 0.18)
+                poutre(M, zb, A3(mm, y), A3(mm, hf - 0.1), 0.16)          # poinçon
+                for s_ in (aa, bb):                                       # contrefiches
+                    q1 = (np.asarray(s_) + mm) / 2
+                    poutre(M, zb, A3(mm, y + 0.15), A3(q1, y + (hf - y) / 2), 0.12)
+                for q in (aa, bb):
+                    M_box(M, zb, q, 0.0, 0.11, 0.11, 0.0, y)              # poteaux
+                    boites.append([float(q[0]), y / 2, float(q[1]), 0.12, y / 2, 0.12, 0.0])
+            poutre(M, zb, A3(m, hf - 0.1), A3(mp, hf - 0.1), 0.18)        # faîtière
+            for s_, o_ in ((a, ap), (b, bp)):                             # sablières
+                poutre(M, zb, A3(s_, y), A3(o_, y), 0.18)
         elif t in ("applique", "poubelle") and c is not None:
             for f in (e["x"] if isinstance(e["x"], list) else [e["x"]]):
                 q = B.pt_face(c, f, 0.12 if t == "applique" else 0.45)
@@ -772,6 +830,22 @@ def M_box(M, z, q, ax, hx, hz, y0, y1):
         (a, b), (p, r) = C[i], C[(i + 1) % 4]
         M.poly([W(a, b, y0), W(p, r, y0), W(p, r, y1), W(a, b, y1)], uv, PETIT_C)
     M.poly([W(-hx, -hz, y1), W(-hx, hz, y1), W(hx, hz, y1), W(hx, -hz, y1)], uv, PETIT_C)
+
+
+def poutre(M, z, p0, p1, w=0.16):
+    """Poutre de section carrée w entre deux points 3D (monde relatif) : charpentes apparentes."""
+    p0, p1 = np.asarray(p0, float), np.asarray(p1, float)
+    d = p1 - p0
+    e1 = np.cross(d, [0.0, 1.0, 0.0])
+    if np.linalg.norm(e1) < 1e-6:
+        e1 = np.array([1.0, 0.0, 0.0])
+    e1 = e1 / np.linalg.norm(e1) * w / 2
+    e2 = np.cross(e1, d); e2 = e2 / (np.linalg.norm(e2) + 1e-9) * w / 2
+    C = [e1 + e2, -e1 + e2, -e1 - e2, e1 - e2]
+    uv = uv4(z)
+    for i in range(4):
+        a, b = C[i], C[(i + 1) % 4]
+        M.poly([p0 + a, p0 + b, p1 + b, p1 + a], uv, PETIT_C)
 
 
 def M_post(M, z, q, h):
