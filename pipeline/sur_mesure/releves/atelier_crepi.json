@@ -1,14 +1,14 @@
 {
  "id": "atelier_crepi",
  "nom": "Vieil atelier crépi",
- "mur": "enduit#bdb6a8",
+ "mur": "enduit#9a9890",
  "toit": {
   "type": "2pans",
-  "matiere": "tuile_brune",
+  "matiere": "ardoise",
   "debord": 0.3
  },
- "egout": 6.2,
- "faitage": 8.0,
+ "egout": 7.0,
+ "faitage": 9.0,
  "faces": {
   "NO": [
    {

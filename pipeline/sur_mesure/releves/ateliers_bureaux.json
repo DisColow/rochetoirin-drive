@@ -1,7 +1,7 @@
 {
  "id": "ateliers_bureaux",
  "nom": "Ateliers et bureaux",
- "mur": "bardage#a8acb0",
+ "mur": "bardage#8f969c",
  "toit": {
   "type": "plat"
  },

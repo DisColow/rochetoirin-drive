@@ -1,7 +1,7 @@
 {
  "id": "entrepot_bleu",
  "nom": "Entrepôt bleu-gris",
- "mur": "bardage#7a8a9a",
+ "mur": "bardage#5f6d80",
  "toit": {
   "type": "plat"
  },
@@ -62,5 +62,6 @@
    "c": "#f0f0ee"
   }
  ],
- "cleabs": "BATIMENT0000000301132892"
+ "cleabs": "BATIMENT0000000301132892",
+ "chainages": "#2a3550"
 }

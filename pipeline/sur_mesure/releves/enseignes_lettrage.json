@@ -9,29 +9,29 @@
  "faces": {
   "N": [
    {
-    "t": "enseigne",
+    "t": "lettres",
     "x": [
-     0.25,
-     0.75
+     0.3,
+     0.95
     ],
     "y": [
-     3.6,
-     4.6
+     3.3,
+     4.8
     ],
-    "txt": "Enseignes & Lettrage",
+    "txt": "Enseignes Lettrage",
     "c": "#f2f2f0",
-    "tc": "#7a7a86",
+    "tc": "#34343e",
     "sous": false
    },
    {
     "t": "logo",
     "x": [
-     0.12,
-     0.24
+     0.13,
+     0.28
     ],
     "y": [
-     3.4,
-     4.8
+     3.0,
+     5.0
     ],
     "txt": "E",
     "c": "#e8509a"

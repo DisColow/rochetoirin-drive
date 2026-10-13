@@ -12,7 +12,7 @@ Sorties : godot/assets/sur_mesure/<id>.glb + <id>.png, entrées de godot/world/s
 Format du relevé (mesures approximatives : reconnaissable, pas exact) :
 {
  "id": "ecole", "cleabs": "BATIMENT…", "nom": "Nom parodique (vrai rôle)", "remplace_commerce": [],
- "mur": "enduit#e8dcc8" | "bardage#a0a4a8" | "bois#6a4a30" | "pierre#9a8466" | "brique" | "beton#c8c4bc",
+ "mur": "enduit#e8dcc8" | "bardage#a0a4a8" | "bardageh#7c858d" (nervures horizontales) | "bois#6a4a30" | "pierre#9a8466" | "brique" | "beton#c8c4bc",
  "volumes": [{"rect": [u0, v0, u1, v1], "rot": degrés, "egout", "faitage", "toit", "faces", …}] (facultatif : plusieurs volumes en
    mètres dans le repère cadre() — coin du rectangle orienté de l'emprise, u le long du grand côté ; grille du calage),
  "remplace_bati_extra": [cleabs…] (bâtiments BD TOPO voisins absorbés par ce modèle, ex. une aile),
@@ -107,7 +107,7 @@ def matiere(z, mur, seed):
     d = ImageDraw.Draw(img)
     kind = mur.split("#")[0]
     c = hexc(mur, {"pierre": (150, 128, 100), "brique": (138, 88, 58), "beton": (196, 192, 184),
-                   "bois": (110, 80, 52), "bardage": (170, 174, 178)}.get(kind, (220, 210, 190)))
+                   "bois": (110, 80, 52), "bardage": (170, 174, 178), "bardageh": (126, 133, 141)}.get(kind, (220, 210, 190)))
     d.rectangle((x0, y0, x1, y1), fill=c)
     r = random.Random(seed)
     s = z.s
@@ -118,6 +118,13 @@ def matiere(z, mur, seed):
             x = x0 + k * pas * s
             d.line((x, y0, x, y1), fill=assombrir(c, 0.88), width=max(1, int(0.03 * s)))
             d.line((x + max(1, 0.04 * s), y0, x + max(1, 0.04 * s), y1), fill=assombrir(c, 1.04), width=1)
+            k += 1
+    elif kind == "bardageh":                                # bardage à nervures horizontales (tous les 30 cm)
+        k = 0
+        while y0 + k * 0.3 * s < y1:
+            y = y0 + k * 0.3 * s
+            d.line((x0, y, x1, y), fill=assombrir(c, 0.84), width=max(1, int(0.04 * s)))
+            d.line((x0, y + max(1, 0.05 * s), x1, y + max(1, 0.05 * s)), fill=assombrir(c, 1.06), width=1)
             k += 1
     elif kind == "bois":                                    # planches verticales
         k = 0
@@ -152,7 +159,7 @@ def chaine(z, u, v0, v1, cote, col, l=0.36):
         v += 0.34; k += 1
 
 
-def vitrage(z, u0, v0, u1, v1, allume=False, haut=(118, 136, 152), bas=(40, 46, 54)):
+def vitrage(z, u0, v0, u1, v1, allume=False, haut=(84, 96, 108), bas=(30, 34, 40)):
     a, b = z.px(u0, v1), z.px(u1, v0)
     for y in range(int(a[1]), int(b[1])):
         t = (y - a[1]) / max(1, b[1] - a[1])

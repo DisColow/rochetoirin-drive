@@ -39,7 +39,8 @@ void fragment() {
 	if (night > 0.0 && a.a > 0.75) {
 		EMISSION = vec3(1.0, 0.72, 0.42) * 1.8 * night;
 	}
-	ROUGHNESS = mix(vcol.r, 0.04, vitre) * (1.0 - 0.45 * wet);
-	SPECULAR = mix(0.35, 0.9, vitre);
+	// vitres : reflet du ciel modéré (v6.29 : en miroir parfait, les vitrines paraissaient blanches comme des portes)
+	ROUGHNESS = mix(vcol.r, 0.14, vitre) * (1.0 - 0.45 * wet);
+	SPECULAR = mix(0.35, 0.55, vitre);
 	METALLIC = 0.0;
 }

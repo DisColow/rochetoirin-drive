@@ -1,7 +1,7 @@
 {
  "id": "bardage_liseré_rouge_52",
  "nom": "Atelier gris et anthracite",
- "mur": "bardage#c4c8cc",
+ "mur": "bardage#a3a9ae",
  "toit": {
   "type": "plat"
  },
@@ -31,7 +31,7 @@
      0,
      4.2
     ],
-    "c": "#c8323a"
+    "c": "#8a9096"
    },
    {
     "t": "porte",

@@ -1,7 +1,7 @@
 {
  "id": "bardage_horizontal_b",
  "nom": "Bâtiment en bardage gris",
- "mur": "bardage#9ea6ae",
+ "mur": "bardageh#7c858d",
  "toit": {
   "type": "plat"
  },

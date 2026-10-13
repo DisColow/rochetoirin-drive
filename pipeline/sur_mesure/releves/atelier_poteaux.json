@@ -1,7 +1,7 @@
 {
  "id": "atelier_poteaux",
  "nom": "Atelier à poteaux",
- "mur": "enduit#b8bcbc",
+ "mur": "beton#a9aaa6",
  "toit": {
   "type": "2pans",
   "matiere": "fibro#8a8c8c",
@@ -21,7 +21,7 @@
      0,
      4.4
     ],
-    "mur": "bardage#8a4a3a"
+    "mur": "beton#8c8c88"
    },
    {
     "t": "matiere",
@@ -33,7 +33,7 @@
      0,
      4.4
     ],
-    "mur": "bardage#8a4a3a"
+    "mur": "beton#8c8c88"
    },
    {
     "t": "matiere",
@@ -45,7 +45,7 @@
      0,
      4.4
     ],
-    "mur": "bardage#8a4a3a"
+    "mur": "beton#8c8c88"
    },
    {
     "t": "matiere",
@@ -57,7 +57,7 @@
      0,
      4.4
     ],
-    "mur": "bardage#8a4a3a"
+    "mur": "beton#8c8c88"
    },
    {
     "t": "matiere",
@@ -69,7 +69,7 @@
      0,
      4.4
     ],
-    "mur": "bardage#8a4a3a"
+    "mur": "beton#8c8c88"
    },
    {
     "t": "matiere",
@@ -81,7 +81,7 @@
      0,
      4.4
     ],
-    "mur": "bardage#8a4a3a"
+    "mur": "beton#8c8c88"
    },
    {
     "t": "porte",

@@ -511,7 +511,7 @@ func set_time(i: int) -> void:
 		_sky_phys.ground_bottom_color = Color(0.12, 0.13, 0.12)
 	# [hauteur du soleil (°), couleur, énergie, énergie du ciel, exposition, couleur du brouillard, densité, nuit]
 	var P: Array = [
-		[48.0, Color(1.0, 0.96, 0.9), 1.6, 1.0, 1.0, Color(0.75, 0.82, 0.92), 0.000014, 0.0],
+		[48.0, Color(1.0, 0.96, 0.9), 1.45, 1.0, 1.0, Color(0.75, 0.82, 0.92), 0.000014, 0.0],
 		[24.0, Color(1.0, 0.86, 0.66), 1.5, 0.9, 1.05, Color(0.85, 0.80, 0.70), 0.00002, 0.0],
 		[9.0, Color(1.0, 0.62, 0.38), 1.8, 1.0, 1.1, Color(0.90, 0.62, 0.46), 0.00003, 0.35],
 		[38.0, Color(0.55, 0.65, 1.0), 0.32, 1.0, 1.25, Color(0.05, 0.07, 0.12), 0.00003, 1.0],
@@ -552,8 +552,8 @@ func set_time(i: int) -> void:
 		# gris chaud, comme sur les photos (une façade à l'ombre garde sa couleur)
 		_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 		_env.ambient_light_color = Color(0.80, 0.75, 0.68)
-		_env.ambient_light_sky_contribution = 0.55
-		_env.ambient_light_energy = 1.25
+		_env.ambient_light_sky_contribution = 0.4
+		_env.ambient_light_energy = 1.5
 	else:
 		_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 		_env.ambient_light_sky_contribution = 1.0

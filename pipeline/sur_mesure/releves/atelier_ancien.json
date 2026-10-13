@@ -1,7 +1,7 @@
 {
  "id": "atelier_ancien",
  "nom": "Ancien atelier",
- "mur": "enduit#f0efea",
+ "mur": "enduit#a9a69e",
  "toit": {
   "type": "2pans",
   "matiere": "tuile_brune",
@@ -21,7 +21,9 @@
      4.2,
      5.6
     ],
-    "c": "#7a3a2a"
+    "c": "#5a2e22",
+    "entourage": "#a8583e",
+    "e_ent": 0.18
    },
    {
     "t": "volets_clos",
@@ -33,7 +35,9 @@
      4.2,
      5.6
     ],
-    "c": "#7a3a2a"
+    "c": "#5a2e22",
+    "entourage": "#a8583e",
+    "e_ent": 0.18
    },
    {
     "t": "vitrine",
