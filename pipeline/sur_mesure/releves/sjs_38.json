@@ -1,0 +1,31 @@
+{
+ "id": "sjs_38",
+ "cleabs": "BATIMENT0000000302574474",
+ "nom": "Entrepôt",
+ "mur": "bardage#d8d0bc",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.0
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

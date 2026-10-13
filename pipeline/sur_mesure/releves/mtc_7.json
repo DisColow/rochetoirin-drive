@@ -1,0 +1,42 @@
+{
+ "id": "mtc_7",
+ "cleabs": "BATIMENT0000000301576251",
+ "nom": "Église",
+ "mur": "pierre#b0a084",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 11.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.0,
+     6.0
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

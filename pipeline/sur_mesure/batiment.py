@@ -84,17 +84,18 @@ def assombrir(c, f):
 
 # ================================================================ peinture
 class Atlas:
-    """Rangement en étagères dans l'atlas (ATLAS × ATLAS)."""
-    def __init__(self):
-        self.img = Image.new("RGB", (ATLAS, ATLAS), (128, 128, 128))
-        self.msk = Image.new("L", (ATLAS, ATLAS), 0)
+    """Rangement en étagères dans l'atlas (taille × taille ; ATLAS par défaut)."""
+    def __init__(self, taille=ATLAS):
+        self.T = taille
+        self.img = Image.new("RGB", (taille, taille), (128, 128, 128))
+        self.msk = Image.new("L", (taille, taille), 0)
         self.x = self.y = self.hl = 0
 
     def zone(self, w, h, s):
         W, H = int(math.ceil(w * s)) + 2, int(math.ceil(h * s)) + 2
-        if self.x + W > ATLAS:
+        if self.x + W > self.T:
             self.x, self.y, self.hl = 0, self.y + self.hl + 2, 0
-        if self.y + H > ATLAS:
+        if self.y + H > self.T:
             raise ValueError("atlas plein")
         z = Zone(self.img, self.msk, self.x + 1, self.y + 1, W - 2, H - 2, s)
         self.x += W + 2; self.hl = max(self.hl, H)
@@ -448,7 +449,13 @@ class Batiment:
 
 def construire(R, feat, dem, remplir=0.4):
     B = Batiment(R, feat, dem)
-    A = Atlas()
+    taille = ATLAS
+    if R.get("densite"):                               # atlas juste assez grand pour ~densite px/m (lots de communes)
+        d = float(R["densite"])
+        besoin = sum(c["L"] * (B.FA + 0.4) for c in B.cotes) * d * d / 0.7 + 220 * 220
+        taille = next((t for t in (256, 384, 512, 768, 1024) if t * t >= besoin), 1024)
+    _BB.ATLAS = taille                                 # Zone.uv divise par cette taille
+    A = Atlas(taille)
     M = Mesh()
     boites = []
     mur = R.get("mur", "enduit#e0d6c4")
@@ -514,7 +521,9 @@ def construire(R, feat, dem, remplir=0.4):
     # ---- peinture des façades
     decors = []
     tot = sum(c["L"] * (c["top"] + 0.2) for c in B.cotes)
-    s = max(8.0, min(40.0, math.sqrt(remplir * ATLAS * ATLAS / max(tot, 1.0))))
+    s = max(8.0, min(40.0, math.sqrt(remplir * A.T * A.T / max(tot, 1.0))))
+    if R.get("densite"):                               # lots de communes (v6.34) : atlas réduit, ~densite px/m
+        s = min(s, float(R["densite"]))
     seed = abs(hash(R["id"])) % 1000
     for k, c in enumerate(B.cotes):
         z = c["z"] = A.zone(c["L"], c["top"] + 0.2, s)
@@ -541,7 +550,9 @@ def construire(R, feat, dem, remplir=0.4):
             for a0, a1 in xs:
                 if op["t"] in DECORS:          # enseignes, lettres, affichettes : aplat à part, en haute définition
                     w_, h_ = (a1 - a0) * c["L"], v1 - v0
-                    sd = max(s, min(140.0, 260.0 / max(h_, 0.3), 0.85 * ATLAS / max(w_, 0.3), 120.0 / max(h_, 0.1)))
+                    sd = max(s, min(140.0, 260.0 / max(h_, 0.3), 0.85 * A.T / max(w_, 0.3), 120.0 / max(h_, 0.1)))
+                    if R.get("densite"):                     # atlas réduit : titre lisible sans plus (~40 px/m)
+                        sd = min(sd, max(s, 40.0))
                     zd = A.zone(w_, h_, sd)
                     zd.rect(-0.05, -0.05, w_ + 0.05, h_ + 0.05, mur_c if op["t"] == "lettres" else (250, 248, 240))
                     ouverture(zd, op, 0, 0, w_, h_, mur_c)
@@ -556,7 +567,7 @@ def construire(R, feat, dem, remplir=0.4):
             A.img.paste(Image.fromarray(np.clip(reg * f, 0, 255).astype(np.uint8)), (int(a[0]), int(a[1])))
     # ---- matières des toits et des petits volumes (cases unies) ; décors en relief
     mt = toit.get("matiere", "tuile")
-    zt = A.zone(12, 12, 16)
+    zt = A.zone(12, 12, min(16.0, float(R.get("densite", 16))))
     toiture(zt, mt, seed)
     unis = {}
     def uni(nom, col):

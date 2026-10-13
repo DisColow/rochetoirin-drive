@@ -1,0 +1,31 @@
+{
+ "id": "ces_34",
+ "cleabs": "BATIMENT0000000302571606",
+ "nom": "Salle",
+ "mur": "enduit#e8dcb0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.8,
+     1.6
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

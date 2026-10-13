@@ -1,0 +1,43 @@
+{
+ "id": "ces_7",
+ "cleabs": "BATIMENT0000000302572756",
+ "nom": "Pharmacie",
+ "mur": "enduit#ecebe4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.8
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "PHARMACIE",
+    "c": "#ffffff",
+    "tc": "#2a8a3a"
+   }
+  ]
+ }
+}

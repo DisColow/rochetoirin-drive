@@ -1,0 +1,14 @@
+{
+ "id": "sjs_7",
+ "cleabs": "BATIMENT0000000302575713",
+ "nom": "Entrepôt logistique",
+ "mur": "bardage#d8dcdc",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 9.0,
+ "faitage": 9.0,
+ "densite": 12
+}

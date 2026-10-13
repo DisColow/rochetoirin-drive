@@ -1,0 +1,14 @@
+{
+ "id": "vgn_10",
+ "cleabs": "BATIMENT0000000301581417",
+ "nom": "Salle",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "densite": 12
+}

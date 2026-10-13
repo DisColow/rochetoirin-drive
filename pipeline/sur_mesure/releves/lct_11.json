@@ -1,0 +1,30 @@
+{
+ "id": "lct_11",
+ "cleabs": "BATIMENT0000000301970437",
+ "nom": "Gymnase",
+ "mur": "beton#d8d8d4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8acb0",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     1.0
+    ],
+    "y": [
+     0,
+     6.0
+    ],
+    "mur": "bardageh#d8d0b8"
+   }
+  ]
+ }
+}

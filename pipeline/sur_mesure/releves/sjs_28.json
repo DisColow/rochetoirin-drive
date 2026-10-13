@@ -1,0 +1,56 @@
+{
+ "id": "sjs_28",
+ "cleabs": "BATIMENT0000000302576006",
+ "nom": "La Galerie du Pêcheur",
+ "mur": "enduit#e4d8c4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 5.5,
+ "faitage": 7.5,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.4,
+     4.6
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.26,
+     0.33999999999999997
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.1,
+     5.0
+    ],
+    "txt": "LA GALERIE DU PÊCHEUR",
+    "c": "#ffffff",
+    "tc": "#1a3a2a"
+   }
+  ]
+ }
+}

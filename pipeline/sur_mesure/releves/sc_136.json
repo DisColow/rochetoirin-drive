@@ -10,6 +10,7 @@
  },
  "egout": 2.4,
  "faitage": 3.2,
+ "densite": 12,
  "ouvert": true,
  "c_poteaux": "#5a4a3a"
 }

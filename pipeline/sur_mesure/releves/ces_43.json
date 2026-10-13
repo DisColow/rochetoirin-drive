@@ -1,0 +1,41 @@
+{
+ "id": "ces_43",
+ "cleabs": "BATIMENT0000000302573141",
+ "nom": "Gymnase",
+ "mur": "enduit#e0b890",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     2.6,
+     3.6
+    ],
+    "c": "#8a8e90"
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.5599999999999999,
+     0.64
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

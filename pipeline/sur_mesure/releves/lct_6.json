@@ -1,0 +1,14 @@
+{
+ "id": "lct_6",
+ "cleabs": "BATIMENT0000000301970883",
+ "nom": "Remise",
+ "mur": "beton#c8c0b0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#a8a8a0",
+  "debord": 0.4
+ },
+ "egout": 2.6,
+ "faitage": 3.2,
+ "densite": 12
+}

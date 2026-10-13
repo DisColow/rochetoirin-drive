@@ -1,0 +1,42 @@
+{
+ "id": "lct_26",
+ "cleabs": "BATIMENT0000000301966211",
+ "nom": "Salle",
+ "mur": "enduit#8a8a86",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     2.6,
+     3.6
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

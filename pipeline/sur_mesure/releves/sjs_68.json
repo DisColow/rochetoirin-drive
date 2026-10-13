@@ -1,0 +1,44 @@
+{
+ "id": "sjs_68",
+ "cleabs": "BATIMENT0000000302575761",
+ "nom": "Bâtiment communal",
+ "mur": "pierre#a09888",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.8
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

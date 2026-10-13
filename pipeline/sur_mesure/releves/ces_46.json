@@ -1,0 +1,14 @@
+{
+ "id": "ces_46",
+ "cleabs": "BATIMENT0000000302573256",
+ "nom": "Gymnase",
+ "mur": "enduit#d8a080",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#a8a49c",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12
+}

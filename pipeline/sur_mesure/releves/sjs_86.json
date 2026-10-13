@@ -1,0 +1,42 @@
+{
+ "id": "sjs_86",
+ "cleabs": "BATIMENT0000000302574455",
+ "nom": "Usine",
+ "mur": "beton#c8b8a0",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     2.8,
+     4.2
+    ],
+    "n": 8,
+    "l": 0.75
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.10999999999999999,
+     0.19
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,56 @@
+{
+ "id": "sjs_31",
+ "cleabs": "BATIMENT0000000302575977",
+ "nom": "Minoterie",
+ "mur": "enduit#d8d4cc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a0a4a8",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.6
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#5a9a9a"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "silo",
+   "face": "N",
+   "x": 0.15,
+   "d": 2.5,
+   "r": 2.0,
+   "h": 9.0,
+   "c": "#b8bcc0"
+  }
+ ]
+}

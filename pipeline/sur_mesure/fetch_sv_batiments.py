@@ -48,6 +48,8 @@ def meta(x, z, radius=50):
                                                               source="outdoor", key=KEY)))
     if not m or m.get("status") != "OK":
         return None
+    if "Google" not in (m.get("copyright") or ""):     # panorama de particulier (souvent en intérieur) : écarté
+        return None
     cx, cz = geo.to_local(m["location"]["lng"], m["location"]["lat"])
     return dict(pano=m["pano_id"], date=m.get("date"), cam=[round(float(cx), 2), round(float(cz), 2)])
 

@@ -1,0 +1,42 @@
+{
+ "id": "sjs_2",
+ "cleabs": "BATIMENT0000000302574348",
+ "nom": "Entrepôt",
+ "mur": "bardage#5a5e62",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a5e62",
+  "debord": 0.4
+ },
+ "egout": 4.5,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.0
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.86,
+     0.9400000000000001
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,42 @@
+{
+ "id": "sjs_106",
+ "cleabs": "BATIMENT0000002493295834",
+ "nom": "Magasin bleu",
+ "mur": "bardage#1a3ab0",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.4,
+     5.4
+    ],
+    "n": 1,
+    "l": 1.6
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

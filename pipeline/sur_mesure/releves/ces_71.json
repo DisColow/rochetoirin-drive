@@ -1,0 +1,54 @@
+{
+ "id": "ces_71",
+ "cleabs": "BATIMENT0000002209655312",
+ "nom": "Entrepôt",
+ "mur": "bardage#a8acb4",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "matiere",
+    "x": [
+     0.1,
+     0.13
+    ],
+    "y": [
+     0,
+     7.0
+    ],
+    "mur": "bardage#c02a2a"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.4,
+     0.43
+    ],
+    "y": [
+     0,
+     7.0
+    ],
+    "mur": "bardage#c02a2a"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.7,
+     0.73
+    ],
+    "y": [
+     0,
+     7.0
+    ],
+    "mur": "bardage#c02a2a"
+   }
+  ]
+ }
+}

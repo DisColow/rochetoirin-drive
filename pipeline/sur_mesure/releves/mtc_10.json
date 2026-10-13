@@ -1,0 +1,16 @@
+{
+ "id": "mtc_10",
+ "cleabs": "BATIMENT0000000290578070",
+ "nom": "Hangar à foin",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.5,
+ "faitage": 7.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#7a6a58"
+}

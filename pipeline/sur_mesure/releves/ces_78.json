@@ -1,0 +1,14 @@
+{
+ "id": "ces_78",
+ "cleabs": "BATIMENT0000002292127031",
+ "nom": "Usine",
+ "mur": "bardage#c8c8cc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a2a30",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 8.5,
+ "densite": 12
+}

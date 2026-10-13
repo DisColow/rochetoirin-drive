@@ -1,0 +1,56 @@
+{
+ "id": "ces_25",
+ "cleabs": "BATIMENT0000000302572966",
+ "nom": "L'Atelier des délices",
+ "mur": "enduit#9a9a96",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 9.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.4
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.8
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.6,
+     6.5
+    ],
+    "txt": "L'ATELIER DES DÉLICES",
+    "c": "#b03a2a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

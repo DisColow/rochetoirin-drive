@@ -1,0 +1,44 @@
+{
+ "id": "lct_31",
+ "cleabs": "BATIMENT0000000301966037",
+ "nom": "Maison de bourg",
+ "mur": "pierre#c8b8a0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.8,
+     2.4
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.6
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "id": "ces_14",
+ "cleabs": "BATIMENT0000002001968086",
+ "nom": "Atelier",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#8a8a86",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 5.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#6a4a32"
+}

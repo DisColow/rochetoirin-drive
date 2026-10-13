@@ -1,0 +1,16 @@
+{
+ "id": "sjs_11",
+ "cleabs": "BATIMENT0000000302575690",
+ "nom": "Hangar à matériaux",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c8",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#b02a2a"
+}

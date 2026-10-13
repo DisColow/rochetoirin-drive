@@ -1,0 +1,14 @@
+{
+ "id": "ces_75",
+ "cleabs": "BATIMENT0000002209604577",
+ "nom": "Entrepôt",
+ "mur": "bardage#c8ccd0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c0c4c8",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12
+}

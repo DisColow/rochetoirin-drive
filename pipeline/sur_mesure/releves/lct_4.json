@@ -1,0 +1,31 @@
+{
+ "id": "lct_4",
+ "cleabs": "BATIMENT0000000301970881",
+ "nom": "Étable",
+ "mur": "beton#c8c4bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#a8a8a0",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.6,
+     2.6
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

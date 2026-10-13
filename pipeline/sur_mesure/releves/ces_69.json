@@ -1,0 +1,33 @@
+{
+ "id": "ces_69",
+ "cleabs": "BATIMENT0000002493295678",
+ "nom": "Grange en pisé",
+ "mur": "enduit#b89a68",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "soubassement": "#9a9890",
+ "h_soub": 1.6,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.8,
+     2.0
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

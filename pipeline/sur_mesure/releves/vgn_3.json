@@ -1,0 +1,55 @@
+{
+ "id": "vgn_3",
+ "cleabs": "BATIMENT0000000301581464",
+ "nom": "Auberge",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.4,
+     4.6
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.36000000000000004,
+     0.44
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

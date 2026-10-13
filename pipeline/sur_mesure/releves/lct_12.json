@@ -1,0 +1,31 @@
+{
+ "id": "lct_12",
+ "cleabs": "BATIMENT0000000301965978",
+ "nom": "École",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

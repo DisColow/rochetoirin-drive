@@ -10,6 +10,7 @@
  },
  "egout": 6.0,
  "faitage": 6.0,
+ "densite": 12,
  "faces": {
   "SO": [
    {

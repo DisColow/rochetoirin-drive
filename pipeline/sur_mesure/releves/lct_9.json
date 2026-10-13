@@ -1,0 +1,42 @@
+{
+ "id": "lct_9",
+ "cleabs": "BATIMENT0000000330801041",
+ "nom": "Logements",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.26,
+     0.33999999999999997
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

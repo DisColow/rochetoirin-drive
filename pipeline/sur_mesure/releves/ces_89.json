@@ -1,0 +1,31 @@
+{
+ "id": "ces_89",
+ "cleabs": "BATIMENT0000000302575577",
+ "nom": "Usine",
+ "mur": "bardage#d8dadc",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.4
+    ],
+    "n": 6,
+    "l": 0.9999999999999999
+   }
+  ]
+ }
+}

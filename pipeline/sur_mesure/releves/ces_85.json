@@ -1,0 +1,14 @@
+{
+ "id": "ces_85",
+ "cleabs": "BATIMENT0000000302575576",
+ "nom": "Hangar",
+ "mur": "bardage#3a6ab0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8acb0",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12
+}

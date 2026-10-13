@@ -1,0 +1,14 @@
+{
+ "id": "sjs_35",
+ "cleabs": "BATIMENT0000000302574465",
+ "nom": "Entrepôt",
+ "mur": "bardage#dcd4c0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c4b8",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 8.5,
+ "densite": 12
+}

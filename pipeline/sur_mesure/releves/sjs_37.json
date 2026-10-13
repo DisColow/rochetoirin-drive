@@ -1,0 +1,30 @@
+{
+ "id": "sjs_37",
+ "cleabs": "BATIMENT0000000302574551",
+ "nom": "Hangar",
+ "mur": "bardage#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#d8d8d4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     1.0
+    ],
+    "y": [
+     0,
+     5.0
+    ],
+    "mur": "bardage#ecebe6"
+   }
+  ]
+ }
+}

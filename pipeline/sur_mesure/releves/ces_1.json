@@ -1,0 +1,42 @@
+{
+ "id": "ces_1",
+ "cleabs": "BATIMENT0000000302572508",
+ "nom": "Restaurant",
+ "mur": "enduit#e4d0b0",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "porte",
+    "x": [
+     0.36000000000000004,
+     0.44
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

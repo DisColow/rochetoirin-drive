@@ -1,0 +1,14 @@
+{
+ "id": "sjs_84",
+ "cleabs": "BATIMENT0000002207499883",
+ "nom": "Silo à ciment",
+ "mur": "bardage#e8e8e8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 20.0,
+ "faitage": 20.0,
+ "densite": 12
+}

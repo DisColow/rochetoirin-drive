@@ -1,0 +1,30 @@
+{
+ "id": "sjs_32",
+ "cleabs": "BATIMENT0000000302575978",
+ "nom": "Usine",
+ "mur": "bardage#d8dad8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8acae",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     2.6,
+     4.2
+    ],
+    "c": "#8a8e90"
+   }
+  ]
+ }
+}

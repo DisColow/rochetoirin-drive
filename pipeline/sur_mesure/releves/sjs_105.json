@@ -1,0 +1,45 @@
+{
+ "id": "sjs_105",
+ "cleabs": "BATIMENT0000000302575928",
+ "nom": "Arrivage Direct",
+ "mur": "bardage#2a3240",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.6,
+     6.5
+    ],
+    "txt": "ARRIVAGE DIRECT",
+    "c": "#f0d020",
+    "tc": "#c02a2a"
+   }
+  ]
+ }
+}

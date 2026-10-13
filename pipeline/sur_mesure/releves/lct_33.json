@@ -1,0 +1,56 @@
+{
+ "id": "lct_33",
+ "cleabs": "BATIMENT0000000301966039",
+ "nom": "Douceurs de Ceboy",
+ "mur": "enduit#d8d0c4",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.6
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.8
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "DOUCEURS DU VILLAGE",
+    "c": "#2a2a2a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

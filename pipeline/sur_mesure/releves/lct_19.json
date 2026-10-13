@@ -1,0 +1,58 @@
+{
+ "id": "lct_19",
+ "cleabs": "BATIMENT0000000301966220",
+ "nom": "Maison",
+ "mur": "enduit#d8d4cc",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 7.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.6
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#ecebe6"
+   }
+  ]
+ }
+}

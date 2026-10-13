@@ -1,0 +1,43 @@
+{
+ "id": "sjs_91",
+ "cleabs": "BATIMENT0000002493295680",
+ "nom": "Atelier",
+ "mur": "bardage#3a4048",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.5,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "matiere",
+    "x": [
+     0.55,
+     1.0
+    ],
+    "y": [
+     0,
+     4.5
+    ],
+    "mur": "bardage#b8c4d0"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.4,
+     2.4
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,46 @@
+{
+ "id": "lct_17",
+ "cleabs": "BATIMENT0000000301966189",
+ "nom": "Restaurant Le Provençal",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#7a7a7a"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "RESTAURANT LE PROVENÇAL",
+    "c": "#ffffff",
+    "tc": "#2a3a8a"
+   }
+  ]
+ }
+}

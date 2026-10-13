@@ -1,0 +1,14 @@
+{
+ "id": "ces_47",
+ "cleabs": "BATIMENT0000000302573137",
+ "nom": "Vestiaires",
+ "mur": "enduit#d8a080",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#a8a49c",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12
+}

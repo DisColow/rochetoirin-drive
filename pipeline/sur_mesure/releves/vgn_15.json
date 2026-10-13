@@ -1,0 +1,14 @@
+{
+ "id": "vgn_15",
+ "cleabs": "BATIMENT0000000301580145",
+ "nom": "Remise",
+ "mur": "enduit#c8c0b0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "densite": 12
+}

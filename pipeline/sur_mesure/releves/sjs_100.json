@@ -1,0 +1,14 @@
+{
+ "id": "sjs_100",
+ "cleabs": "BATIMENT0000000302575764",
+ "nom": "Remise",
+ "mur": "bois#7a4a32",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#9a9a96",
+  "debord": 0.4
+ },
+ "egout": 2.8,
+ "faitage": 3.6,
+ "densite": 12
+}

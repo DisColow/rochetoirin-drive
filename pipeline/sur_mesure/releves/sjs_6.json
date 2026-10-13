@@ -1,0 +1,31 @@
+{
+ "id": "sjs_6",
+ "cleabs": "BATIMENT0000000302575710",
+ "nom": "Chalet",
+ "mur": "bois#9a5a3a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.4,
+     4.6
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

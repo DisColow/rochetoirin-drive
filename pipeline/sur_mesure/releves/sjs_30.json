@@ -1,0 +1,14 @@
+{
+ "id": "sjs_30",
+ "cleabs": "BATIMENT0000000302575968",
+ "nom": "Atelier",
+ "mur": "bardage#9aa2a8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.0,
+ "faitage": 6.0,
+ "densite": 12
+}

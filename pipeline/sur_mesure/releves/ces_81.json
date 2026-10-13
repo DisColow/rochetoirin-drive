@@ -1,0 +1,32 @@
+{
+ "id": "ces_81",
+ "cleabs": "BATIMENT0000000302575582",
+ "nom": "Négoce matériaux",
+ "mur": "bardage#c8ccd0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#b8bcc0",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "LA MAISON DU BÂTI",
+    "c": "#f0c020",
+    "tc": "#2a2a2a"
+   }
+  ]
+ }
+}

@@ -59,6 +59,7 @@ def releve(e, F):
     R = {"id": e["R"]["id"], "cleabs": e["cleabs"], "nom": F.get("nom", e["usage"]), "mur": F.get("mur", "enduit#e0d8c8"),
          "toit": {"type": tt[0], "matiere": tt[1] if len(tt) > 1 else "tuile", "debord": 0.0 if tt[0] in ("plat", "berceau") else 0.4},
          "egout": eg, "faitage": fa if tt[0] != "plat" else eg}
+    R["densite"] = F.get("densite", 12)               # atlas réduit (taille de l'APK, v6.34)
     if F.get("ouvert"):
         R["ouvert"] = True; R["c_poteaux"] = F.get("c_poteaux", "#8a8e92")
     if F.get("soub"):

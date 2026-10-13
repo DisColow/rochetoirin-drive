@@ -1,0 +1,55 @@
+{
+ "id": "ces_27",
+ "cleabs": "BATIMENT0000000302572832",
+ "nom": "Maison forte",
+ "mur": "enduit#e8c0a8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 10.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

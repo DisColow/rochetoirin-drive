@@ -1,0 +1,14 @@
+{
+ "id": "ces_51",
+ "cleabs": "BATIMENT0000000302573252",
+ "nom": "Atelier",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12
+}

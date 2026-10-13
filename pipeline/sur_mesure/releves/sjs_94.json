@@ -1,0 +1,42 @@
+{
+ "id": "sjs_94",
+ "cleabs": "BATIMENT0000000290563306",
+ "nom": "Restaurant",
+ "mur": "bardage#2a2c30",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#2a2c30",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.15
+    ],
+    "y": [
+     0,
+     3.0
+    ],
+    "mur": "enduit#c03a2a"
+   },
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0.4,
+     2.6
+    ],
+    "c": "#8a8e90"
+   }
+  ]
+ }
+}

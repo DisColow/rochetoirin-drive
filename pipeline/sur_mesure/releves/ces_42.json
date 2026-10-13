@@ -1,0 +1,29 @@
+{
+ "id": "ces_42",
+ "cleabs": "BATIMENT0000000302573143",
+ "nom": "Vestiaires",
+ "mur": "enduit#e0b890",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

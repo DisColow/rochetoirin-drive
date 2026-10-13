@@ -1,0 +1,70 @@
+{
+ "id": "sjs_42",
+ "cleabs": "BATIMENT0000000302575976",
+ "nom": "Autovisite",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#d0d0cc",
+  "debord": 0.4
+ },
+ "egout": 4.5,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.9
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#e8e8e8"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.1,
+     4.0
+    ],
+    "txt": "AUTOVISITE",
+    "c": "#2a5ab0",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

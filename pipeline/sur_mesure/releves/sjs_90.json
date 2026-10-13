@@ -1,0 +1,43 @@
+{
+ "id": "sjs_90",
+ "cleabs": "BATIMENT0000000302574453",
+ "nom": "Locaux à louer",
+ "mur": "bardage#c8ccd2",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.5,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.15
+    ],
+    "y": [
+     0,
+     4.5
+    ],
+    "mur": "bardage#b03a2a"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.4,
+     2.4
+    ],
+    "n": 5,
+    "l": 1.2
+   }
+  ]
+ }
+}

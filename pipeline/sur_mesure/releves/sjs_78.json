@@ -1,0 +1,55 @@
+{
+ "id": "sjs_78",
+ "cleabs": "BATIMENT0000002493295690",
+ "nom": "Intermarchand Super",
+ "mur": "bardage#3a3a42",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 9.0,
+ "faitage": 9.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.5,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.4,
+     1.0
+    ],
+    "y": [
+     0,
+     9.0
+    ],
+    "mur": "bois#a0683a"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     7.6,
+     8.5
+    ],
+    "txt": "INTERMARCHAND",
+    "c": "#ffffff",
+    "tc": "#c02a2a"
+   }
+  ]
+ }
+}

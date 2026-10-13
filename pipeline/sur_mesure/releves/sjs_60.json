@@ -1,0 +1,31 @@
+{
+ "id": "sjs_60",
+ "cleabs": "BATIMENT0000000302574554",
+ "nom": "Atelier",
+ "mur": "bardage#b8bcc4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8acb0",
+  "debord": 0.4
+ },
+ "egout": 6.5,
+ "faitage": 7.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.0,
+     3.6
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

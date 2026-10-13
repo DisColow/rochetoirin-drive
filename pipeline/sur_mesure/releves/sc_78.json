@@ -10,6 +10,7 @@
  },
  "egout": 5.5,
  "faitage": 5.5,
+ "densite": 12,
  "faces": {
   "S": [
    {

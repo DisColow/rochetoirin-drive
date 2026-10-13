@@ -1,0 +1,14 @@
+{
+ "id": "vgn_19",
+ "cleabs": "BATIMENT0000000007583797",
+ "nom": "Atelier",
+ "mur": "enduit#e4d4b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#ecebe8",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12
+}

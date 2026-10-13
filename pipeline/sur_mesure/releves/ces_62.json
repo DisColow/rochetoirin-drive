@@ -1,0 +1,32 @@
+{
+ "id": "ces_62",
+ "cleabs": "BATIMENT0000000302572388",
+ "nom": "Grange",
+ "mur": "enduit#c8c4bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     2.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#3a3a3a"
+   }
+  ]
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "id": "vgn_13",
+ "cleabs": "BATIMENT0000000301581689",
+ "nom": "Église",
+ "mur": "pierre#a89a84",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 11.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.0,
+     6.0
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "clocher",
+   "face": "N",
+   "x": 0.5,
+   "w": 3.5,
+   "h": 18,
+   "fleche": 6
+  }
+ ]
+}

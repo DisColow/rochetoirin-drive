@@ -10,6 +10,7 @@
  },
  "egout": 3.5,
  "faitage": 6.0,
+ "densite": 12,
  "soubassement": "enduit#e4d8c0",
  "h_soub": 3.0
 }

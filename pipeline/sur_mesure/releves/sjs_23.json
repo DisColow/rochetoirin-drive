@@ -1,0 +1,29 @@
+{
+ "id": "sjs_23",
+ "cleabs": "BATIMENT0000002493295734",
+ "nom": "Local",
+ "mur": "enduit#c89a6a",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#8a8a88",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "porte",
+    "x": [
+     0.26,
+     0.33999999999999997
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

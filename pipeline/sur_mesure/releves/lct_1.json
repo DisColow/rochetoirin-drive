@@ -1,0 +1,14 @@
+{
+ "id": "lct_1",
+ "cleabs": "BATIMENT0000000330801001",
+ "nom": "Tunnel",
+ "mur": "bardage#2a7a5a",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#2a7a5a",
+  "debord": 0.0
+ },
+ "egout": 0.5,
+ "faitage": 3.8,
+ "densite": 12
+}

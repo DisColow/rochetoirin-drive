@@ -1,0 +1,16 @@
+{
+ "id": "mtc_9",
+ "cleabs": "BATIMENT0000000301579415",
+ "nom": "Remise",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 2.4,
+ "faitage": 4.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#4a3a2a"
+}

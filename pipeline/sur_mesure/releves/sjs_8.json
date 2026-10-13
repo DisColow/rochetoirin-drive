@@ -1,0 +1,31 @@
+{
+ "id": "sjs_8",
+ "cleabs": "BATIMENT0000000302575702",
+ "nom": "Restaurant",
+ "mur": "enduit#f0ece4",
+ "toit": {
+  "type": "4pans",
+  "matiere": "ardoise",
+  "debord": 0.4
+ },
+ "egout": 3.2,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.8,
+     2.4
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

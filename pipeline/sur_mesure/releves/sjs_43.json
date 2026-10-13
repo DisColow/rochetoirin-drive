@@ -1,0 +1,14 @@
+{
+ "id": "sjs_43",
+ "cleabs": "BATIMENT0000000302575987",
+ "nom": "Locaux",
+ "mur": "enduit#ece8e0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 5.0,
+ "densite": 12
+}

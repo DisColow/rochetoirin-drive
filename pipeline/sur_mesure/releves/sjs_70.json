@@ -1,0 +1,16 @@
+{
+ "id": "sjs_70",
+ "cleabs": "BATIMENT0000000302575759",
+ "nom": "Préau",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#a07a4a"
+}

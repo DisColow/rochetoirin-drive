@@ -9,5 +9,6 @@
   "debord": 0.4
  },
  "egout": 3.5,
- "faitage": 5.0
+ "faitage": 5.0,
+ "densite": 12
 }

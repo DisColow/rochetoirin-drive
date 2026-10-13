@@ -1,0 +1,45 @@
+{
+ "id": "sjs_5",
+ "cleabs": "BATIMENT0000000302575699",
+ "nom": "Restaurant",
+ "mur": "enduit#f0ece4",
+ "toit": {
+  "type": "4pans",
+  "matiere": "ardoise",
+  "debord": 0.4
+ },
+ "egout": 3.2,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.8,
+     2.4
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "RESTAURANT",
+    "c": "#ffffff",
+    "tc": "#1a1a1a"
+   }
+  ]
+ }
+}

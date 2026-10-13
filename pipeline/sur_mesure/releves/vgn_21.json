@@ -1,0 +1,16 @@
+{
+ "id": "vgn_21",
+ "cleabs": "BATIMENT0000000301575623",
+ "nom": "Hangar",
+ "mur": "bardage#d8dce0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8ccd0",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "soubassement": "beton#8a7a70",
+ "h_soub": 2.4
+}

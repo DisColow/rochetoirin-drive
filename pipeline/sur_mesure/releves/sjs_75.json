@@ -1,0 +1,55 @@
+{
+ "id": "sjs_75",
+ "cleabs": "BATIMENT0000002292127030",
+ "nom": "Supermarché Intermarché",
+ "mur": "bois#a0683a",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 8.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.32,
+     0.4
+    ],
+    "y": [
+     0,
+     8.0
+    ],
+    "mur": "brique#a03a3a"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     6.6,
+     7.5
+    ],
+    "txt": "INTERMARCHAND",
+    "c": "#3a3a40",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

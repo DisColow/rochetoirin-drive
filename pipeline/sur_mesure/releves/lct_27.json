@@ -1,0 +1,55 @@
+{
+ "id": "lct_27",
+ "cleabs": "BATIMENT0000000301966206",
+ "nom": "Garage",
+ "mur": "enduit#ece4d4",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.2
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "mur": "bardage#1e2a6a"
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.7,
+     1.0
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "mur": "bardage#1e2a6a"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     2.4,
+     3.6
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

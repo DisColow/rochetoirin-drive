@@ -1,0 +1,57 @@
+{
+ "id": "ces_9",
+ "cleabs": "BATIMENT0000000302573114",
+ "nom": "Immeuble",
+ "mur": "enduit#e8dcc4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 9.0,
+ "faitage": 11.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.8,
+     5.0
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.6,
+     7.8
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

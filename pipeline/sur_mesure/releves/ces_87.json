@@ -1,0 +1,58 @@
+{
+ "id": "ces_87",
+ "cleabs": "BATIMENT0000000302575630",
+ "nom": "MGM Location",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.5,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     1.0
+    ],
+    "y": [
+     0,
+     5.5
+    ],
+    "mur": "bardage#3a5aa0"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#2a2a2a"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.1,
+     5.0
+    ],
+    "txt": "MGM LOCATION",
+    "c": "#f0c020",
+    "tc": "#1a1a1a"
+   }
+  ]
+ }
+}

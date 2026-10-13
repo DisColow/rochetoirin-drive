@@ -10,6 +10,7 @@
  },
  "egout": 5.0,
  "faitage": 7.0,
+ "densite": 12,
  "soubassement": "#2a2a2a",
  "h_soub": 1.0
 }

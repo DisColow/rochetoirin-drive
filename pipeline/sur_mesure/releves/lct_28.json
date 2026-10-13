@@ -1,0 +1,43 @@
+{
+ "id": "lct_28",
+ "cleabs": "BATIMENT0000000301966148",
+ "nom": "Atelier",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#a8a8a0",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#2a2a2a"
+   },
+   {
+    "t": "affiche",
+    "x": [
+     0.3,
+     0.38
+    ],
+    "y": [
+     1.4,
+     2.4
+    ]
+   }
+  ]
+ }
+}

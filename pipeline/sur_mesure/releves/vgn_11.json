@@ -1,0 +1,44 @@
+{
+ "id": "vgn_11",
+ "cleabs": "BATIMENT0000000301581556",
+ "nom": "Bâtiment communal",
+ "mur": "enduit#a8a8a4",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 9.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

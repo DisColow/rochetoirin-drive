@@ -1,0 +1,14 @@
+{
+ "id": "mtc_11",
+ "cleabs": "BATIMENT0000002493295954",
+ "nom": "Hangar en bois",
+ "mur": "bois#8a5a3a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#b04a3a",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12
+}

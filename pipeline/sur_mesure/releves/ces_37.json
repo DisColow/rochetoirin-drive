@@ -1,0 +1,30 @@
+{
+ "id": "ces_37",
+ "cleabs": "BATIMENT0000000302571694",
+ "nom": "Serres",
+ "mur": "bardage#c8d0c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8d0c8",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0.8,
+     2.6
+    ],
+    "c": "#8a8e90"
+   }
+  ]
+ }
+}

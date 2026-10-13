@@ -10,6 +10,7 @@
  },
  "egout": 4.5,
  "faitage": 7.0,
+ "densite": 12,
  "soubassement": "pierre#b0a084",
  "h_soub": 1.0,
  "faces": {

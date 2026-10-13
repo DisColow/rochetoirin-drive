@@ -1,0 +1,16 @@
+{
+ "id": "ces_84",
+ "cleabs": "BATIMENT0000000302575581",
+ "nom": "Hangar à matériaux",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#b8bcc0",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 8.5,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#8a8e92"
+}

@@ -1,0 +1,32 @@
+{
+ "id": "vgn_2",
+ "cleabs": "BATIMENT0000000330807745",
+ "nom": "Garages",
+ "mur": "enduit#e8c89a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     2.4
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#ecebe8"
+   }
+  ]
+ }
+}

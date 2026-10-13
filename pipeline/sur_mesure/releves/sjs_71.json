@@ -1,0 +1,44 @@
+{
+ "id": "sjs_71",
+ "cleabs": "BATIMENT0000000302575760",
+ "nom": "Groupe scolaire",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 6.0,
+ "densite": 12,
+ "soubassement": "#b04a3a",
+ "h_soub": 1.0,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 5,
+    "l": 1.2
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.36000000000000004,
+     0.44
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

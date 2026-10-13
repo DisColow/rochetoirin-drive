@@ -1,0 +1,32 @@
+{
+ "id": "sjs_109",
+ "cleabs": "BATIMENT0000000007618356",
+ "nom": "Dépôt",
+ "mur": "pierre#a88a6a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#e8e8e8"
+   }
+  ]
+ }
+}

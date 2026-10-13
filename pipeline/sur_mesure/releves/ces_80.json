@@ -1,0 +1,41 @@
+{
+ "id": "ces_80",
+ "cleabs": "BATIMENT0000000302574339",
+ "nom": "Concession utilitaires",
+ "mur": "bardage#9aa0a8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.15
+    ],
+    "y": [
+     0,
+     7.0
+    ],
+    "mur": "bardage#c03a2a"
+   },
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.6
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   }
+  ]
+ }
+}

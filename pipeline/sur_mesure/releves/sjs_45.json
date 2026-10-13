@@ -1,0 +1,55 @@
+{
+ "id": "sjs_45",
+ "cleabs": "BATIMENT0000000302576054",
+ "nom": "Garage automobile",
+ "mur": "bardage#2e3034",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.5,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.38,
+     0.45
+    ],
+    "y": [
+     0,
+     4.5
+    ],
+    "mur": "bardage#f0c020"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.1,
+     4.0
+    ],
+    "txt": "TOUR AUTOS",
+    "c": "#2e3034",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

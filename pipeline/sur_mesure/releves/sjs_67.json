@@ -1,0 +1,31 @@
+{
+ "id": "sjs_67",
+ "cleabs": "BATIMENT0000000302575835",
+ "nom": "Église",
+ "mur": "pierre#a8987e",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 10.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     2.8,
+     6.0
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

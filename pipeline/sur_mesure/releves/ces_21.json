@@ -1,0 +1,55 @@
+{
+ "id": "ces_21",
+ "cleabs": "BATIMENT0000000302573193",
+ "nom": "Maison de bourg",
+ "mur": "enduit#e8e4dc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 10.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.8
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.0,
+     7.0
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.36000000000000004,
+     0.44
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

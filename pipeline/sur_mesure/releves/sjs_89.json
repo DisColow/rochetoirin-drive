@@ -1,0 +1,46 @@
+{
+ "id": "sjs_89",
+ "cleabs": "BATIMENT0000000302574469",
+ "nom": "Peugeault atelier",
+ "mur": "bardage#1e2a4a",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#e8e8e8"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "PEUGEAULT",
+    "c": "#1e2a4a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

@@ -10,6 +10,7 @@
  },
  "egout": 3.6,
  "faitage": 5.2,
+ "densite": 12,
  "faces": {
   "NE": [
    {

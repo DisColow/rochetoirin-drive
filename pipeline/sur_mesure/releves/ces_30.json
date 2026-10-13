@@ -1,0 +1,32 @@
+{
+ "id": "ces_30",
+ "cleabs": "BATIMENT0000000330799520",
+ "nom": "Garages communaux",
+ "mur": "enduit#e4b884",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 4,
+    "l": 3.6,
+    "c": "#ecebe8"
+   }
+  ]
+ }
+}
