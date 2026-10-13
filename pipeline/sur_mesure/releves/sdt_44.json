@@ -1,0 +1,32 @@
+{
+ "id": "sdt_44",
+ "cleabs": "BATIMENT0000000301968225",
+ "nom": "Remise",
+ "mur": "enduit#d8d0c0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     2.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#a87a4a"
+   }
+  ]
+ }
+}

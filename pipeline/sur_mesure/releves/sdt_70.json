@@ -1,0 +1,14 @@
+{
+ "id": "sdt_70",
+ "cleabs": "BATIMENT0000000301965452",
+ "nom": "Bâtiment",
+ "mur": "enduit#ecdcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12
+}

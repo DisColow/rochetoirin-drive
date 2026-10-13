@@ -1,0 +1,46 @@
+{
+ "id": "sdt_93",
+ "cleabs": "BATIMENT0000000301973164",
+ "nom": "Matériaux",
+ "mur": "enduit#e8c890",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a83a2a",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#ecebe8"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "DESBOLAND",
+    "c": "#ffffff",
+    "tc": "#e06a2a"
+   }
+  ]
+ }
+}

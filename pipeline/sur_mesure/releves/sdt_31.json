@@ -1,0 +1,44 @@
+{
+ "id": "sdt_31",
+ "cleabs": "BATIMENT0000000330802640",
+ "nom": "Usine",
+ "mur": "bardage#e8c080",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 9.0,
+ "faitage": 9.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 5,
+    "l": 1.2
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     5.0,
+     6.4
+    ],
+    "n": 5,
+    "l": 1.2
+   }
+  ]
+ }
+}

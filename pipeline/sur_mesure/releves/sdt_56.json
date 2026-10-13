@@ -1,0 +1,43 @@
+{
+ "id": "sdt_56",
+ "cleabs": "BATIMENT0000000301968150",
+ "nom": "École",
+ "mur": "enduit#ecdcc4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.1
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "mur": "enduit#c03a2a"
+   }
+  ]
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "id": "sdt_28",
+ "cleabs": "BATIMENT0000000301968494",
+ "nom": "Atelier",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 3.0,
+ "faitage": 3.0,
+ "densite": 12
+}

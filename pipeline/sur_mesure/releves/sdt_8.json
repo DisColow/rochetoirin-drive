@@ -1,0 +1,43 @@
+{
+ "id": "sdt_8",
+ "cleabs": "BATIMENT0000000301968502",
+ "nom": "Atelier",
+ "mur": "bois#c8b898",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#5a5e64",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.2
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "mur": "bardage#e87a2a"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,45 @@
+{
+ "id": "sdt_63",
+ "cleabs": "BATIMENT0000000301968136",
+ "nom": "Atelier",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 4.5,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.4
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     2.9
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#ecebe8"
+   }
+  ]
+ }
+}

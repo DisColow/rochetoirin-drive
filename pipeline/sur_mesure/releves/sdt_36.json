@@ -1,0 +1,43 @@
+{
+ "id": "sdt_36",
+ "cleabs": "BATIMENT0000000301968429",
+ "nom": "Motoculture",
+ "mur": "enduit#e8dcb8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.3,
+     0.6
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "MOTOCULTURE",
+    "c": "#2a2a2a",
+    "tc": "#f0c020"
+   }
+  ]
+ }
+}

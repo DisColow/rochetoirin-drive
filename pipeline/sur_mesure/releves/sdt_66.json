@@ -1,0 +1,14 @@
+{
+ "id": "sdt_66",
+ "cleabs": "BATIMENT0000000290567413",
+ "nom": "Grange en pisé",
+ "mur": "enduit#c8b494",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12
+}

@@ -1,0 +1,32 @@
+{
+ "id": "sdt_29",
+ "cleabs": "BATIMENT0000002001968516",
+ "nom": "TETC",
+ "mur": "bardage#9aacc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#9aacc0",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "TETC",
+    "c": "#f0c020",
+    "tc": "#1a1a1a"
+   }
+  ]
+ }
+}

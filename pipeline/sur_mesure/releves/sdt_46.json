@@ -1,0 +1,42 @@
+{
+ "id": "sdt_46",
+ "cleabs": "BATIMENT0000000301968348",
+ "nom": "Ancien commerce",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 8.5,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.8
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

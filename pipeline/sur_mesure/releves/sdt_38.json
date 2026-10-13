@@ -1,0 +1,45 @@
+{
+ "id": "sdt_38",
+ "cleabs": "BATIMENT0000000301972255",
+ "nom": "Atelier",
+ "mur": "beton#c8c0b0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.4,
+     2.6
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#9a9a92"
+   }
+  ]
+ }
+}

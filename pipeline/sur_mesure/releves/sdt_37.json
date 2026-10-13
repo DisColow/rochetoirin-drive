@@ -1,0 +1,25 @@
+{
+ "id": "sdt_37",
+ "cleabs": "BATIMENT0000000301964742",
+ "nom": "Poulailler industriel",
+ "mur": "bardage#e8e8e4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#a8a8a0",
+  "debord": 0.4
+ },
+ "egout": 2.5,
+ "faitage": 4.0,
+ "densite": 12,
+ "extras": [
+  {
+   "t": "silo",
+   "face": "N",
+   "x": 0.4,
+   "d": 2,
+   "r": 1.0,
+   "h": 7,
+   "c": "#b88a6a"
+  }
+ ]
+}

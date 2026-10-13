@@ -1,0 +1,16 @@
+{
+ "id": "sdt_5",
+ "cleabs": "BATIMENT0000000301968501",
+ "nom": "Hangar",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#5a5e64",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#3a3e46"
+}

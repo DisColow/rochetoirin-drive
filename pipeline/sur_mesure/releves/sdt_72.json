@@ -1,0 +1,14 @@
+{
+ "id": "sdt_72",
+ "cleabs": "BATIMENT0000000301965532",
+ "nom": "Serre abandonnée",
+ "mur": "bardage#d8dcd8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8ccc8",
+  "debord": 0.4
+ },
+ "egout": 2.6,
+ "faitage": 3.4,
+ "densite": 12
+}

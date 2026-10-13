@@ -1,0 +1,14 @@
+{
+ "id": "sdt_39",
+ "cleabs": "BATIMENT0000002493299776",
+ "nom": "Atelier",
+ "mur": "beton#c8c0b0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12
+}

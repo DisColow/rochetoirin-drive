@@ -1,0 +1,32 @@
+{
+ "id": "sdt_91",
+ "cleabs": "BATIMENT0000000301965199",
+ "nom": "Garage",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#3a3e46"
+   }
+  ]
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "id": "sdt_12",
+ "cleabs": "BATIMENT0000002209655957",
+ "nom": "Poulailler",
+ "mur": "bardage#c8bca8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a83a2a",
+  "debord": 0.4
+ },
+ "egout": 2.4,
+ "faitage": 3.6,
+ "densite": 12
+}

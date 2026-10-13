@@ -1,0 +1,14 @@
+{
+ "id": "sdt_79",
+ "cleabs": "BATIMENT0000000301970017",
+ "nom": "Ferme",
+ "mur": "enduit#d8ccb4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12
+}
