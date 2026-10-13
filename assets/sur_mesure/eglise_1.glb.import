@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://oiksvvl28tix"
-path="res://.godot/imported/mairie_annexe.glb-62628fe4707fe74807b81614a140f90e.scn"
+uid="uid://bj2gch5hcuoku"
+path="res://.godot/imported/eglise_1.glb-5a852aa501cf5b65770430a3aa414197.scn"
 
 [deps]
 
-source_file="res://assets/sur_mesure/mairie_annexe.glb"
-dest_files=["res://.godot/imported/mairie_annexe.glb-62628fe4707fe74807b81614a140f90e.scn"]
+source_file="res://assets/sur_mesure/eglise_1.glb"
+dest_files=["res://.godot/imported/eglise_1.glb-5a852aa501cf5b65770430a3aa414197.scn"]
 
 [params]
 
