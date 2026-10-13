@@ -13,6 +13,14 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## En cours : tout le #126 (demande « Fais tout le 126 », 13/10)
+- Budget : photos jusqu'à 19 $ au total (marge 1 $ sous le plafond absolu), UNE photo par bâtiment
+  (`fetch_sv_batiments.py tous <commune> --une --jusqua=19`), communes par distance à Rochetoirin
+  (boucle : scratchpad fetch_all.log). Ce qui n'a pas de photo (Bourgoin…) : méthode gratuite (orthophoto + BD TOPO).
+- Par commune : `python3 sur_mesure/lots/planches.py <lot> <commune> <préfixe>` (liste + planches 3×3 dans le
+  scratchpad rev/), fiches dans `sur_mesure/lots/<lot>.py`, `fiches.py <lot>`, `batiment.py <ids>`, puis
+  build_buildings + build_shops + .import (voir v6.33).
+
 ## Fait en v6.33 : Saint-Chef (#126)
 - Photos Street View de Saint-Chef payées (accord de l'utilisateur) : compteur 605 photos = 4,24 $ / 20 $.
   Cache privé poussé (rochetoirin-streetview 818ea7c).

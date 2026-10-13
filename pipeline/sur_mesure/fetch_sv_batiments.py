@@ -7,7 +7,7 @@ l'emprise, le bâtiment est noté invisible (aucune photo payée). Sinon : vue c
 et une troisième pour les grands bâtiments. 640 × 640 (champ vertical = horizontal, pour le calage).
 Sortie : SV_DIR/<cleabs>_<k>.jpg + index.json {cleabs: {"vues": [{nom, pano, date, cam[x,z], heading, pitch, fov}],
 "dist"} ou {"invisible": dist}}.
-Lancer depuis pipeline/ : python3 sur_mesure/fetch_sv_batiments.py [lot] [commune] [--estimer]\n(lot : commerces, industriels, agricoles, tous ; --estimer : métadonnées gratuites seulement, photos à prévoir)"""
+Lancer depuis pipeline/ : python3 sur_mesure/fetch_sv_batiments.py [lot] [commune] [--estimer] [--une] [--jusqua=19]\n(lot : commerces, industriels, agricoles, tous ; --estimer : métadonnées gratuites seulement, photos à prévoir)"""
 import json, math, os, sys, time, urllib.parse
 from shapely.geometry import shape, Point
 from shapely.ops import transform
@@ -81,6 +81,8 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     lot = args[0] if args else "commerces"
     commune = args[1] if len(args) > 1 else "Rochetoirin"
+    une = "--une" in sys.argv                          # une seule photo par bâtiment (v6.34 : couvrir plus de communes)
+    arret = next((float(a.split("=")[1]) for a in sys.argv if a.startswith("--jusqua=")), None)   # $ au total
     estimer = "--estimer" in sys.argv                  # métadonnées seulement (gratuites) : photos à prévoir
     prevues = 0
     os.makedirs(OUT, exist_ok=True)
@@ -103,13 +105,13 @@ def main():
             continue
         vues = [m1]
         if estimer:
-            prevues += 3 if g.area > 400 else 2
+            prevues += 1 if une else (3 if g.area > 400 else 2)
             continue
         # panoramas voisins : 22 m de part et d'autre, perpendiculairement à la ligne de visée
         dx, dz = c.x - m1["cam"][0], c.y - m1["cam"][1]
         n = math.hypot(dx, dz) or 1.0
         tx, tz = -dz / n, dx / n
-        voulus = 3 if g.area > 400 else 2
+        voulus = 1 if une else (3 if g.area > 400 else 2)
         for s in (1, -1):
             if len(vues) >= voulus:
                 break
@@ -118,8 +120,12 @@ def main():
                 vues.append(m)
         ok = []
         for k, v in enumerate(vues):
-            if payees >= PLAFOND:
+            if payees >= PLAFOND and not une:
                 print("plafond de photos atteint"); break
+            if arret is not None:
+                import sv_budget
+                if sv_budget.depense() + 0.007 > arret:
+                    print("arrêt demandé à %.2f $" % arret); json.dump(index, open(idx_p, "w"), indent=0); return
             v["heading"], v["fov"], v["pitch"] = cadrage(v["cam"], g)
             v["nom"] = "%s_%d" % (cl, k)
             if photo(v, os.path.join(OUT, v["nom"] + ".jpg")):
