@@ -284,6 +284,7 @@
   - sur mesure comme la boulangerie, avec ses outils de peinture et de maillage et le même repère ;
   - photos du cache seulement ; seuls les titres sont lisibles ;
   - `sur_mesure.json` est maintenant **fusionné** : chaque script n'y met que sa propre entrée.
-  - Après `build_shops.py`, ne garder que la tuile du commerce remplacé : les autres ne diffèrent que par l'altitude
-    (relief refait en v6.16). On les remet depuis la branche `donnees`.
+  - Après `build_shops.py`, publier **toutes** les tuiles `world/shops` avec les atlas d'enseignes. Retirer un commerce
+    décale les cases des enseignes suivantes, donc remettre d'anciennes tuiles afficherait de mauvaises enseignes
+    (erreur corrigée avant la livraison de la v6.20).
 
