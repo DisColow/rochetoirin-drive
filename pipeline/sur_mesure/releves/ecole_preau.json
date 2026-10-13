@@ -9,20 +9,6 @@
  },
  "egout": 2.6,
  "faitage": 4.2,
- "faces": {
-  "E": [
-   {
-    "t": "garage",
-    "x": [
-     0.1,
-     0.9
-    ],
-    "y": [
-     0,
-     2.3
-    ],
-    "c": "#5a5048"
-   }
-  ]
- }
+ "ouvert": true,
+ "c_poteaux": "#e8e4dc"
 }

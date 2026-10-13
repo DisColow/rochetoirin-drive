@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.31.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.31/RochetoirinSimulator-v6.31.apk)**
+**[RochetoirinSimulator-v6.32.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.32/RochetoirinSimulator-v6.32.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.31 :
-- **bâtiments agricoles retouchés** d'après Street View : stabulations bardées, hangars gris foncé, ferme en bois
-  sur parpaings, granges en pisé.
-- **tunnel agricole** en voûte, comme le vrai.
+Nouveautés de la v6.32 :
+- **école de Rochetoirin** refaite : grands toits en croupe de tuiles brunes au lieu d'un toit plat.
+- **préau de l'école** ouvert sur poteaux.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
