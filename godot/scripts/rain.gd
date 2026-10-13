@@ -14,9 +14,9 @@ var sound: AudioStreamPlayer
 func _ready() -> void:
 	mat = StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR   # v6.19 : sans mélange (gouttes pleines, plus claires)
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
-	mat.albedo_color = Color(0.78, 0.82, 0.88, 0.32)
+	mat.albedo_color = Color(0.72, 0.76, 0.82, 1.0)
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	var q := QuadMesh.new()
 	q.size = Vector2(0.012, 0.55)
@@ -58,7 +58,7 @@ func _ready() -> void:
 
 ## Gouttes moins visibles la nuit (seulement dans la lumière des phares et des lampadaires).
 func set_night(n: float) -> void:
-	mat.albedo_color = Color(0.78, 0.82, 0.88, 0.32).lerp(Color(0.5, 0.55, 0.62, 0.16), n)
+	mat.albedo_color = Color(0.72, 0.76, 0.82, 1.0).lerp(Color(0.5, 0.55, 0.62, 0.16), n)
 
 func _process(dt: float) -> void:
 	var t0_perf := Time.get_ticks_usec()

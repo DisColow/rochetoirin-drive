@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.18.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.18/RochetoirinSimulator-v6.18.apk)**
+**[RochetoirinSimulator-v6.19.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.19/RochetoirinSimulator-v6.19.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,17 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v6.19 (APK complet à installer) :
+- **collisions allégées** : bâtiments, clôtures, piscines et troncs n'ont plus que des boîtes de collision simples
+  (au lieu des maillages complets), donc moins de calcul physique.
+- **plus aucune transparence mélangée** :
+  - vitres de la voiture et eau des piscines opaques, avec des reflets ;
+  - fumée, pluie, ombre de la voiture, colonnes de lumière et rayon de la soucoupe en rendu tramé.
+- **vitrines des commerces** : on voit une pièce « derrière » la vitre (rayons, sol, plafond éclairé), qui suit le
+  point de vue (Interior Mapping).
+- **débris réutilisés** (panneaux, clôtures renversés) au lieu d'être créés et détruits en roulant ; l'eau se charge
+  en arrière-plan.
 
 Nouveautés de la v6.18 (APK complet à installer) :
 - **façades en aplat partout** : les fenêtres, portes, volets, appuis et embrasures des bâtiments ne sont plus des

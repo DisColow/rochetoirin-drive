@@ -13,8 +13,9 @@ de textures ; nœud « col » : prismes simples pour les collisions)."""
 import hashlib, json, math, os, pickle, shutil
 import numpy as np
 import shapely
+import shapely.affinity, shapely.prepared
 from shapely.geometry import shape, Polygon, MultiPolygon, Point
-from shapely.ops import transform
+from shapely.ops import transform, unary_union
 from shapely.strtree import STRtree
 from shapely.prepared import prep
 from scipy.spatial import cKDTree
@@ -251,6 +252,60 @@ class Ortho:
 
 
 # ------------------------------------------------------------------------------------------------ formes
+def boites(P, I, cell=0.5):
+    """Volume de collision (maillage) -> boîtes [cx, cy, cz, demi-x, demi-y, demi-z, lacet] (v6.18 : collisions en
+    BoxShape3D seulement). L'empreinte au sol (union des triangles projetés) est découpée en bandes dans l'axe
+    de son rectangle orienté minimal (pas de 0,5 m) ; les tronçons pleins de chaque bande, puis les bandes identiques voisines, sont
+    fusionnés : un bâtiment rectangulaire = 1 boîte, un L = 2, une cour reste vide."""
+    P = np.asarray(P, float); T = np.asarray(I).reshape(-1, 3)
+    y0, y1 = float(P[:, 1].min()), float(P[:, 1].max())
+    tris = []
+    for t in T:
+        q = P[t][:, [0, 2]]
+        if abs((q[1, 0] - q[0, 0]) * (q[2, 1] - q[0, 1]) - (q[2, 0] - q[0, 0]) * (q[1, 1] - q[0, 1])) > 1e-4:
+            tris.append(Polygon(q))
+    if not tris:
+        return []
+    foot = unary_union(tris).buffer(0)
+    if foot.is_empty or foot.area < 0.5:
+        return []
+    a, c, r = obb_frame(foot)
+    loc = shapely.affinity.rotate(foot, -a, origin=(c[0], c[1]), use_radians=True)
+    x0, z0, x1, z1 = loc.bounds
+    nx = max(1, int(math.ceil((x1 - x0) / cell))); nz = max(1, int(math.ceil((z1 - z0) / cell)))
+    dx, dz = (x1 - x0) / nx, (z1 - z0) / nz
+    pl = shapely.prepared.prep(loc)
+    runs = []                      # par bande : [(i0, i1)]
+    for j in range(nz):
+        zc = z0 + (j + 0.5) * dz
+        row, i = [], 0
+        while i < nx:
+            if pl.contains(Point(x0 + (i + 0.5) * dx, zc)):
+                k = i
+                while k + 1 < nx and pl.contains(Point(x0 + (k + 1.5) * dx, zc)):
+                    k += 1
+                row.append((i, k)); i = k + 1
+            else:
+                i += 1
+        runs.append(row)
+    out, ouverts = [], {}
+    for j in range(nz + 1):
+        row = set(runs[j]) if j < nz else set()
+        for rr in list(ouverts):
+            if rr not in row:
+                ja = ouverts.pop(rr)
+                out.append((rr[0], rr[1], ja, j - 1))
+        for rr in row:
+            ouverts.setdefault(rr, j)
+    B = []
+    ca, sa = math.cos(a), math.sin(a)
+    for i0, i1, j0, j1 in out:
+        lx = x0 + (i0 + i1 + 1) * dx / 2 - c[0]; lz = z0 + (j0 + j1 + 1) * dz / 2 - c[1]   # (rotate garde le centre c)
+        wx = c[0] + lx * ca - lz * sa; wz = c[1] + lx * sa + lz * ca
+        B.append([wx, (y0 + y1) / 2, wz, (i1 - i0 + 1) * dx / 2, (y1 - y0) / 2, (j1 - j0 + 1) * dz / 2, -a])
+    return B
+
+
 def obb_frame(poly):
     """Rectangle orienté minimal : angle (rad) de son grand côté, centre."""
     r = poly.minimum_rotated_rectangle
@@ -1212,12 +1267,12 @@ def main():
         if pr is None:
             continue
         ntri += len(pr[4]) // 3
-        Pc = []; Ic = []; off = 0
+        # collisions : boîtes simples (BoxShape3D en jeu, v6.18 — plus de maillage concave), c_tx_tz.bin
+        B = []
         for P, I in C:
-            Pc.append(P); Ic.append(I + off); off += len(P)
-        Pc = np.vstack(Pc).astype(np.float32); Ic = np.concatenate(Ic)
-        col = ("collision", Pc, np.tile([0, 1, 0], (len(Pc), 1)), Pc[:, [0, 2]], Ic)
-        write_glb("%s/b_%d_%d.glb" % (OUT, tx, tz), {"bld": [pr], "col": [col]})
+            B += boites(P, I)
+        open("%s/c_%d_%d.bin" % (OUT, tx, tz), "wb").write(np.array(B, "<f4").tobytes())
+        write_glb("%s/b_%d_%d.glb" % (OUT, tx, tz), {"bld": [pr]})
     from collections import defaultdict
     KT = defaultdict(list)
     for r in KIT:

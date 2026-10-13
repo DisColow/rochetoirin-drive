@@ -187,12 +187,17 @@ func _collisions() -> void:
 	for k in loaded.keys():
 		var need := _d(k, p) < COLL + TILE * 0.71
 		if need and not bodies.has(k):
+			# collisions en boîtes (v6.19 : BoxShape3D seulement, plus de maillage concave) : c_tx_tz.bin de
+			# build_buildings.py, 7 flottants par boîte (centre, demi-tailles, lacet)
 			var sb := StaticBody3D.new()
-			for mi in loaded[k].find_children("col*", "MeshInstance3D", true, false):
+			var cp: String = tiles[k].get_base_dir() + "/c_" + tiles[k].get_file().trim_prefix("b_").trim_suffix(".glb") + ".bin"
+			var b := FileAccess.get_file_as_bytes(cp).to_float32_array() if FileAccess.file_exists(cp) else PackedFloat32Array()
+			for i in range(0, b.size() - 6, 7):
 				var cs := CollisionShape3D.new()
-				var sh: ConcavePolygonShape3D = mi.mesh.create_trimesh_shape()
-				sh.backface_collision = true            # murs sans épaisseur : on bute dessus des deux côtés
+				var sh := BoxShape3D.new()
+				sh.size = Vector3(b[i + 3], b[i + 4], b[i + 5]) * 2.0
 				cs.shape = sh
+				cs.transform = Transform3D(Basis(Vector3.UP, b[i + 6]), Vector3(b[i], b[i + 1], b[i + 2]))
 				sb.add_child(cs)
 			loaded[k].add_child(sb)
 			bodies[k] = sb

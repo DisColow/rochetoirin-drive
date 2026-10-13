@@ -273,14 +273,12 @@ func _update_near() -> void:
 		if t[4] >= 9.0 and t[0] < 1600.0:
 			if nt >= trunk_shapes.size():
 				var cs := CollisionShape3D.new()
-				var cyl := CylinderShape3D.new()
-				cs.shape = cyl
+				cs.shape = BoxShape3D.new()          # collisions : boîtes seulement (v6.18)
 				trunks.add_child(cs)
 				trunk_shapes.append(cs)
 			var cs2: CollisionShape3D = trunk_shapes[nt]
 			var rad := clampf(t[4] * 0.018, 0.15, 0.55)
-			(cs2.shape as CylinderShape3D).radius = rad
-			(cs2.shape as CylinderShape3D).height = 4.0
+			(cs2.shape as BoxShape3D).size = Vector3(rad * 1.8, 4.0, rad * 1.8)
 			cs2.position = Vector3(t[1], t[2] + 1.5, t[3])
 			cs2.disabled = false
 			nt += 1

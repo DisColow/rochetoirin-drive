@@ -272,3 +272,11 @@
   l'utilisateur pour les bâtiments non résidentiels (2 583 dans la zone) : garder le volume généré et le rendre
   reconnaissable (couleur, matériaux, aplats, structures extérieures). Premier essai : restaurant Le Rochetoirin
   (`BATIMENT0000000301133202`, rouge à chaînages jaunes, porche en tuiles).
+- **Performances, 5 directives de l'utilisateur** (v6.19, `docs/kb/performances.md`, à respecter partout) :
+  - tuiles lues en arrière-plan (`chargeur.gd`, désormais aussi pour l'eau) ;
+  - pas d'occlusion possible en Compatibility ; LOD générés à l'import ;
+  - MultiMesh pour le décor répété ; réserve de débris dans `casse.gd` (plus de `new`/`queue_free` en jeu) ;
+  - un atlas et un shader par famille ; **aucune transparence mélangée** (`ALPHA_HASH`/`ALPHA_SCISSOR` seulement,
+    vitres opaques) ; vitrines en Interior Mapping (`shop.gdshader`, kind 6) ;
+  - collisions du décor en **BoxShape3D seulement** (bâtiments : `c_<tuile>.bin` produit par `boites()` dans
+    `build_buildings.py` ; clôtures : une boîte par segment). Routes et relief exclus : c'est la surface de roulage.

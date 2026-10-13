@@ -41,6 +41,7 @@ var _debris: Array = []           # [RigidBody3D, âge]
 var _pas := 0
 
 func _ready() -> void:
+	_preparer_reserve()
 	var meta_p := "res://assets/car/meta.json"
 	if FileAccess.file_exists(meta_p):
 		var m = JSON.parse_string(FileAccess.get_file_as_string(meta_p))
@@ -240,9 +241,7 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 		corps.angular_velocity = dir.cross(Vector3.UP) * -randf_range(2.0, 4.0) + Vector3(0, randf_range(-1.5, 1.5), 0)
 		_debris.append([corps, 0.0])
 		while _debris.size() > MAX_DEBRIS:
-			var d: Array = _debris.pop_front()
-			if is_instance_valid(d[0]):
-				d[0].queue_free()
+			_rendre(_debris.pop_front()[0])
 	if main and main.get("sound") and main.sound.has_method("_one_shot"):
 		main.sound._one_shot(str(k[1]) % (randi() % 5), p + Vector3(0, 1, 0), clampf(spd / 10.0, 0.4, 1.0), randf_range(0.9, 1.1))
 	if main and main.get("dust"):
@@ -272,80 +271,101 @@ func _effacer(c: Vector4) -> void:
 	Env.set_value("casse_pts", arr)
 	Env.set_value("casse_n", _pts.size())
 
-func _rigide(masse: float) -> RigidBody3D:
-	var rb := RigidBody3D.new()
+# ---------------------------------------------------------------- réserve de débris (v6.19 : pas d'instanciation en jeu)
+## Réserve préparée au démarrage : MAX_DEBRIS corps rigides, chacun avec 3 emplacements de maillage et une boîte de
+## collision (BoxShape3D seulement) ; un débris est pris dans la réserve, habillé (maillages et boîte selon l'objet
+## renversé), puis rendu (caché, figé, sans collision) à la fin de sa vie ou quand la réserve est pleine. Plus aucun
+## new()/queue_free() pendant la conduite. Les maillages des panneaux et clôtures sont créés une seule fois.
+var _reserve: Array = []           # RigidBody3D libres
+var _mats := {}
+var _mailles := {}
+
+func _preparer_reserve() -> void:
+	var m_metal := StandardMaterial3D.new(); m_metal.albedo_color = Color(0.62, 0.63, 0.65); m_metal.metallic = 0.8; m_metal.roughness = 0.35
+	var m_rouge := StandardMaterial3D.new(); m_rouge.albedo_color = Color(0.85, 0.1, 0.1); m_rouge.roughness = 0.45
+	var m_blanc := StandardMaterial3D.new(); m_blanc.albedo_color = Color(0.95, 0.95, 0.95); m_blanc.roughness = 0.45
+	var m_grille := StandardMaterial3D.new(); m_grille.albedo_color = Color(0.22, 0.27, 0.22); m_grille.roughness = 0.6; m_grille.metallic = 0.4
+	var face := CylinderMesh.new(); face.top_radius = 0.36; face.bottom_radius = 0.36; face.height = 0.03; face.radial_segments = 16; face.material = m_rouge
+	var inner := CylinderMesh.new(); inner.top_radius = 0.27; inner.bottom_radius = 0.27; inner.height = 0.035; inner.radial_segments = 16; inner.material = m_blanc
+	var poteau := BoxMesh.new(); poteau.size = Vector3(0.06, 1.4, 0.06); poteau.material = m_grille
+	var grille := BoxMesh.new(); grille.size = Vector3(1.8, 1.1, 0.02); grille.material = m_grille
+	_mats["metal"] = m_metal
+	_mailles = {"face": face, "inner": inner, "poteau": poteau, "grille": grille, "mats": {}}
+	for i in MAX_DEBRIS:
+		var rb := RigidBody3D.new()
+		rb.collision_layer = 1
+		rb.collision_mask = 1
+		rb.continuous_cd = true
+		for k in 3:
+			rb.add_child(MeshInstance3D.new())
+		var cs := CollisionShape3D.new()
+		cs.shape = BoxShape3D.new()
+		rb.add_child(cs)
+		add_child(rb)
+		_rendre(rb)
+
+func _rendre(rb: RigidBody3D) -> void:
+	rb.freeze = true
+	rb.visible = false
+	(rb.get_child(3) as CollisionShape3D).disabled = true
+	rb.global_position = Vector3(0, -1000, 0)
+	if car and is_instance_valid(car):
+		car.remove_collision_exception_with(rb)
+	if not _reserve.has(rb):
+		_reserve.append(rb)
+
+func _prendre(masse: float, boite: Vector3) -> RigidBody3D:
+	if _reserve.is_empty():
+		var d: Array = _debris.pop_front()            # réserve vide : on reprend le plus vieux débris
+		_rendre(d[0])
+	var rb: RigidBody3D = _reserve.pop_back()
 	rb.mass = masse
-	rb.collision_layer = 1
-	rb.collision_mask = 1
-	rb.continuous_cd = true
-	add_child(rb)
+	for k in 3:
+		var mi: MeshInstance3D = rb.get_child(k)
+		mi.mesh = null; mi.transform = Transform3D.IDENTITY; mi.set_meta("e", 1.0)
+	var cs: CollisionShape3D = rb.get_child(3)
+	(cs.shape as BoxShape3D).size = boite
+	cs.disabled = false
+	rb.rotation = Vector3.ZERO
+	rb.linear_velocity = Vector3.ZERO
+	rb.angular_velocity = Vector3.ZERO
+	rb.visible = true
+	rb.freeze = false
 	return rb
 
 func _corps_modele(m: Mesh, h: float, r: float, masse: float, echelle := 1.0) -> RigidBody3D:
-	var rb := _rigide(masse)
-	var mi := MeshInstance3D.new()
+	var rb := _prendre(masse, Vector3(maxf(r, 0.1) * 2.0, h, maxf(r, 0.1) * 2.0))
+	var mi: MeshInstance3D = rb.get_child(0)
 	mi.mesh = m
 	mi.scale = Vector3.ONE * echelle
 	mi.set_meta("e", echelle)
 	mi.position = Vector3(0, -h * 0.5, 0)
-	rb.add_child(mi)
-	var cs := CollisionShape3D.new()
-	var cy := CylinderShape3D.new()
-	cy.radius = maxf(r, 0.1)
-	cy.height = h
-	cs.shape = cy
-	rb.add_child(cs)
 	return rb
 
 func _corps_panneau(h: float) -> RigidBody3D:
-	var rb := _rigide(25.0)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.62, 0.63, 0.65); mat.metallic = 0.8; mat.roughness = 0.35
-	var mat2 := StandardMaterial3D.new()
-	mat2.albedo_color = Color(0.85, 0.1, 0.1); mat2.roughness = 0.45
-	var mat3 := StandardMaterial3D.new()
-	mat3.albedo_color = Color(0.95, 0.95, 0.95); mat3.roughness = 0.45
-	var mast := MeshInstance3D.new()
-	var cm := CylinderMesh.new(); cm.top_radius = 0.035; cm.bottom_radius = 0.035; cm.height = h; cm.radial_segments = 8
-	cm.material = mat
-	mast.mesh = cm
-	rb.add_child(mast)
-	var face := MeshInstance3D.new()
-	var bm := CylinderMesh.new(); bm.top_radius = 0.36; bm.bottom_radius = 0.36; bm.height = 0.03; bm.radial_segments = 16
-	bm.material = mat2
-	face.mesh = bm
+	var rb := _prendre(25.0, Vector3(0.7, h, 0.12))
+	var cle := "mat%d" % int(h * 10)
+	if not _mailles.mats.has(cle):
+		var cm := CylinderMesh.new(); cm.top_radius = 0.035; cm.bottom_radius = 0.035; cm.height = h; cm.radial_segments = 8
+		cm.material = _mats.metal
+		_mailles.mats[cle] = cm
+	(rb.get_child(0) as MeshInstance3D).mesh = _mailles.mats[cle]
+	var face: MeshInstance3D = rb.get_child(1)
+	face.mesh = _mailles.face
 	face.rotation = Vector3(PI * 0.5, 0, 0)
 	face.position = Vector3(0, h * 0.5 - 0.35, 0.05)
-	rb.add_child(face)
-	var inner := MeshInstance3D.new()
-	var im := CylinderMesh.new(); im.top_radius = 0.27; im.bottom_radius = 0.27; im.height = 0.035; im.radial_segments = 16
-	im.material = mat3
-	inner.mesh = im
+	var inner: MeshInstance3D = rb.get_child(2)
+	inner.mesh = _mailles.inner
 	inner.rotation = face.rotation
 	inner.position = face.position + Vector3(0, 0, 0.002)
-	rb.add_child(inner)
-	var cs := CollisionShape3D.new()
-	var bs := BoxShape3D.new(); bs.size = Vector3(0.7, h, 0.12)
-	cs.shape = bs
-	rb.add_child(cs)
 	return rb
 
 func _corps_cloture() -> RigidBody3D:
-	var rb := _rigide(30.0)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.22, 0.27, 0.22); mat.roughness = 0.6; mat.metallic = 0.4
+	var rb := _prendre(30.0, Vector3(1.9, 1.3, 0.1))
 	for i in 3:
-		var mi := MeshInstance3D.new()
-		var bm := BoxMesh.new()
-		bm.size = Vector3(0.06, 1.4, 0.06) if i < 2 else Vector3(1.8, 1.1, 0.02)
-		bm.material = mat
-		mi.mesh = bm
+		var mi: MeshInstance3D = rb.get_child(i)
+		mi.mesh = _mailles.poteau if i < 2 else _mailles.grille
 		mi.position = Vector3(-0.9 + i * 1.8, 0, 0) if i < 2 else Vector3.ZERO
-		rb.add_child(mi)
-	var cs := CollisionShape3D.new()
-	var bs := BoxShape3D.new(); bs.size = Vector3(1.9, 1.3, 0.1)
-	cs.shape = bs
-	rb.add_child(cs)
 	return rb
 
 ## Débris : rétrécissent pendant la dernière seconde puis disparaissent.
@@ -363,7 +383,7 @@ func _vieillir(dt: float) -> void:
 				if ch is MeshInstance3D:
 					ch.scale = Vector3.ONE * s * (ch.get_meta("e", 1.0) as float)
 		if d[1] > VIE or rb.global_position.y < -500.0:
-			rb.queue_free()
+			_rendre(rb)
 			_debris.remove_at(i)
 
 # ---------------------------------------------------------------- essai : -- --casse-test

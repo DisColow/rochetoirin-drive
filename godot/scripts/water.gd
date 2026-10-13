@@ -10,6 +10,7 @@ var tiles := {}
 var loaded := {}
 var pending := {}
 var mat: ShaderMaterial
+var _chargeur = preload("res://scripts/chargeur.gd").new()   # v6.19 : tuiles lues en arrière-plan
 var _t := 0.0
 
 func _ready() -> void:
@@ -55,10 +56,13 @@ func _process(dt: float) -> void:
 func _process_corps(dt: float) -> void:
 	if target == null:
 		return
+	# une tuile posée par image au plus, dès que sa lecture en arrière-plan est finie
 	for k in pending.keys():
-		_add(k)
-		pending.erase(k)
-		break
+		var sc := _chargeur.pret(tiles[k]) as PackedScene
+		if sc != null:
+			_poser(k, sc)
+			pending.erase(k)
+			break
 	_t -= dt
 	if _t > 0:
 		return
@@ -75,12 +79,19 @@ func _process_corps(dt: float) -> void:
 		if not ws.has(k):
 			loaded[k].queue_free()
 			loaded.erase(k)
+	var vp := {}
+	for k in pending.keys():
+		vp[tiles[k]] = true
+	_chargeur.menage(vp)
 
+## Pose immédiate (update_now, au démarrage et après une téléportation) : lecture directe.
 func _add(k: Vector2i) -> void:
 	if loaded.has(k):
 		return
-	var sc: PackedScene = load(tiles[k])
-	if sc == null:
+	_poser(k, load(tiles[k]))
+
+func _poser(k: Vector2i, sc: PackedScene) -> void:
+	if sc == null or loaded.has(k):
 		return
 	var n := sc.instantiate()
 	for mi in n.find_children("*", "MeshInstance3D", true, false):

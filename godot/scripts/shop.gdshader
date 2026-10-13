@@ -1,7 +1,7 @@
 // Commerces (modèles Blender) : un seul shader, comportement selon « kind » :
 // 0 uni, 1 enseigne (case de l'atlas en INSTANCE_CUSTOM, éclairée la nuit), 2 toile rayée (couleur d'instance),
 // 3 couleur d'instance (bandeaux, auvents), 4 intérieur de boutique (rayons, éclairé la nuit), 5 lumineux (croix,
-// carotte, ampoules), 6 verre ; plus l'ambiance (ombre des nuages, pluie).
+// carotte, ampoules), 6 verre opaque à intérieur simulé (Interior Mapping, v6.19) ; plus l'ambiance (ombre des nuages, pluie).
 shader_type spatial;
 render_mode cull_disabled;
 #include "res://scripts/env.gdshaderinc"
@@ -66,12 +66,34 @@ void fragment() {
 			discard;
 		}
 	} else if (kind == 6) {
-		// vitrage : reflet du ciel + rayons et produits devinés derrière, éclairés la nuit
-		float shelf = step(0.72, fract(UV.y * 4.0));
-		float prod = step(0.45, fract(UV.x * 5.0 + floor(UV.y * 4.0) * 0.31));
-		vec3 inside = mix(vec3(0.32, 0.3, 0.27), vec3(0.62, 0.5, 0.36), prod) * (1.0 - shelf * 0.5);
-		c = mix(vec3(0.1, 0.12, 0.14), inside, 0.55);
-		e = inside * vec3(1.0, 0.88, 0.7) * (0.12 + 1.1 * night);
+		// v6.19 : vitrine opaque à « Interior Mapping » : chaque vitre (case UV 0…1) cache une pièce de 1 de profondeur ;
+		// le rayon de vue, ramené dans le repère de la vitre (TANGENT, BINORMAL, -NORMAL), touche le fond (rayons et
+		// produits), les côtés, le sol ou le plafond (lampe). Aucun mélange : la vitre est un aplat opaque, le
+		// reflet vient de ROUGHNESS/METALLIC.
+		vec3 d = -VIEW;
+		vec3 rd = vec3(dot(d, TANGENT), dot(d, BINORMAL), dot(d, -NORMAL));
+		rd.z = abs(rd.z) + 0.001;
+		vec3 ro = vec3(fract(UV), 0.0);
+		rd = mix(rd, vec3(1e-5), step(abs(rd), vec3(1e-5)));   // pas de division par zéro
+		vec3 k = (step(0.0, rd) - ro) / rd;                   // distance jusqu'à chaque paroi (toujours positive)
+		float t = min(min(k.x, k.y), k.z);
+		vec3 h = ro + rd * t;
+		vec3 inside;
+		if (k.z <= t + 1e-4) {
+			float shelf = step(0.72, fract(h.y * 4.0));
+			float prod = step(0.45, fract(h.x * 5.0 + floor(h.y * 4.0) * 0.31));
+			inside = mix(vec3(0.32, 0.3, 0.27), vec3(0.62, 0.5, 0.36), prod) * (1.0 - shelf * 0.5);
+		} else if (k.x <= t + 1e-4) {
+			inside = vec3(0.55, 0.52, 0.46) * (0.8 + 0.2 * step(0.5, fract(h.z * 3.0)));
+		} else if (rd.y > 0.0) {
+			inside = vec3(0.36, 0.33, 0.3) * (0.85 + 0.15 * step(0.5, fract((h.x + h.z) * 4.0)));   // sol (UV.y vers le bas)
+		} else {
+			inside = vec3(0.8, 0.78, 0.72) + vec3(0.6, 0.5, 0.3) * step(length(h.xz - vec2(0.5)), 0.12);   // plafond, lampe
+		}
+		inside *= 1.0 - 0.45 * t;                      // le fond de la pièce est plus sombre
+		float fr = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 4.0);
+		c = mix(inside * 0.6, vec3(0.45, 0.52, 0.6), fr * 0.6);
+		e = inside * vec3(1.0, 0.88, 0.7) * (0.12 + 1.1 * night) * (1.0 - fr);
 		r = 0.06;
 	}
 	ALBEDO = c * sh * (1.0 - 0.15 * wet);

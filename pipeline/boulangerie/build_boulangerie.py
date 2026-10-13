@@ -637,7 +637,14 @@ def main():
     col = ("collision", CP, np.tile([0, 1, 0], (len(CP), 1)), CP[:, [0, 2]], np.array(CI, np.uint32))
     write_glb(os.path.join(OUT_A, "boulangerie.glb"), {"boulangerie": [prim], "col": [col]}, fix_winding=False)
     sol = 450.30
-    pose = {"boulangerie": {"glb": "res://assets/sur_mesure/boulangerie.glb", "atlas": "res://assets/sur_mesure/boulangerie.png",
+    # collisions en boîtes (v6.18 : BoxShape3D seulement) : [cx, cy, cz, demi-a, demi-y, demi-b, lacet], repère de pose
+    lacet = math.atan2(-W_[1], W_[0])
+    boites = []
+    for c in C:
+        a0, a1, b0, b1, y0, y1 = c[1:] if isinstance(c[0], str) else c
+        cx, cy, cz = loc((a0 + a1) / 2, (b0 + b1) / 2, (y0 + y1) / 2)
+        boites.append([round(v, 3) for v in (cx, cy, cz, abs(a1 - a0) / 2, abs(y1 - y0) / 2, abs(b1 - b0) / 2, lacet)])
+    pose = {"boulangerie": {"boites": boites, "glb": "res://assets/sur_mesure/boulangerie.glb", "atlas": "res://assets/sur_mesure/boulangerie.png",
                             "pos": [NE[0], sol, NE[1]], "remplace_bati": ["BATIMENT0000000301133203"],
                             "remplace_commerce": ["n3646424189"], "nom": "Chez Flonflon (boulangerie de Rochetoirin)"}}
     json.dump(pose, open(os.path.join(GOD, "world", "sur_mesure.json"), "w"), indent=1, ensure_ascii=False)

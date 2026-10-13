@@ -167,10 +167,10 @@ func _add(k: Vector2i) -> void:
 			var wi := int(abs(float(p.x) * 7.0 + float(p.z) * 3.0)) % 3
 			_round(walls[wi], water, p)
 			nw[wi] += 1
-			var cy := CylinderShape3D.new()
-			cy.radius = (float(p.L) + float(p.W)) / 4.0
-			cy.height = 1.4
-			cs.shape = cy
+			var bx := BoxShape3D.new()              # collisions : boîtes seulement (v6.18), carré inscrit au bassin rond
+			var r := (float(p.L) + float(p.W)) / 4.0
+			bx.size = Vector3(r * 1.6, 1.4, r * 1.6)
+			cs.shape = bx
 			cs.position = Vector3(float(p.x), float(p.y0) + 0.6, float(p.z))
 		else:
 			_sunken(stone, tile, water, p)

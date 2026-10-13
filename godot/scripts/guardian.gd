@@ -89,7 +89,19 @@ void fragment() {
 func _additive(code: String) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = Shader.new()
-	m.shader.code = "shader_type spatial;\nrender_mode unshaded, blend_add, cull_disabled, depth_draw_never, shadows_disabled;\n" + code
+	# v6.19 : rendu opaque tramé (Bayer) au lieu du mélange additif (directive : aucune transparence mélangée)
+	var c := code.strip_edges()
+	c = c.substr(0, c.length() - 1) + """	// v6.19 : plus de mélange additif ; la luminosité devient une couverture tramée (Bayer), rendu opaque
+	float a_ = clamp(max(ALBEDO.r, max(ALBEDO.g, ALBEDO.b)), 0.0, 1.0);
+	ALBEDO = ALBEDO / max(a_, 0.001);
+	// tramage ordonné (Bayer 4 × 4) : ALPHA_HASH n'existe pas en Compatibility, on jette les pixels nous-mêmes
+	const float BAYER[16] = { 0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0 };
+	if (a_ <= (BAYER[int(mod(FRAGCOORD.x, 4.0)) + int(mod(FRAGCOORD.y, 4.0)) * 4] + 0.5) / 16.0) {
+		discard;
+	}
+}
+"""
+	m.shader.code = "shader_type spatial;\nrender_mode unshaded, cull_disabled, shadows_disabled;\n" + c
 	return m
 
 func _build_beam() -> void:
@@ -147,8 +159,7 @@ void fragment() {
 	var mat := StandardMaterial3D.new()
 	mat.albedo_texture = tex
 	mat.vertex_color_use_as_albedo = true
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR  # v6.19 : sans mélange (ALPHA_HASH absent en Compatibility)
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	sparks.material_override = mat

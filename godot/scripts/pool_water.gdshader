@@ -1,7 +1,7 @@
 // Eau des piscines : turquoise, légères vagues (normales animées), reflets plus forts en vue rasante, reflets
 // lumineux mouvants au fond ; ambiance commune (ombre des nuages) et fondu au loin (env.gdshaderinc).
 shader_type spatial;
-render_mode blend_mix, cull_disabled, depth_draw_opaque;
+render_mode cull_disabled;   // v6.19 : eau opaque (pas de transparence), reflets par roughness/specular
 #include "res://scripts/env.gdshaderinc"
 
 varying vec3 v_wp;
@@ -25,5 +25,5 @@ void fragment() {
 	ALBEDO = (c + caus * 0.1) * env_cloud(v_wp.xz);
 	ROUGHNESS = 0.04;
 	SPECULAR = 0.7;
-	ALPHA = mix(0.8, 0.97, f);
+	ALBEDO = mix(ALBEDO, vec3(0.55, 0.75, 0.85), f * 0.5);   // reflet du ciel en vue rasante
 }

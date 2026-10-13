@@ -4,7 +4,7 @@
 // INSTANCE_CUSTOM : x = taille (m), y = rotation (rad), z = âge (0 … 1, choisit l'image de l'animation), w = opacité.
 // COLOR (couleur de l'instance) : teinte de la matière (poussière beige, fumée blanche, eau grise…).
 shader_type spatial;
-render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, skip_vertex_transform;
+render_mode unshaded, cull_disabled, skip_vertex_transform;   // v6.19 : opaque tramé (Bayer + discard), sans mélange
 
 uniform sampler2D fumee_tex : source_color, filter_linear_mipmap, repeat_disable;
 uniform vec3 soleil_dir = vec3(0.4, 0.8, 0.3);     // vers le soleil (monde)
@@ -53,5 +53,10 @@ void fragment() {
 	// pas de lecture de la profondeur (hint_depth_texture noircit tout le rendu en Compatibility) : fondu près de la
 	// caméra pour qu'un nuage ne bouche jamais l'écran
 	float doux = clamp((-VERTEX.z - 0.6) / 2.5, 0.0, 1.0);
-	ALPHA = clamp(t.a * v_alpha * doux, 0.0, 1.0);
+	float couv = clamp(t.a * v_alpha * doux, 0.0, 1.0);
+	// tramage ordonné (Bayer 4 × 4) : ALPHA_HASH n'existe pas en Compatibility, on jette les pixels nous-mêmes
+	const float BAYER[16] = { 0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0 };
+	if (couv <= (BAYER[int(mod(FRAGCOORD.x, 4.0)) + int(mod(FRAGCOORD.y, 4.0)) * 4] + 0.5) / 16.0) {
+		discard;
+	}
 }

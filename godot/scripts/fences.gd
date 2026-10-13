@@ -206,30 +206,45 @@ func breche(p: Vector3, r: float) -> void:
 	var g := PackedVector3Array()
 	var r2 := r * r
 	var c := Vector2(p.x, p.z)
-	for i in range(0, f.size() - 2, 3):
+	for i in range(0, f.size() - 5, 6):                 # par tronçon entier (6 sommets = une boîte)
 		var near := false
-		for j in 3:
+		for j in 6:
 			if Vector2(f[i + j].x, f[i + j].z).distance_squared_to(c) < r2:
 				near = true
 		if not near:
-			g.append(f[i]); g.append(f[i + 1]); g.append(f[i + 2])
+			for j in 6:
+				g.append(f[i + j])
 	colfaces[k] = g
 	if bodies.has(k):
-		var cs: CollisionShape3D = bodies[k].get_child(0)
-		(cs.shape as ConcavePolygonShape3D).set_faces(g)
+		bodies[k].queue_free()
+		bodies[k] = _corps(colfaces[k])
+		loaded[k].add_child(bodies[k])
+
+## Collisions en boîtes (v6.19 : BoxShape3D seulement) : chaque tronçon de clôture ou de haie (2 triangles de 6
+## sommets dans colfaces : pied a, b, haut b2, a2) devient une boîte fine de 20 cm, alignée sur le tronçon.
+static func _corps(f: PackedVector3Array) -> StaticBody3D:
+	var sb := StaticBody3D.new()
+	for i in range(0, f.size() - 5, 6):
+		var a := f[i]; var b := f[i + 1]; var b2 := f[i + 2]
+		var d := Vector3(b.x - a.x, 0, b.z - a.z)
+		var L := d.length()
+		if L < 0.05:
+			continue
+		var cs := CollisionShape3D.new()
+		var sh := BoxShape3D.new()
+		sh.size = Vector3(L, b2.y - b.y, 0.2)
+		cs.shape = sh
+		var x := d / L
+		cs.transform = Transform3D(Basis(x, Vector3.UP, x.cross(Vector3.UP)), (a + b2) * 0.5)
+		sb.add_child(cs)
+	return sb
 
 func _collisions() -> void:
 	var p := target.global_position
 	for k in loaded.keys():
 		var need := _d(k, p) < COLL + TILE * 0.71
 		if need and not bodies.has(k) and colfaces.has(k) and colfaces[k].size() > 0:
-			var sb := StaticBody3D.new()
-			var cs := CollisionShape3D.new()
-			var sh := ConcavePolygonShape3D.new()
-			sh.backface_collision = true
-			sh.set_faces(colfaces[k])
-			cs.shape = sh
-			sb.add_child(cs)
+			var sb := _corps(colfaces[k])
 			loaded[k].add_child(sb)
 			bodies[k] = sb
 		elif not need and bodies.has(k):

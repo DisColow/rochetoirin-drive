@@ -90,7 +90,7 @@ func _ready() -> void:
 	gt.fill_from = Vector2(0.5, 0.5); gt.fill_to = Vector2(0.5, 0.0); gt.width = 64; gt.height = 128
 	var sm := StandardMaterial3D.new()
 	sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR    # v6.19 : sans mélange (ALPHA_HASH absent en Compatibility)
 	sm.albedo_texture = gt
 	sm.render_priority = -1
 	var pm := PlaneMesh.new(); pm.size = Vector2(2.3, 4.9)
@@ -159,7 +159,7 @@ func _make_sprite() -> void:
 	if ResourceLoader.exists("res://assets/car/ombre.png"):
 		var om := StandardMaterial3D.new()
 		om.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		om.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		om.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR    # v6.19 : bord net, sans mélange
 		om.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		om.albedo_texture = load("res://assets/car/ombre.png")
 		om.render_priority = -1
@@ -340,9 +340,9 @@ func _materials(root: Node) -> void:
 	paint.metallic = 0.0; paint.roughness = 0.32
 	paint.clearcoat_enabled = true; paint.clearcoat = 0.8; paint.clearcoat_roughness = 0.1
 	var glass := StandardMaterial3D.new()
-	glass.albedo_color = Color(0.04, 0.05, 0.06, 0.55)
-	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	glass.metallic = 0.2; glass.roughness = 0.03
+	# v6.19 : vitres opaques (verre fumé très sombre, reflets par metallic/roughness), pas de transparence
+	glass.albedo_color = Color(0.035, 0.045, 0.055)
+	glass.metallic = 0.6; glass.roughness = 0.04
 	var chrome := StandardMaterial3D.new()
 	chrome.albedo_color = Color(0.8, 0.8, 0.82); chrome.metallic = 1.0; chrome.roughness = 0.15
 	var rubber := StandardMaterial3D.new()
@@ -404,7 +404,10 @@ func _place_blob() -> void:
 	var gap := global_position.y - float(hit.position.y)
 	_blob.visible = gap < 1.2
 	_blob.global_position = Vector3(global_position.x, float(hit.position.y) + 0.04, global_position.z)
-	_blob.transparency = clampf(gap / 1.2, 0.0, 1.0)
+	# v6.19 : l'ombre rétrécit par seuil d'alpha (GeometryInstance3D.transparency forcerait le mélange)
+	var mat_b := _blob.material_override as StandardMaterial3D
+	if mat_b:
+		mat_b.albedo_color.a = 1.0 - clampf(gap / 1.2, 0.0, 1.0)
 
 ## Vue cockpit (habitacle en pixel art) : la caisse 3D ne fait plus que porter son ombre, le volant 3D disparaît.
 func set_cockpit(on: bool) -> void:

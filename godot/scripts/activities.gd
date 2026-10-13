@@ -182,7 +182,7 @@ func _beacon(p: Vector3, col: Color, r: float, h := 70.0) -> Node3D:
 	sm.shader = Shader.new()
 	sm.shader.code = """
 shader_type spatial;
-render_mode unshaded, blend_add, cull_disabled, depth_draw_never, shadows_disabled;
+render_mode unshaded, cull_disabled, shadows_disabled;
 uniform vec3 col : source_color;
 uniform float h = 70.0;
 uniform float base = 0.0;
@@ -198,6 +198,14 @@ void fragment() {
 	float d = length(CAMERA_POSITION_WORLD.xz - NODE_POSITION_WORLD.xz);
 	float fade = smoothstep(r * 0.7, r * 1.6, d);
 	ALBEDO = col * (edge * bands * (1.0 - up) * 0.9 + foot * (0.15 + 0.55 * edge)) * fade;
+	// v6.19 : plus de mélange additif ; la luminosité devient une couverture tramée (Bayer), rendu opaque
+	float a_ = clamp(max(ALBEDO.r, max(ALBEDO.g, ALBEDO.b)), 0.0, 1.0);
+	ALBEDO = ALBEDO / max(a_, 0.001);
+	// tramage ordonné (Bayer 4 × 4) : ALPHA_HASH n'existe pas en Compatibility, on jette les pixels nous-mêmes
+	const float BAYER[16] = { 0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0 };
+	if (a_ <= (BAYER[int(mod(FRAGCOORD.x, 4.0)) + int(mod(FRAGCOORD.y, 4.0)) * 4] + 0.5) / 16.0) {
+		discard;
+	}
 }
 """
 	sm.set_shader_parameter("col", col)
