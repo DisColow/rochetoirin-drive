@@ -10,7 +10,8 @@
   "debord": 0.5,
   "bas": "N"
  },
- "egout": 3.0,
- "faitage": 4.8,
- "cleabs": "BATIMENT0000000301133204"
+ "egout": 3.2,
+ "faitage": 4.2,
+ "cleabs": "BATIMENT0000000301133204",
+ "simplifier": 2.5
 }

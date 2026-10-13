@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 13/10/2026 (v6.25)
+## État au 13/10/2026 (v6.31)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
 - Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). Après une régénération des bâtiments,
   remettre les `.import` publiés : `git fetch origin donnees` puis, pour chaque `world/buildings/*.import`,
@@ -12,6 +12,16 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - Street View : **plafond absolu 20 $** (`pipeline/sv_budget.py`, compteur `pipeline/sources/sv_depenses.json` :
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
+
+## Fait en v6.31
+- Agricoles (20) revus par comparatif groupé. Moteur : toit `berceau` (tunnel), `soubassement` en matière
+  (`beton#…` : parpaings peints), abris `ouvert` avec `pignons_clos` et `bardage_haut`. Relevés corrigés :
+  fumiere (c'est un hangar gris foncé de 5 m), stabulation_bois_6/7/15 (appentis, la 7 fermée), stabulation_a/b,
+  ferme_bois (bois sur parpaings), ferme_pise, ferme_parpaing (face E en pisé), hangar_ferme_9/10/11 (gris foncé).
+- Planches où la caméra vise une maison voisine (hangar_ferme_9/10/11, fumiere vue 1) : bâtiment peu visible.
+- Script utile : faces vues par les caméras (scratchpad faces_cam.py ; importer calage depuis sur_mesure/, pas
+  celui de boulangerie/ qui porte le même nom).
+- Reste de #141 : école, pavillon_porche, pierrin ; stabulation_bois_15 (emprise complexe, toit en morceaux).
 
 ## Fait en v6.30
 - #132 fait : itinéraire GPS (itineraire.gd, build_itineraire.py -> world/graphe.bin à publier).
