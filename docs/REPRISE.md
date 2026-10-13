@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 13/10/2026 (v6.32)
+## État au 13/10/2026 (v6.33)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
 - Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). Après une régénération des bâtiments,
   remettre les `.import` publiés : `git fetch origin donnees` puis, pour chaque `world/buildings/*.import`,
@@ -13,18 +13,20 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
-## En cours : v6.33, Saint-Chef (#126)
+## Fait en v6.33 : Saint-Chef (#126)
 - Photos Street View de Saint-Chef payées (accord de l'utilisateur) : compteur 605 photos = 4,24 $ / 20 $.
   Cache privé poussé (rochetoirin-streetview 818ea7c).
 - `fetch_sv_batiments.py [lot] [commune] [--estimer]` : commune au choix, `--estimer` = métadonnées gratuites seulement.
 - Fiches courtes : `sur_mesure/lots/saint_chef.py` (FICHES par indice, « skip » = volume généré gardé) +
-  `saint_chef_liste.json` ; `python3 sur_mesure/lots/fiches.py saint_chef` écrit `releves/sc_<k>.json` (124).
-  Jetons d'ouvertures documentés en tête de `fiches.py`.
-- 124 modèles construits (`batiment.py sc_…`), `.import` patchés (mode 2). Reste : `build_buildings.py` (relancé)
-  puis `build_shops.py`, import, comparatif d'échantillon, reconstruire sc_116 (abbatiale couleur brique),
-  publier_donnees, v6.33.
-- Disque : venv Blender `bl` du scratchpad supprimé (place) : `python3 -m venv bl && bl/bin/pip install bpy` si besoin.
-- Prochaines communes (même méthode, annoncer la dépense avant) : estimer avec `--estimer`.
+  `saint_chef_liste.json` ; `python3 sur_mesure/lots/fiches.py saint_chef` écrit `releves/sc_<k>.json` (123).
+  Jetons d'ouvertures en tête de `fiches.py`. Planches de revue : script scratchpad sc_prep.py (6 bâtiments/planche).
+- Après de nouveaux modèles : `build_buildings.py` (18 min) puis `build_shops.py`, remettre les `.import` publiés,
+  patcher les nouveaux atlas (mode 2), import. Ne pas doubler une église qui a déjà un modèle dédié
+  (`landmarks.CHURCHES`) : abbatiale sc_116 retirée.
+- Moteur : briques/pierres groupées si l'atlas est serré (plus d'échec « atlas trop petit »).
+- Disque : venv Blender `bl` du scratchpad supprimé : `python3 -m venv bl && bl/bin/pip install bpy` si besoin.
+- Suite de #126 : commune suivante (Saint-Clair-de-la-Tour 165, Saint-Savin 160, Saint-Didier 134…) : estimer
+  (`--estimer`), annoncer la dépense, attendre l'accord.
 
 ## Fait en v6.32
 - École : emprise trop découpée = toit plat ; refaite en 2 volumes (`volumes`, le principal tourné de -9°) à

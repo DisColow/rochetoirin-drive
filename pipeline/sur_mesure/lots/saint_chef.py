@@ -156,9 +156,7 @@ FICHES = {
               o=["fen:2:1.0-2.2", "fen:2:3.4-4.4"]),
     114: dict(nom="Maison de bourg", mur="enduit#e8e4da", toit="2pans:tuile", h=(8.5, 11.0), o=["fen:3:4.0-5.0"]),
     115: dict(nom="Remise", mur="pierre#9a7a5a", toit="2pans:tuile_brune", h=(4.5, 6.0), o=["fenv:1:2.4-3.4"]),
-    116: dict(nom="Abbatiale", mur="brique#8a5a48", toit="2pans:tuile_brune", h=(10.0, 14.0), o=["ogive:6:4.0-6.0"],
-              brut={"extras": [{"t": "clocher", "face": "E", "x": 0.5, "w": 7, "h": 28, "fleche": 3},
-                               {"t": "contreforts", "face": "S", "x": [0.05, 0.95], "h": 7}]}),
+    116: dict(skip=True),    # abbatiale : déjà un modèle d'église dédié (landmarks.py, w142617849)
     117: dict(nom="École", mur="enduit#e8c0a0", toit="4pans:tuile_brune", h=(8.0, 11.0),
               o=["fen:5:1.0-2.6", "fen:5:4.0-5.6"]),
     118: dict(nom="Préau", ouvert=True, c_poteaux="#5a4030", toit="2pans:tuile_brune", h=(3.0, 4.5)),

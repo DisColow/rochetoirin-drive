@@ -136,6 +136,8 @@ def matiere(z, mur, seed):
             k += 1
     elif kind in ("pierre", "brique", "beton"):
         bh, bw = {"pierre": (0.28, 0.45), "brique": (0.065, 0.22), "beton": (0.2, 0.5)}[kind]
+        if bh * s < 3:                                     # atlas serré : briques de moins de 3 px -> rangs groupés
+            bh, bw = 3.0 / s, max(bw, 9.0 / s)
         joint = {"pierre": assombrir(c, 0.72), "brique": (176, 160, 136), "beton": assombrir(c, 0.85)}[kind]
         d.rectangle((x0, y0, x1, y1), fill=joint)
         y, k = y1, 0
