@@ -1,0 +1,13 @@
+{
+ "id": "sc_9",
+ "cleabs": "BATIMENT0000002001968252",
+ "nom": "Entrepôt",
+ "mur": "bardage#9a9ea4",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 11.0,
+ "faitage": 11.0
+}

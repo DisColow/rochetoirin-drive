@@ -1,0 +1,13 @@
+{
+ "id": "sc_140",
+ "cleabs": "BATIMENT0000002209655025",
+ "nom": "Remise en pisé",
+ "mur": "enduit#b89a70",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 2.8,
+ "faitage": 4.0
+}

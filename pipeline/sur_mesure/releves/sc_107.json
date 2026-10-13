@@ -1,0 +1,56 @@
+{
+ "id": "sc_107",
+ "cleabs": "BATIMENT0000000301576625",
+ "nom": "Maison de bourg",
+ "mur": "pierre#a08870",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 10.0,
+ "faitage": 12.0,
+ "faces": {
+  "NE": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.4,
+     2.8
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.4,
+     5.8
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     7.4,
+     8.6
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

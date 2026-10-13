@@ -1,0 +1,31 @@
+{
+ "id": "sc_152",
+ "cleabs": "BATIMENT0000000290578071",
+ "nom": "Hangar",
+ "mur": "bardage#e8eae8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e90",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#e8eae8"
+   }
+  ]
+ }
+}

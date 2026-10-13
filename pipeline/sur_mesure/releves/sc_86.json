@@ -1,0 +1,55 @@
+{
+ "id": "sc_86",
+ "cleabs": "BATIMENT0000000301582979",
+ "nom": "L'Instant Plaisant",
+ "mur": "enduit#e6d8b4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.2,
+     4.4
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "L'INSTANT PLAISANT",
+    "c": "#e6d8b4",
+    "tc": "#3a5a3a"
+   }
+  ]
+ }
+}

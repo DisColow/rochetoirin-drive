@@ -1,0 +1,55 @@
+{
+ "id": "sc_147",
+ "cleabs": "BATIMENT0000000301580053",
+ "nom": "Caserne des pompiers",
+ "mur": "enduit#e8c8b0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 4.5,
+ "faitage": 6.5,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.9
+    ],
+    "n": 4,
+    "l": 3.6,
+    "c": "#f0f0ee"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.1,
+     4.0
+    ],
+    "txt": "SAPEURS-POMPIERS",
+    "c": "#e8c8b0",
+    "tc": "#b02a2a"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "clocher",
+   "face": "S",
+   "x": 0.75,
+   "w": 3,
+   "h": 13,
+   "fleche": 0.3
+  }
+ ]
+}

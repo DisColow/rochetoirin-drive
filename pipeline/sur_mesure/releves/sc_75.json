@@ -1,0 +1,30 @@
+{
+ "id": "sc_75",
+ "cleabs": "BATIMENT0000000290578276",
+ "nom": "Hall",
+ "mur": "bardage#d0d2d0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8cacc",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "faces": {
+  "S": [
+   {
+    "t": "rideau",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6
+   }
+  ]
+ }
+}

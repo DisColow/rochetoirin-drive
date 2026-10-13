@@ -1,0 +1,70 @@
+{
+ "id": "sc_22",
+ "cleabs": "BATIMENT0000002001968303",
+ "nom": "Pompilou",
+ "mur": "enduit#e8e8e4",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.5,
+ "faitage": 7.5,
+ "faces": {
+  "NO": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     0.3
+    ],
+    "y": [
+     0,
+     7.5
+    ],
+    "mur": "bardage#3a3c44"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#e0e0e0"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     6.1,
+     7.0
+    ],
+    "txt": "SARL POMPILOU",
+    "c": "#3a3c44",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

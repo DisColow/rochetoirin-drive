@@ -1,0 +1,30 @@
+{
+ "id": "sc_120",
+ "cleabs": "BATIMENT0000000301576708",
+ "nom": "École (aile)",
+ "mur": "enduit#d4b894",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 9.0,
+ "faces": {
+  "NO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

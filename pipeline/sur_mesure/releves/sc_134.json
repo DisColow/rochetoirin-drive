@@ -1,0 +1,31 @@
+{
+ "id": "sc_134",
+ "cleabs": "BATIMENT0000000290578415",
+ "nom": "Hangar à bois",
+ "mur": "bois#6a4a32",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a6a50",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#5a3a26"
+   }
+  ]
+ }
+}

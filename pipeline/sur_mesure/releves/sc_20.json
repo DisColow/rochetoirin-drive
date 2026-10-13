@@ -1,0 +1,44 @@
+{
+ "id": "sc_20",
+ "cleabs": "BATIMENT0000002001968245",
+ "nom": "Atelier",
+ "mur": "enduit#e8e8e4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c8",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 5.8,
+ "faces": {
+  "NO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#d8d8d8"
+   }
+  ]
+ }
+}

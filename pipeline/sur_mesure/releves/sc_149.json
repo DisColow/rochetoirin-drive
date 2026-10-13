@@ -1,0 +1,13 @@
+{
+ "id": "sc_149",
+ "cleabs": "BATIMENT0000000330807597",
+ "nom": "Serres",
+ "mur": "bardage#e0e4e0",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#e0e4e0",
+  "debord": 0.0
+ },
+ "egout": 0.5,
+ "faitage": 3.0
+}

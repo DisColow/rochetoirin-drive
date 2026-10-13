@@ -1,0 +1,31 @@
+{
+ "id": "sc_4",
+ "cleabs": "BATIMENT0000000007575853",
+ "nom": "Grange",
+ "mur": "beton#c8c4b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a4a40",
+  "debord": 0.4
+ },
+ "egout": 4.2,
+ "faitage": 7.0,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.6
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#2a2826"
+   }
+  ]
+ }
+}

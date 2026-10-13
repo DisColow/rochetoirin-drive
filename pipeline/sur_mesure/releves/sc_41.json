@@ -1,0 +1,13 @@
+{
+ "id": "sc_41",
+ "cleabs": "BATIMENT0000000338559887",
+ "nom": "Serre de la jardinerie",
+ "mur": "bardage#c8d0d0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8d4d4",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5
+}

@@ -1,0 +1,45 @@
+{
+ "id": "sc_72",
+ "cleabs": "BATIMENT0000000301583091",
+ "nom": "Usine CEPN",
+ "mur": "bardage#c8bc98",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e90",
+  "debord": 0.4
+ },
+ "egout": 13.0,
+ "faitage": 15.0,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#b8b098"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     11.6,
+     12.5
+    ],
+    "txt": "CEPN",
+    "c": "#ffffff",
+    "tc": "#2a5aa0"
+   }
+  ]
+ }
+}

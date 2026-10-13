@@ -1,0 +1,44 @@
+{
+ "id": "sc_16",
+ "cleabs": "BATIMENT0000002001968260",
+ "nom": "Hangar Futélec",
+ "mur": "bardage#3a3c42",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a5c60",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 7.0,
+ "faces": {
+  "NO": [
+   {
+    "t": "rideau",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "SARL FUTÉLEC",
+    "c": "#3a3c42",
+    "tc": "#f0f0f0"
+   }
+  ]
+ }
+}

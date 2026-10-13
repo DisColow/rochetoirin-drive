@@ -1,0 +1,13 @@
+{
+ "id": "sc_76",
+ "cleabs": "BATIMENT0000002001968360",
+ "nom": "Gymnase",
+ "mur": "bois#7a6a5a",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 9.0,
+ "faitage": 9.0
+}

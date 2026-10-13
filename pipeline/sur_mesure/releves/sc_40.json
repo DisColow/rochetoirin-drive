@@ -1,0 +1,13 @@
+{
+ "id": "sc_40",
+ "cleabs": "BATIMENT0000002292127557",
+ "nom": "Tunnel",
+ "mur": "bardage#8a8c88",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#8a8c88",
+  "debord": 0.0
+ },
+ "egout": 0.5,
+ "faitage": 4.0
+}

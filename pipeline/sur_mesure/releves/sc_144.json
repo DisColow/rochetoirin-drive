@@ -1,0 +1,51 @@
+{
+ "id": "sc_144",
+ "cleabs": "BATIMENT0000000301577569",
+ "nom": "Église",
+ "mur": "pierre#d8ccb0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 9.0,
+ "faitage": 12.0,
+ "faces": {
+  "N": [
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.0,
+     7.0
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "clocher",
+   "face": "S",
+   "x": 0.85,
+   "w": 4,
+   "h": 22,
+   "fleche": 5
+  }
+ ]
+}

@@ -1,0 +1,43 @@
+{
+ "id": "sc_0",
+ "cleabs": "BATIMENT0000000301577246",
+ "nom": "Séchoir à grain",
+ "mur": "bardage#6a7076",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#6a7076",
+  "debord": 0.4
+ },
+ "egout": 10.5,
+ "faitage": 12.5,
+ "soubassement": "#d8c49a",
+ "h_soub": 3.0,
+ "faces": {
+  "SO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.0
+    ],
+    "n": 1,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.71,
+     0.79
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

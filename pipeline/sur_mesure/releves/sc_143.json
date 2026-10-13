@@ -1,0 +1,31 @@
+{
+ "id": "sc_143",
+ "cleabs": "BATIMENT0000000301577677",
+ "nom": "Grange",
+ "mur": "enduit#ece8e0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 5.5,
+ "faitage": 8.0,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#2a2a2a"
+   }
+  ]
+ }
+}

@@ -1,0 +1,57 @@
+{
+ "id": "sc_96",
+ "cleabs": "BATIMENT0000000301582956",
+ "nom": "La Postille",
+ "mur": "enduit#e8b890",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 6.5,
+ "faitage": 8.5,
+ "faces": {
+  "O": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.2
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.1,
+     6.0
+    ],
+    "txt": "LA POSTILLE",
+    "c": "#f0c020",
+    "tc": "#1a2a6a"
+   }
+  ]
+ }
+}

@@ -1,0 +1,56 @@
+{
+ "id": "sc_78",
+ "cleabs": "BATIMENT0000000301583118",
+ "nom": "Garage du Chef",
+ "mur": "bardage#e8eaec",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.5,
+ "faitage": 5.5,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.45
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#3a3c40"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.1,
+     5.0
+    ],
+    "txt": "GARAGE DU CHEF",
+    "c": "#1a3a8a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

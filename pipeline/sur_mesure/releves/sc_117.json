@@ -1,0 +1,43 @@
+{
+ "id": "sc_117",
+ "cleabs": "BATIMENT0000000301576731",
+ "nom": "École",
+ "mur": "enduit#e8c0a0",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 11.0,
+ "faces": {
+  "SO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.6
+    ],
+    "n": 5,
+    "l": 1.2
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.6
+    ],
+    "n": 5,
+    "l": 1.2
+   }
+  ]
+ }
+}

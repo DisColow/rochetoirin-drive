@@ -1,0 +1,13 @@
+{
+ "id": "sc_51",
+ "cleabs": "BATIMENT0000002209601503",
+ "nom": "Hangar",
+ "mur": "bois#8a6a4a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#7a3a30",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0
+}

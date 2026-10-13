@@ -1,0 +1,43 @@
+{
+ "id": "sc_58",
+ "cleabs": "BATIMENT0000000301583098",
+ "nom": "Ateliers municipaux",
+ "mur": "beton#a8a8a4",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.0,
+ "faitage": 4.0,
+ "faces": {
+  "S": [
+   {
+    "t": "matiere",
+    "x": [
+     0.2,
+     0.6
+    ],
+    "y": [
+     0,
+     4.0
+    ],
+    "mur": "bois#c89a50"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#3a3a3a"
+   }
+  ]
+ }
+}

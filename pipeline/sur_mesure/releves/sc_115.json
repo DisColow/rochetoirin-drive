@@ -1,0 +1,30 @@
+{
+ "id": "sc_115",
+ "cleabs": "BATIMENT0000000301576788",
+ "nom": "Remise",
+ "mur": "pierre#9a7a5a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 4.5,
+ "faitage": 6.0,
+ "faces": {
+  "NE": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     2.4,
+     3.4
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

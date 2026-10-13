@@ -1,0 +1,15 @@
+{
+ "id": "sc_138",
+ "cleabs": "BATIMENT0000002209655027",
+ "nom": "Hangar à matériel",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "ouvert": true,
+ "c_poteaux": "#6a6e72"
+}

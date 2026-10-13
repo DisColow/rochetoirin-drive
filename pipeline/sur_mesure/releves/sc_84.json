@@ -1,0 +1,13 @@
+{
+ "id": "sc_84",
+ "cleabs": "BATIMENT0000000301582934",
+ "nom": "Club-house",
+ "mur": "bardage#d0a088",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c8",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0
+}

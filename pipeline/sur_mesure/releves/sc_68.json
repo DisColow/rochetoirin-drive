@@ -1,0 +1,54 @@
+{
+ "id": "sc_68",
+ "cleabs": "BATIMENT0000000301583000",
+ "nom": "Pôle scolaire",
+ "mur": "enduit#ececea",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 8.5,
+ "faitage": 8.5,
+ "faces": {
+  "N": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     1.0,
+     2.6
+    ],
+    "c": "#8a8e90"
+   },
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     4.4,
+     6.0
+    ],
+    "c": "#8a8e90"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "auvent",
+   "face": "N",
+   "x": [
+    0.05,
+    0.95
+   ],
+   "y": 8.5,
+   "p": 4.0,
+   "c": "#3a3c40"
+  }
+ ]
+}

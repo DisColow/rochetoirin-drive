@@ -1,0 +1,39 @@
+{
+ "id": "sc_3",
+ "cleabs": "BATIMENT0000000301579916",
+ "nom": "Bâtiment agricole",
+ "mur": "bardage#a8acae",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a2a30",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.6,
+ "faces": {
+  "NE": [
+   {
+    "t": "affiche",
+    "x": [
+     0.3,
+     0.38
+    ],
+    "y": [
+     1.4,
+     2.4
+    ]
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.6599999999999999,
+     0.74
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

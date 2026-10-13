@@ -1,0 +1,28 @@
+{
+ "id": "sc_53",
+ "cleabs": "BATIMENT0000000301582926",
+ "nom": "Local technique",
+ "mur": "beton#d8ccb0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 2.8,
+ "faitage": 4.0,
+ "faces": {
+  "E": [
+   {
+    "t": "porte",
+    "x": [
+     0.26,
+     0.33999999999999997
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

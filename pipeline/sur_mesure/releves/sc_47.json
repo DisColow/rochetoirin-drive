@@ -1,0 +1,13 @@
+{
+ "id": "sc_47",
+ "cleabs": "BATIMENT0000002292127553",
+ "nom": "Tunnel maraîcher",
+ "mur": "bardage#e8ece8",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#e8ece8",
+  "debord": 0.0
+ },
+ "egout": 0.4,
+ "faitage": 3.2
+}

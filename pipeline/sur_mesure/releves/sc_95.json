@@ -1,0 +1,13 @@
+{
+ "id": "sc_95",
+ "cleabs": "BATIMENT0000000301582922",
+ "nom": "Remise",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 5.0
+}

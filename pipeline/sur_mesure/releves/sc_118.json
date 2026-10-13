@@ -1,0 +1,15 @@
+{
+ "id": "sc_118",
+ "cleabs": "BATIMENT0000000301576710",
+ "nom": "Préau",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "ouvert": true,
+ "c_poteaux": "#5a4030"
+}

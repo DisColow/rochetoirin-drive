@@ -1,0 +1,15 @@
+{
+ "id": "sc_136",
+ "cleabs": "BATIMENT0000000301579306",
+ "nom": "Abri",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 2.4,
+ "faitage": 3.2,
+ "ouvert": true,
+ "c_poteaux": "#5a4a3a"
+}

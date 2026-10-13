@@ -1,0 +1,68 @@
+{
+ "id": "sc_91",
+ "cleabs": "BATIMENT0000000301582939",
+ "nom": "Pharmacie",
+ "mur": "enduit#e2d4b4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 10.0,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.2
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.6,
+     7.6
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     6.6,
+     7.5
+    ],
+    "txt": "PHARMACIE",
+    "c": "#e2d4b4",
+    "tc": "#3a3a3a"
+   }
+  ]
+ }
+}

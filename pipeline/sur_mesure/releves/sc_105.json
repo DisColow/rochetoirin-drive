@@ -1,0 +1,41 @@
+{
+ "id": "sc_105",
+ "cleabs": "BATIMENT0000000301578454",
+ "nom": "Grange",
+ "mur": "enduit#d8ccb4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 9.0,
+ "faces": {
+  "O": [
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.0,
+     3.8
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

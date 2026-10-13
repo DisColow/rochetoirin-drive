@@ -1,0 +1,32 @@
+{
+ "id": "sc_104",
+ "cleabs": "BATIMENT0000000301576503",
+ "nom": "Grange en pisé",
+ "mur": "enduit#b89a70",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 5.5,
+ "faitage": 8.0,
+ "soubassement": "pierre#a89880",
+ "h_soub": 0.8,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     2.0,
+     2.8
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

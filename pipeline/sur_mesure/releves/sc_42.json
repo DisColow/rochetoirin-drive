@@ -1,0 +1,31 @@
+{
+ "id": "sc_42",
+ "cleabs": "BATIMENT0000000007581825",
+ "nom": "Jardinerie",
+ "mur": "bardage#c8d0d0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8d4d4",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.5,
+ "faces": {
+  "E": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "JARDINERIE LATOURNESOL",
+    "c": "#ffffff",
+    "tc": "#c02a4a"
+   }
+  ]
+ }
+}

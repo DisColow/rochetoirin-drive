@@ -1,0 +1,49 @@
+{
+ "id": "sc_39",
+ "cleabs": "BATIMENT0000000301578534",
+ "nom": "Église",
+ "mur": "pierre#a89880",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 12.0,
+ "faces": {
+  "NE": [
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.0,
+     7.0
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "clocher",
+   "face": "SE",
+   "x": 0.5,
+   "w": 4,
+   "h": 20,
+   "fleche": 3
+  },
+  {
+   "t": "contreforts",
+   "face": "NE",
+   "x": [
+    0.1,
+    0.9
+   ],
+   "h": 6
+  }
+ ]
+}

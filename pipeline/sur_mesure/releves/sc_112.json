@@ -1,0 +1,43 @@
+{
+ "id": "sc_112",
+ "cleabs": "BATIMENT0000000301576506",
+ "nom": "Maison de bourg",
+ "mur": "enduit#e0d8c4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 8.5,
+ "faitage": 11.0,
+ "faces": {
+  "SO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.4,
+     5.6
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

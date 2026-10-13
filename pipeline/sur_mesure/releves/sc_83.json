@@ -1,0 +1,40 @@
+{
+ "id": "sc_83",
+ "cleabs": "BATIMENT0000000301582935",
+ "nom": "Gymnase",
+ "mur": "enduit#d8c8a8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 8.5,
+ "faitage": 8.5,
+ "faces": {
+  "N": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     5.0,
+     7.0
+    ],
+    "c": "#8a8e90"
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

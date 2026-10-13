@@ -1,0 +1,32 @@
+{
+ "id": "sc_129",
+ "cleabs": "BATIMENT0000000301576714",
+ "nom": "Résidence",
+ "mur": "enduit#e4d4b4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 4.5,
+ "faitage": 7.0,
+ "soubassement": "pierre#b0a084",
+ "h_soub": 1.0,
+ "faces": {
+  "NE": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

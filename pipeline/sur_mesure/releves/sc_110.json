@@ -1,0 +1,68 @@
+{
+ "id": "sc_110",
+ "cleabs": "BATIMENT0000000301576660",
+ "nom": "Bibliothèque et musée",
+ "mur": "enduit#ece8e0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 9.0,
+ "faitage": 12.0,
+ "faces": {
+  "SO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     7.0,
+     8.2
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.5599999999999999,
+     0.64
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     7.6,
+     8.5
+    ],
+    "txt": "BIBLIOTHÈQUE",
+    "c": "#ece8e0",
+    "tc": "#2a2a3a"
+   }
+  ]
+ }
+}

@@ -1,0 +1,43 @@
+{
+ "id": "sc_28",
+ "cleabs": "BATIMENT0000002292127590",
+ "nom": "Ateliers",
+ "mur": "bardage#d8dadc",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.0,
+ "faitage": 6.0,
+ "faces": {
+  "SE": [
+   {
+    "t": "matiere",
+    "x": [
+     0.3,
+     0.55
+    ],
+    "y": [
+     0,
+     6.0
+    ],
+    "mur": "bardage#6a6e74"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 3,
+    "l": 3.6,
+    "c": "#f0f0f0"
+   }
+  ]
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "id": "sc_124",
+ "cleabs": "BATIMENT0000000301576895",
+ "nom": "École maternelle",
+ "mur": "enduit#d8c4a4",
+ "toit": {
+  "type": "4pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.5,
+ "faces": {
+  "NE": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.36000000000000004,
+     0.44
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

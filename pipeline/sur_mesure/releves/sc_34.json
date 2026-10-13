@@ -1,0 +1,43 @@
+{
+ "id": "sc_34",
+ "cleabs": "BATIMENT0000000330807762",
+ "nom": "Entrepôt",
+ "mur": "bardage#e8eae8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.0,
+ "faitage": 7.0,
+ "faces": {
+  "SE": [
+   {
+    "t": "matiere",
+    "x": [
+     0.6,
+     1.0
+    ],
+    "y": [
+     0,
+     7.0
+    ],
+    "mur": "bardage#7aa04a"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#f0f0f0"
+   }
+  ]
+ }
+}

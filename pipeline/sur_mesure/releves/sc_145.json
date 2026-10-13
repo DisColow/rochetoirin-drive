@@ -1,0 +1,15 @@
+{
+ "id": "sc_145",
+ "cleabs": "BATIMENT0000002292127224",
+ "nom": "Hangar",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#7a6a50",
+  "debord": 0.4
+ },
+ "egout": 5.5,
+ "faitage": 7.0,
+ "ouvert": true,
+ "c_poteaux": "#7a6a50"
+}

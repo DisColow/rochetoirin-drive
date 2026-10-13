@@ -1,0 +1,15 @@
+{
+ "id": "sc_151",
+ "cleabs": "BATIMENT0000002209556789",
+ "nom": "Séchoir à tabac",
+ "mur": "bois#6a5a4a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "soubassement": "#2a2a2a",
+ "h_soub": 1.0
+}

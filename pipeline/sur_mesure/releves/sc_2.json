@@ -1,0 +1,13 @@
+{
+ "id": "sc_2",
+ "cleabs": "BATIMENT0000002493295955",
+ "nom": "Hangar à panneaux solaires",
+ "mur": "bois#9a7a58",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#2c3c66",
+  "debord": 0.4
+ },
+ "egout": 4.5,
+ "faitage": 8.0
+}
