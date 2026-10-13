@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.23.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.23/RochetoirinSimulator-v6.23.apk)**
+**[RochetoirinSimulator-v6.24.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.24/RochetoirinSimulator-v6.24.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -15,6 +15,13 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 (dézipper, lancer `RochetoirinSimulator.exe` ; clavier : flèches, C caméra, M carte, R replacer ; manette ; la souris
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
+
+Nouveautés de la v6.24 (APK complet à installer) :
+- **haies et murets destructibles**, comme les clôtures : au-delà de ~10 km/h on traverse une haie (touffes
+  arrachées, feuilles), au-delà de ~25 km/h on défonce un muret (blocs de pierre, gravats, gros choc) ; plus lentement,
+  ils arrêtent la voiture.
+- **herbe affichée plus loin** : fini l'herbe qui pousse juste devant la voiture ; touffes lointaines plus grandes et
+  plus claires, densité complète en approchant.
 
 Nouveautés de la v6.23 (APK complet à installer) :
 - **bords de la carte façon Motocross Madness** :

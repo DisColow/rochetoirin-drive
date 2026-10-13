@@ -1,5 +1,5 @@
 ## Décor destructible (v6.9, issue #7) : panneaux de signalisation, lampadaires, clôtures (grillages, panneaux,
-## poteaux ; pas les murets ni les haies) et petits arbres (moins de 9 m : les gros restent des obstacles) sont
+## poteaux), haies et murets (v6.24 : au-delà d'une vitesse minimale, sinon obstacles) et petits arbres (moins de 9 m : les gros restent des obstacles) sont
 ## renversés quand la voiture les touche.
 ## - Détection avant le contact : boîte de la voiture (meta.json) élargie du rayon de l'objet ; candidats proches
 ##   relevés toutes les 0,2 s (panneaux : world/panneaux.bin de build_casse.py ; lampadaires : poles.pieds ;
@@ -16,13 +16,16 @@ const VIE := 15.0                 # durée de vie d'un débris (s)
 const MAX_DEBRIS := 10
 const ARBRE_MAX := 9.0            # hauteur maximale d'un arbre cassable (m)
 const GRILLE := 16.0
-# perte de vitesse (part), son, rayon de l'objet (m)
+# perte de vitesse (part), son, rayon de l'objet (m), vitesse minimale pour casser (m/s)
 const KINDS := {
-	"panneau": [0.06, "choc_leger_%d", 0.12],
-	"lampadaire": [0.22, "choc_dur_%d", 0.18],
-	"arbre": [0.14, "choc_bois_%d", 0.2],
-	"cloture": [0.1, "choc_bois_%d", 0.1],
+	"panneau": [0.06, "choc_leger_%d", 0.12, 0.0],
+	"lampadaire": [0.22, "choc_dur_%d", 0.18, 0.0],
+	"arbre": [0.14, "choc_bois_%d", 0.2, 0.0],
+	"cloture": [0.1, "choc_bois_%d", 0.1, 0.0],
+	"haie": [0.2, "choc_bois_%d", 0.45, 3.0],
+	"muret": [0.38, "choc_dur_%d", 0.22, 7.0],
 }
+const LIGNES := ["cloture", "haie", "muret"]      # fences.genres
 
 var main: Node
 var car: VehicleBody3D
@@ -82,14 +85,16 @@ func _pas_corps(dt: float) -> void:
 	var inv := car.global_transform.affine_inverse()
 	for it in _proches:
 		match it[0]:
-			"cloture":
+			"cloture", "haie", "muret":
+				if v.length() < float(KINDS[it[0]][3]):
+					continue
 				var a: Vector3 = it[1]; var b: Vector3 = it[2]
 				var c := car.global_position
 				var ab := Vector2(b.x - a.x, b.z - a.z)
 				var tt := clampf(Vector2(c.x - a.x, c.z - a.z).dot(ab) / maxf(ab.length_squared(), 1e-6), 0.0, 1.0)
 				var q := a.lerp(b, tt)
-				if _touche(inv, q, KINDS.cloture[2]) and not _deja(q, 2.2):
-					_casser("cloture", q, it)
+				if _touche(inv, q, KINDS[it[0]][2]) and not _deja(q, 2.2):
+					_casser(it[0], q, it)
 					return
 			_:
 				var p: Vector3 = it[1]
@@ -132,6 +137,7 @@ func _relever() -> void:
 					_proches.append(["lampadaire", p])
 		if fences and fences.lignes.has(k):
 			var L: PackedVector3Array = fences.lignes[k]
+			var G: PackedByteArray = fences.genres.get(k, PackedByteArray())
 			var g: Dictionary = _grille_lignes(k)
 			var vus := {}
 			for gx in range(-2, 3):
@@ -140,7 +146,7 @@ func _relever() -> void:
 						if vus.has(i):
 							continue
 						vus[i] = true
-						_proches.append(["cloture", L[i], L[i + 1]])
+						_proches.append([LIGNES[G[i / 2]] if i / 2 < G.size() else "cloture", L[i], L[i + 1]])
 		if vegetation and vegetation.data.has(k):
 			var g: Dictionary = _grille_arbres(k)
 			var a: PackedFloat32Array = vegetation.data[k]
@@ -235,6 +241,16 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 			fences.breche(p, 1.9)
 			corps = _corps_cloture()
 			corps.global_position = p + Vector3(0, 0.7, 0)
+		"haie":
+			_effacer(Vector4(p.x, p.z, 2.1, p.y - 0.3))
+			fences.breche(p, 2.3)
+			corps = _corps_bloc("buisson", Vector3(1.2, 1.0, 0.9), 25.0)
+			corps.global_position = p + Vector3(0, 0.9, 0)
+		"muret":
+			_effacer(Vector4(p.x, p.z, 1.9, p.y - 0.3))
+			fences.breche(p, 2.1)
+			corps = _corps_bloc("bloc", Vector3(0.9, 0.45, 0.35), 180.0)
+			corps.global_position = p + Vector3(0, 0.6, 0)
 	var k: Array = KINDS[genre]
 	car.linear_velocity = v * (1.0 - float(k[0]) * clampf(spd / 12.0, 0.3, 1.0))
 	if corps:
@@ -253,7 +269,11 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 			if not mat.is_empty():
 				D._nuage(mat, p + Vector3(randf_range(-0.6, 0.6), randf_range(0.2, 1.0), randf_range(-0.6, 0.6)), dir * spd * 0.2 + Vector3(0, 0.5, 0), 0.8)
 		var col := Color(0.35, 0.27, 0.18) if genre == "arbre" or genre == "cloture" else Color(0.55, 0.56, 0.58)
-		for i in 8:
+		if genre == "haie":
+			col = Color(0.2, 0.36, 0.14)
+		elif genre == "muret":
+			col = Color(0.62, 0.58, 0.5)
+		for i in (16 if genre == "haie" or genre == "muret" else 8):
 			D._debris(p + Vector3(randf_range(-0.4, 0.4), randf_range(0.3, 1.5), randf_range(-0.4, 0.4)),
 				dir * spd * randf_range(0.3, 0.8) + Vector3(randf_range(-2, 2), randf_range(2, 5), randf_range(-2, 2)),
 				p.y, Vector3(randf_range(0.04, 0.15), randf_range(0.02, 0.06), randf_range(0.04, 0.2)), col)
@@ -291,8 +311,12 @@ func _preparer_reserve() -> void:
 	var inner := CylinderMesh.new(); inner.top_radius = 0.27; inner.bottom_radius = 0.27; inner.height = 0.035; inner.radial_segments = 16; inner.material = m_blanc
 	var poteau := BoxMesh.new(); poteau.size = Vector3(0.06, 1.4, 0.06); poteau.material = m_grille
 	var grille := BoxMesh.new(); grille.size = Vector3(1.8, 1.1, 0.02); grille.material = m_grille
+	var m_feuil := StandardMaterial3D.new(); m_feuil.albedo_color = Color(0.17, 0.32, 0.12); m_feuil.roughness = 0.9
+	var m_pierre := StandardMaterial3D.new(); m_pierre.albedo_color = Color(0.6, 0.56, 0.48); m_pierre.roughness = 0.95
+	var buisson := SphereMesh.new(); buisson.radius = 0.6; buisson.height = 1.0; buisson.radial_segments = 8; buisson.rings = 4; buisson.material = m_feuil
+	var bloc := BoxMesh.new(); bloc.size = Vector3(0.9, 0.45, 0.35); bloc.material = m_pierre
 	_mats["metal"] = m_metal
-	_mailles = {"face": face, "inner": inner, "poteau": poteau, "grille": grille, "mats": {}}
+	_mailles = {"face": face, "inner": inner, "poteau": poteau, "grille": grille, "buisson": buisson, "bloc": bloc, "mats": {}}
 	for i in MAX_DEBRIS:
 		var rb := RigidBody3D.new()
 		rb.collision_layer = 1
@@ -370,6 +394,22 @@ func _corps_cloture() -> RigidBody3D:
 		mi.position = Vector3(-0.9 + i * 1.8, 0, 0) if i < 2 else Vector3.ZERO
 	return rb
 
+## Haie (touffe arrachée, trois boules) ou muret (trois blocs de pierre).
+func _corps_bloc(nom: String, boite: Vector3, masse: float) -> RigidBody3D:
+	var rb := _prendre(masse, boite)
+	for i in 3:
+		var mi: MeshInstance3D = rb.get_child(i)
+		mi.mesh = _mailles[nom]
+		if nom == "bloc":
+			mi.position = Vector3((i - 1) * 0.3, (i % 2) * 0.12 - 0.06, (i - 1) * 0.08)
+			mi.rotation = Vector3(0, (i - 1) * 0.5, (i - 1) * 0.3)
+			mi.scale = Vector3.ONE * (0.55 if i != 1 else 0.8)
+		else:
+			mi.position = Vector3((i - 1) * 0.35, (i % 2) * 0.15, 0)
+			mi.scale = Vector3.ONE * (0.75 if i != 1 else 1.0)
+		mi.set_meta("e", mi.scale.x)
+	return rb
+
 ## Débris : rétrécissent pendant la dernière seconde puis disparaissent.
 func _vieillir(dt: float) -> void:
 	for i in range(_debris.size() - 1, -1, -1):
@@ -397,7 +437,7 @@ func essai() -> void:
 	for i in 120:
 		await get_tree().physics_frame
 	DirAccess.make_dir_recursive_absolute("user://shots")
-	var genres := ["panneau", "lampadaire", "arbre", "cloture"]
+	var genres := ["panneau", "lampadaire", "arbre", "cloture", "haie", "muret"]
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--casse-genres="):
 			genres = Array(a.trim_prefix("--casse-genres=").split(","))
@@ -427,13 +467,16 @@ func essai() -> void:
 							var d := Vector2(a[o] - c.x, a[o + 2] - c.z).length()
 							if d < bd and d > 3.0:
 								bd = d; best = Vector3(a[o], a[o + 1], a[o + 2])
-			"cloture":
+			"cloture", "haie", "muret":
 				for k in fences.lignes:
 					var L: PackedVector3Array = fences.lignes[k]
+					var G: PackedByteArray = fences.genres.get(k, PackedByteArray())
 					for i in range(0, L.size() - 1, 2):
+						if i / 2 >= G.size() or LIGNES[G[i / 2]] != genre:
+							continue
 						var m := (L[i] + L[i + 1]) * 0.5
 						var d := Vector2(m.x - c.x, m.z - c.z).length()
-						if d < bd and d > 3.0 and L[i].distance_to(L[i + 1]) > 3.0:
+						if d < bd and d > 3.0 and L[i].distance_to(L[i + 1]) > (3.0 if genre == "cloture" else 1.5):
 							bd = d; best = m
 		if best == Vector3.INF:
 			print("[casse] essai ", genre, " : aucun objet chargé")

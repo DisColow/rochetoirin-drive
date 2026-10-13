@@ -8,7 +8,11 @@ const PerfMon := preload("res://scripts/perf_monitor.gd")
 const REG := 1024.0
 const CELL := 12.0
 # par niveau de densité (Réglages) : portée (m), écartement des touffes (m)
-const LEVELS := [[24.0, 0.95], [32.0, 0.78], [40.0, 0.66], [50.0, 0.58]]
+# v6.23 (« l'herbe apparaît trop près ») : portées presque doublées ; au-delà de PRES m, cases clairsemées (écartement
+# × CLAIR, touffes un peu plus grandes) reconstruites serrées quand on s'approche : peu de touffes en plus.
+const LEVELS := [[45.0, 0.95], [60.0, 0.78], [75.0, 0.66], [95.0, 0.58]]
+const PRES := 30.0
+const CLAIR := 2.2
 # par catégorie : cases de la planche (avec poids), hauteur min / max (m), largeur relative, part des places occupées
 const CAT := {
 	1: [[0, 0, 0, 1], 0.2, 0.34, 1.8, 0.85],
@@ -22,6 +26,7 @@ var terrain: Node
 var level := 2
 var maps := {}            # Vector2i région -> PackedByteArray (quartets)
 var cells := {}           # Vector2i case -> MultiMeshInstance3D ou null
+var bandes := {}          # Vector2i case -> 0 (serrée, près) ou 1 (clairsemée, loin)
 var mesh: ArrayMesh
 var mat: ShaderMaterial
 var _t := 0.0
@@ -53,7 +58,7 @@ func set_level(l: int) -> void:
 	for k in cells.keys():
 		if cells[k]:
 			cells[k].queue_free()
-	cells.clear()
+	cells.clear(); bandes.clear()
 
 func _map(k: Vector2i) -> PackedByteArray:
 	if not maps.has(k):
@@ -78,7 +83,7 @@ func _cat(x: float, z: float) -> int:
 
 func update_now() -> void:
 	_t = 0.0
-	for i in 40:
+	for i in 200:
 		if not _step():
 			break
 
@@ -104,9 +109,12 @@ func _step() -> bool:
 	for dx in range(-n, n + 1):
 		for dz in range(-n, n + 1):
 			var k := kc + Vector2i(dx, dz)
-			if cells.has(k):
-				continue
 			var d := Vector2((k.x + 0.5) * CELL - c.x, (k.y + 0.5) * CELL - c.z).length()
+			if cells.has(k):
+				# case clairsemée qui se retrouve près : à reconstruire serrée (en priorité, c'est la plus visible)
+				if bandes.get(k, 0) == 1 and d < PRES - CELL * 0.5 and d < bd:
+					bd = d; best = k
+				continue
 			if d < r + CELL * 0.71 and d < bd:
 				bd = d; best = k
 	for k in cells.keys():
@@ -114,14 +122,20 @@ func _step() -> bool:
 		if d > r + CELL * 1.5:
 			if cells[k]:
 				cells[k].queue_free()
-			cells.erase(k)
+			cells.erase(k); bandes.erase(k)
 	if bd == INF:
 		return false
 	_build(best)
 	return true
 
 func _build(k: Vector2i) -> void:
-	var sp: float = LEVELS[level][1]
+	if cells.has(k) and cells[k]:
+		cells[k].queue_free()
+	var c := target.global_position
+	var bande := 1 if Vector2((k.x + 0.5) * CELL - c.x, (k.y + 0.5) * CELL - c.z).length() > PRES else 0
+	bandes[k] = bande
+	var sp: float = LEVELS[level][1] * (CLAIR if bande == 1 else 1.0)
+	var grand := 1.15 if bande == 1 else 1.0
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(k)
 	var buf := PackedFloat32Array()
@@ -142,7 +156,7 @@ func _build(k: Vector2i) -> void:
 			if is_nan(y):
 				continue
 			var cellv: int = spec[0][rng.randi() % 4]
-			var h := rng.randf_range(spec[1], spec[2])
+			var h := rng.randf_range(spec[1], spec[2]) * grand
 			var w := h * float(spec[3]) * rng.randf_range(0.8, 1.2)
 			var b := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(w, h, w))
 			var o := cnt * 16

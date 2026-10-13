@@ -230,8 +230,8 @@
   suivant avec rapport) ; essai : `-- --fige-test` (simule l'arrêt du rendu). Attendre un rapport avant de corriger.
 - **Décor destructible** (v6.9, issue #7, `scripts/casse.gd`) : panneaux de signalisation (positions
   `world/panneaux.bin` relevées dans les tuiles de routes par `pipeline/build_casse.py`), lampadaires (`poles.pieds`,
-  `poles.casser`), clôtures (grillages, panneaux, poteaux : `fences.lignes`, `fences.breche` ; **pas les murets ni les
-  haies**) et **petits arbres seulement** (moins de 9 m, `vegetation.casser` ; les gros restent des obstacles, choix de
+  `poles.casser`), clôtures (grillages, panneaux, poteaux : `fences.lignes`, `fences.breche` ; **haies et murets aussi
+  depuis la v6.24** : `fences.genres`, vitesse minimale `KINDS[…][3]`, sinon obstacles) et **petits arbres seulement** (moins de 9 m, `vegetation.casser` ; les gros restent des obstacles, choix de
   l'utilisateur). Détection avant contact (boîte de la voiture élargie), objet caché (exemplaire de MultiMesh : méta
   `origines` posée par `cells.gd`) ou effacé par le shader (`env_casse` d'`env.gdshaderinc`, uniform `casse_pts` : 16
   points, simple/fence), débris physique 15 s, poussière et éclats (`dust.gd`), son selon la matière, vitesse réduite
@@ -322,8 +322,8 @@
   suivant avec rapport) ; essai : `-- --fige-test` (simule l'arrêt du rendu). Attendre un rapport avant de corriger.
 - **Décor destructible** (v6.9, issue #7, `scripts/casse.gd`) : panneaux de signalisation (positions
   `world/panneaux.bin` relevées dans les tuiles de routes par `pipeline/build_casse.py`), lampadaires (`poles.pieds`,
-  `poles.casser`), clôtures (grillages, panneaux, poteaux : `fences.lignes`, `fences.breche` ; **pas les murets ni les
-  haies**) et **petits arbres seulement** (moins de 9 m, `vegetation.casser` ; les gros restent des obstacles, choix de
+  `poles.casser`), clôtures (grillages, panneaux, poteaux : `fences.lignes`, `fences.breche` ; **haies et murets aussi
+  depuis la v6.24** : `fences.genres`, vitesse minimale `KINDS[…][3]`, sinon obstacles) et **petits arbres seulement** (moins de 9 m, `vegetation.casser` ; les gros restent des obstacles, choix de
   l'utilisateur). Détection avant contact (boîte de la voiture élargie), objet caché (exemplaire de MultiMesh : méta
   `origines` posée par `cells.gd`) ou effacé par le shader (`env_casse` d'`env.gdshaderinc`, uniform `casse_pts` : 16
   points, simple/fence), débris physique 15 s, poussière et éclats (`dust.gd`), son selon la matière, vitesse réduite

@@ -31,6 +31,7 @@ var results := {}         # Vector2i -> [opaque, découpe, collisions] (écrit p
 var bodies := {}
 var colfaces := {}        # Vector2i -> PackedVector3Array
 var lignes := {}          # Vector2i -> PackedVector3Array (segments a, b des clôtures cassables : casse.gd)
+var genres := {}          # Vector2i -> PackedByteArray (un par segment : 0 clôture, 1 haie, 2 muret ; v6.24)
 var lscale := PackedFloat32Array()
 var mat: ShaderMaterial
 var mat_cut: ShaderMaterial
@@ -145,6 +146,7 @@ func _process_corps(dt: float) -> void:
 			bodies.erase(k)
 			colfaces.erase(k)
 			lignes.erase(k)
+			genres.erase(k)
 	_collisions()
 
 func _finish(k: Vector2i) -> void:
@@ -194,8 +196,9 @@ func _finish(k: Vector2i) -> void:
 	add_child(root)
 	loaded[k] = root
 	colfaces[k] = r[2]
-	if r.size() > 4:
+	if r.size() > 5:
 		lignes[k] = r[4]
+		genres[k] = r[5]
 
 ## Clôture enfoncée (casse.gd) : plus de collision dans un rayon r autour de p (la voiture passe par la brèche).
 func breche(p: Vector3, r: float) -> void:
@@ -304,6 +307,7 @@ func _build(k: Vector2i, a: PackedFloat32Array) -> void:
 	var cut := _surf()
 	var col := PackedVector3Array()
 	var lig := PackedVector3Array()
+	var gen := PackedByteArray()
 	var cl := {}                 # (essence, case de 32 m) -> PackedFloat32Array des instances de touffes
 	var o := 0
 	while o + 16 <= a.size():
@@ -327,11 +331,13 @@ func _build(k: Vector2i, a: PackedFloat32Array) -> void:
 			POSTS: _posts(op, P, layer, h0, h1, w, extra, tint)
 			BOX: _box(op, P[0], Vector3(t2.x, 0, t2.y), w, extra, h0, h1, layer, tint)
 			COLL_REC: _coll(col, P, h1)
-		if typ == PANEL or typ == POSTS:
+		# tout se casse (v6.24, demande de l'utilisateur) : clôtures, haies, murets
+		if typ == PANEL or typ == POSTS or typ == HEDGE or typ == WALL:
+			var g := 1 if typ == HEDGE else (2 if typ == WALL else 0)
 			for i in n - 1:
-				lig.append(P[i]); lig.append(P[i + 1])
+				lig.append(P[i]); lig.append(P[i + 1]); gen.append(g)
 	mutex.lock()
-	results[k] = [op, cut, col, cl, lig]
+	results[k] = [op, cut, col, cl, lig, gen]
 	mutex.unlock()
 
 func _hedge(S: Dictionary, C: Dictionary, P: PackedVector3Array, layer: float, bord: float, h: float, w: float, tint: Color, seed: float) -> void:
