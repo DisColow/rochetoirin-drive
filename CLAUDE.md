@@ -277,6 +277,6 @@
   - pas d'occlusion possible en Compatibility ; LOD générés à l'import ;
   - MultiMesh pour le décor répété ; réserve de débris dans `casse.gd` (plus de `new`/`queue_free` en jeu) ;
   - un atlas et un shader par famille ; **aucune transparence mélangée** (tramage Bayer + `discard` ou `ALPHA_SCISSOR` ;
-    `ALPHA_HASH` ne marche pas en Compatibility ; vitres opaques) ; vitrines en Interior Mapping (`shop.gdshader`, kind 6) ;
+    `ALPHA_HASH_SCALE` des shaders maison ignoré en Compatibility ; vitres opaques) ; vitrines en Interior Mapping (`shop.gdshader`, kind 6) ;
   - collisions du décor en **BoxShape3D seulement** (bâtiments : `c_<tuile>.bin` produit par `boites()` dans
     `build_buildings.py` ; clôtures : une boîte par segment). Routes et relief exclus : c'est la surface de roulage.

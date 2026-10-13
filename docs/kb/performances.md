@@ -42,7 +42,8 @@ Directives données après la v6.18. Ce qui est fait, ce qui existait déjà, et
   - tramage ordonné dans le shader : matrice de Bayer 4 × 4 et `discard`, voir `env_dither_keep` dans
     `env.gdshaderinc` ;
   - `ALPHA_SCISSOR` (StandardMaterial3D).
-  **`ALPHA_HASH` ne marche pas en Compatibility** : l'alpha est ignoré, et le quad sort plein (vérifié v6.19).
+  **`ALPHA_HASH_SCALE` dans un shader écrit à la main ne marche pas en Compatibility** : l'alpha est ignoré, le quad
+  sort plein (vérifié v6.19 sur la fumée). Le mode `TRANSPARENCY_ALPHA_HASH` des StandardMaterial3D marche, lui.
   Ne jamais utiliser `TRANSPARENCY_ALPHA`, `blend_mix`/`blend_add` avec `ALPHA`, ni `GeometryInstance3D.transparency`.
   Conversions faites :
   - vitres de la voiture : opaques, verre fumé sombre, reflets par `metallic` 0,6 / `roughness` 0,04 ;
