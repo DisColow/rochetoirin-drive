@@ -13,6 +13,13 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## Livré : v6.45 (14/10 au soir), APK 1 466 Mo
+- Issues à tester : #15, #16 (zone), #25, #8 (plantations), #28 (chocs), #29 (GPS du cockpit) ; #30 fermée.
+- Actions GitHub : import par paquets (`.github/scripts/import_paquets.sh`) + 12 Go d'échange : obligatoire depuis
+  la zone agrandie (le serveur s'arrêtait). Un push qui ne touche que `.github/scripts/` ne relance rien :
+  `gh api -X POST repos/DisColow/rochetoirin-drive/actions/workflows/apk.yml/dispatches -f ref=godot`.
+- Prochaine étape : rien en cours ; attendre les retours (étiquettes « à tester »), sinon issues ouvertes.
+
 ## Fait en v6.45 : zone agrandie (#118, #128 ; issues #15, #16) et plantations (issues #25, #8)
 - Zone (`pipeline/routes_plan.py`) : communes entières Montcarra, Saint-Didier-de-la-Tour, La Chapelle-de-la-Tour ;
   routes Montcarra / Chamont / Saint-Chef > Bourgoin-Jallieu (couloirs de 450 m) ; 209 régions, ~149 km².
