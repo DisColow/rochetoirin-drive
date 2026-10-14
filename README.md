@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.38.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.38/RochetoirinSimulator-v6.38.apk)**
+**[RochetoirinSimulator-v6.39.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.39/RochetoirinSimulator-v6.39.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,11 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.38 :
-- **Bâtiments non résidentiels plus légers** : murs et toits utilisent maintenant des textures partagées (enduit,
-  bardage, tuiles…) teintées à la couleur relevée sur Street View. Seuls les détails (fenêtres, vitrines, enseignes)
-  restent propres à chaque bâtiment. Le jeu reste sous la limite de 2 Go, et les commerces sont toujours fidèles à leur photo.
-- Correctif : une enseigne pouvait scintiller sous une fenêtre.
+Nouveautés de la v6.39 :
+- **Champs refaits plant par plant** : maïs, blé, colza et tournesol sont maintenant de vrais plants individuels,
+  plantés en rangs sur une terre à sillons. De loin, le champ se fond dans la vue d'ensemble.
+- Les plants touchés par la voiture **éclatent** (ils ne se couchent plus).
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

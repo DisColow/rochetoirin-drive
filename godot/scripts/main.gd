@@ -45,6 +45,9 @@ var safe_mode := false
 ## Préchauffage des shaders : sur le téléphone, chaque matériau est compilé la première fois qu'il est dessiné (à-coup
 ## en pleine conduite). Pendant le voile de démarrage, un petit cube par matériau (simple, en lot MultiMesh, avec
 ## ombre) est dessiné devant la caméra, hors de vue derrière le voile : tout est compilé d'avance.
+var _bord_t0 := -1
+var _bord_info := []        # essai --champ-bord : [point de la route, sens, côté du champ]
+
 func _prechauffer() -> void:
 	var cam := get_viewport().get_camera_3d()
 	if cam == null:
@@ -175,6 +178,7 @@ func _ready() -> void:
 	add_child(tr)
 	if crops.get("mat"):
 		tr.attacher(crops.mat)
+		tr.attacher(crops.mat_sol)
 	var env_ := preload("res://scripts/env.gd")
 	if env_.terrain_mat and ResourceLoader.exists("res://assets/veg/crops_albedo.png"):
 		tr.attacher_relief(env_.terrain_mat, load("res://assets/veg/crops_albedo.png"))
@@ -1193,12 +1197,17 @@ func _physics_process(_dt: float) -> void:
 		# vue de la route le long d'un champ (type --champ-type=N) : voiture posée sur un tronçon droit du graphe routier
 		# bordé par ce champ sur 60 m, ~45 km/h ; captures user://shots/bord_N.png
 		car.touch_steer = 0.0; car.touch_brake = 0.0
-		car.touch_throttle = (1.0 if car.kmh() < 45.0 else 0.0) if t > 360 else 0.0
+		if _bord_t0 < 0 and t >= 300 and crops.pending == 0:
+			_bord_t0 = t                                   # champ entièrement planté autour de la voiture
+		var tb := t - _bord_t0 + 300 if _bord_t0 >= 0 else 0
+		car.touch_throttle = (1.0 if car.kmh() < 45.0 else 0.0) if tb > 420 else 0.0
 		if t == 240:
 			var ty := 0
 			for a in OS.get_cmdline_user_args():
 				if a.begins_with("--champ-type="):
 					ty = int(a.trim_prefix("--champ-type="))
+			perf_auto = false                                  # sous xvfb le réglage automatique tomberait en Économie
+			get_node("HUD").appliquer_niveau(int(OS.get_environment("NIVEAU")) if OS.get_environment("NIVEAU") != "" else 2)
 			var it = preload("res://scripts/itineraire.gd").new()
 			var c0 := Vector2(car.global_position.x, car.global_position.z)
 			var best := Vector4(0, 0, 0, INF)
@@ -1206,26 +1215,49 @@ func _physics_process(_dt: float) -> void:
 				for j in range(it.arc_p0[k], it.arc_p0[k] + it.arc_np[k] - 1):
 					var a0 := Vector2(it.px[j], it.pz[j])
 					var a1 := Vector2(it.px[j + 1], it.pz[j + 1])
-					if a0.distance_to(a1) < 60.0 or a0.distance_to(c0) > 6000.0 or a0.distance_to(c0) > best.w:
+					if a0.distance_to(a1) < 2.0 or a0.distance_to(c0) > 2500.0 or a0.distance_to(c0) > best.w:
 						continue
 					var d := (a1 - a0).normalized()
-					var n := Vector2(-d.y, d.x)
-					var plein := true
-					for kk in range(0, 60, 6):
-						if crops.field_at(a0 + d * kk + n * 9.0) != ty:
-							plein = false; break
-					if plein:
-						best = Vector4(a0.x, a0.y, atan2(d.x, -d.y), a0.distance_to(c0))
+					if crops.field_at(a0 + Vector2(-d.y, d.x) * 8.0) != ty and crops.field_at(a0 - Vector2(-d.y, d.x) * 8.0) != ty:
+						continue
+					for cote in [1.0, -1.0]:
+						var n: Vector2 = Vector2(-d.y, d.x) * cote
+						var plein := true
+						for kk in range(0, 45, 5):
+							if crops.field_at(a0 + d * kk + n * 8.0) != ty or crops.field_at(a0 + d * kk + n * 30.0) != ty:
+								plein = false; break
+						if plein:
+							best = Vector4(a0.x, a0.y, atan2(d.x, -d.y), a0.distance_to(c0))
+							_bord_info = [a0, d, n]
 			if best.w == INF:
 				print("  [bord] aucun champ de type %d le long d'une route" % ty); get_tree().quit()
 			else:
 				car.place(Vector3(best.x, Relief.hauteur(Vector3(best.x, 0, best.y)) + 1.0, best.y), rad_to_deg(best.z))
 				car.hold(1.0)
 				print("  [bord] type %d à %s" % [ty, Vector2(best.x, best.y)])
-		if t in [360 + 240, 360 + 420, 360 + 600]:
+		# vues fixes face au champ, à 3, 20 et 100 m de sa bordure (hauteur d'yeux), avant de rouler
+		if _bord_info.size() == 3 and tb >= 300 and tb < 420:
+			var k := (tb - 300) / 40
+			var dist: float = [3.0, 20.0, 100.0][k]
+			var a0: Vector2 = _bord_info[0]; var d: Vector2 = _bord_info[1]; var n: Vector2 = _bord_info[2]
+			var bord := a0 + d * 20.0 + n * 5.0                   # bordure du champ (environ)
+			var cp := bord - n * 3.0                              # depuis le bord de la route
+			var cible := bord + n * dist + d * (dist * 0.35)       # plants à 3, 20 ou 100 m dans le champ
+			cam_rig.set_process(false)
+			var cm := get_viewport().get_camera_3d()
+			var yc: float = Relief.hauteur(Vector3(cp.x, 0, cp.y))
+			var yt: float = Relief.hauteur(Vector3(cible.x, 0, cible.y))
+			cm.global_position = Vector3(cp.x, (0.0 if is_nan(yc) else yc) + 1.7, cp.y)
+			cm.look_at(Vector3(cible.x, (0.0 if is_nan(yt) else yt) + 0.6, cible.y), Vector3.UP)
+			if (tb - 300) % 40 == 39:
+				DirAccess.make_dir_recursive_absolute("user://shots")
+				get_viewport().get_texture().get_image().save_png("user://shots/bord_vue%d.png" % int(dist))
+			if tb == 419:
+				cam_rig.set_process(true)
+		if tb in [420 + 240, 420 + 420, 420 + 600]:
 			DirAccess.make_dir_recursive_absolute("user://shots")
-			get_viewport().get_texture().get_image().save_png("user://shots/bord_%d.png" % ((t - 360) / 60))
-		if t > 360 + 620:
+			get_viewport().get_texture().get_image().save_png("user://shots/bord_%d.png" % ((tb - 420) / 60))
+		if tb > 420 + 620 or t > 30000:
 			get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--champ-test"):

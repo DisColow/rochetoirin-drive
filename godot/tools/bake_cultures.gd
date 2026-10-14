@@ -147,4 +147,50 @@ func _run() -> void:
 		row.queue_free()
 		await get_tree().process_frame
 		print("nappe ", b[0])
+	if "plants" in seuls:
+		await _plants()
 	get_tree().quit()
+
+# Plants un par un (#142, issue #25 : « plante juste les sprites ») : 4 cultures × 8 variantes, vues de côté, chacune
+# dans une case de 256 × 512 px (largeur = hauteur / 2) ; blé et colza en petites touffes (trop serrés pour un sprite
+# par tige). Sortie : res://assets/veg/plants_{albedo,normal}.png (2048 × 2048), lue par crops.gd / crops_plants.gdshader.
+# nom, échelle min/max du modèle, hauteur de la case (m), pieds par touffe, rayon de la touffe (m), orientation de base,
+# écart d'orientation (rad) : blé (ble2, une rangée de tiges de 0,9 m) et colza (0,95 m de large) vus par la tranche
+const PLANTS := [["res://assets/veg/mais.glb", 2.1, 2.6, 3.0, 1, 0.0, 0.0, TAU],
+	["res://import/cultures/ble2.glb", 0.85, 1.05, 1.2, 2, 0.05, 0.0, 0.3],
+	["res://import/cultures/colza.glb", 1.0, 1.25, 1.4, 1, 0.0, PI * 0.5, 0.3],
+	["res://import/cultures/tournesol.glb", 1.6, 2.0, 2.4, 1, 0.0, 0.0, TAU]]
+
+func _plants() -> void:
+	vp.size = Vector2i(256, 512)
+	var atlas := [Image.create(2048, 2048, false, Image.FORMAT_RGBA8), Image.create(2048, 2048, false, Image.FORMAT_RGBA8)]
+	for ci in PLANTS.size():
+		var b: Array = PLANTS[ci]
+		var src: PackedScene = load(b[0])
+		var hc: float = b[3]
+		cam.size = hc
+		cam.global_position = Vector3(0, hc * 0.5, 10)
+		cam.look_at(Vector3(0, hc * 0.5, 0), Vector3.UP)
+		for v in 8:
+			var row := Node3D.new(); vp.add_child(row)
+			var rng := RandomNumberGenerator.new(); rng.seed = 100 * ci + v
+			for k in int(b[4]):
+				var a := rng.randf() * TAU
+				var r: float = sqrt(rng.randf()) * b[5]
+				var m: Node3D = src.instantiate()
+				var s := rng.randf_range(b[1], b[2])
+				m.transform = Transform3D(Basis(Vector3.UP, b[6] + rng.randf_range(-0.5, 0.5) * b[7]).rotated(Vector3(cos(a), 0, sin(a)), rng.randf_range(-0.06, 0.06)).scaled(Vector3.ONE * s),
+					Vector3(cos(a) * r, 0, sin(a) * r))
+				row.add_child(m)
+			for pass_i in 2:
+				_materiaux(row, pass_i)
+				for i in 4:
+					await get_tree().process_frame
+				var img := vp.get_texture().get_image()
+				img.convert(Image.FORMAT_RGBA8)
+				atlas[pass_i].blit_rect(img, Rect2i(0, 0, 256, 512), Vector2i(v * 256, ci * 512))
+			row.queue_free()
+			await get_tree().process_frame
+		print("plants ", b[0])
+	atlas[0].save_png("res://assets/veg/plants_albedo.png")
+	atlas[1].save_png("res://assets/veg/plants_normal.png")
