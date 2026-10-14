@@ -1,11 +1,13 @@
 # Consignes du projet
 
-- **RÈGLE ABSOLUE — Street View : jamais plus de 20 $ de photos au total** (utilisateur, 13/10/2026). Aucune
-  exception, aucun contournement, même avec un accord oral : le compteur `pipeline/sources/sv_depenses.json`
-  (versionné) compte chaque essai d'image à 0,007 $ et `pipeline/sv_budget.py` arrête le programme avant tout
-  dépassement ; toute requête d'image Street View doit passer par `get()` de `fetch_sv_landmarks.py` (qui appelle
-  `sv_budget.payer()`). Ne jamais modifier, relever ni remettre à zéro ce plafond ou ce compteur. Métadonnées
-  (gratuites) non comptées. Avant chaque lot : annoncer à l'utilisateur la dépense prévue et le total.
+- **RÈGLE ABSOLUE — Street View : jamais plus de 9 000 appels d'images par mois** (décision écrite de l'utilisateur,
+  issue #13, 14/10/2026 ; remplace l'ancien plafond de 20 $ au total du 13/10). Aucune exception, aucun contournement :
+  le compteur `pipeline/sources/sv_depenses.json` (versionné) compte chaque essai d'image par mois de facturation
+  Google (heure du Pacifique) et `pipeline/sv_budget.py` arrête le programme avant tout dépassement (`PLAFOND_MOIS`) ;
+  toute requête d'image Street View doit passer par `get()` de `fetch_sv_landmarks.py` (qui appelle
+  `sv_budget.payer()`). Ne jamais modifier, relever ni remettre à zéro ce plafond ou ce compteur sans nouvelle décision
+  écrite de l'utilisateur. Métadonnées (gratuites) non comptées. Avant chaque lot : annoncer à l'utilisateur le nombre
+  d'appels prévu et le total du mois.
 
 - **Reprise** : lire `docs/REPRISE.md` en début de session ; le tenir à jour et le pousser après chaque livraison
   et chaque étape importante (état, ce qui reste, pièges), pour qu'une autre session reprenne sans rien perdre

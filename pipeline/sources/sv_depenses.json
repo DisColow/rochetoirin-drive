@@ -1,4 +1,7 @@
 {
  "photos": 2714,
- "note": "247 photos pay\u00e9es pour les b\u00e2timents non r\u00e9sidentiels de Rochetoirin (1,73 $) avant la mise en place du compteur ; chaque essai d'image compte 0,007 $. Plafond absolu : 20 $ (sv_budget.py)."
+ "note": "Total depuis le début (photos) et appels par mois de facturation Google (mois). Plafond : 9 000 appels par mois (décision de l'utilisateur, issue #13, 14/10/2026 ; avant : 20 $ au total). Les 2 714 premières photos (dont 247 payées pour Rochetoirin avant le compteur) sont comptées en octobre 2026.",
+ "mois": {
+  "2026-10": 2714
+ }
 }
