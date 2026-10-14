@@ -292,6 +292,8 @@
     de la voie la plus proche (sens unique à plusieurs voies) ; axe des routes étroites ;
   - rien sous 30 km/h, en marche arrière, aux carrefours, hors de la chaussée ou à contresens d'un sens unique ;
   - témoin (deux lignes de voie) sur le compteur ; réglage ⚙ > Conduite (`conduite/aide_voie`, actif par défaut).
+  - v6.40 (« ultra puissante ») : poursuite d'un point au milieu de la voie 6-22 m devant, braquage jusqu'au
+    maximum, dès 15 km/h, main rendue 0,35 s après le joueur.
   - Essai : `-- --drive-test --voie-test [--voie-off] --drive-from=-8410.95,221,-7187.25,45.2`.
 - **Bâtiments non résidentiels refaits « comme la boulangerie »** (v6.26, demande du 13/10 : la méthode du
   restaurant était insuffisante) — `pipeline/sur_mesure/` :

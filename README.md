@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.39.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.39/RochetoirinSimulator-v6.39.apk)**
+**[RochetoirinSimulator-v6.40.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.40/RochetoirinSimulator-v6.40.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.39 :
-- **Champs refaits plant par plant** : maïs, blé, colza et tournesol sont maintenant de vrais plants individuels,
-  plantés en rangs sur une terre à sillons. De loin, le champ se fond dans la vue d'ensemble.
-- Les plants touchés par la voiture **éclatent** (ils ne se couchent plus).
+Nouveautés de la v6.40 :
+- **Aide au maintien dans la voie ultra puissante** : la voiture vise le milieu de sa voie loin devant elle et suit
+  les virages toute seule, dès 15 km/h. Un coup de volant suffit pour reprendre la main (⚙ > Conduite pour la couper).
+- Rappel v6.39 : champs refaits plant par plant (maïs, blé, colza, tournesol), sur de la terre ; les plants éclatent au passage.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
