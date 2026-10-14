@@ -26,6 +26,7 @@ float circ_line(vec2 p, vec2 c, float r) {
 void fragment() {
 	vec2 p = UV;                 // x : largeur, y : longueur
 	float L = UV2.x, W = UV2.y;
+
 	int typ = int(round(COLOR.r * 10.0));
 	int surf = int(round(COLOR.g * 10.0));
 	vec3 c;
@@ -102,4 +103,10 @@ void fragment() {
 	c = mix(c, vec3(0.93, 0.93, 0.9), line * (typ == 6 || typ == 7 ? 0.0 : 0.95));
 	ALBEDO = c * env_cloud(v_wp.xz) * (1.0 - 0.3 * wet);
 	ROUGHNESS = mix(rough, 0.25, wet * 0.7);
+	if (L < 0.0) {
+		// talus qui raccorde le terrain aplani au relief : herbe naturelle, sans tracés
+		float nt = fract(sin(dot(floor(v_wp.xz * 2.0), vec2(12.9898, 78.233))) * 43758.5453);
+		ALBEDO = vec3(0.24, 0.38, 0.13) * (0.88 + 0.16 * nt) * env_cloud(v_wp.xz) * (1.0 - 0.3 * wet);
+		ROUGHNESS = 0.95;
+	}
 }

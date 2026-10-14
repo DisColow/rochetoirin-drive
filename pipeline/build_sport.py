@@ -3,7 +3,7 @@ relief, équipements faits avec Blender (blender_sport.py) : buts, poteaux de ru
 paniers, mâts d'éclairage des terrains de foot, bancs de touche.
 Rien sur la route : un terrain qui touche une chaussée est rogné à son rectangle intérieur, ou ignoré.
 Sortie : ../godot/world/sport/sp_tx_tz.bin :
-  int32 n terrains, n × 9 float32 (type, cx, cz, longueur, largeur, cap (rad), surface, éclairé, 0) ;
+  int32 n terrains, n × 9 float32 (type, cx, cz, longueur, largeur, cap (rad), surface, éclairé, hauteur aplanie) ;
   int32 m objets, m × 17 float32 (modèle, base 3 × 3 colonnes, origine, 4 données) comme les commerces.
 Types : 1 foot, 2 rugby, 3 tennis, 4 basket, 5 multisport / hand, 6 pétanque, 7 piste d'athlétisme.
 Surfaces : 0 herbe, 1 synthétique, 2 terre battue, 3 résine (vert/bleu), 4 stabilisé, 5 tartan."""
@@ -81,22 +81,31 @@ def main():
             surf = 2 if (hash(e["id"]) % 3 == 0) else 3
         lit = 1 if (t.get("lit") == "yes" or (typ in (1, 2) and L > 80)) else 0
         y = float(np.mean(dem.h(c[:, 0], c[:, 1])))
-        pitches.append((typ, cx, cz, L, W, ang, surf, lit, 0.0))
-        stats[typ] += 1
         fwd = np.array([math.sin(ang), math.cos(ang)]); side = np.array([math.cos(ang), -math.sin(ang)])
+        # v6.41 : terrain aplani à la hauteur du point le plus haut du relief sous lui (marge 1 m), + 5 cm
+        gu, gv = np.meshgrid(np.linspace(-W / 2 - 1, W / 2 + 1, max(3, int(W / 3) + 1)),
+                             np.linspace(-L / 2 - 1, L / 2 + 1, max(3, int(L / 3) + 1)))
+        gx = cx + side[0] * gu + fwd[0] * gv; gz = cz + side[1] * gu + fwd[1] * gv
+        H = float(np.nanmax(dem.h(gx.ravel(), gz.ravel()))) + 0.05
+        pitches.append((typ, cx, cz, L, W, ang, surf, lit, H))     # 9e : hauteur du terrain aplani
+        stats[typ] += 1
 
         def h(p):
+            """Hauteur d'un équipement : sur le terrain aplani s'il est dessus (marge 0,6 m), sinon le relief."""
+            d = np.asarray(p) - np.array([cx, cz])
+            if abs(d @ side) <= W / 2 + 0.6 and abs(d @ fwd) <= L / 2 + 0.6:
+                return H
             return float(dem.h(np.array([p[0]]), np.array([p[1]]))[0])
         cen = np.array([cx, cz])
         if typ in (1, 2, 5):
             for sg in (-1, 1):
-                p = cen + fwd * sg * (L / 2 - (0.3 if typ != 5 else 0.5))
+                p = cen + fwd * sg * (L / 2 - 1.0)              # sur la ligne de but (tracés à 1 m du bord, pitch.gdshader)
                 model = "but_foot" if typ != 2 else "poteaux_rugby"
                 sc = (1, 1, 1) if typ != 5 else (0.41, 0.82, 0.5)          # buts de hand / multisport : 3 × 2 m
                 inst.append(xf(model, (p[0], h(p), p[1]), ang + (math.pi if sg > 0 else 0.0), sc))
             if typ == 5 and W >= 12:
                 for sg in (-1, 1):
-                    p = cen + fwd * sg * (L / 2 - 1.2)
+                    p = cen + fwd * sg * (L / 2 - 2.2)          # panneau à 1,2 m de la ligne de fond
                     inst.append(xf("panier_basket", (p[0], h(p), p[1]), ang + (math.pi if sg > 0 else 0.0)))
             if typ == 1 and L > 70:
                 for sg in (-1, 1):
@@ -111,10 +120,10 @@ def main():
                             inst.append(xf("mat_eclairage", (p[0], h(p), p[1]), ang + (-math.pi / 2 if sx > 0 else math.pi / 2)))
         elif typ == 4:
             for sg in (-1, 1):
-                p = cen + fwd * sg * (L / 2 - 1.2)
+                p = cen + fwd * sg * (L / 2 - 2.2)                  # panneau à 1,2 m de la ligne de fond
                 inst.append(xf("panier_basket", (p[0], h(p), p[1]), ang + (math.pi if sg > 0 else 0.0)))
         elif typ == 3:
-            inst.append(xf("filet_tennis", (cx, y, cz), ang, (W / 12.8 if W < 12.8 else 1.0, 1, 1)))
+            inst.append(xf("filet_tennis", (cx, H, cz), ang, (W / 12.8 if W < 12.8 else 1.0, 1, 1)))
             # grillage tout autour (panneaux de 3 m), sauf s'il toucherait la chaussée
             for (a0, a1) in (((-1, -1), (1, -1)), ((1, -1), (1, 1)), ((1, 1), (-1, 1)), ((-1, 1), (-1, -1))):
                 A = cen + side * a0[0] * W / 2 + fwd * a0[1] * L / 2

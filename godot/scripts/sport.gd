@@ -119,8 +119,14 @@ func _h(x: float, z: float, fb: float) -> float:
 			return h
 	return fb
 
-## Surface d'un terrain : grille qui épouse le relief, un peu au-dessus du sol.
-func _pitch_mesh(p: Array) -> ArrayMesh:
+## Hauteur du terrain aplani (v6.41, demande « aplanir le terrain ») : calculée par build_sport.py (point le plus
+## haut du relief sous le terrain + 5 cm) ; les équipements posés dessus ont déjà cette hauteur.
+func _plat(p: Array) -> float:
+	return float(p[8])
+
+## Surface d'un terrain, parfaitement plane à la hauteur H, et talus enherbé qui la raccorde au relief tout autour
+## (UV2.x < 0 : talus pour pitch.gdshader). Renvoie le maillage ; la collision est faite à partir de lui.
+func _pitch_mesh(p: Array, H: float) -> ArrayMesh:
 	var L: float = p[3]; var W: float = p[4]; var ang: float = p[5]
 	var fwd := Vector2(sin(ang), cos(ang)); var side := Vector2(cos(ang), -sin(ang))
 	var nl := maxi(2, ceili(L / 4.0)); var nw := maxi(2, ceili(W / 4.0))
@@ -134,7 +140,7 @@ func _pitch_mesh(p: Array) -> ArrayMesh:
 		for j in nl + 1:
 			var u := -W * 0.5 + W * i / nw; var v := -L * 0.5 + L * j / nl
 			var q := c + side * u + fwd * v
-			row.append([Vector3(q.x, _h(q.x, q.y, 0.0) + 0.16, q.y), Vector2(u, v)])
+			row.append([Vector3(q.x, H, q.y), Vector2(u, v)])
 		grid.append(row)
 	for i in nw:
 		for j in nl:
@@ -142,6 +148,32 @@ func _pitch_mesh(p: Array) -> ArrayMesh:
 				var g: Array = grid[i + t[0]][j + t[1]]
 				st.set_color(col); st.set_uv(g[1]); st.set_uv2(Vector2(L, W)); st.set_normal(Vector3.UP)
 				st.add_vertex(g[0])
+	# talus : le long du contour, du bord du terrain (H) jusqu'au relief, sur une largeur selon la hauteur à rattraper
+	var bord := []
+	for i in nw + 1:
+		bord.append(Vector2(-W * 0.5 + W * i / nw, -L * 0.5))
+	for j in range(1, nl + 1):
+		bord.append(Vector2(W * 0.5, -L * 0.5 + L * j / nl))
+	for i in range(nw - 1, -1, -1):
+		bord.append(Vector2(-W * 0.5 + W * i / nw, L * 0.5))
+	for j in range(nl - 1, 0, -1):
+		bord.append(Vector2(-W * 0.5, -L * 0.5 + L * j / nl))
+	var haut := []; var bas := []
+	for b: Vector2 in bord:
+		var q := c + side * b.x + fwd * b.y
+		var n := (side * signf(b.x) * (1.0 if absf(absf(b.x) - W * 0.5) < 0.01 else 0.0)
+			+ fwd * signf(b.y) * (1.0 if absf(absf(b.y) - L * 0.5) < 0.01 else 0.0)).normalized()
+		var h0 := _h(q.x, q.y, H)
+		var larg := clampf(absf(H - h0) * 2.5, 0.6, 8.0)
+		var o := q + n * larg
+		haut.append(Vector3(q.x, H, q.y))
+		bas.append(Vector3(o.x, _h(o.x, o.y, H) - 0.05, o.y))
+	var nb := bord.size()
+	for k in nb:
+		var k2 := (k + 1) % nb
+		for v in [haut[k], bas[k], bas[k2], haut[k], bas[k2], haut[k2]]:
+			st.set_color(col); st.set_uv(Vector2.ZERO); st.set_uv2(Vector2(-1.0, -1.0)); st.set_normal(Vector3.UP)
+			st.add_vertex(v)
 	st.generate_normals()
 	return st.commit()
 
@@ -152,20 +184,24 @@ func _add(k: Vector2i) -> void:
 	var np := a.decode_s32(0)
 	var f := a.slice(4, 4 + np * 36).to_float32_array()
 	var root := Node3D.new()
+	var body := StaticBody3D.new()
+	root.add_child(body)
 	for i in np:
 		var p := []
 		for j in 9:
 			p.append(f[i * 9 + j])
+		var H := _plat(p)
 		var mi := MeshInstance3D.new()
-		mi.mesh = _pitch_mesh(p)
+		mi.mesh = _pitch_mesh(p, H)
 		mi.material_override = pitch_mat
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		root.add_child(mi)
+		var cs := CollisionShape3D.new()     # on roule sur le terrain plat et sur son talus
+		cs.shape = mi.mesh.create_trimesh_shape()
+		body.add_child(cs)
 	var off := 4 + np * 36
 	var ni := a.decode_s32(off)
 	var g := a.slice(off + 4).to_float32_array()
-	var body := StaticBody3D.new()
-	root.add_child(body)
 	var by := {}
 	for i in ni:
 		var o := i * 17
