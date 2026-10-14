@@ -21,6 +21,10 @@
   assignée à `DisColow`, en français : contexte en deux lignes, étapes numérotées, ce qu'on attend en retour. Ne pas
   créer de doublon (vérifier les issues ouvertes). Ces issues ne sont pas des tâches pour Claude : les relire pour
   traiter les réponses de l'utilisateur, puis les refermer quand l'action est faite (en le disant dans un commentaire).
+- **Une issue GitHub par élément en cours ou à faire** (demande du 14/10) :
+  - toute tâche en cours, à faire ou en attente a son issue (titre suivi du n° de tâche, état en tête du corps) ;
+  - la créer dès qu'une nouvelle demande arrive ;
+  - commenter à chaque avancée notable et la fermer à la livraison (version et résumé dans le commentaire).
 - **API Claude (payante, crédit de l'utilisateur) : uniquement pour l'actualité du jour** (`actu.yml`, ~0,40 $/jour).
   Tout autre usage (génération ponctuelle de textes, essais…) **demande l'accord explicite de l'utilisateur avant**,
   avec le coût estimé ; ne jamais changer de méthode en cours de route sans le lui redemander. Les textes du jeu
@@ -292,7 +296,7 @@
   - `calage.py <id>` : fil de fer du relevé sur chaque photo (façades nommées, repère vert = x 0, grille au sol) ;
     `cams` corrige une caméra Google décalée ; `simplifier`, `decal`, `rot`, `echelle` recalent l'emprise ;
   - relevé à `volumes` (rectangles [u0, v0, u1, v1] en m, chacun sa hauteur, son toit, ses façades) ;
-  - `batiment.py <id>` puis import Godot (nouvel atlas : `compress/mode=2` + mipmaps dans son `.import`) ;
+  - `batiment.py <id>` puis import Godot (nouvel atlas : `compress/mode=2` + mipmaps dans son `.import`, et `force_disable_compression=true` dans le `.glb.import`) ;
   - `comparatif.py <id…>` : captures du jeu depuis les caméras exactes des photos, planche photo | jeu.
   - Planches dans le cache privé (`streetview/planches/`), jamais dans le dépôt. Faits : mairie, atelier_kaki,
     église, salle des fêtes, salle du cimetière (liste à jour dans `docs/REPRISE.md`).
@@ -301,6 +305,15 @@
   - Shader `sur_mesure_une_face.gdshader` (entrées `une_face`) : triangles orientés, toits doublés dans le
     maillage ; en deux faces, les murs s'ombraient eux-mêmes (acné en anneaux). Boulangerie et restaurant : ancien
     shader à deux faces.
+  - **Textures partagées (v6.38, solution A de l'issue #13, contre la limite de 2 Go de l'APK)** :
+    `sur_mesure/bibliotheque.py` construit `godot/assets/sur_mesure/_bib.png` (12 matières neutres, 4 m par tuile,
+    4 × 4 cases de 512 px). Murs et toits : UV = mètres / 4, UV2 = (case + 1, couleur RVB entière) ; le shader
+    teinte la tuile (`tuile × couleur / 200`, sans passage en linéaire, sinon les murs sombres sont noirs). L'atlas
+    du bâtiment ne garde que les « décalcomanies » (différence peinture / fond : ouvertures, chaînages…) posées à
+    9 mm du mur, les panneaux (soubassements, bandes de matière) à 6 mm, les enseignes à 1,2 cm. Ombre d'égout
+    faite dans le shader (`COLOR.a × 64` = hauteur d'égout). `SM_BIB=0` : ancien atlas complet.
+    **Obligatoire** : `meshes/force_disable_compression=true` dans chaque `.glb.import` (sinon UV2 quantifié, murs
+    de travers et couleurs fausses).
 - **Bâtiments redressés hors de la chaussée** (v6.25) : le rectangle orienté qui remplace une emprise presque
   rectangulaire (`decompose`) regonflait l'emprise découpée au bord de la route (murs et collisions sur la
   chaussée, jusqu'à 450 m²) ; `rogner_routes` rogne ces rectangles côté route, sinon toit plat sur l'emprise réelle.
