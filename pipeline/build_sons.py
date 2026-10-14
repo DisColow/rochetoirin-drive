@@ -64,7 +64,14 @@ SONS = {
     **{"brindille_%d" % i: dict(bsb=n, trim=True, hp=200, db=-19, fo=0.15) for i, n in enumerate((1299, 1300))},
     # collisions façon jeux de voiture modernes (issue #28) : couches selon la violence du choc et la matière heurtée
     # (enregistrements réels : BigSoundBank CC0 et Mixkit, licence libre)
-    **{"tole_%d" % i: dict(bsb=n, trim=True, db=-14, fo=0.2) for i, n in enumerate((1771, 1772, 1773, 1774, 1775))},
+    # tôle : barres d'acier qui tombent, rendues plus graves et étouffées (issue #40 : « casserole » trop aiguë)
+    **{"tole_%d" % i: dict(bsb=n, trim=True, lp=2200, speed=0.8, db=-15, fo=0.2) for i, n in enumerate((1771, 1772, 1773, 1774, 1775))},
+    # choc contre un mur / une maison (issue #40) : coup sourd (« Explosion hit », grave), carrosserie qui se froisse
+    # (« Truck crash », sans l'explosion), éboulis de pierres sur les gros chocs
+    "coup_sourd": dict(file=MK % 1704, t0=1.0, t1=2.0, lp=900, db=-12, fi=0.005, fo=0.6),
+    "froisse_0": dict(file=MK % 1616, t0=0.0, t1=1.4, lp=6000, db=-13, fo=0.5),
+    "froisse_1": dict(file=MK % 1616, t0=0.0, t1=1.4, lp=4500, speed=0.85, db=-13, fo=0.5),
+    "eboulis": dict(file=MK % 1703, t0=1.5, t1=4.5, lp=5000, db=-20, fi=0.1, fo=1.2),
     "tole_lourd_0": dict(bsb=1776, trim=True, db=-13, fo=0.3),
     "tole_lourd_1": dict(file=MK % 2958, t0=0.6, t1=2.4, db=-13, fi=0.01, fo=0.5),
     "verre_0": dict(file=MK % 1551, trim=True, db=-15, fo=0.3),

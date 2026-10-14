@@ -1,7 +1,7 @@
 ## Bords de la carte façon Motocross Madness (v6.22, demande de l'utilisateur ; remplace la soucoupe du gardien,
 ## désactivée mais conservée) : talus de build_bord.py (world/bord/, tuiles de 256 m lues en arrière-plan) tout autour
 ## de la zone jouable ; on peut le grimper, avec du mal (il se raidit), et au-delà de RESSORT m hors de la carte la
-## voiture est renvoyée vers l'intérieur comme par un ressort (rebond, un peu en l'air). Collisions du talus : maillage
+## voiture est catapultée vers l'intérieur, très haut et en tournoyant (v6.46, issue #45). Collisions du talus : maillage
 ## (c'est une surface de roulage, comme le relief), seulement près de la voiture.
 extends Node3D
 const PerfMon := preload("res://scripts/perf_monitor.gd")
@@ -150,10 +150,17 @@ func _physics_process(dt: float) -> void:
 	var sortie := -car.linear_velocity.dot(v3)          # vitesse vers l'extérieur
 	# ressort : force qui croît avec la distance, et rebond si on insiste (Motocross Madness)
 	car.apply_central_force(v3 * car.mass * RAIDEUR * (d - RESSORT))
-	if sortie > 2.0 and _rebond_t <= 0.0 and d > RESSORT + 4.0:
-		car.linear_velocity += v3 * sortie * 2.0 + Vector3.UP * minf(3.0 + sortie * 0.4, 9.0)
-		_rebond_t = 0.6
+	# catapulte façon Motocross Madness (issue #45) : la voiture est renvoyée très haut et très loin vers l'intérieur
+	# de la carte en tournoyant dans tous les sens ; plus elle arrive vite, plus elle vole
+	if sortie > 1.0 and _rebond_t <= 0.0:
+		var f := clampf(sortie / 15.0, 0.6, 2.0)
+		car.linear_velocity = v3 * (24.0 + 14.0 * f) + Vector3.UP * (16.0 + 10.0 * f)
+		car.angular_velocity = Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)).normalized() * randf_range(5.0, 9.0) * f
+		_rebond_t = 2.5
+		var m := get_parent()
+		if m and m.get("sound") and m.sound.has_method("_one_shot"):
+			m.sound._one_shot("soucoupe_depart", car.global_position, 0.8, 1.6, 20.0, 600.0)     # sifflement d'envol
 		if OS.get_cmdline_user_args().has("--bord-debug"):
-			print("[bord] rebond à %.1f m hors de la carte, %.1f m/s vers l'extérieur" % [d, sortie])
+			print("[bord] catapulte à %.1f m hors de la carte, %.1f m/s vers l'extérieur" % [d, sortie])
 	if d > 120.0:                                        # filet de sécurité (ne devrait pas arriver)
 		car.reset_to_road()

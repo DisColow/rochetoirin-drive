@@ -338,7 +338,15 @@ func _topic() -> String:
 	# une fois sur deux, l'actualité du jour (tant qu'il reste des fils pas encore entendus)
 	if _actu.size() > _actu_vus.size() and _rng.randf() < ACTU_PART:
 		return "actu"
-	var subjects: Array = data.fils.keys()
+	# sujets propres au caractère du client (ivre, en colère, personnalité… : issue #42) d'abord, réservés à eux
+	var reserves := {}
+	for c in data.caracteres:
+		for su in c.get("sujets", []):
+			reserves[su] = true
+	for su in client.get("car", {}).get("sujets", []):
+		if data.fils.has(su) and not _used.has(su):
+			return su
+	var subjects: Array = data.fils.keys().filter(func(k): return not reserves.has(k))
 	subjects.erase("meteo_pluie")
 	if main and int(main.get("weather")) == 2:
 		subjects.erase("meteo"); subjects.append("meteo_pluie")

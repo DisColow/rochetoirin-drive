@@ -44,7 +44,7 @@ a = nearest(*T["La Tour-du-Pin"]); b = nearest(*T["Saint-Clair-de-la-Tour"])
 out["Saint-Clair-de-la-Tour"] = out["La Tour-du-Pin"] + [pts[n] for n in nx.shortest_path(G, a, b, weight="w")]
 # zone jouable : ancienne zone + couloirs (450 m) + communes (rayon 1,2 km) + communes entières (limites OSM,
 # fetch_communes.py, marge 150 m) ; régions Terrain3D de 1024 m
-from shapely.geometry import LineString, Point, box, shape
+from shapely.geometry import LineString, Point, Polygon, box, shape
 from shapely.ops import unary_union
 WHOLE = ("Rochetoirin", "Saint-Chef", "Bourgoin-Jallieu", "Montcarra", "Saint-Didier-de-la-Tour", "La Chapelle-de-la-Tour")
 C = json.load(open("data/communes.json"))
@@ -54,6 +54,7 @@ for k, p in out.items():
 for k, p in T.items():
     parts.append(Point(p).buffer(1200))
 Z = unary_union(parts)
+Z = Polygon(Z.exterior)          # trous bouchés : sinon routes sans relief dans les surfaces encerclées (v6.46, #33)
 R = 1024.0
 regs = []
 mnx, mnz, mxx, mxz = Z.bounds

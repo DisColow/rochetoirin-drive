@@ -55,6 +55,7 @@ func _ready() -> void:
 	_formula_edit.text_changed.connect(_on_formula.bind(false))
 	_formula_edit.text_submitted.connect(_on_formula.bind(true))
 	fv.add_child(_formula_edit)
+	UI.saisie_tactile(_formula_edit, "Formule magique")
 	var fb := Button.new(); fb.text = "Fermer"; fb.add_theme_font_size_override("font_size", 24)
 	fb.custom_minimum_size = Vector2(0, 56); fb.pressed.connect(_close_formula)
 	fv.add_child(fb)
@@ -98,6 +99,7 @@ func _ready() -> void:
 	_remark.placeholder_text = "Ce qui ne va pas, ce qu'il faudrait changer…"
 	_remark.custom_minimum_size = Vector2(820, 130)
 	_remark.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	UI.saisie_tactile(_remark, "Remarque")
 	_remark.add_theme_font_size_override("font_size", 24)
 	_remark_box.add_child(_remark)
 	var rr := HBoxContainer.new(); rr.add_theme_constant_override("separation", 10)
@@ -132,7 +134,7 @@ func _button(parent: Control, t: String, f: Callable) -> void:
 func open_formula() -> void:
 	_formula.visible = true
 	_formula_edit.text = ""
-	_formula_edit.grab_focus()            # clavier virtuel (son micro permet de dicter)
+	UI.focus_saisie(_formula_edit, "Formule magique")            # clavier virtuel (son micro permet de dicter)
 
 func _close_formula() -> void:
 	_formula.visible = false
@@ -267,7 +269,7 @@ func _deselect() -> void:
 func _open_remark() -> void:
 	_main_row.visible = false
 	_remark_box.visible = true
-	_remark.grab_focus()
+	UI.focus_saisie(_remark, "Remarque")
 
 # ---------------------------------------------------------------- issue GitHub
 static func lonlat(p: Vector3) -> Vector2:

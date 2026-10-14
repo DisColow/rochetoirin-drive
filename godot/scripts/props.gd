@@ -20,7 +20,8 @@ var _t := 0.0
 # v6.22 (« collisions physiques sur les véhicules garés ») : près du joueur, chaque voiture garée (et tracteur)
 # devient un corps rigide qu'on peut pousser, faire pivoter ou renverser ; loin de lui et immobile, elle redevient un
 # exemplaire de son lot, à sa nouvelle place. MASSES : kg.
-const MASSES := {1: 1100.0, 2: 1250.0, 3: 1400.0, 4: 1300.0, 5: 4500.0}
+# poubelle (6) : 15 kg, envoyée valser sans ralentir la voiture (issue #41)
+const MASSES := {1: 1100.0, 2: 1250.0, 3: 1400.0, 4: 1300.0, 5: 4500.0, 6: 15.0}
 const R_ACTIF := 20.0
 const R_RENDU := 45.0
 var items := {}                       # tuile -> Array de {t, xf, col, cs, mm, i, rb}
@@ -178,7 +179,7 @@ func _physique(c: Vector3) -> void:
 func _activer(it: Dictionary) -> void:
 	var t: int = it.t
 	var rb := RigidBody3D.new()
-	rb.set_meta("matiere", "metal")
+	rb.set_meta("matiere", "plastique" if t == 6 else "metal")
 	rb.mass = MASSES[t]
 	rb.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 	rb.center_of_mass = Vector3(0, BOXES[t].y * 0.35, 0)

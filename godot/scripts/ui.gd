@@ -23,3 +23,89 @@ static func lcd_font() -> Font:
 	if ResourceLoader.exists("res://assets/ui/lcd.ttf"):
 		return load("res://assets/ui/lcd.ttf")
 	return ThemeDB.fallback_font
+
+## Saisie au doigt (issue #39) : sur écran tactile, toucher le champ ouvre une fenêtre en haut de l'écran (au-dessus du
+## clavier du téléphone) avec une grande zone de texte, « Valider » et une croix ✕ pour annuler. Le texte validé est
+## recopié dans le champ d'origine (signal text_changed émis, et text_submitted pour un LineEdit).
+static func saisie_tactile(champ: Control, titre: String) -> void:
+	if not DisplayServer.is_touchscreen_available():
+		return
+	champ.focus_mode = Control.FOCUS_NONE                 # le champ d'origine n'ouvre plus le clavier lui-même
+	champ.gui_input.connect(func(e: InputEvent):
+		var tap: bool = (e is InputEventScreenTouch and not e.pressed) or (e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed)
+		if tap:
+			champ.accept_event()
+			ouvrir_saisie(champ, titre))
+
+static func ouvrir_saisie(champ: Control, titre: String) -> void:
+	var tree := champ.get_tree()
+	var cl := CanvasLayer.new()
+	cl.layer = 120
+	var fond := ColorRect.new()
+	fond.color = Color(0, 0, 0, 0.55)
+	fond.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cl.add_child(fond)
+	var vs := tree.root.get_visible_rect().size
+	var pc := PanelContainer.new()
+	pc.add_theme_stylebox_override("panel", panel(28, 18))
+	pc.position = Vector2(vs.x * 0.04, vs.y * 0.03)
+	pc.custom_minimum_size = Vector2(vs.x * 0.92, 0)
+	cl.add_child(pc)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	pc.add_child(v)
+	var h := HBoxContainer.new()
+	v.add_child(h)
+	var t := Label.new(); t.text = titre; t.add_theme_font_size_override("font_size", 32)
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(t)
+	var croix := Button.new(); croix.text = "✕"; croix.custom_minimum_size = Vector2(80, 70)
+	croix.add_theme_font_size_override("font_size", 34)
+	h.add_child(croix)
+	var multi := champ is TextEdit
+	var ed: Control
+	if multi:
+		var te := TextEdit.new()
+		te.text = (champ as TextEdit).text
+		te.placeholder_text = (champ as TextEdit).placeholder_text
+		te.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+		te.custom_minimum_size = Vector2(0, vs.y * 0.24)
+		ed = te
+	else:
+		var le := LineEdit.new()
+		le.text = (champ as LineEdit).text
+		le.placeholder_text = (champ as LineEdit).placeholder_text
+		le.custom_minimum_size = Vector2(0, 76)
+		ed = le
+	ed.add_theme_font_size_override("font_size", 30)
+	v.add_child(ed)
+	var ok := Button.new(); ok.text = "Valider"; ok.custom_minimum_size = Vector2(260, 70)
+	ok.add_theme_font_size_override("font_size", 30)
+	ok.size_flags_horizontal = Control.SIZE_SHRINK_END
+	v.add_child(ok)
+	tree.root.add_child(cl)
+	var fermer := func(garder: bool):
+		if garder:
+			if multi:
+				(champ as TextEdit).text = (ed as TextEdit).text
+				champ.emit_signal("text_changed")
+			else:
+				(champ as LineEdit).text = (ed as LineEdit).text
+				champ.emit_signal("text_changed", (ed as LineEdit).text)
+				champ.emit_signal("text_submitted", (ed as LineEdit).text)
+		DisplayServer.virtual_keyboard_hide()
+		cl.queue_free()
+	croix.pressed.connect(fermer.bind(false))
+	ok.pressed.connect(fermer.bind(true))
+	if not multi:
+		(ed as LineEdit).text_submitted.connect(func(_t): fermer.call(true))
+	ed.grab_focus.call_deferred()
+	if not multi:
+		(ed as LineEdit).caret_column = (ed as LineEdit).text.length()
+
+## Mise au point d'un champ : fenêtre de saisie sur écran tactile, sinon focus classique (clavier physique).
+static func focus_saisie(champ: Control, titre: String) -> void:
+	if DisplayServer.is_touchscreen_available():
+		ouvrir_saisie(champ, titre)
+	else:
+		champ.grab_focus()

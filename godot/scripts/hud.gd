@@ -107,6 +107,7 @@ func _open_settings() -> void:
 	# contenu défilant (glisser au doigt, molette) : le menu tient sur les petits écrans
 	var sc := ScrollContainer.new()
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.get_v_scroll_bar().custom_minimum_size.x = 34          # barre facile à attraper au doigt (issue #38)
 	settings.add_child(sc)
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 12)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -172,13 +173,19 @@ func _open_settings() -> void:
 		hw.add_child(b)
 	# conduite (v6.25) : aide au maintien dans la voie
 	var lc := Label.new(); lc.text = "Conduite"; lc.add_theme_font_size_override("font_size", 30); v.add_child(lc)
+	# interrupteur lisible (issue #37) : pastille verte / grise à gauche et état écrit en toutes lettres
 	var b_voie := Button.new()
 	b_voie.toggle_mode = true
 	b_voie.button_pressed = car != null and car.aide_voie
-	b_voie.text = "Aide au maintien dans la voie"
-	b_voie.custom_minimum_size = Vector2(460, 70)
+	b_voie.custom_minimum_size = Vector2(560, 70)
 	b_voie.add_theme_font_size_override("font_size", 28)
+	b_voie.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var etat_voie := func(on: bool):
+		b_voie.icon = _pastille(Color(0.25, 0.9, 0.35) if on else Color(0.45, 0.45, 0.48))
+		b_voie.text = "  Aide au maintien dans la voie : " + ("ACTIVÉE" if on else "désactivée")
+	etat_voie.call(b_voie.button_pressed)
 	b_voie.toggled.connect(func(on: bool):
+		etat_voie.call(on)
 		if car:
 			car.aide_voie = on
 		var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
@@ -281,6 +288,7 @@ func _open_settings() -> void:
 	bug_txt.custom_minimum_size = Vector2(900, 180)
 	bug_txt.add_theme_font_size_override("font_size", 26)
 	bug_box.add_child(bug_txt)
+	UI.saisie_tactile(bug_txt, "Signaler un bug")
 	var bug_send := Button.new(); bug_send.text = "Envoyer le signalement"; bug_send.custom_minimum_size = Vector2(0, 64)
 	bug_send.add_theme_font_size_override("font_size", 28)
 	bug_send.pressed.connect(func():
@@ -292,7 +300,7 @@ func _open_settings() -> void:
 	bb.pressed.connect(func():
 		bug_box.visible = not bug_box.visible
 		if bug_box.visible:
-			bug_txt.grab_focus()
+			UI.focus_saisie(bug_txt, "Signaler un bug")
 		_fit_settings.call_deferred())
 	v.add_child(bb)
 	v.add_child(bug_box)
@@ -575,3 +583,56 @@ func _process_corps(_dt: float) -> void:
 			_limit = names.speed_limit
 			_where_text = "%s  ·  x %d  z %d" % [names.commune_at(p), int(round(p.x)), int(round(p.z))]
 			pill.queue_redraw()
+
+## Pastille ronde de 28 px (témoin d'un interrupteur) : disque coloré cerné de sombre, reflet en haut.
+func _pastille(c: Color) -> ImageTexture:
+	var n := 28
+	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	var ctr := Vector2(n, n) * 0.5 - Vector2(0.5, 0.5)
+	for y in n:
+		for x in n:
+			var d := Vector2(x, y).distance_to(ctr)
+			if d <= n * 0.5 - 0.5:
+				var col := c if d < n * 0.5 - 3.0 else Color(0.08, 0.08, 0.09)
+				if d < n * 0.5 - 3.0 and Vector2(x, y).distance_to(ctr - Vector2(4, 5)) < 4.0:
+					col = col.lightened(0.45)
+				img.set_pixel(x, y, col)
+	return ImageTexture.create_from_image(img)
+
+## Défilement des réglages au doigt même en partant d'un bouton (issue #38) : au-delà de 14 px de glissé, la liste
+## suit le doigt et le bouton de départ n'est pas déclenché au lâcher (événements tactiles et souris émulée absorbés).
+var _glisse := 0.0
+var _defile := false
+var _appui := false
+var _fin_defile := 0
+func _input(e: InputEvent) -> void:
+	if not (settings and is_instance_valid(settings) and settings.visible):
+		_appui = false; _defile = false
+		return
+	var sc: ScrollContainer = settings.get_child(0)
+	var lacher: bool = ((e is InputEventScreenTouch) or (e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT)) and not e.pressed
+	if lacher:
+		if _defile:
+			_fin_defile = Time.get_ticks_msec()
+			_defile = false
+		_appui = false
+		if Time.get_ticks_msec() - _fin_defile < 150:
+			get_viewport().set_input_as_handled()          # le bouton de départ n'est pas déclenché
+		return
+	if (e is InputEventScreenTouch) or (e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT):
+		if e.pressed and sc.get_global_rect().has_point(e.position):
+			_appui = true; _glisse = 0.0; _defile = false
+		return
+	if _appui and ((e is InputEventScreenDrag) or (e is InputEventMouseMotion)):
+		# le doigt produit un glissé tactile ET une souris émulée : un seul des deux fait défiler
+		var pilote: bool = e is InputEventScreenDrag or not Input.is_emulating_mouse_from_touch() or DisplayServer.get_name() != "android"
+		if not _defile:
+			if pilote:
+				_glisse += e.relative.y
+			if absf(_glisse) > 14.0:
+				_defile = true
+				sc.scroll_vertical -= int(_glisse)
+		elif pilote:
+			sc.scroll_vertical -= int(e.relative.y)
+		if _defile:
+			get_viewport().set_input_as_handled()

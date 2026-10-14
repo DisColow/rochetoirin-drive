@@ -1,0 +1,66 @@
+## Compteur de taxi (issue #44) façon taximètre américain : boîtier noir, gros chiffres rouges à sept segments (police
+## LCD du compteur de vitesse), voyant « LIBRE » entre deux courses, distance et attente comptées. Tarif : prise en
+## charge 3,50 €, 1,60 € par km parcouru, 0,60 € par minute d'attente (sous 10 km/h). activities.gd le fait tourner
+## pendant la course et encaisse son montant à l'arrivée.
+extends Control
+const UI := preload("res://scripts/ui.gd")
+
+const PRISE := 3.5
+const PAR_KM := 1.6
+const PAR_MIN := 0.6
+
+var montant := 0.0
+var distance := 0.0          # m
+var attente := 0.0           # s
+var en_course := false
+var _lcd: Font
+var _clign := 0.0
+
+func _ready() -> void:
+	_lcd = UI.lcd_font()
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	custom_minimum_size = Vector2(330, 128)
+	size = custom_minimum_size
+
+func demarrer() -> void:
+	montant = PRISE; distance = 0.0; attente = 0.0; en_course = true
+	queue_redraw()
+
+func arreter() -> void:
+	en_course = false
+	queue_redraw()
+
+## À chaque image de la course : distance parcourue (m) et vitesse (km/h).
+func compter(dt: float, metres: float, kmh: float) -> void:
+	if not en_course:
+		return
+	distance += metres
+	if kmh < 10.0:
+		attente += dt
+	montant = PRISE + PAR_KM * distance / 1000.0 + PAR_MIN * attente / 60.0
+	queue_redraw()
+
+func _process(dt: float) -> void:
+	_clign += dt
+	if not en_course and visible:
+		queue_redraw()
+
+func _draw() -> void:
+	var r := Rect2(Vector2.ZERO, size)
+	draw_rect(r, Color(0.05, 0.05, 0.06))
+	draw_rect(r, Color(0.32, 0.32, 0.35), false, 4.0)
+	draw_rect(r.grow(-6), Color(0.12, 0.12, 0.13), false, 2.0)
+	var f := get_theme_default_font()
+	var rouge := Color(1.0, 0.16, 0.1)
+	var eteint := Color(0.25, 0.04, 0.03)
+	# afficheur principal : fond des segments éteints puis montant
+	var txt := ("%6.2f" % montant) if en_course else "  0.00"
+	draw_string(_lcd, Vector2(22, 72), "888.88", HORIZONTAL_ALIGNMENT_LEFT, -1, 58, eteint)
+	draw_string(_lcd, Vector2(22, 72), txt.replace(" ", "!"), HORIZONTAL_ALIGNMENT_LEFT, -1, 58, rouge)
+	draw_string(f, Vector2(262, 70), "€", HORIZONTAL_ALIGNMENT_LEFT, -1, 40, rouge)
+	draw_string(f, Vector2(14, 22), "TAXI  ·  TARIF 1", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.75, 0.75, 0.78))
+	if en_course:
+		var att := int(attente)
+		draw_string(f, Vector2(14, 112), "%.1f km   attente %d:%02d" % [distance / 1000.0, att / 60, att % 60], HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1.0, 0.55, 0.2))
+	elif fmod(_clign, 1.2) < 0.8:
+		draw_string(f, Vector2(14, 112), "LIBRE", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color(0.25, 0.95, 0.35))

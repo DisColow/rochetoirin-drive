@@ -9,6 +9,7 @@
 ##    compteur, pourboire selon le temps et la conduite (chocs), courses enchaînées et gains cumulés.
 ## Les repères (marks) et le cercle (circle) sont dessinés par la carte (map.gd) et le GPS (gps.gd).
 extends CanvasLayer
+const UI := preload("res://scripts/ui.gd")
 const Relief := preload("res://scripts/relief.gd")
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
@@ -68,6 +69,7 @@ var _expected := 60.0
 var _shocks := 0
 var _rides := 0
 var _total := 0.0
+var _compteur: Control = null      # taximètre (taximetre.gd, issue #44)
 var _stop_t := 0.0
 var _prev_v := Vector3.ZERO
 var _shock_cd := 0.0
@@ -246,6 +248,9 @@ func _clear_world() -> void:
 	join_marks = false
 
 func _stop() -> void:
+	if _compteur:
+		_compteur.visible = false
+		_compteur.arreter()
 	_clear_world()
 	_talk.stop()
 	mode = ""
@@ -323,6 +328,7 @@ func _net_menu() -> void:
 	var nl := Label.new(); nl.text = "Votre nom :"; nl.add_theme_font_size_override("font_size", 28); h.add_child(nl)
 	var ne := LineEdit.new(); ne.text = net.nom; ne.custom_minimum_size = Vector2(380, 70)
 	ne.add_theme_font_size_override("font_size", 30); h.add_child(ne)
+	UI.saisie_tactile(ne, "Votre nom")
 	ne.text_changed.connect(func(t): net.sauver_nom(t))
 	_btn(v, "Héberger une partie (même Wi-Fi ou point d'accès du téléphone)", func(): net.sauver_nom(ne.text); if net.heberger(): _net_menu())
 	if net.parties.is_empty():
@@ -333,6 +339,7 @@ func _net_menu() -> void:
 	var h2 := HBoxContainer.new(); h2.add_theme_constant_override("separation", 12); v.add_child(h2)
 	var ie := LineEdit.new(); ie.placeholder_text = "adresse de l'hôte (ex. 192.168.1.20)"
 	ie.custom_minimum_size = Vector2(520, 70); ie.add_theme_font_size_override("font_size", 28); h2.add_child(ie)
+	UI.saisie_tactile(ie, "Adresse de l'hôte")
 	_btn(h2, "Rejoindre", func(): net.sauver_nom(ne.text); net.rejoindre(ie.text); _resume())
 	_btn(v, "Actualiser", _net_menu)
 	_btn(v, "Fermer", func(): net.chercher(false); _resume())
@@ -546,6 +553,7 @@ func _hunt_list() -> void:
 	var f := LineEdit.new(); f.placeholder_text = "Rechercher (gare, mairie, Saint-Chef…)"
 	f.add_theme_font_size_override("font_size", 28); f.custom_minimum_size = Vector2(900, 70)
 	v.add_child(f)
+	UI.saisie_tactile(f, "Rechercher un lieu")
 	var il := ItemList.new()
 	il.custom_minimum_size = Vector2(900, minf(_vs().y * 0.5, 520))
 	il.add_theme_font_size_override("font_size", 26)
@@ -631,6 +639,13 @@ func _taxi_start() -> void:
 	mode = "taxi"
 	map.locked = true             # pas de téléportation pendant le taxi (■ Arrêter pour reprendre la main)
 	hud._show_drive(true)
+	# compteur de taxi (issue #44), sous les boutons du haut à gauche
+	if _compteur == null:
+		_compteur = preload("res://scripts/taximetre.gd").new()
+		hud.add_child(_compteur)
+	_compteur.position = Vector2(24, 112)
+	_compteur.visible = true
+	_compteur.arreter()
 	_taxi_new_client()
 
 func _taxi_new_client() -> void:
@@ -728,6 +743,8 @@ func _taxi_process(dt: float) -> void:
 			_stop_t = 0.0
 	elif _phase == "course":
 		_t += dt
+		if _compteur:
+			_compteur.compter(dt, Vector2(car.linear_velocity.x, car.linear_velocity.z).length() * dt, car.kmh())
 		var dest := _rp(_dest)
 		var d := c.distance_to(dest)
 		var stars := _stars()
@@ -763,6 +780,8 @@ func _taxi_pickup() -> void:
 	_shocks = 0
 	_stop_t = 0.0
 	_phase = "course"
+	if _compteur:
+		_compteur.demarrer()
 	for b in _beacons:
 		if is_instance_valid(b):
 			b.queue_free()
@@ -773,7 +792,10 @@ func _taxi_pickup() -> void:
 	_talk.start_ride(hud.names.commune_at(car.global_position), p.n, p.c, str(p.get("k", "autre")))
 
 func _taxi_drop() -> void:
-	var fare := 3.5 + 1.6 * _fare_d / 1000.0
+	# prix au compteur (issue #44) ; à défaut, l'ancien forfait sur la distance
+	var fare := (_compteur.montant if _compteur else 3.5 + 1.6 * _fare_d / 1000.0) as float
+	if _compteur:
+		_compteur.arreter()
 	var stars := _stars()
 	var talk: Dictionary = _talk.end_ride(stars)
 	# conversation : jusqu'à +24 % de pourboire si le client a apprécié, jusqu'à -18 % s'il a été agacé

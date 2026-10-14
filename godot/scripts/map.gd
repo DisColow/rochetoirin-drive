@@ -113,8 +113,10 @@ func _draw_overlay() -> void:
 	var f := get_theme_default_font()
 	for name in meta.towns:
 		var p := world_to_screen(Vector2(meta.towns[name][0], meta.towns[name][1]))
-		overlay.draw_string_outline(f, p + Vector2(-80, 0), name, HORIZONTAL_ALIGNMENT_CENTER, 160, 28, 8, Color.BLACK)
-		overlay.draw_string(f, p + Vector2(-80, 0), name, HORIZONTAL_ALIGNMENT_CENTER, 160, 28, Color.WHITE)
+		# nom entier, centré sur la commune (issue #36 : largeur fixe de 160 px, les noms longs étaient tronqués)
+		var w: float = f.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x
+		overlay.draw_string_outline(f, p + Vector2(-w * 0.5, 0), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, 8, Color.BLACK)
+		overlay.draw_string(f, p + Vector2(-w * 0.5, 0), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color.WHITE)
 	var c := world_to_screen(Vector2(car.global_position.x, car.global_position.z))
 	var fwd: Vector3 = car.global_transform.basis.z
 	data.arrow(overlay, c, Vector2(fwd.x, fwd.z), 22.0)
@@ -184,8 +186,9 @@ func _draw_activity(f: Font) -> void:
 		var sp := world_to_screen(m.p)
 		overlay.draw_circle(sp, 17, Color.BLACK)
 		overlay.draw_circle(sp, 14, m.col)
-		overlay.draw_string_outline(f, sp + Vector2(-40, -24), m.txt, HORIZONTAL_ALIGNMENT_CENTER, 80, 26, 7, Color.BLACK)
-		overlay.draw_string(f, sp + Vector2(-40, -24), m.txt, HORIZONTAL_ALIGNMENT_CENTER, 80, 26, Color.WHITE)
+		var wm: float = f.get_string_size(m.txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x
+		overlay.draw_string_outline(f, sp + Vector2(-wm * 0.5, -24), m.txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, 7, Color.BLACK)
+		overlay.draw_string(f, sp + Vector2(-wm * 0.5, -24), m.txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color.WHITE)
 
 func _pick(s: Vector2) -> void:
 	var w := screen_to_world(s)

@@ -320,7 +320,7 @@ func _fracas(hard: float) -> void:
 	print("[fracas] choc de %.1f m/s contre le décor" % hard)
 	for i in 2:
 		var pl: AudioStreamPlayer = _fr[i]
-		pl.stream = _stream("tole_lourd_%d" % (i % 2) if i == 0 else "choc_dur_%d" % (randi() % 5), false)
+		pl.stream = _stream("froisse_%d" % (randi() % 2) if i == 0 else "coup_sourd", false)
 		pl.pitch_scale = 0.78 if i == 0 else randf_range(0.95, 1.05)    # le premier, plus grave : la masse du pick-up
 		pl.volume_db = linear_to_db(g) + 6.0
 		pl.play()
@@ -338,10 +338,19 @@ func impact(m: String, force: float, pos: Vector3, casse := false) -> void:
 	match m:
 		"metal":
 			_one_shot("metal_%d" % (randi() % 5), pos, g, p)
-			_one_shot("tole_%d" % (randi() % 5), pos, g * 0.8, p)
+			if force > 4.0:
+				_one_shot("froisse_%d" % (randi() % 2), pos, g * 0.7, p)
+			else:
+				_one_shot("tole_%d" % (randi() % 5), pos, g * 0.7, p)
 		"dur":
-			_one_shot("pierre_%d" % (randi() % 2), pos, g, p * 0.9)
-			_one_shot("tole_%d" % (randi() % 5), pos, g, p)
+			# mur, maison (issue #40) : coup sourd + carrosserie qui se froisse, plus de « casserole »
+			_one_shot("coup_sourd", pos, g, randf_range(0.9, 1.05))
+			if force > 3.5:
+				_one_shot("froisse_%d" % (randi() % 2), pos, g * 0.9, p)
+			else:
+				_one_shot("tole_%d" % (randi() % 5), pos, g * 0.6, p)
+			if force > 9.0 or casse:
+				_one_shot("eboulis", pos, g * 0.8, p)
 		"bois":
 			_one_shot("choc_bois_%d" % (randi() % 5), pos, g, p)
 			if casse or force > 5.0:
@@ -359,13 +368,13 @@ func impact(m: String, force: float, pos: Vector3, casse := false) -> void:
 			_one_shot("choc_sol_%d" % (randi() % 5), pos, g, p)
 			if force > 7.0:
 				_one_shot("tole_%d" % (randi() % 5), pos, g * 0.6, p * 0.9)
-	if m in ["metal", "dur"] and force > 8.0 and not (casse and m == "metal"):
+	if m == "metal" and force > 8.0 and not casse:
 		_one_shot("tole_lourd_%d" % (randi() % 2), pos, g, randf_range(0.85, 1.0))
 	if m in ["metal", "dur"] and force > 11.0 and not casse:
 		_one_shot("verre_%d" % (randi() % 2), pos, clampf(g * 0.9, 0.4, 0.9), randf_range(0.95, 1.05))
 		get_tree().create_timer(0.25).timeout.connect(func(): _one_shot("debris_0", car.global_position, 0.7, randf_range(0.9, 1.1)))
 	elif casse and m == "dur":
-		_one_shot("debris_0", pos, 0.5, randf_range(0.9, 1.1))
+		_one_shot("debris_0", pos, 0.4, randf_range(0.9, 1.1))
 	# choc qui arrête net la voiture : fracas fort, non positionné (bus « Voiture »)
 	if m in ["metal", "dur", "bois"] and force > 6.0 and not casse:
 		_fracas(force)

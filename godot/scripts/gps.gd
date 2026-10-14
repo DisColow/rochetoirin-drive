@@ -13,6 +13,7 @@ var overlay: Control
 var _ppm := 0.9
 var _th := 0.0
 var _xf := Transform2D.IDENTITY
+var _vu := false          # déjà affiché depuis la dernière fois qu'il était caché
 var mini := false         # écran du cockpit : tailles réduites, pas de boussole ni de cadre, pas de toucher
 var k := 1.0              # échelle des repères (flèche, tracés)
 
@@ -41,6 +42,7 @@ func _process(_dt: float) -> void:
 
 func _process_corps(_dt: float) -> void:
 	if not visible or car == null:
+		_vu = false
 		return
 	var p := Vector2(car.global_position.x, car.global_position.z)
 	var f3 := car.global_transform.basis.z
@@ -49,7 +51,9 @@ func _process_corps(_dt: float) -> void:
 		f = Vector2(0, -1)
 	# zoom selon la vitesse : 260 m de champ à l'arrêt, ~900 m à 130 km/h ; transition douce
 	var want: float = size.y / ((150.0 + car.kmh() * 2.5) if mini else (260.0 + car.kmh() * 5.0))
-	_ppm = lerpf(_ppm, want, 0.05)
+	# premier affichage (ouverture de la vue cockpit) : zoom juste d'emblée, sans glissement (issue #34)
+	_ppm = lerpf(_ppm, want, 0.05) if _vu else want
+	_vu = true
 	var anchor := Vector2(size.x * 0.5, size.y * 0.66)
 	_th = -PI / 2 - f.angle()
 	var xf := Transform2D.IDENTITY.translated(-p).rotated(_th).scaled(Vector2(_ppm, _ppm)).translated(anchor)

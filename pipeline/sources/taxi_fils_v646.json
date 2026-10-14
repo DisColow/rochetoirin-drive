@@ -1,0 +1,1080 @@
+{
+ "ivre": [
+  [
+   {
+    "dit": "Chauffeur ! Mon ami ! Vous savez que vous avez une tête de… de chauffeur ?",
+    "rep": {
+     "chaleureux": {
+      "t": "Merci, ça tombe bien, c'est mon métier.",
+      "ok": "Ha ! Il est malin, en plus !",
+      "ko": "Un malin, ça me plaît."
+     },
+     "drole": {
+      "t": "Et vous, une tête de lendemain difficile.",
+      "ok": "Ha ha ha ! Demain ? Connais pas, demain !",
+      "ko": "Demain, on verra. Ce soir, on rigole."
+     },
+     "curieux": {
+      "t": "Vous avez fêté quoi, ce soir ?",
+      "ok": "Le mariage du cousin de Dédé ! Ou son divorce. Un truc avec un gâteau.",
+      "ko": "Ça vous regarde pas. Mais c'était bien."
+     },
+     "sobre": {
+      "t": "Attachez votre ceinture, s'il vous plaît.",
+      "ok": "Oui chef ! Clic ! Voilà. Trouvé du premier coup.",
+      "ko": "Rabat-joie… bon, d'accord, voilà."
+     }
+    },
+    "silence": {
+     "ok": "Vous parlez pas beaucoup, vous. C'est bien, je parle pour deux.",
+     "ko": "Hé ho ? Y a quelqu'un au volant ?"
+    }
+   },
+   {
+    "dit": "Je vais vous chanter une chanson. Non. Deux chansons.",
+    "rep": {
+     "chaleureux": {
+      "t": "Allez-y, je vous écoute.",
+      "ok": "Il est gentil ! Bon, c'est l'histoire d'un pêcheur… non, d'un boucher…",
+      "ko": "Bon, je chante pour moi alors."
+     },
+     "drole": {
+      "t": "Seulement si je peux faire les chœurs.",
+      "ok": "Ha ! Parfait ! La la la… vous chantez faux, c'est formidable !",
+      "ko": "Les chœurs, c'est moi qui les fais. Na."
+     },
+     "curieux": {
+      "t": "Quelle chanson ?",
+      "ok": "Celle du village ! Celle qu'on chante à la vogue, avec les bras en l'air !",
+      "ko": "Je sais plus. Elle commençait par « la »."
+     },
+     "sobre": {
+      "t": "Doucement, il est tard.",
+      "ok": "Chut chut chut… je chante tout bas, promis.",
+      "ko": "Ce que vous êtes sérieux…"
+     }
+    },
+    "silence": {
+     "ok": "Pas de réponse, ça veut dire oui ! La la laaa…",
+     "ko": "Bon, je chante dans ma tête, alors."
+    }
+   },
+   {
+    "dit": "Hic. Pardon. Vous croyez que ma femme va m'attendre derrière la porte ?",
+    "rep": {
+     "chaleureux": {
+      "t": "Elle sera surtout contente de vous voir rentré entier.",
+      "ok": "Vous avez raison. Entier, c'est déjà beaucoup.",
+      "ko": "Entier, entier… avec la migraine demain."
+     },
+     "drole": {
+      "t": "Avec le rouleau à pâtisserie ?",
+      "ok": "Ha ha ! Avec le rouleau ET la poêle !",
+      "ko": "C'est pas drôle, elle en est capable."
+     },
+     "curieux": {
+      "t": "Vous lui avez dit à quelle heure vous rentriez ?",
+      "ok": "J'ai dit « pas tard ». C'est pas tard, minuit ? Si ?",
+      "ko": "J'ai dit un truc. Je sais plus quoi."
+     },
+     "sobre": {
+      "t": "Buvez un grand verre d'eau en arrivant.",
+      "ok": "Un verre d'eau… c'est sage. Vous êtes sage, vous.",
+      "ko": "De l'eau ? Quelle horreur."
+     }
+    },
+    "silence": {
+     "ok": "Vous avez raison. On verra bien. On verra tout, même.",
+     "ko": "Vous m'aidez pas, là."
+    }
+   }
+  ],
+  [
+   {
+    "dit": "Je vous ai déjà dit que vous étiez mon meilleur ami ?",
+    "rep": {
+     "chaleureux": {
+      "t": "Trois fois, mais ça fait toujours plaisir.",
+      "ok": "Quatre, alors ! Meilleur ami !",
+      "ko": "Trois seulement ? Il faut que je rattrape."
+     },
+     "drole": {
+      "t": "Faites attention, je vais finir par vous croire.",
+      "ok": "Mais c'est vrai ! Juré craché ! Enfin, pas dans le taxi.",
+      "ko": "Vous me croyez pas ? C'est vexant."
+     },
+     "curieux": {
+      "t": "Et votre vrai meilleur ami, il est où ?",
+      "ok": "Il dort sous la table de la salle des fêtes. Il est mort de rire.",
+      "ko": "Il m'a laissé tomber. Comme tous les autres."
+     },
+     "sobre": {
+      "t": "Vous rentrez à pied si vous êtes malade.",
+      "ok": "Promis ! Je suis pas malade. Je suis heureux, nuance.",
+      "ko": "Ah bon… vous êtes dur, vous."
+     }
+    },
+    "silence": {
+     "ok": "Vous dites rien mais je sais que vous m'aimez bien.",
+     "ko": "Bon, je parle tout seul."
+    }
+   },
+   {
+    "dit": "C'est quoi ce village ? On est en Suisse ?",
+    "rep": {
+     "chaleureux": {
+      "t": "Pas tout à fait, on est toujours dans le Nord-Isère.",
+      "ok": "Ah, bon, c'est mieux, j'ai pas de francs suisses.",
+      "ko": "Le Nord-Isère… ça ressemble pas."
+     },
+     "drole": {
+      "t": "Oui, et je vous facture en chocolat.",
+      "ok": "Ha ha ! Du chocolat ! J'en veux !",
+      "ko": "Du chocolat ? Je vous ai rien demandé."
+     },
+     "curieux": {
+      "t": "Vous habitez où, exactement ?",
+      "ok": "Euh… à côté de la boulangerie. Ou de l'église. Il y a une église partout, ici.",
+      "ko": "Je sais plus, c'est à vous de savoir."
+     },
+     "sobre": {
+      "t": "Je vous dépose à l'adresse indiquée.",
+      "ok": "Parfait ! Vous êtes un pro. Un vrai pro.",
+      "ko": "Indiquée par qui ?"
+     }
+    },
+    "silence": {
+     "ok": "Pas de réponse… c'est peut-être bien la Suisse, alors.",
+     "ko": "Personne m'écoute ce soir."
+    }
+   },
+   {
+    "dit": "Je crois que je vais dormir un peu. Vous me réveillez à la Suisse.",
+    "rep": {
+     "chaleureux": {
+      "t": "Reposez-vous, je vous réveille à l'arrivée.",
+      "ok": "Merci… vous êtes une crème…",
+      "ko": "Je vais pas pouvoir, ça tourne trop."
+     },
+     "drole": {
+      "t": "D'accord, mais pas de ronflements, c'est en supplément.",
+      "ok": "Ha ! Je ronfle en silence, moi.",
+      "ko": "Je ronfle pas. Enfin, on me l'a jamais dit gentiment."
+     },
+     "curieux": {
+      "t": "Vous avez des clés pour rentrer, au moins ?",
+      "ok": "Les clés… elles sont… ah, les voilà ! Dans ma chaussette.",
+      "ko": "Vous posez trop de questions."
+     },
+     "sobre": {
+      "t": "Fenêtre ouverte, ça va vous faire du bien.",
+      "ok": "Ah oui… l'air frais… c'est bon…",
+      "ko": "Il fait froid ! Fermez !"
+     }
+    },
+    "silence": {
+     "ok": "Zzz… ah non, je dors pas. Je réfléchis.",
+     "ko": "Bon, je dors."
+    }
+   }
+  ]
+ ],
+ "colere": [
+  [
+   {
+    "dit": "Quatre heures ! Quatre heures que j'attends un train qui n'est jamais venu !",
+    "rep": {
+     "chaleureux": {
+      "t": "Je comprends, c'est épuisant. Vous êtes au chaud, maintenant.",
+      "ok": "Oui… merci. Ça fait du bien de s'asseoir enfin.",
+      "ko": "Au chaud, au chaud… ça ne me rend pas mes quatre heures."
+     },
+     "drole": {
+      "t": "Le train aussi devait être en retard pour son rendez-vous.",
+      "ok": "Ah, je vous en prie, ne plaisantez pas.",
+      "ko": "Ce n'est pas drôle. Pas du tout."
+     },
+     "curieux": {
+      "t": "Personne ne vous a prévenu ?",
+      "ok": "Personne ! Pas une annonce, rien. Un panneau qui clignotait « retard » à l'infini.",
+      "ko": "Si, un message incompréhensible. Comme d'habitude."
+     },
+     "sobre": {
+      "t": "Je vous emmène au plus vite.",
+      "ok": "Merci. Au moins quelqu'un de fiable aujourd'hui.",
+      "ko": "Au plus vite… on verra bien."
+     }
+    },
+    "silence": {
+     "ok": "Vous ne dites rien. Remarquez, il n'y a rien à dire.",
+     "ko": "Vous vous en fichez, comme tout le monde."
+    }
+   },
+   {
+    "dit": "Et en plus, ils m'ont proposé un bon de réduction. Un bon de réduction !",
+    "rep": {
+     "chaleureux": {
+      "t": "C'est maigre, pour une journée gâchée.",
+      "ok": "Voilà ! Merci ! C'est exactement ça.",
+      "ko": "Maigre, oui. Et je vais le perdre, en plus."
+     },
+     "drole": {
+      "t": "Pour reprendre un train qui ne viendra pas ?",
+      "ok": "Ha. Bon, d'accord. Celle-là, elle est vraie.",
+      "ko": "Ne me faites pas rire, je suis en colère."
+     },
+     "curieux": {
+      "t": "De combien, le bon ?",
+      "ok": "Douze euros. Douze euros pour quatre heures de ma vie.",
+      "ko": "Peu importe le montant, c'est le principe."
+     },
+     "sobre": {
+      "t": "Faites une réclamation écrite.",
+      "ok": "Oui. Vous avez raison. Une lettre bien sentie.",
+      "ko": "Une réclamation… ils ne lisent rien."
+     }
+    },
+    "silence": {
+     "ok": "Vous avez raison, autant ne rien dire. Ça ne sert à rien.",
+     "ko": "Vous trouvez ça normal, peut-être ?"
+    }
+   },
+   {
+    "dit": "Bon. Pardon. Je m'emporte, ce n'est pas votre faute.",
+    "rep": {
+     "chaleureux": {
+      "t": "Ne vous excusez pas, vous avez eu une rude journée.",
+      "ok": "Merci. Vraiment. Ça va un peu mieux.",
+      "ko": "Rude, oui. Et elle n'est pas finie."
+     },
+     "drole": {
+      "t": "Je préfère qu'on crie sur les trains que sur les chauffeurs.",
+      "ok": "Ha… oui. Les trains ont le dos large.",
+      "ko": "Je ne crie sur personne, d'abord."
+     },
+     "curieux": {
+      "t": "Vous allez pouvoir vous reposer ce soir ?",
+      "ok": "Un bon bain, et je n'entends plus parler de rien.",
+      "ko": "Me reposer ? J'ai encore un rapport à finir."
+     },
+     "sobre": {
+      "t": "Ce n'est rien.",
+      "ok": "Merci. Vous êtes quelqu'un de calme, ça fait du bien.",
+      "ko": "Si, c'est quelque chose. Mais passons."
+     }
+    },
+    "silence": {
+     "ok": "Le silence, c'est reposant, finalement.",
+     "ko": "Bon, très bien, je me tais aussi."
+    }
+   }
+  ],
+  [
+   {
+    "dit": "Vous avez vu la place de parking qu'on m'a mise ? Une amende ! Pour deux minutes !",
+    "rep": {
+     "chaleureux": {
+      "t": "Deux minutes, c'est vraiment pas de chance.",
+      "ok": "Merci ! Deux minutes ! Montre en main !",
+      "ko": "La chance, je ne l'ai jamais eue."
+     },
+     "drole": {
+      "t": "Le contractuel devait avoir un quota à remplir.",
+      "ok": "Hmpf. Probablement, oui.",
+      "ko": "Ne me parlez pas de quotas, ça m'énerve encore plus."
+     },
+     "curieux": {
+      "t": "Vous pouvez la contester ?",
+      "ok": "Je vais le faire. J'ai pris une photo de l'horodateur en panne.",
+      "ko": "Contester, c'est trois semaines de paperasse."
+     },
+     "sobre": {
+      "t": "Ça arrive à tout le monde.",
+      "ok": "Oui… sans doute. Mais aujourd'hui, c'est tombé sur moi.",
+      "ko": "Pas à moi. Enfin, pas avant aujourd'hui."
+     }
+    },
+    "silence": {
+     "ok": "Vous ne dites rien, vous avez peut-être déjà eu une amende, vous aussi.",
+     "ko": "Oui, oui, je sais, ce n'est pas votre problème."
+    }
+   },
+   {
+    "dit": "Et le pire, c'est que l'horodateur ne marchait pas !",
+    "rep": {
+     "chaleureux": {
+      "t": "Alors vous avez de bonnes chances de gagner.",
+      "ok": "Vous croyez ? Ça me redonne un peu d'espoir.",
+      "ko": "Gagner contre l'administration ? Laissez-moi rire."
+     },
+     "drole": {
+      "t": "Il était en grève, lui aussi ?",
+      "ok": "Ha… en grève. Comme les trains. Bon, d'accord.",
+      "ko": "Ce n'est pas le jour pour plaisanter."
+     },
+     "curieux": {
+      "t": "Vous l'avez signalé à la mairie ?",
+      "ok": "Je vais y aller demain matin, avec ma photo.",
+      "ko": "Ils s'en moquent, à la mairie."
+     },
+     "sobre": {
+      "t": "Gardez la photo, c'est votre preuve.",
+      "ok": "Oui. Je l'ai sauvegardée trois fois.",
+      "ko": "Je sais, je ne suis pas idiot{e}."
+     }
+    },
+    "silence": {
+     "ok": "Bon, je vois que vous écoutez. C'est déjà ça.",
+     "ko": "Vous ne trouvez pas ça scandaleux ?"
+    }
+   },
+   {
+    "dit": "Bon. Vous, au moins, vous êtes à l'heure.",
+    "rep": {
+     "chaleureux": {
+      "t": "Je fais de mon mieux, surtout pour un client qui a eu une mauvaise journée.",
+      "ok": "C'est gentil. Je vous laisserai un pourboire.",
+      "ko": "De votre mieux… on verra à l'arrivée."
+     },
+     "drole": {
+      "t": "C'est parce que je n'ai pas d'horodateur.",
+      "ok": "Ha ! Bon. Je vous accorde celle-là.",
+      "ko": "Les blagues, ça ne marche pas avec moi aujourd'hui."
+     },
+     "curieux": {
+      "t": "Vous avez encore loin à aller, après ?",
+      "ok": "Non, je rentre. Et je ne ressors plus de la semaine.",
+      "ko": "Ça ne vous regarde pas trop, si ?"
+     },
+     "sobre": {
+      "t": "Nous arrivons bientôt.",
+      "ok": "Bien. Merci.",
+      "ko": "Bientôt, c'est quand ?"
+     }
+    },
+    "silence": {
+     "ok": "Le calme, enfin. Ça fait du bien.",
+     "ko": "Vous pourriez au moins dire quelque chose."
+    }
+   }
+  ]
+ ],
+ "vip": [
+  [
+   {
+    "dit": "Vous savez qui je suis ?",
+    "rep": {
+     "chaleureux": {
+      "t": "Pas vraiment, mais vous avez l'air d'avoir une journée bien remplie.",
+      "ok": "Bien vu. Et c'est reposant, qu'on ne me reconnaisse pas.",
+      "ko": "Pas vraiment ? Il faudrait lire les journaux."
+     },
+     "drole": {
+      "t": "Mon prochain client, j'imagine ?",
+      "ok": "Hm. Touché. J'apprécie qu'on ne me cire pas les pompes.",
+      "ko": "Très spirituel. Vraiment très spirituel."
+     },
+     "curieux": {
+      "t": "On s'est déjà vus quelque part ?",
+      "ok": "À la télévision, sans doute. Je passe dans l'émission de dimanche soir.",
+      "ko": "Je ne pense pas, non."
+     },
+     "sobre": {
+      "t": "Peu importe, je vous conduis pareil.",
+      "ok": "Parfait. C'est exactement ce que j'attends d'un chauffeur.",
+      "ko": "Peu importe ? Vous êtes bien sûr de vous."
+     }
+    },
+    "silence": {
+     "ok": "Discret. Vous êtes discret. C'est rare, et j'aime ça.",
+     "ko": "Vous pourriez au moins répondre."
+    }
+   },
+   {
+    "dit": "Je suis {metier}, mais surtout {conseiller départemental|conseillère départementale}. On me reconnaît d'habitude.",
+    "rep": {
+     "chaleureux": {
+      "t": "Ce doit être une sacrée responsabilité.",
+      "ok": "C'est le mot. Des journées de quinze heures.",
+      "ko": "Responsabilité, oui, et peu de reconnaissance."
+     },
+     "drole": {
+      "t": "Alors vous pouvez faire refaire la route ?",
+      "ok": "Ha. On me la fait souvent. Elle est sur la liste, croyez-moi.",
+      "ko": "La route, la route… tout le monde me parle de la route."
+     },
+     "curieux": {
+      "t": "Qu'est-ce qui vous occupe en ce moment ?",
+      "ok": "Le nouveau collège. Trois ans de réunions pour une cour de récréation.",
+      "ko": "Des dossiers confidentiels, je ne peux pas en parler."
+     },
+     "sobre": {
+      "t": "Je vois.",
+      "ok": "Vous êtes de ceux qui ne s'emballent pas. C'est bien.",
+      "ko": "Vous voyez ? Ça m'étonnerait."
+     }
+    },
+    "silence": {
+     "ok": "Le silence vous honore. Les gens me demandent toujours quelque chose.",
+     "ko": "Bien. Je vais travailler, alors."
+    }
+   },
+   {
+    "dit": "Si quelqu'un vous demande, vous n'avez conduit personne ce soir.",
+    "rep": {
+     "chaleureux": {
+      "t": "Ma bouche est cousue. Vous pouvez compter sur moi.",
+      "ok": "Parfait. Je n'en attendais pas moins.",
+      "ko": "J'espère. On ne sait jamais avec les chauffeurs."
+     },
+     "drole": {
+      "t": "Je dirai que j'ai conduit un fantôme très bien habillé.",
+      "ok": "Ha… un fantôme bien habillé. C'est presque élégant.",
+      "ko": "Ce n'est pas une plaisanterie."
+     },
+     "curieux": {
+      "t": "Il y a des journalistes qui vous suivent ?",
+      "ok": "Parfois. Ils veulent savoir où je dîne. Passionnant, n'est-ce pas ?",
+      "ko": "Je ne parlerai pas de ça."
+     },
+     "sobre": {
+      "t": "Entendu.",
+      "ok": "Parfait. Un homme de confiance. Ou une femme. Peu importe : de confiance.",
+      "ko": "Entendu, entendu… on verra."
+     }
+    },
+    "silence": {
+     "ok": "Vous ne posez pas de questions. Excellent.",
+     "ko": "Vous avez bien compris, au moins ?"
+    }
+   }
+  ],
+  [
+   {
+    "dit": "Excusez-moi, je dois prendre un appel. … Non. Non. J'ai dit non. Au revoir. Pardon, où en étions-nous ?",
+    "rep": {
+     "chaleureux": {
+      "t": "Nulle part encore, prenez le temps de souffler.",
+      "ok": "Merci. On ne me laisse jamais souffler.",
+      "ko": "Souffler ? Je n'ai pas le temps."
+     },
+     "drole": {
+      "t": "Vous étiez en train de dire non, je crois.",
+      "ok": "Ha. Oui. C'est ma spécialité, dire non.",
+      "ko": "Ce n'est pas drôle, c'était important."
+     },
+     "curieux": {
+      "t": "Un problème au travail ?",
+      "ok": "Mon cuisinier veut changer la carte. Moi, je veux garder les ravioles.",
+      "ko": "Rien que je puisse raconter à un chauffeur."
+     },
+     "sobre": {
+      "t": "Nous arrivons dans dix minutes.",
+      "ok": "Parfait. Exactement le temps de relire mes notes.",
+      "ko": "Dix minutes ? C'est trop long."
+     }
+    },
+    "silence": {
+     "ok": "Je vois que vous savez vous taire. Ça vaut de l'or.",
+     "ko": "Je vous ai posé une question."
+    }
+   },
+   {
+    "dit": "Je tiens un restaurant étoilé. Vous aimez la cuisine ?",
+    "rep": {
+     "chaleureux": {
+      "t": "J'adore, surtout quand quelqu'un d'autre la fait.",
+      "ok": "Ha. Vous avez tout compris. Moi aussi, je préfère qu'on cuisine pour moi.",
+      "ko": "Quelqu'un d'autre… c'est un peu facile."
+     },
+     "drole": {
+      "t": "Moi, je suis spécialiste du sandwich au volant.",
+      "ok": "Hm. Un art délicat, je n'en doute pas.",
+      "ko": "Le sandwich… quelle tristesse."
+     },
+     "curieux": {
+      "t": "C'est quoi, votre plat signature ?",
+      "ok": "Une truite du Guiers, crème de noix de Grenoble. Les gens viennent de Lyon pour ça.",
+      "ko": "Le secret de la maison. Je ne le dis jamais."
+     },
+     "sobre": {
+      "t": "Ça doit être un métier exigeant.",
+      "ok": "Le plus exigeant du monde. Une étoile, ça se perd en un soir.",
+      "ko": "Exigeant, oui, et peu de gens le comprennent."
+     }
+    },
+    "silence": {
+     "ok": "Vous ne connaissez pas la gastronomie, je suppose.",
+     "ko": "On vous a appris à répondre, au moins ?"
+    }
+   },
+   {
+    "dit": "Passez donc un jour au restaurant. Dites que vous venez de ma part.",
+    "rep": {
+     "chaleureux": {
+      "t": "Merci beaucoup, c'est très gentil.",
+      "ok": "Avec plaisir. Je vous ferai goûter le dessert.",
+      "ko": "Oh, ce n'était qu'une formule de politesse."
+     },
+     "drole": {
+      "t": "Je viendrai en taxi, bien sûr.",
+      "ok": "Ha ! Et vous vous ferez payer la course ? Bien joué.",
+      "ko": "Hm. Très drôle."
+     },
+     "curieux": {
+      "t": "Il faut réserver longtemps à l'avance ?",
+      "ok": "Trois mois, en général. Pour vous, je trouverai une table.",
+      "ko": "Comme tout le monde, oui."
+     },
+     "sobre": {
+      "t": "Merci.",
+      "ok": "Je vous en prie. Vous avez été parfait.",
+      "ko": "Ne me remerciez pas trop vite."
+     }
+    },
+    "silence": {
+     "ok": "Pas de réponse ? Les gens timides sont souvent les meilleurs clients.",
+     "ko": "Bon, oubliez l'invitation."
+    }
+   }
+  ]
+ ],
+ "anecdote": [
+  [
+   {
+    "dit": "Vous voulez savoir pourquoi je suis en retard ? Une chèvre. Une chèvre au milieu de la route.",
+    "rep": {
+     "chaleureux": {
+      "t": "Ça arrive plus souvent qu'on croit, par ici !",
+      "ok": "Hein ? Ah ben oui, vous devez en voir de toutes les couleurs, vous !",
+      "ko": "Plus souvent ? Ça ne me rassure pas."
+     },
+     "drole": {
+      "t": "Elle attendait le bus ?",
+      "ok": "Ha ha ! Elle avait l'air pressée, en tout cas !",
+      "ko": "Elle attendait surtout que je klaxonne, et ça n'a servi à rien."
+     },
+     "curieux": {
+      "t": "Et vous avez pu passer ?",
+      "ok": "Il a fallu que le fermier vienne la chercher avec une carotte. Vingt minutes !",
+      "ko": "Au bout d'un moment, oui. Une éternité."
+     },
+     "sobre": {
+      "t": "Les routes de campagne, c'est comme ça.",
+      "ok": "Exactement. Et je ne changerais pour rien au monde.",
+      "ko": "Ça n'excuse pas mon retard, hélas."
+     }
+    },
+    "silence": {
+     "ok": "Bon, ça ne vous fait pas rire. Moi, j'ai trouvé ça très drôle.",
+     "ko": "Vous ne me croyez pas, c'est ça ?"
+    }
+   },
+   {
+    "dit": "Elle m'a regardé{e} droit dans les yeux, comme si c'était moi, l'intrus.",
+    "rep": {
+     "chaleureux": {
+      "t": "Elle était chez elle, après tout.",
+      "ok": "C'est ce que je me suis dit ! Elle avait sûrement raison.",
+      "ko": "Chez elle sur une départementale ? Quand même."
+     },
+     "drole": {
+      "t": "Elle voulait peut-être votre place de parking.",
+      "ok": "Ha ! Elle aurait été bien garée, elle !",
+      "ko": "Ma place de parking ? Elle n'a pas le permis."
+     },
+     "curieux": {
+      "t": "Elle avait un nom, cette chèvre ?",
+      "ok": "Le fermier l'appelait Biscotte ! Biscotte, vous imaginez ?",
+      "ko": "Je ne lui ai pas demandé, figurez-vous."
+     },
+     "sobre": {
+      "t": "Les chèvres sont curieuses.",
+      "ok": "Curieuses et têtues. Je ne savais pas que c'était à ce point.",
+      "ko": "Curieuses ? Insolentes, oui."
+     }
+    },
+    "silence": {
+     "ok": "Bon, vous ne dites rien… c'était quand même une sacrée chèvre.",
+     "ko": "Ça ne vous intéresse pas, je vois."
+    }
+   },
+   {
+    "dit": "Le pire, c'est que j'ai pris une photo. Je vais l'envoyer à toute la famille.",
+    "rep": {
+     "chaleureux": {
+      "t": "Ça va faire rire tout le monde !",
+      "ok": "Exactement ! Ma mère va adorer.",
+      "ko": "Ou personne ne va comprendre, comme d'habitude."
+     },
+     "drole": {
+      "t": "Biscotte va devenir célèbre.",
+      "ok": "Ha ha ! Une star de la route ! Je vais lui faire une page.",
+      "ko": "Une star, faut pas exagérer."
+     },
+     "curieux": {
+      "t": "Elle a posé pour la photo ?",
+      "ok": "De profil, très sérieuse. Comme pour un passeport !",
+      "ko": "Non, elle a bougé. Elle est floue."
+     },
+     "sobre": {
+      "t": "C'est un bon souvenir.",
+      "ok": "Un très bon souvenir. Malgré le retard.",
+      "ko": "Un souvenir, si on veut."
+     }
+    },
+    "silence": {
+     "ok": "Vous verrez, un jour vous croiserez Biscotte, vous aussi.",
+     "ko": "Bon, je garde la photo pour moi."
+    }
+   }
+  ],
+  [
+   {
+    "dit": "Ce matin, j'ai mis le sucre dans le frigo et le beurre dans le placard. Ça annonçait la journée.",
+    "rep": {
+     "chaleureux": {
+      "t": "Ça arrive à tout le monde, les matins difficiles.",
+      "ok": "Ouf, merci. Je me sentais seul{e} au monde.",
+      "ko": "À tout le monde ? À moi surtout."
+     },
+     "drole": {
+      "t": "Et le café, vous l'avez mis où ?",
+      "ok": "Ha ! Dans la machine, par miracle !",
+      "ko": "Le café, je l'ai renversé. Évidemment."
+     },
+     "curieux": {
+      "t": "Et après, la journée a continué comme ça ?",
+      "ok": "Pire ! J'ai salué mon voisin par le prénom de son chien.",
+      "ko": "Je préfère ne pas en parler."
+     },
+     "sobre": {
+      "t": "Un peu de repos vous fera du bien.",
+      "ok": "Vous avez raison. Ce soir, je ne touche à rien.",
+      "ko": "Du repos ? Avec quel temps ?"
+     }
+    },
+    "silence": {
+     "ok": "Vous ne riez pas ? C'était drôle pourtant, je vous assure.",
+     "ko": "Ah, ça ne vous fait pas rire."
+    }
+   },
+   {
+    "dit": "Il s'appelle Pistache, le chien. Le voisin, je crois qu'il s'appelle Patrick.",
+    "rep": {
+     "chaleureux": {
+      "t": "Il ne vous en a pas voulu, j'espère.",
+      "ok": "Il a ri ! Il m'a dit que Pistache, c'était flatteur.",
+      "ko": "Il a fait la tête toute la matinée."
+     },
+     "drole": {
+      "t": "Pistache, c'est presque Patrick.",
+      "ok": "Ha ha ! C'est ce que je me suis dit !",
+      "ko": "Pas du tout, voyons."
+     },
+     "curieux": {
+      "t": "Et le chien, il a réagi ?",
+      "ok": "Il a remué la queue ! Lui, il a trouvé ça normal.",
+      "ko": "Il a aboyé. Il n'aime pas qu'on l'oublie."
+     },
+     "sobre": {
+      "t": "Ce n'est pas grave.",
+      "ok": "Non, vous avez raison. On en rira dans dix ans.",
+      "ko": "Pas grave pour vous."
+     }
+    },
+    "silence": {
+     "ok": "Bon, je vois que mes histoires vous laissent froid.",
+     "ko": "Vous ne dites rien, ça veut tout dire."
+    }
+   },
+   {
+    "dit": "La prochaine fois, je reste au lit. C'est plus prudent.",
+    "rep": {
+     "chaleureux": {
+      "t": "Bonne idée, un dimanche au lit, ça soigne tout.",
+      "ok": "Avec un bon livre. Et personne à saluer.",
+      "ko": "Je ne peux jamais, de toute façon."
+     },
+     "drole": {
+      "t": "Attention à ne pas confondre l'oreiller et la couette.",
+      "ok": "Ha ! Avec moi, tout est possible.",
+      "ko": "Très drôle. Vraiment."
+     },
+     "curieux": {
+      "t": "Qu'est-ce que vous lisez, en ce moment ?",
+      "ok": "Un polar qui se passe à Lyon. J'ai deviné le coupable page trois.",
+      "ko": "Pas grand-chose, je m'endors à chaque page."
+     },
+     "sobre": {
+      "t": "C'est plus sûr, en effet.",
+      "ok": "N'est-ce pas ? La prudence avant tout.",
+      "ko": "Vous vous moquez de moi ?"
+     }
+    },
+    "silence": {
+     "ok": "Le silence aussi, c'est prudent. Vous avez raison.",
+     "ko": "Bon. Je me tais aussi."
+    }
+   }
+  ]
+ ],
+ "culture": [
+  [
+   {
+    "dit": "Vous saviez qu'Hector Berlioz est né à La Côte-Saint-André, pas très loin d'ici ?",
+    "rep": {
+     "chaleureux": {
+      "t": "Oui, et il y a même un festival chaque été en son honneur.",
+      "ok": "Exactement ! J'y vais tous les ans, c'est magnifique.",
+      "ko": "Un festival… je n'y suis jamais allé{e}, hélas."
+     },
+     "drole": {
+      "t": "Il composait en conduisant, peut-être ?",
+      "ok": "Ha ! À l'époque, il conduisait plutôt des diligences !",
+      "ko": "Il n'y avait pas de voitures, voyons."
+     },
+     "curieux": {
+      "t": "C'est lui qui a écrit la Symphonie fantastique ?",
+      "ok": "Tout à fait ! Écrite à vingt-six ans. Quel génie.",
+      "ko": "Oui. Vous connaissez un peu, alors."
+     },
+     "sobre": {
+      "t": "Je l'ignorais.",
+      "ok": "On l'oublie souvent. C'est pour ça que j'en parle.",
+      "ko": "Peu de gens le savent, c'est triste."
+     }
+    },
+    "silence": {
+     "ok": "Ça ne vous dit rien, je vois. C'est dommage, c'est un grand homme d'ici.",
+     "ko": "La musique classique, ce n'est pas votre truc."
+    }
+   },
+   {
+    "dit": "Son père était médecin, il voulait qu'il le devienne aussi. Il a tout plaqué pour la musique.",
+    "rep": {
+     "chaleureux": {
+      "t": "Il a bien fait de suivre sa passion.",
+      "ok": "Exactement. Le monde y a gagné une œuvre immense.",
+      "ko": "Sa famille ne l'a pas vu comme ça."
+     },
+     "drole": {
+      "t": "Heureusement, sinon on aurait une symphonie d'ordonnances.",
+      "ok": "Ha ha ! La Symphonie pharmaceutique !",
+      "ko": "Ce n'est pas très respectueux."
+     },
+     "curieux": {
+      "t": "Il a eu du succès de son vivant ?",
+      "ok": "Plus à l'étranger qu'en France, curieusement. En Allemagne, en Russie.",
+      "ko": "Pas tellement. C'est souvent comme ça."
+     },
+     "sobre": {
+      "t": "Un choix courageux.",
+      "ok": "Très courageux, à l'époque. Sans un sou.",
+      "ko": "Courageux, ou inconscient."
+     }
+    },
+    "silence": {
+     "ok": "Je vous ennuie peut-être avec mes histoires.",
+     "ko": "Bon, je n'en dirai pas plus."
+    }
+   },
+   {
+    "dit": "Si vous passez à La Côte, sa maison natale est un musée. On y voit même ses partitions.",
+    "rep": {
+     "chaleureux": {
+      "t": "Je ferai le détour, c'est promis.",
+      "ok": "Vous ne le regretterez pas. Et la vue sur la plaine est superbe.",
+      "ko": "Promis, promis… tout le monde dit ça."
+     },
+     "drole": {
+      "t": "J'y emmènerai mes clients mélomanes.",
+      "ok": "Ha ! Le taxi musical ! Bonne idée.",
+      "ko": "Ce n'est pas un parc d'attractions."
+     },
+     "curieux": {
+      "t": "Il y a autre chose à voir dans le coin ?",
+      "ok": "Les halles médiévales, magnifiques. Et le château Louis XI.",
+      "ko": "Le reste, je vous laisse découvrir."
+     },
+     "sobre": {
+      "t": "Je note.",
+      "ok": "Bien. Vous verrez, c'est émouvant.",
+      "ko": "Vous notez où ? Vous conduisez."
+     }
+    },
+    "silence": {
+     "ok": "Vous écoutez, c'est déjà ça.",
+     "ko": "Bon, vous n'irez pas, je le sens."
+    }
+   }
+  ],
+  [
+   {
+    "dit": "L'abbaye de Saint-Chef a des fresques du douzième siècle. Parmi les plus belles de France.",
+    "rep": {
+     "chaleureux": {
+      "t": "C'est une chance d'avoir ça si près de chez nous.",
+      "ok": "Une vraie chance. Et si peu de gens le savent !",
+      "ko": "Une chance que personne ne va voir."
+     },
+     "drole": {
+      "t": "Elles ont neuf cents ans et elles sont mieux conservées que ma voiture.",
+      "ok": "Ha ha ! C'est vrai qu'elles ont bien tenu !",
+      "ko": "Votre voiture n'a rien à voir avec ça."
+     },
+     "curieux": {
+      "t": "Qu'est-ce qu'elles représentent ?",
+      "ok": "Le ciel, des anges, la Jérusalem céleste. Tout en ocre et en bleu.",
+      "ko": "Des scènes religieuses. Il faut les voir."
+     },
+     "sobre": {
+      "t": "On peut les visiter ?",
+      "ok": "Oui, avec un guide. Allez-y en été, c'est plus simple.",
+      "ko": "Parfois. Renseignez-vous."
+     }
+    },
+    "silence": {
+     "ok": "Vous ne connaissez pas Saint-Chef ? C'est à côté pourtant.",
+     "ko": "Bon, l'art roman, ça ne vous parle pas."
+    }
+   },
+   {
+    "dit": "Les peintres les ont faites dans une petite chapelle, à l'étage. Il fallait monter avec des bougies.",
+    "rep": {
+     "chaleureux": {
+      "t": "Quel travail, et quelle patience.",
+      "ok": "N'est-ce pas ? On ne fait plus ça aujourd'hui.",
+      "ko": "La patience, ce n'est pas mon fort."
+     },
+     "drole": {
+      "t": "Et sans les assurances du chantier.",
+      "ok": "Ha ! Pas de casque, pas de garde-corps. Des héros.",
+      "ko": "C'est un peu facile comme blague."
+     },
+     "curieux": {
+      "t": "Comment elles ont tenu si longtemps ?",
+      "ok": "L'endroit est resté fermé et sec pendant des siècles. Un miracle.",
+      "ko": "Je ne suis pas spécialiste."
+     },
+     "sobre": {
+      "t": "Impressionnant.",
+      "ok": "Vraiment. Ça donne le vertige, quand on y pense.",
+      "ko": "Impressionnant, si on veut."
+     }
+    },
+    "silence": {
+     "ok": "Le silence, comme dans une chapelle. C'est de circonstance.",
+     "ko": "Je parle tout seul, apparemment."
+    }
+   },
+   {
+    "dit": "Moi, j'aime bien m'y arrêter quand j'ai besoin de calme. On y entend les oiseaux.",
+    "rep": {
+     "chaleureux": {
+      "t": "C'est un bel endroit pour se poser.",
+      "ok": "Le plus beau du coin. Je vous le conseille.",
+      "ko": "Encore faut-il avoir le temps."
+     },
+     "drole": {
+      "t": "Je vais peut-être y aller entre deux courses.",
+      "ok": "Ha ! Bonne idée, une pause spirituelle !",
+      "ko": "Vous n'y resteriez pas deux minutes."
+     },
+     "curieux": {
+      "t": "Vous y allez souvent ?",
+      "ok": "Une fois par mois, à peu près. C'est mon rituel.",
+      "ko": "Assez. C'est mon secret."
+     },
+     "sobre": {
+      "t": "Je comprends.",
+      "ok": "Je savais que vous comprendriez.",
+      "ko": "Vraiment ? J'en doute."
+     }
+    },
+    "silence": {
+     "ok": "Vous voyez, le silence, c'est bien aussi.",
+     "ko": "Bon, parlons d'autre chose."
+    }
+   }
+  ],
+  [
+   {
+    "dit": "Vous connaissez l'histoire du lac de Paladru ? Il y a un village de l'an mil sous l'eau.",
+    "rep": {
+     "chaleureux": {
+      "t": "Non, racontez-moi, ça a l'air passionnant.",
+      "ok": "On a retrouvé des maisons, des outils, même des pièces de jeux d'échecs !",
+      "ko": "Passionnant, oui, si on aime l'histoire."
+     },
+     "drole": {
+      "t": "Un village sous l'eau ? Ils avaient dû oublier de fermer le robinet.",
+      "ok": "Ha ha ! C'est le lac qui est monté, en fait !",
+      "ko": "Ce n'est pas un sujet de plaisanterie."
+     },
+     "curieux": {
+      "t": "Qui habitait là ?",
+      "ok": "Des chevaliers-paysans, on les appelle comme ça. Ils cultivaient et ils se battaient.",
+      "ko": "Des gens d'autrefois. On ne sait pas tout."
+     },
+     "sobre": {
+      "t": "Je ne savais pas.",
+      "ok": "Peu de gens le savent. Il y a un musée à Charavines.",
+      "ko": "C'est dommage, c'est notre histoire."
+     }
+    },
+    "silence": {
+     "ok": "Ça ne vous intéresse pas, je vois.",
+     "ko": "Bon, ne m'écoutez pas."
+    }
+   },
+   {
+    "dit": "On a même retrouvé des instruments de musique et des patins à glace en os.",
+    "rep": {
+     "chaleureux": {
+      "t": "C'est fou de penser à leur vie de tous les jours.",
+      "ok": "Exactement ! Ils patinaient sur le lac gelé, comme nous.",
+      "ko": "Fou, peut-être. Ou juste banal."
+     },
+     "drole": {
+      "t": "Des patins en os ? On ne fait plus d'aussi bons patins.",
+      "ok": "Ha ! En tout cas, ils ont duré mille ans !",
+      "ko": "Je ne suis pas sûr{e} que ce soit drôle."
+     },
+     "curieux": {
+      "t": "Comment on les a retrouvés ?",
+      "ok": "Des plongeurs, dans les années soixante-dix. Le bois s'était conservé dans la vase.",
+      "ko": "Par hasard, comme souvent."
+     },
+     "sobre": {
+      "t": "Étonnant.",
+      "ok": "N'est-ce pas ? L'histoire est partout, autour de nous.",
+      "ko": "Étonnant, vous dites ça poliment."
+     }
+    },
+    "silence": {
+     "ok": "Je vous laisse imaginer le reste.",
+     "ko": "Bon, l'archéologie, ce n'est pas pour tout le monde."
+    }
+   },
+   {
+    "dit": "Si vous y allez un jour, demandez à voir les maquettes du village. Elles sont magnifiques.",
+    "rep": {
+     "chaleureux": {
+      "t": "Je n'y manquerai pas.",
+      "ok": "Vous m'en direz des nouvelles. Et baignez-vous, l'eau est bonne en été.",
+      "ko": "Vous dites ça, mais vous n'irez pas."
+     },
+     "drole": {
+      "t": "J'emmènerai mes patins en os.",
+      "ok": "Ha ! Il faudra attendre l'hiver !",
+      "ko": "Vous n'en avez pas, de patins en os."
+     },
+     "curieux": {
+      "t": "C'est loin d'ici, Charavines ?",
+      "ok": "Une demi-heure à peu près. Une jolie route.",
+      "ko": "Pas très. Vous connaissez la route."
+     },
+     "sobre": {
+      "t": "Merci pour l'idée.",
+      "ok": "Avec plaisir. Ça fait du bien de partager.",
+      "ko": "De rien. Enfin…"
+     }
+    },
+    "silence": {
+     "ok": "Pas de réponse ? Gardez l'idée dans un coin de votre tête.",
+     "ko": "Je n'aurais peut-être pas dû en parler."
+    }
+   }
+  ],
+  [
+   {
+    "dit": "Bourgoin-Jallieu, c'était la capitale de l'impression sur tissu. Il y a un musée là-dessus.",
+    "rep": {
+     "chaleureux": {
+      "t": "C'est beau que la ville garde cette mémoire.",
+      "ok": "Oui ! Mon grand-père travaillait dans une de ces usines.",
+      "ko": "La mémoire, c'est bien, mais les usines ont fermé."
+     },
+     "drole": {
+      "t": "Ils imprimaient aussi des tickets de taxi ?",
+      "ok": "Ha ! Non, plutôt des foulards et des robes !",
+      "ko": "Ça n'a rien à voir."
+     },
+     "curieux": {
+      "t": "Qu'est-ce qu'on y imprimait ?",
+      "ok": "Des indiennes, des tissus colorés, avec des planches en bois gravé.",
+      "ko": "Des tissus. Beaucoup de tissus."
+     },
+     "sobre": {
+      "t": "Je l'ignorais.",
+      "ok": "Peu de gens le savent. Le musée est en centre-ville.",
+      "ko": "Normal, personne ne le dit."
+     }
+    },
+    "silence": {
+     "ok": "Ça ne vous parle pas trop, je vois.",
+     "ko": "Bon, les vieilles usines, ce n'est pas votre truc."
+    }
+   },
+   {
+    "dit": "Mon grand-père rentrait le soir avec les mains bleues, à cause des teintures.",
+    "rep": {
+     "chaleureux": {
+      "t": "Ça devait être un métier dur.",
+      "ok": "Très dur. Mais il en parlait avec fierté.",
+      "ko": "Dur, et mal payé."
+     },
+     "drole": {
+      "t": "Il avait les mains de la couleur du ciel.",
+      "ok": "Ha, c'est joliment dit ! Il aurait aimé ça.",
+      "ko": "Ne vous moquez pas de mon grand-père."
+     },
+     "curieux": {
+      "t": "Il a travaillé longtemps là-bas ?",
+      "ok": "Quarante ans. Il connaissait toutes les machines par leur bruit.",
+      "ko": "Toute sa vie, oui."
+     },
+     "sobre": {
+      "t": "C'est un beau souvenir.",
+      "ok": "Un très beau souvenir. Merci de m'écouter.",
+      "ko": "Un souvenir, oui."
+     }
+    },
+    "silence": {
+     "ok": "Je vois que vous écoutez. Merci.",
+     "ko": "Bon, je ne vous embête pas avec ma famille."
+    }
+   },
+   {
+    "dit": "Aujourd'hui, Bourgoin, c'est plutôt le rugby. Mais moi, je pense toujours aux tissus.",
+    "rep": {
+     "chaleureux": {
+      "t": "Les deux font partie de l'histoire de la ville.",
+      "ok": "C'est vrai. Les tissus d'hier, les maillots d'aujourd'hui.",
+      "ko": "Le rugby, ça ne m'intéresse pas."
+     },
+     "drole": {
+      "t": "Les joueurs pourraient porter des maillots imprimés à la planche.",
+      "ok": "Ha ! Ça aurait de l'allure, sur le terrain !",
+      "ko": "Le rugby, c'est sérieux."
+     },
+     "curieux": {
+      "t": "Vous allez au stade ?",
+      "ok": "De temps en temps, avec mon neveu. Il connaît tous les joueurs.",
+      "ko": "Jamais. Le bruit, la foule…"
+     },
+     "sobre": {
+      "t": "Chacun ses souvenirs.",
+      "ok": "Exactement. Les miens sont bleus.",
+      "ko": "Si on veut."
+     }
+    },
+    "silence": {
+     "ok": "Vous êtes plutôt rugby, vous, je parie.",
+     "ko": "Bon, j'arrête avec mes histoires."
+    }
+   }
+  ]
+ ]
+}

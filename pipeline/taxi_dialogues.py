@@ -147,6 +147,48 @@ CARACTERES = [
              humeur=["Stressante. Je m'inquiète pour un rien, vous savez.", "Pas terrible, j'ai un rendez-vous important."],
              musique=["De la musique douce, pour me calmer.", "Les bruits de la nature. La pluie, la mer."]),
          ),
+    # v6.46 (issue #42) : clients ivres, en colère, personnalités ; « sujets » = fils propres, abordés en premier
+    dict(id="ivre", nom="éméché", bavard=1.0, sujets=["ivre"],
+         gouts=dict(chaleureux=2, drole=2, curieux=0, sobre=-2, silence=-1),
+         allure=["{Il|Elle} titube jusqu'à la portière.", "{Il|Elle} chante faux en s'installant.", "{Il|Elle} sent fort le pastis."],
+         bien=["Ha ! Vous êtes mon meilleur ami, vous !", "Je vous aime bien, vous. Si si. Vraiment.", "Hic… pardon. C'est drôle, ça !",
+               "Ha ha ! Elle est bonne ! Je la comprends pas mais elle est bonne !", "Vous savez quoi ? Vous êtes quelqu'un de bien.",
+               "Tchin ! Ah non, j'ai pas de verre.", "Ça c'est un chauffeur ! Un vrai !"],
+         moyen=["Hein ? Quoi ?", "Ouais… ouais ouais.", "Je sais plus ce que je disais.", "Attendez, ça tourne un peu, là."],
+         mal=["Oh là là, rabat-joie !", "Vous êtes pas marrant, vous. Pas marrant du tout.", "Bon. Ambiance enterrement.",
+              "Hé, c'est la fête, faut sourire !", "Pfff… vous êtes comme ma belle-mère."],
+         reponses=dict(
+             aime=["Moi ? La fête ! Les copains ! Et les chansons ! Pas les gens tristes.",
+                   "Rigoler, mon ami. Rigoler et chanter. Le reste, pfff."],
+             humeur=["Formidable ! Un peu… flou, mais formidable !", "Excellente ! On a fêté l'anniversaire de Dédé. Ou de Gégé."],
+             musique=["Les chansons qu'on chante debout sur les tables !", "Tout ! Mettez fort ! Non, pas trop fort. Si, fort !"]),
+         ),
+    dict(id="colere", nom="furieux", bavard=0.8, sujets=["colere"],
+         gouts=dict(chaleureux=2, drole=-2, curieux=1, sobre=1, silence=-1),
+         allure=["{Il|Elle} claque la portière à la faire trembler.", "{Il|Elle} parle tout seul en serrant les dents.", "{Il|Elle} est rouge de colère."],
+         bien=["Merci. Enfin quelqu'un qui comprend.", "Voilà ! Exactement !", "Ça fait du bien d'être écouté{e}.",
+               "Vous au moins, vous êtes raisonnable.", "Pardon de m'emporter. Vous êtes patient."],
+         moyen=["Hmpf.", "Peut-être.", "On verra bien.", "Si vous le dites."],
+         mal=["Vous trouvez ça drôle ?", "Ne vous moquez pas de moi, s'il vous plaît.", "C'est pas le moment, vraiment pas.",
+              "Il ne manquait plus que ça.", "Vous aussi, vous allez m'énerver ?"],
+         reponses=dict(
+             aime=["Qu'on m'écoute ! Qu'on me prenne au sérieux, pour une fois.", "Le calme. Les gens polis. Ça devient rare."],
+             humeur=["Exécrable. Mais ce n'est pas contre vous.", "Une journée à oublier, croyez-moi."],
+             musique=["Rien. Du silence. J'ai assez de bruit dans la tête.", "Quelque chose de calme. N'importe quoi de calme."]),
+         ),
+    dict(id="vip", nom="très important", bavard=0.6, sujets=["vip"],
+         gouts=dict(chaleureux=1, drole=-1, curieux=1, sobre=2, silence=1),
+         allure=["{Il|Elle} téléphone sans vous regarder.", "{Il|Elle} porte des lunettes noires malgré le temps.", "{Il|Elle} a un costume impeccable."],
+         bien=["Parfait. Vous êtes discret, j'apprécie.", "Voilà une réponse intelligente.", "Vous avez du tact. C'est rare.",
+               "Bien. Je retiens votre nom.", "Très juste."],
+         moyen=["Certes.", "Hm.", "Si vous voulez.", "Passons."],
+         mal=["Je ne vous paie pas pour faire de l'esprit.", "Un peu de tenue, je vous prie.", "Vous savez à qui vous parlez ?",
+              "Épargnez-moi la familiarité.", "Mon assistant va entendre parler de cette course."],
+         reponses=dict(
+             aime=["La discrétion. Et l'efficacité. Dans cet ordre.", "Qu'on me laisse travailler. Et qu'on ne raconte pas ma vie aux journaux."],
+             humeur=["Chargée. Trois rendez-vous, deux interviews, et ce taxi.", "Correcte. J'ai gagné une négociation ce matin."],
+             musique=["Du classique. Ou du jazz, à la rigueur.", "Rien de ce qu'on entend à la radio, merci."]),
+         ),
 ]
 
 # ---------------------------------------------------------------- identité (comme avant)
@@ -617,12 +659,17 @@ SILENCE = ["Hm.", "…", "Vous ne dites rien ?"]
 # rebonds du client (v6.12) : fils réécrits par taxi_rebonds.py, relus, versionnés ici ; ils remplacent FILS :
 # rep[ton] = {t: réponse du joueur, ok: rebond si le ton plaît au client, ko: sinon}, silence = {ok, ko}
 FILS_REBONDS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sources", "taxi_fils.json")
+FILS_PLUS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sources", "taxi_fils_v646.json")
 
 
 def main():
     global FILS
     if os.path.exists(FILS_REBONDS):
         FILS = json.load(open(FILS_REBONDS, encoding="utf-8"))
+    # v6.46 (issue #42) : fils écrits avec leurs rebonds (ivres, colère, personnalités, anecdotes, culture locale)
+    if os.path.exists(FILS_PLUS):
+        for k, v in json.load(open(FILS_PLUS, encoding="utf-8")).items():
+            FILS.setdefault(k, []).extend(v)
     data = dict(version=6, tons=TONS, caracteres=CARACTERES, prenoms=PRENOMS, metiers=METIERS, loisirs=LOISIRS,
                 animaux=ANIMAUX, familles=FAMILLES, questions=QUESTIONS, esquive=ESQUIVE, fils=FILS, bonjour=BONJOUR,
                 fin=FIN, trop=TROP, derange=DERANGE, silence=SILENCE)
