@@ -1,4 +1,4 @@
-"""Vue cockpit de l'Espace I en pixel art, à la manière des vieux jeux de voitures (Test Drive, Vette!, Lotus) :
+"""Vue cockpit du Ford Ranger Raptor (v6.43, #133 ; avant : Espace I) en pixel art, à la manière des vieux jeux de voitures (Test Drive, Vette!, Lotus) :
 images à basse résolution (480 pixels de large, affichées en gros pixels), palette restreinte, ombrage calculé sur
 des reliefs simples puis réduit à quelques teintes avec un tramage ordonné, contours d'un pixel.
 Sorties : ../godot/assets/cockpit/
@@ -39,6 +39,11 @@ RAMP = {
     "face": hexes("#030305", "#08080c", "#0e0e14", "#15151c"),
     "pine": hexes("#06200f", "#0b3417", "#124a1f", "#1b6227", "#277b30", "#3a963c", "#58b04c", "#80c862"),
     "red": hexes("#2a0608", "#4a0a0d", "#701114", "#97191a", "#bd2a22", "#de4a33"),
+    # Raptor : intérieur noir, accents « Code Orange », écrans
+    "black": hexes("#040406", "#08080c", "#0d0d12", "#131319", "#1a1a21", "#22222a", "#2c2c35", "#383842", "#46454f", "#57555d"),
+    "orange": hexes("#3a1204", "#5c1e06", "#86300a", "#b0430d", "#d65a12", "#f0761d", "#ff9640", "#ffb871"),
+    "magnesium": hexes("#26272c", "#3a3b42", "#50525a", "#686a73", "#82848c", "#9c9ea5", "#b6b8be", "#d0d1d5"),
+    "screen": hexes("#02040a", "#050a16", "#091224", "#0e1c34", "#152847", "#1e365c"),
 }
 LIGHT = np.array([-0.35, -0.75, 0.56])
 LIGHT /= np.linalg.norm(LIGHT)
@@ -53,6 +58,9 @@ FONT = {
     "A": "010101111101101", "C": "111100100100111", "F": "111100110100100", "M": "101111111101101",
     "H": "101101111101101", "L": "100100100100111", "K": "101101110101101", "T": "111010010010010",
     ".": "000000000000010", " ": "000000000000000", "/": "001001010100100", "-": "000000111000000",
+    "O": "111101101101111", "B": "110101110101110", "G": "111100101101111", "I": "111010010010111",
+    "U": "101101101101111", "W": "101101111111101", "X": "101101010101101", "Y": "101101010010010",
+    ":": "000010000010000",
 }
 
 
@@ -158,192 +166,205 @@ class Canvas:
 
 
 # ================================================================ planche de bord (480 × 100)
+# Ford Ranger Raptor (2023) : combiné numérique 12,4" derrière le volant (compteurs virtuels), écran central vertical
+# 12", aérateurs verticaux, commandes de climatisation sous l'écran, sélecteur électronique et molette des modes de
+# conduite sur la console ; liseré orange « Code Orange » sur la planche, inscription RAPTOR côté passager.
 GAUGES = {"speed": (209, 39, 19), "rpm": (271, 39, 19), "fuel": (240, 29, 8), "temp": (240, 50, 8)}
-LCD = (343, 57, 26, 7)            # écran de l'autoradio (x, y, l, h) : heure en jeu
-LAMPS = [(196, 60), (204, 60), (276, 60), (284, 60)]   # voyants (phares, clignotants…)
-GEAR = (352, 91)                  # « P R N D » du sélecteur
+SCR = (313, 21, 50, 58)           # écran central (x, y, l, h)
+LCD = (316, 23, 30, 7)            # barre d'état de l'écran : heure en jeu
+LAMPS = [(190, 63), (198, 63), (282, 63), (290, 63)]   # voyants (phares, clignotants…) en bas du combiné
+GEAR = (322, 92)                  # « P R N D » à côté du sélecteur
 
 
 def dash():
     c = Canvas(W, 100)
     g = Canvas(W, 100)            # lumières de nuit
     top_y = 13 + 3 * ((c.xx - 240) / 240) ** 2           # pied du pare-brise
-    edge_y = 29 + 4 * ((c.xx - 240) / 240) ** 2          # arête avant de la planche
-    # face avant de la planche (verticale, sombre, légèrement bombée) + grain du plastique
+    edge_y = 27 + 4 * ((c.xx - 240) / 240) ** 2          # arête avant de la planche
+    # face avant (noire, bombée) + grain du plastique moussé
     face = c.yy >= edge_y
-    h = -((c.yy - edge_y) / 70.0) ** 2 * 26 + 2 * np.sin(c.xx / 37.0)
-    c.shade(face, h, "dash", amb=0.18, bias=-0.06, grain=0.025)
-    # dessus de la planche (presque horizontal : éclairé par le ciel)
+    h = -((c.yy - edge_y) / 70.0) ** 2 * 26 + 2 * np.sin(c.xx / 41.0)
+    c.shade(face, h, "black", amb=0.22, bias=-0.02, grain=0.022)
+    # dessus de la planche (éclairé par le ciel), surpiqûre orange le long de l'arête
     topm = (c.yy >= top_y) & (c.yy < edge_y)
-    ht = -(c.yy - top_y) * 0.6
-    c.shade(topm, ht, "dash", amb=0.5, bias=0.1, grain=0.02)
-    # grille de dégivrage le long du pare-brise
+    c.shade(topm, -(c.yy - top_y) * 0.6, "black", amb=0.5, bias=0.12, grain=0.02)
     for x in range(64, 418, 3):
         y = int(round(13 + 3 * ((x - 240) / 240) ** 2)) + 2
-        c.flat(c.rect(x, y, x + 2, y + 2), RAMP["dash"][0])
-    # arête avant arrondie : liseré clair puis ombre
+        c.flat(c.rect(x, y, x + 2, y + 2), RAMP["black"][0])
     lip = (c.yy >= edge_y - 1) & (c.yy < edge_y + 1)
-    c.fill(lip, 0.75 - 0.4 * (c.yy >= edge_y), "dash")
-    c.flat((c.yy >= edge_y + 1) & (c.yy < edge_y + 3), RAMP["dash"][0])
-    # vignette auto et contrôle technique dans le coin du pare-brise (passager)
+    c.fill(lip, 0.72 - 0.4 * (c.yy >= edge_y), "black")
+    c.flat((c.yy >= edge_y + 1) & (c.yy < edge_y + 3), RAMP["black"][0])
+    st = (np.abs(c.yy - (edge_y - 2.5)) < 0.5) & ((c.xx.astype(int) % 3) != 0) & ((c.xx < 160) | (c.xx > 322))
+    c.flat(st, RAMP["orange"][4])
+    # liseré « Code Orange » sur la face de la planche (côté conducteur et passager)
+    for (x0, x1) in ((34, 158), (372, 456)):
+        band = c.rect(x0, 0, x1, 100) & (c.yy >= edge_y + 9) & (c.yy < edge_y + 12)
+        c.fill(band, 0.45 + 0.3 * (c.yy < edge_y + 10) + 0.05 * np.sin(c.xx * 0.7), "orange")
+        c.flat(c.rect(x0, 0, x1, 100) & (c.yy >= edge_y + 12) & (c.yy < edge_y + 13), RAMP["black"][0])
+        g.flat(band, (255, 120, 40), 140)                  # éclairage d'ambiance de nuit
+    # vignette du contrôle technique dans le coin du pare-brise (passager)
     c.flat(c.rect(432, 3, 440, 11), (205, 205, 196)); c.flat(c.rect(433, 4, 439, 10), (40, 120, 170))
     c.text(434, 5, "8", (230, 220, 90))
-    c.flat(c.rect(442, 4, 448, 10), (220, 220, 210)); c.flat(c.rect(443, 5, 447, 9), (60, 150, 70))
 
-    # ---------------------------------------------------------------- capot des compteurs
-    hood = c.rrect(162, 0, 318, 40, 9)
-    c.shade(hood, c.bevel(hood, 7), "dash", amb=0.28, bias=0.02, grain=0.03, scale=1.2)
-    c.outline(hood, RAMP["dash"][0])
-    seam = c.rrect(165, 3, 315, 40, 7) & ~c.rrect(166, 4, 314, 40, 6) & (((c.xx + c.yy).astype(int) % 3) == 0) & (c.yy < 30)
-    c.flat(seam, RAMP["dash"][6])
-    recess = c.rrect(172, 12, 308, 66, 6)
-    # creux : ombre portée par la visière en haut, plus clair vers le bas
-    v = 0.05 + 0.22 * np.clip((c.yy - 12) / 50.0, 0, 1)
-    c.fill(recess, v, "dash")
-    c.outline(recess, RAMP["dash"][0])
-    c.flat(c.rect(176, 66, 304, 67) & ~recess, RAMP["dash"][4])
-    # compteurs : lunette chromée, fond noir mat, graduations
+    # ---------------------------------------------------------------- casquette et combiné numérique
+    hood = c.rrect(166, 2, 314, 30, 8)
+    c.shade(hood, c.bevel(hood, 6), "black", amb=0.3, bias=0.04, grain=0.03, scale=1.2)
+    c.outline(hood, RAMP["black"][0])
+    stitch = c.rrect(169, 5, 311, 30, 6) & ~c.rrect(170, 6, 310, 30, 5) & (((c.xx + c.yy).astype(int) % 3) == 0) & (c.yy < 24)
+    c.flat(stitch, RAMP["orange"][5])
+    bez = c.rrect(172, 12, 308, 70, 5)                                 # cadre noir laqué
+    c.shade(bez, c.bevel(bez, 3), "black", amb=0.35, bias=0.08, spec=0.6, scale=1.4)
+    scr = c.rrect(175, 15, 305, 67, 3)                                 # dalle : noir bleuté, plus sombre en haut
+    c.fill(scr, 0.08 + 0.35 * np.clip((c.yy - 15) / 52.0, 0, 1), "screen")
+    g.flat(scr, (8, 14, 28), 255)
+    # compteurs virtuels : anneau orange en arc, graduations blanches, fond dégradé
     for name, (cx, cy, r) in GAUGES.items():
-        ring = c.disc(cx, cy, r + 1.5) & ~c.disc(cx, cy, r - 0.5)
-        hgt = np.cos(np.clip((np.hypot(c.xx + 0.5 - cx, c.yy + 0.5 - cy) - r) / 2.0, -1.5, 1.5)) * 3
-        c.shade(ring, hgt, "chrome", amb=0.35, bias=-0.05, scale=2.0)
-        fc = c.disc(cx, cy, r - 0.5)
-        c.fill(fc, 0.35 + 0.4 * np.clip((cy - c.yy) / r, 0, 1) * 0.5, "face")
-        # éclat de lumière sur la lunette (en haut à gauche) et ombre de la visière sur le haut du cadran
-        c.glint(cx - r * 0.62, cy - r * 0.72, RAMP["chrome"][9], 2 if r > 10 else 1)
-        c.ao(fc, ~c.rect(0, int(cy - r * 0.35), W, 100), reach=r * 0.6, strength=0.5)
+        dd = np.hypot(c.xx + 0.5 - cx, c.yy + 0.5 - cy)
+        ang = np.degrees(np.arctan2(c.xx + 0.5 - cx, -(c.yy + 0.5 - cy)))
+        arc = (np.abs(dd - r) < (1.0 if r > 10 else 0.7)) & (np.abs(ang) <= 125)
+        for cv in (c, g):
+            cv.flat(arc, RAMP["orange"][5] if cv is c else (255, 130, 40))
+        inner = (np.abs(dd - (r - 2.2)) < 0.5) & (np.abs(ang) <= 125)
+        c.flat(inner, RAMP["screen"][5]); g.flat(inner, (40, 70, 120))
+        c.fill(dd < r - 3, 0.25 + 0.3 * np.clip((cy - c.yy) / r, 0, 1), "screen")
     def ticks(cx, cy, r, a0, a1, n, major, labels):
         for k in range(n + 1):
             a = math.radians(a0 + (a1 - a0) * k / n)
             big = k % major == 0
             r0 = r - (5 if big else 3.5)
-            col = (235, 235, 228) if big else (150, 150, 145)
-            for cv, cl in ((c, col), (g, (255, 150, 60) if big else (200, 110, 45))):
-                cv.line(cx + math.sin(a) * r0, cy - math.cos(a) * r0, cx + math.sin(a) * (r - 1.5), cy - math.cos(a) * (r - 1.5), cl)
-        for k, s in labels:
+            col = (235, 238, 245) if big else (120, 140, 170)
+            for cv, cl in ((c, col), (g, (230, 236, 255) if big else (110, 140, 200))):
+                cv.line(cx + math.sin(a) * r0, cy - math.cos(a) * r0, cx + math.sin(a) * (r - 2.5), cy - math.cos(a) * (r - 2.5), cl)
+        for k, txt in labels:
             a = math.radians(a0 + (a1 - a0) * k / n)
-            x = cx + math.sin(a) * (r - 9.5) - (len(s) * 4 - 1) / 2; y = cy - math.cos(a) * (r - 9.5) - 2.5
-            for cv, cl in ((c, (220, 220, 214)), (g, (255, 170, 80))):
-                cv.text(int(round(x)), int(round(y)), s, cl)
+            x = cx + math.sin(a) * (r - 9.5) - (len(txt) * 4 - 1) / 2; y = cy - math.cos(a) * (r - 9.5) - 2.5
+            for cv, cl in ((c, (215, 222, 235)), (g, (220, 230, 255))):
+                cv.text(int(round(x)), int(round(y)), txt, cl)
     sx, sy, sr = GAUGES["speed"]
     ticks(sx, sy, sr, -125, 125, 20, 4, [(8, "80"), (16, "160")])
-    c.text(sx - 5, sy + 7, "KM/H", (120, 120, 115)); g.text(sx - 5, sy + 7, "KM/H", (170, 95, 40))
+    c.text(sx - 5, sy + 7, "KM/H", (110, 130, 160)); g.text(sx - 5, sy + 7, "KM/H", (110, 140, 200))
     rx, ry, rr = GAUGES["rpm"]
     ticks(rx, ry, rr, -125, 125, 14, 2, [(4, "2"), (8, "4"), (12, "6")])
-    for k in range(11, 15):                                  # zone rouge
+    for k in range(10, 15):                                  # zone rouge
         a = math.radians(-125 + 250 * k / 14)
         for t in np.linspace(rr - 3.5, rr - 1.5, 3):
-            c.put(rx + math.sin(a) * t, ry - math.cos(a) * t, (200, 30, 25)); g.put(rx + math.sin(a) * t, ry - math.cos(a) * t, (255, 40, 30))
+            c.put(rx + math.sin(a) * t, ry - math.cos(a) * t, (220, 40, 30)); g.put(rx + math.sin(a) * t, ry - math.cos(a) * t, (255, 50, 35))
     for name in ("fuel", "temp"):
         cx, cy, r = GAUGES[name]
         for a in (-60, 0, 60):
             aa = math.radians(a)
-            for cv, cl in ((c, (200, 200, 195)), (g, (255, 150, 60))):
+            for cv, cl in ((c, (200, 210, 225)), (g, (210, 225, 255))):
                 cv.line(cx + math.sin(aa) * (r - 3), cy - math.cos(aa) * (r - 3), cx + math.sin(aa) * (r - 1), cy - math.cos(aa) * (r - 1), cl)
-        c.put(cx + math.sin(math.radians(60)) * (r - 2), cy - math.cos(math.radians(60)) * (r - 2), (200, 40, 30))
-    # voyants éteints
+    # logo du mode de conduite (Baja) et pictogramme du pick-up entre les compteurs
+    c.text(232, 61, "BAJA", RAMP["orange"][6]); g.text(232, 61, "BAJA", (255, 150, 60))
     for (x, y) in LAMPS:
-        c.flat(c.rect(x - 2, y - 2, x + 3, y + 2), RAMP["face"][1])
-    # ---------------------------------------------------------------- aérateurs
+        c.flat(c.rect(x - 2, y - 2, x + 3, y + 2), RAMP["screen"][1])
+    # ---------------------------------------------------------------- aérateurs verticaux (Ranger 2023)
     def vent(x0, y0, x1, y1):
         fr = c.rrect(x0, y0, x1, y1, 2)
-        c.shade(fr, c.bevel(fr, 2), "dash", amb=0.3, bias=0.06, scale=1.5)
+        c.shade(fr, c.bevel(fr, 2), "black", amb=0.3, bias=0.08, scale=1.5)
+        c.outline(fr, RAMP["black"][0])
         inner = c.rect(x0 + 2, y0 + 2, x1 - 2, y1 - 2)
-        c.flat(inner, RAMP["dash"][0])
-        for y in range(y0 + 3, y1 - 2, 2):
-            c.fill(c.rect(x0 + 2, y, x1 - 2, y + 1), 0.42, "dash")
-        c.flat(c.rect((x0 + x1) // 2 - 1, y0 + 2, (x0 + x1) // 2 + 1, y1 - 2), RAMP["dash"][3])
-    vent(96, 38, 132, 54); vent(326, 36, 352, 52); vent(356, 36, 382, 52); vent(436, 38, 470, 54)
-    # ---------------------------------------------------------------- autoradio K7 + chauffage + sélecteur
-    rad = c.rect(326, 55, 384, 75)
-    c.shade(rad, c.bevel(rad, 2), "dash", amb=0.2, bias=-0.04, scale=1.2)
-    c.outline(rad, RAMP["dash"][0])
-    lx, ly, lw, lh = LCD
-    c.flat(c.rect(lx, ly, lx + lw, ly + lh), (12, 26, 18))
-    g.flat(c.rect(lx, ly, lx + lw, ly + lh), (20, 60, 35))
-    c.flat(c.rect(330, 66, 380, 68), RAMP["dash"][0])                     # fente de la cassette
-    c.flat(c.rect(330, 68, 380, 69), RAMP["dash"][4])
-    for x in (333, 371):                                                # boutons rotatifs
-        k = c.disc(x + 2.5, 61, 3.2)
-        c.shade(k, c.bevel(k, 3), "chrome", amb=0.25, scale=1.3)
-    for i in range(6):                                                  # touches de présélection
-        b = c.rect(331 + i * 8, 70, 337 + i * 8, 73)
-        c.shade(b, c.bevel(b, 1), "dash", amb=0.45, bias=0.1)
-    heat = c.rect(326, 77, 384, 89)
-    c.shade(heat, c.bevel(heat, 2), "dash", amb=0.25, bias=0.0, scale=1.2)
-    c.outline(heat, RAMP["dash"][0])
-    for i, kx in enumerate((340, 356, 369)):
-        c.flat(c.rect(330, 79 + i * 3, 380, 80 + i * 3), RAMP["dash"][0])
-        kn = c.rect(kx - 2, 78 + i * 3, kx + 2, 81 + i * 3)
-        c.shade(kn, c.bevel(kn, 1), "chrome", amb=0.3)
-    c.flat(c.rect(330, 79, 334, 80), (40, 70, 160)); c.flat(c.rect(376, 79, 380, 80), (170, 40, 30))
-    cons = c.rect(330, 89, 382, 100)
-    c.shade(cons, c.bevel(cons, 3) + 0 * c.xx, "dash", amb=0.2, bias=-0.03, grain=0.03)
+        c.flat(inner, RAMP["black"][0])
+        for x in range(x0 + 3, x1 - 2, 2):
+            c.fill(c.rect(x, y0 + 2, x + 1, y1 - 2), 0.4, "black")
+        c.shade(c.rect(x0 + 2, (y0 + y1) // 2 - 1, x1 - 2, (y0 + y1) // 2 + 1), c.bevel(c.rect(x0 + 2, (y0 + y1) // 2 - 1, x1 - 2, (y0 + y1) // 2 + 1), 1), "magnesium", amb=0.4)
+    vent(98, 33, 126, 61); vent(300, 26, 310, 64); vent(366, 26, 376, 64); vent(438, 33, 464, 61)
+    # ---------------------------------------------------------------- écran central vertical 12"
+    sx0, sy0, sw, sh = SCR
+    fr = c.rrect(sx0 - 3, sy0 - 3, sx0 + sw + 3, sy0 + sh + 3, 3)
+    c.shade(fr, c.bevel(fr, 2), "black", amb=0.35, bias=0.06, spec=0.7, scale=1.4)
+    c.outline(fr, RAMP["black"][0])
+    sc = c.rect(sx0, sy0, sx0 + sw, sy0 + sh)
+    # carte de navigation : fond sombre, îlots, routes, itinéraire bleu, flèche de position
+    mp = Canvas(sw, sh)
+    base = (14, 22, 34)
+    mp.flat(np.ones((sh, sw), bool), base)
+    rr = np.random.default_rng(3)
+    for _ in range(9):
+        x, y = rr.integers(0, sw), rr.integers(10, sh)
+        mp.flat(mp.rrect(x - 6, y - 4, x + 6, y + 4, 2), (22, 34, 30))
+    for (a, b) in (((0, 30), (sw, 22)), ((12, 9), (20, sh)), ((0, 46), (sw, 50)), ((34, 9), (30, sh)), ((0, 16), (sw, 38))):
+        mp.line(a[0], a[1], b[0], b[1], (70, 80, 96))
+    mp.line(20, sh - 10, 20, 30, (60, 150, 255)); mp.line(20, 30, sw, 22, (60, 150, 255))
+    mp.line(21, sh - 10, 21, 30, (60, 150, 255))
+    for k, (dx, dy) in enumerate(((0, 0), (-1, 1), (1, 1), (-2, 2), (2, 2), (0, 1))):
+        mp.put(20 + dx, sh - 12 + dy, (255, 255, 255))
+    mp.flat(mp.rect(0, 0, sw, 9), (6, 10, 18))                        # barre d'état (heure)
+    mp.flat(mp.rect(0, sh - 6, sw, sh), (10, 14, 24))                 # barre des raccourcis
+    for k in range(5):
+        mp.flat(mp.rect(3 + k * 10, sh - 4, 7 + k * 10, sh - 2), (90, 110, 140) if k != 2 else RAMP["orange"][5])
+    c.px[sy0:sy0 + sh, sx0:sx0 + sw] = mp.px
+    g.px[sy0:sy0 + sh, sx0:sx0 + sw] = mp.px                           # l'écran éclaire aussi la nuit
+    # commandes de climatisation sous l'écran : rangée de touches + deux bascules de température
+    cl = c.rrect(306, 82, 370, 92, 2)
+    c.shade(cl, c.bevel(cl, 2), "black", amb=0.3, bias=0.04, scale=1.2)
+    c.outline(cl, RAMP["black"][0])
+    for k in range(6):
+        b = c.rect(318 + k * 7, 84, 323 + k * 7, 90)
+        c.shade(b, c.bevel(b, 1), "black", amb=0.5, bias=0.12)
+        c.put(320 + k * 7, 86, (230, 230, 235)); g.put(320 + k * 7, 86, (255, 255, 255))
+    for x in (309, 361):
+        b = c.rrect(x, 83, x + 6, 91, 1)
+        c.shade(b, c.bevel(b, 1.5), "black", amb=0.45, bias=0.1)
+        c.put(x + 3, 85, (60, 140, 255) if x < 330 else (255, 80, 50)); c.put(x + 3, 89, (60, 140, 255) if x < 330 else (255, 80, 50))
+    # console : sélecteur électronique (petit levier) et molette des modes de conduite cerclée d'orange
+    cons = c.rect(304, 92, 372, 100)
+    c.shade(cons, c.bevel(cons, 2), "black", amb=0.25, bias=-0.02, grain=0.03)
+    lev = c.rrect(312, 92, 320, 100, 2)
+    c.shade(lev, c.bevel(lev, 3), "black", amb=0.4, bias=0.1, spec=0.6, scale=1.3)
+    c.outline(lev, RAMP["black"][0])
     gx0, gy0 = GEAR
-    c.flat(c.rect(gx0 - 2, gy0 - 2, gx0 + 31, gy0 + 7), RAMP["dash"][0])
     for i, ch in enumerate("PRND"):
-        c.text(gx0 + i * 8, gy0, ch, (130, 130, 125))
-    # haut-parleurs sur le dessus de la planche (grilles percées)
-    for (x0, x1) in ((66, 122), (358, 414)):
-        hp = c.rrect(x0, 17, x1, 26, 3)
-        c.shade(hp, c.bevel(hp, 2), "dash", amb=0.3, bias=-0.06, scale=1.2)
-        dots = hp & (c.xx.astype(int) % 2 == 0) & (c.yy.astype(int) % 2 == 1) & ndimage.binary_erosion(hp, iterations=2)
-        c.flat(dots, RAMP["dash"][0])
-        c.outline(hp, RAMP["dash"][1])
-    # baguette alu brossé le long de la face de la planche
-    for (x0, x1) in ((34, 160), (320, 396)):
-        bg_ = c.rect(x0, 0, x1, 100) & (c.yy >= edge_y + 9) & (c.yy < edge_y + 11)
-        c.fill(bg_, 0.55 + 0.25 * (c.yy < edge_y + 10) + 0.08 * np.sin(c.xx * 0.9), "chrome")
-    # interrupteurs à bascule (antibrouillards, dégivrage, plafonnier) avec pictos
-    for i, col in enumerate(((240, 200, 40), (240, 140, 30), (120, 200, 255))):
-        x0 = 138 + i * 8
-        sw = c.rrect(x0, 46, x0 + 6, 58, 1)
-        c.shade(sw, c.bevel(sw, 1.5) + (c.yy < 52) * 1.0, "dash", amb=0.35, bias=0.06, scale=1.3)
-        c.outline(sw, RAMP["dash"][0])
-        c.put(x0 + 3, 49, col); c.put(x0 + 2, 49, tuple(int(v * 0.6) for v in col))
-        g.put(x0 + 3, 49, col)
-    # bouton des feux de détresse (triangle rouge) au-dessus des aérateurs centraux
-    hz = c.rrect(348, 29, 360, 35, 1)
+        c.text(gx0 + i * 8, gy0, ch, (120, 120, 128))
+    kn = c.disc(360.5, 96.5, 4.6)
+    ring = kn & ~c.disc(360.5, 96.5, 3.4)
+    c.shade(ring, c.bevel(ring, 1), "orange", amb=0.45, scale=1.3)
+    c.shade(c.disc(360.5, 96.5, 3.4), c.bevel(c.disc(360.5, 96.5, 3.4), 2.5), "magnesium", amb=0.35, scale=1.4)
+    g.flat(ring, (255, 120, 40))
+    # bouton des feux de détresse au-dessus de l'écran
+    hz = c.rrect(332, 12, 344, 18, 1)
     c.shade(hz, c.bevel(hz, 1.5), "red", amb=0.35, scale=1.3)
     c.outline(hz, RAMP["red"][0])
     for k in range(4):
-        c.put(354 - k * 0.5, 30.5 + k, (255, 220, 200)); c.put(354 + k * 0.5, 30.5 + k, (255, 220, 200))
-    # allume-cigare (bague chromée) sur la console
-    lg = c.disc(339.5, 94.5, 3.2) & ~c.disc(339.5, 94.5, 1.8)
-    c.shade(lg, c.bevel(lg, 1.5), "chrome", amb=0.3, scale=1.4)
-    c.flat(c.disc(339.5, 94.5, 1.8), RAMP["dash"][0])
-    # ---------------------------------------------------------------- côté passager : boîte à gants, inscription
-    gb = c.rrect(398, 58, 474, 92, 3)
-    c.shade(gb, c.bevel(gb, 3) * 0.6 - ((c.yy - 58) / 34.0) ** 2 * 6, "dash", amb=0.2, bias=-0.02, grain=0.04, scale=1.3)
-    c.outline(gb, RAMP["dash"][0])
-    lk = c.rect(432, 61, 440, 65)
-    c.shade(lk, c.bevel(lk, 1.5), "chrome", amb=0.35)
-    c.text(402, 33, "ESPACE", (95, 96, 102))
-    # ---------------------------------------------------------------- portières (garnitures)
+        c.put(338 - k * 0.5, 13.5 + k, (255, 220, 200)); c.put(338 + k * 0.5, 13.5 + k, (255, 220, 200))
+    # côté conducteur : commodo des phares rond à gauche du volant
+    lt = c.disc(146.5, 70.5, 6)
+    c.shade(lt, c.bevel(lt, 3), "black", amb=0.35, bias=0.06, scale=1.3)
+    c.outline(lt, RAMP["black"][0])
+    c.flat(c.disc(146.5, 70.5, 1.5), RAMP["magnesium"][5])
+    # ---------------------------------------------------------------- côté passager : boîte à gants, RAPTOR
+    gb = c.rrect(384, 60, 474, 92, 3)
+    c.shade(gb, c.bevel(gb, 3) * 0.6 - ((c.yy - 60) / 32.0) ** 2 * 6, "black", amb=0.22, bias=0.0, grain=0.04, scale=1.3)
+    c.outline(gb, RAMP["black"][0])
+    gh = c.rect(420, 62, 438, 65)
+    c.shade(gh, c.bevel(gh, 1.5), "magnesium", amb=0.35)
+    for k, ch in enumerate("RAPTOR"):                                   # lettres en relief (ombre d'un pixel)
+        c.text(398 + k * 5, 51, ch, RAMP["black"][0])
+        c.text(398 + k * 5, 50, ch, RAMP["black"][9])
+    # ---------------------------------------------------------------- portières (garnitures noires, surpiqûres orange)
     for (x0, x1, sgn) in ((0, 30, 1), (456, 480, -1)):
         dm = c.rect(x0, 0, x1, 100) & (c.yy > 6 + ((c.xx - x0) if sgn > 0 else (x1 - c.xx)) * 0.5)
         hd = c.bevel(dm, 6) + (100 - c.yy) * 0.05
-        c.shade(dm, hd, "door", amb=0.22, bias=-0.04, grain=0.04)
-        c.outline(dm, RAMP["door"][0])
+        c.shade(dm, hd, "black", amb=0.22, bias=0.0, grain=0.04)
+        c.outline(dm, RAMP["black"][0])
+        sti = dm & (np.abs(c.yy - 36) < 0.5) & (c.xx.astype(int) % 3 != 0)
+        c.flat(sti, RAMP["orange"][4])
     for (x0, x1) in ((6, 24), (462, 476)):
         hd = c.rrect(x0, 44, x1, 52, 3)
-        c.shade(hd, c.bevel(hd, 2), "chrome", amb=0.25, bias=-0.1, scale=1.3)
-        c.flat(c.rect(x0 + 3, 47, x1 - 3, 49), RAMP["dash"][0])
-    # bouton de verrouillage
-    k = c.rect(18, 22, 21, 26); c.shade(k, c.bevel(k, 1), "chrome", amb=0.4)
-    # ombres douces : la planche s'assombrit autour des éléments en relief
-    raised = (c.rrect(162, 0, 318, 40, 9) | c.rect(326, 55, 384, 75) | c.rect(326, 77, 384, 89) | c.rrect(398, 58, 474, 92, 3))
+        c.shade(hd, c.bevel(hd, 2), "magnesium", amb=0.25, bias=-0.05, scale=1.3)
+        c.flat(c.rect(x0 + 3, 47, x1 - 3, 49), RAMP["black"][0])
+    raised = (c.rrect(166, 2, 314, 30, 8) | c.rrect(310, 18, 366, 82, 3) | c.rrect(306, 82, 370, 92, 2) | c.rrect(384, 60, 474, 92, 3))
     c.ao(face & ~raised, raised, reach=3.5, strength=0.35)
     c.save("dash.png"); g.save("glow.png")
-    # verre des compteurs : reflets en diagonale, posés par-dessus les aiguilles
+    # verre du combiné : reflets en diagonale
     gl = Canvas(W, 100)
-    for name, (cx, cy, r) in GAUGES.items():
-        fc = gl.disc(cx, cy, r - 0.5)
-        u = (gl.xx - cx) + (gl.yy - cy) * 0.7
-        streak = fc & (((u > -r * 0.55) & (u < -r * 0.35)) | ((u > -r * 0.2) & (u < -r * 0.12)))
-        streak &= (gl.yy < cy)
-        gl.flat(streak, (200, 215, 235), 46)
-        gl.put(cx - r * 0.45, cy - r * 0.55, (255, 255, 255), 150)
+    sc2 = gl.rrect(175, 15, 305, 67, 3)
+    u = gl.xx + gl.yy * 0.8
+    streak = sc2 & (((u > 200) & (u < 214)) | ((u > 222) & (u < 226)))
+    gl.flat(streak, (200, 215, 235), 30)
+    s2 = gl.rect(sx0, sy0, sx0 + sw, sy0 + sh) & (((u > 340) & (u < 350)))
+    gl.flat(s2, (200, 215, 235), 26)
     gl.save("glass.png")
     return {"gauges": GAUGES, "lcd": LCD, "lamps": LAMPS, "gear": GEAR}
 
@@ -356,94 +377,112 @@ def top():
     c = Canvas(W, 40)
     ly = 9 + 6 * ((c.xx - 240) / 240) ** 2
     lin = c.yy < ly
-    c.shade(lin, -(c.yy) * 0.8 + 1.5 * np.sin(c.xx / 9.0) * 0, "liner", amb=0.25, bias=-0.1, grain=0.03)
+    c.shade(lin, -(c.yy) * 0.8, "black", amb=0.3, bias=0.02, grain=0.03)           # ciel de toit noir (Raptor)
     perf = lin & (c.xx.astype(int) % 3 == 1) & (c.yy.astype(int) % 3 == 1) & (c.yy < ly - 2)
-    c.px[perf, :3] = (c.px[perf, :3] * 0.82).astype(np.uint8)
-    c.flat((c.yy >= ly - 1) & (c.yy < ly), RAMP["liner"][0])
-    # bande teintée bleu-vert en haut du pare-brise (années 80), tramée vers le bas
-    band = (c.yy >= ly + 1.5) & (c.yy < ly + 16)
-    tt = np.clip((c.yy - ly - 1.5) / 14.5, 0, 1)
+    c.px[perf, :3] = (c.px[perf, :3] * 0.8).astype(np.uint8)
+    c.flat((c.yy >= ly - 1) & (c.yy < ly), RAMP["black"][0])
+    band = (c.yy >= ly + 1.5) & (c.yy < ly + 12)                                   # pare-brise teinté en haut
+    tt = np.clip((c.yy - ly - 1.5) / 10.5, 0, 1)
     keep = band & (tt < 1.0 - BAYER[(c.yy.astype(int) % 4), (c.xx.astype(int) % 4)] * 0.9)
-    c.px[keep, 0] = 40; c.px[keep, 1] = 110; c.px[keep, 2] = 120
-    c.px[keep, 3] = (np.clip(110 - tt[keep] * 70, 30, 255)).astype(np.uint8)
-    # baguette noire en haut du pare-brise
-    c.flat((c.yy >= ly) & (c.yy < ly + 1.5), RAMP["dash"][1])
-    # plafonnier
-    dl = c.rrect(230, 1, 250, 7, 2)
-    c.shade(dl, c.bevel(dl, 2), "liner", amb=0.6, bias=0.2)
-    c.outline(dl, RAMP["liner"][1])
-    c.flat(c.rect(233, 3, 247, 5), RAMP["liner"][8]); c.glint(236, 3, (255, 255, 245))
-    # pare-soleil relevés (conducteur plus près, donc plus grand)
+    c.px[keep, 0] = 20; c.px[keep, 1] = 40; c.px[keep, 2] = 60
+    c.px[keep, 3] = (np.clip(120 - tt[keep] * 80, 30, 255)).astype(np.uint8)
+    c.flat((c.yy >= ly) & (c.yy < ly + 1.5), RAMP["black"][1])
+    # console de plafond : 6 interrupteurs auxiliaires (Raptor), liseuses, bouton SOS
+    oc = c.rrect(206, 0, 274, 11, 3)
+    c.shade(oc, c.bevel(oc, 2), "black", amb=0.4, bias=0.06, spec=0.5, scale=1.3)
+    c.outline(oc, RAMP["black"][0])
+    for k in range(6):
+        sw_ = c.rect(219 + k * 7, 3, 224 + k * 7, 8)
+        c.shade(sw_, c.bevel(sw_, 1) + (c.yy < 5) * 0.8, "black", amb=0.5, bias=0.14)
+        c.put(221 + k * 7, 4, RAMP["orange"][6])
+    for x in (209, 267):
+        lm = c.rect(x, 3, x + 5, 8)
+        c.shade(lm, c.bevel(lm, 1.5), "liner", amb=0.6, bias=0.2)
+    # pare-soleil relevés (noirs)
     for (x0, y0, x1, y1, r) in ((36, 6, 196, 27, 5), (292, 7, 440, 23, 4)):
         v = c.rrect(x0, y0, x1, y1, r)
-        c.shade(v, c.bevel(v, 4) + (c.yy - y0) * 0.3, "liner", amb=0.3, bias=-0.02, grain=0.03, scale=1.2)
-        c.outline(v, RAMP["liner"][1])
-        # couture
-        st = c.rrect(x0 + 3, y0 + 3, x1 - 3, y1 - 3, max(1, r - 2)) & ~c.rrect(x0 + 4, y0 + 4, x1 - 4, y1 - 4, max(1, r - 3))
-        st &= ((c.xx + c.yy) % 3 != 0)
-        c.flat(st, RAMP["liner"][2])
-        # charnière
+        c.shade(v, c.bevel(v, 4) + (c.yy - y0) * 0.3, "black", amb=0.35, bias=0.04, grain=0.03, scale=1.2)
+        c.outline(v, RAMP["black"][0])
+        st_ = c.rrect(x0 + 3, y0 + 3, x1 - 3, y1 - 3, max(1, r - 2)) & ~c.rrect(x0 + 4, y0 + 4, x1 - 4, y1 - 4, max(1, r - 3))
+        st_ &= ((c.xx + c.yy) % 3 != 0)
+        c.flat(st_, RAMP["black"][6])
         hb = c.rect(x1 - 14 if x0 < 200 else x0 + 6, y0 - 4, (x1 - 6) if x0 < 200 else x0 + 14, y0 + 2)
-        c.shade(hb, c.bevel(hb, 1.5), "dash", amb=0.4)
-    # rétroviseur intérieur : pied, coque noire, glace transparente
+        c.shade(hb, c.bevel(hb, 1.5), "black", amb=0.45)
+    # rétroviseur intérieur sans cadre (bord fin), pied avec capteur de pluie
     mx, my, mw, mh = MIRROR
     sx = mx + mw // 2
-    c.flat(c.rect(sx - 3, 6, sx + 3, 13), RAMP["dash"][2]); c.flat(c.rect(sx - 2, 6, sx - 1, 13), RAMP["dash"][4])
-    shell = c.rrect(mx - 4, my - 3, mx + mw + 4, my + mh + 3, 4)
-    c.shade(shell, c.bevel(shell, 3), "rubber", amb=0.3, bias=0.08, scale=1.4)
-    c.outline(shell, RAMP["rubber"][0])
+    c.flat(c.rect(sx - 4, 5, sx + 4, 13), RAMP["black"][2]); c.flat(c.rect(sx - 3, 6, sx - 2, 13), RAMP["black"][5])
+    shell = c.rrect(mx - 2, my - 2, mx + mw + 2, my + mh + 2, 3)
+    c.shade(shell, c.bevel(shell, 2), "black", amb=0.35, bias=0.1, spec=0.6, scale=1.4)
+    c.outline(shell, RAMP["black"][0])
     glass = c.rect(mx, my, mx + mw, my + mh)
     c.px[glass] = 0
-    c.flat(c.rect(mx, my, mx + mw, my + 1), RAMP["rubber"][0])
     c.save("top.png")
     return {"mirror": MIRROR}
 
 
 # ================================================================ volant (160 × 160, centre au milieu)
-WR, WT = 74, 8
+WR, WT = 74, 9
 
 
 def wheel():
+    """Volant du Raptor : jante épaisse en cuir perforé, repère rouge à midi, surpiqûres orange, trois branches avec
+    commandes, coussin de sac gonflable presque carré avec l'ovale Ford, palettes en magnésium derrière."""
     c = Canvas(160, 160)
     cx = cy = 80
     d = np.hypot(c.xx + 0.5 - cx, c.yy + 0.5 - cy)
+    ang = np.degrees(np.arctan2(c.yy + 0.5 - cy, c.xx + 0.5 - cx))
+    # palettes au volant (magnésium), dépassant derrière la jante à 3 h et 9 h
+    for sgn in (-1, 1):
+        pd = c.poly([(cx + sgn * 52, cy - 16), (cx + sgn * 70, cy - 22), (cx + sgn * 72, cy - 4), (cx + sgn * 54, cy - 2)])
+        c.shade(pd, c.bevel(pd, 2), "magnesium", amb=0.3, spec=0.8, scale=1.3)
+        c.outline(pd, RAMP["magnesium"][0])
+    # branches : deux horizontales (commandes) et une en bas
+    sp = np.zeros_like(d, dtype=bool)
+    for sgn in (-1, 1):
+        sp |= c.poly([(cx + sgn * 20, cy - 8), (cx + sgn * (WR - 3), cy - 2), (cx + sgn * (WR - 3), cy + 12), (cx + sgn * 20, cy + 14)])
+    sp |= c.poly([(cx - 9, cy + 18), (cx + 9, cy + 18), (cx + 6, cy + WR - 3), (cx - 6, cy + WR - 3)])
+    hub = c.rrect(cx - 25, cy - 22, cx + 25, cy + 22, 7)
+    body = (sp | hub) & (d < WR - 2)
+    c.shade(body, c.bevel(body, 5), "black", amb=0.3, bias=0.05, grain=0.02, scale=1.1)
+    c.outline(body, RAMP["black"][0])
+    # garnitures magnésium sur les branches et touches
+    for sgn in (-1, 1):
+        tr = c.poly([(cx + sgn * 26, cy + 9), (cx + sgn * (WR - 6), cy + 7), (cx + sgn * (WR - 6), cy + 10), (cx + sgn * 26, cy + 12)])
+        c.shade(tr, c.bevel(tr, 1), "magnesium", amb=0.35, spec=0.6)
+        for k in range(3):
+            bx = cx + sgn * (32 + k * 9)
+            b = c.rrect(bx - 3, cy - 4, bx + 3, cy + 3, 1)
+            c.shade(b, c.bevel(b, 1.5), "black", amb=0.5, bias=0.12)
+            c.put(bx, cy - 1, (220, 220, 225))
+    # jante en tore, cuir perforé sur les côtés
     rim = (d <= WR) & (d >= WR - WT)
-    # jante en tore : hauteur en demi-cercle dans l'épaisseur
     t = np.clip((d - (WR - WT / 2)) / (WT / 2), -1, 1)
     hr = np.sqrt(1 - t ** 2) * WT / 2
-    # branches (Espace I phase 2 : deux branches larges, légèrement plongeantes) et moyeu rembourré
-    sp = np.zeros_like(rim)
-    for sgn in (-1, 1):
-        sp |= c.poly([(cx + sgn * 20, cy - 6), (cx + sgn * (WR - 3), cy + 4), (cx + sgn * (WR - 3), cy + 15), (cx + sgn * 20, cy + 16)])
-    hub = c.rrect(cx - 28, cy - 20, cx + 28, cy + 24, 10)
-    body = (sp | hub) & (d < WR - 2)
-    hb = c.bevel(body, 5)
-    c.shade(body & ~rim, hb, "rubber", amb=0.25, bias=0.05, grain=0.02, scale=1.1)
-    c.outline(body & ~rim, RAMP["rubber"][0])
-    ang = np.degrees(np.arctan2(c.yy + 0.5 - cy, c.xx + 0.5 - cx))
-    grips = rim | (((np.abs(ang) < 14) | (np.abs(ang) > 166)) & (d <= WR + 1) & (d >= WR - WT - 1))
-    t2 = np.clip((d - (WR - WT / 2)) / (WT / 2 + 1), -1, 1)
-    hr2 = np.sqrt(1 - t2 ** 2) * WT / 2
-    c.shade(grips, hr2, "rubber", amb=0.22, bias=0.06, spec=0.9, grain=0.03, scale=1.0)
-    c.outline(grips, RAMP["rubber"][0])
-    # couture intérieure du cuir et reflet du ciel sur le haut de la jante
+    c.shade(rim, hr, "black", amb=0.25, bias=0.08, spec=0.9, grain=0.025, scale=1.0)
+    perf = rim & (np.abs(np.abs(ang) - 90) > 35) & ((c.xx.astype(int) + c.yy.astype(int) * 2) % 3 == 0) & (np.abs(t) < 0.6)
+    c.px[perf, :3] = (c.px[perf, :3] * 0.6).astype(np.uint8)
+    c.outline(rim, RAMP["black"][0])
+    # repère rouge à midi
+    mark = rim & (np.abs(ang + 90) < 4.5)
+    c.shade(mark, hr, "red", amb=0.4, scale=1.0)
+    # surpiqûres orange de part et d'autre du repère et sur l'intérieur de la jante
     stitch = (np.abs(d - (WR - WT + 1.5)) < 0.5) & ((np.round(ang).astype(int) % 4) == 0)
-    c.flat(stitch, RAMP["rubber"][6])
+    c.flat(stitch, RAMP["orange"][5])
+    c.flat(rim & (np.abs(np.abs(ang + 90) - 5.5) < 0.6), RAMP["orange"][5])
     shine = (np.abs(d - (WR - 2.5)) < 0.7) & (ang < -110) & (ang > -160)
-    c.flat(shine, RAMP["rubber"][9])
-    # rembourrage du moyeu : deux nervures horizontales
-    for yy in (cy - 12, cy + 15):
-        c.flat(c.rect(cx - 22, yy, cx + 22, yy + 1) & hub, RAMP["rubber"][1])
-        c.flat(c.rect(cx - 22, yy + 1, cx + 22, yy + 2) & hub, RAMP["rubber"][5])
-    # ovale « Fjord » (parodie de l'ovale Ford) : bleu nuit cerclé de chrome, signature blanche ondulée
-    ex, ey = (c.xx + 0.5 - cx) / 11.0, (c.yy + 0.5 - cy) / 6.5
+    c.flat(shine, RAMP["black"][9])
+    # coussin : nervure et ovale Ford (bleu nuit cerclé de chrome, écriture blanche)
+    c.flat(c.rect(cx - 19, cy + 14, cx + 19, cy + 15) & hub, RAMP["black"][1])
+    c.flat(c.rect(cx - 19, cy + 15, cx + 19, cy + 16) & hub, RAMP["black"][6])
+    ex, ey = (c.xx + 0.5 - cx) / 11.0, (c.yy + 0.5 - cy) / 6.0
     oval = ex ** 2 + ey ** 2 <= 1.0
-    inner = ((c.xx + 0.5 - cx) / 9.5) ** 2 + ((c.yy + 0.5 - cy) / 5.0) ** 2 <= 1.0
+    inner = ((c.xx + 0.5 - cx) / 9.5) ** 2 + ((c.yy + 0.5 - cy) / 4.6) ** 2 <= 1.0
     c.shade(oval & ~inner, c.bevel(oval & ~inner, 1.2), "chrome", amb=0.45, scale=1.5)
-    c.flat(inner, (22, 48, 120))
-    c.flat(inner & (c.yy < cy - 2), (40, 76, 160))                # reflet du haut
-    wave = inner & (np.abs(c.yy + 0.5 - (cy + 1.6 * np.sin((c.xx - cx) * 0.75))) < 0.75) & (np.abs(c.xx - cx) <= 6)
-    c.flat(wave, (235, 238, 245))
+    c.flat(inner, (16, 42, 110))
+    c.flat(inner & (c.yy < cy - 2), (34, 70, 150))
+    word = inner & (np.abs(c.yy + 0.5 - (cy + 0.8 * np.sin((c.xx - cx) * 0.9))) < 0.7) & (np.abs(c.xx - cx) <= 6)
+    c.flat(word, (235, 238, 245))
     c.save("wheel.png")
     return {"wheel_r": WR, "wheel_t": WT}
 
@@ -501,7 +540,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     meta = {}
     meta.update(dash()); meta.update(top()); meta.update(wheel())
-    strip("pillar.png", "pillar", 16, 8, amb=0.2)
+    strip("pillar.png", "black", 16, 8, amb=0.3)              # montants noirs (Raptor)
     pine()
     json.dump(meta, open(os.path.join(OUT, "meta.json"), "w"))
     if len(sys.argv) > 1:

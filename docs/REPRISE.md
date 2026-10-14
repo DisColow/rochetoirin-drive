@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 14/10/2026 (v6.42)
+## État au 14/10/2026 (v6.43)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
 - Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). Après une régénération des bâtiments,
   remettre les `.import` publiés : `git fetch origin donnees` puis, pour chaque `world/buildings/*.import`,
@@ -12,6 +12,11 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - Street View : **plafond absolu 20 $** (`pipeline/sv_budget.py`, compteur `pipeline/sources/sv_depenses.json` :
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
+
+## Fait en v6.43 : cockpit du Ford Ranger Raptor (#133, issue #17)
+- `pipeline/build_cockpit.py` : dash() / top() / wheel() redessinés (rampes black, orange, magnesium, screen) en
+  gardant les repères de meta.json (compteurs, écran = LCD, voyants, PRND, rétro). Ancienne version (Espace I) :
+  scratchpad build_cockpit_espace.py.
 
 ## Fait en v6.42 : clôtures des pâtures (#135, issue #18)
 - `build_animaux.py` : pré = parcelle RPG privée de l'emprise des routes (ROAD.cut) ; clôture = contour intérieur

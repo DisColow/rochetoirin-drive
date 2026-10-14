@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.42.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.42/RochetoirinSimulator-v6.42.apk)**
+**[RochetoirinSimulator-v6.43.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.43/RochetoirinSimulator-v6.43.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,11 +16,11 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.42 :
-- **Clôtures des pâtures** : elles longent maintenant les routes et les chemins au lieu de s'y arrêter ; les prés
-  sont fermés et les bêtes restent dedans.
-- Rappel : v6.41 terrains de sport aplanis ; v6.40 aide au maintien dans la voie ultra puissante ; v6.39 champs
-  plant par plant.
+Nouveautés de la v6.43 :
+- **Vue cockpit du Ford Ranger Raptor** en pixel art : combiné numérique aux arcs orange, écran central vertical
+  avec carte et heure, volant trois branches à repère rouge et surpiqûres orange, palettes en magnésium, liseré
+  « Code Orange », console de plafond à interrupteurs, inscription RAPTOR.
+- Rappel : v6.42 clôtures des pâtures ; v6.41 terrains de sport ; v6.40 aide au maintien dans la voie ; v6.39 champs.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
