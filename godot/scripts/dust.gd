@@ -16,7 +16,7 @@ var roads: Node
 var wet := 0.0
 
 const MAX_NUAGES := [70, 120, 180, 240]
-const MAX_DEBRIS := [50, 90, 130, 170]
+const MAX_DEBRIS := [120, 180, 240, 300]
 # matière : teinte, taille de départ et de fin (m), durée (s), poussée vers le haut, opacité, débit (/s à fond)
 const MATIERES := {
 	"fumee": {"c": Color(0.93, 0.93, 0.94), "t0": 0.5, "t1": 3.8, "vie": 3.2, "monte": 0.45, "a": 0.6, "debit": 46.0},
@@ -117,6 +117,20 @@ func _debris(p: Vector3, v: Vector3, sol: float, taille: Vector3, c: Color) -> v
 	_dtaille.append(taille); _drot.append(Vector3(randf(), randf(), randf()) * TAU)
 	_drv.append(Vector3(randf_range(-12, 12), randf_range(-12, 12), randf_range(-12, 12)))
 	_dc.append(c)
+
+## Tiges fauchées par la voiture (trample.gd) : brins et feuilles de la couleur de la culture projetés en gerbe,
+## plus un voile de poussière teinté. c = couleur principale, c2 = seconde couleur (épis, fleurs).
+func eclats(p: Vector3, v: Vector3, sol: float, c: Color, c2: Color, n: int) -> void:
+	for k in n:
+		var dir := Vector3(randf_range(-1.0, 1.0), randf_range(0.9, 2.0), randf_range(-1.0, 1.0))
+		var vit := v * randf_range(0.5, 1.05) + dir * randf_range(2.5, 7.0)
+		var col := (c if randf() < 0.72 else c2).lerp(Color(0.3, 0.26, 0.14), randf() * 0.3)
+		var taille := Vector3(0.05, randf_range(0.3, 0.8), 0.05) if randf() < 0.6 \
+			else Vector3(randf_range(0.14, 0.26), 0.025, randf_range(0.08, 0.15))
+		_debris(p + Vector3(randf_range(-0.8, 0.8), randf_range(0.1, 0.9), randf_range(-0.8, 0.8)), vit, sol, taille, col)
+	if randf() < 0.5:
+		var m := {"c": c.lerp(Color(0.8, 0.74, 0.58), 0.45), "t0": 0.6, "t1": 2.8, "vie": 1.5, "monte": 0.2, "a": 0.35}
+		_nuage(m, p + Vector3(0, 0.4, 0), v * 0.25, 1.0)
 
 func _emettre(i: int, mat: String, rate: float, dt: float, p: Vector3, v: Vector3, force: float) -> void:
 	var key := i * 16 + MATIERES.keys().find(mat)

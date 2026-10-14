@@ -28,6 +28,7 @@ var sport: Node3D
 var animaux: Node3D
 var autoroute: Node3D
 var dust: Node3D
+var _trample: Node                 # cultures fauchées (trample.gd)
 var rain: Node3D
 var cockpit: CanvasLayer
 var sound: Node                   # moteur sonore (scripts/audio.gd)
@@ -170,6 +171,7 @@ func _ready() -> void:
 	var tr = preload("res://scripts/trample.gd").new()
 	tr.car = car
 	tr.crops = crops
+	_trample = tr
 	add_child(tr)
 	if crops.get("mat"):
 		tr.attacher(crops.mat)
@@ -245,6 +247,8 @@ func _ready() -> void:
 	dust.car = car
 	dust.roads = roads
 	add_child(dust)
+	if _trample:
+		_trample.dust = dust
 	_apply_ambience()
 	cam_rig = preload("res://scripts/camera_rig.gd").new()
 	cam_rig.target = car
@@ -1183,6 +1187,49 @@ func _physics_process(_dt: float) -> void:
 		if t % 30 == 0:
 			print("  t=%.2f v=%.1f km/h (avant=%.2f) arrière=%s pos=%s" % [t / 120.0, car.kmh(), car.forward_speed(), car.reversing, car.global_position.snapped(Vector3(0.1, 0.1, 0.1))])
 		if t > 1500:
+			get_tree().quit()
+		return
+	if OS.get_cmdline_user_args().has("--champ-test"):
+		# tiges fauchées (#131) : voiture posée dans un champ (70 m de culture devant elle) (le plus proche du départ, type --champ-type=N),
+		# pleins gaz dedans ; captures user://shots/champ_N.png (vue de jeu)
+		car.touch_steer = 0.0; car.touch_brake = 0.0
+		car.touch_throttle = 1.0 if t > 360 else 0.0
+		if t == 240:
+			var ty := -1
+			for a in OS.get_cmdline_user_args():
+				if a.begins_with("--champ-type="):
+					ty = int(a.trim_prefix("--champ-type="))
+			var c0 := Vector2(car.global_position.x, car.global_position.z)
+			var trouve := false
+			for r in range(30, 900, 15):
+				for k in 48:
+					var ang := TAU * k / 48.0
+					var d := Vector2(cos(ang), sin(ang))
+					var q := c0 + d * r
+					var f: int = crops.field_at(q)
+					if f < 0 or (ty >= 0 and f != ty):
+						continue
+					var plein := true
+					for kk in range(0, 70, 7):
+						if crops.field_at(q + d * kk) != f:
+							plein = false; break
+					if plein:
+						var p0 := q
+						car.place(Vector3(p0.x, Relief.hauteur(Vector3(p0.x, 0, p0.y)) + 1.0, p0.y), rad_to_deg(atan2(d.x, -d.y)))
+						car.hold(1.0)
+						print("  [champ] type %d à %s, départ %s" % [f, q, p0])
+						trouve = true
+						break
+				if trouve:
+					break
+			if not trouve:
+				print("  [champ] aucun champ trouvé"); get_tree().quit()
+		if t > 360 and t % 60 == 0:
+			print("  [champ] t=%.1f %d km/h éclats %d" % [(t - 360) / 120.0, car.kmh(), dust._dp.size()])
+		if t in [360 + 300, 360 + 420, 360 + 560]:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/champ_%d.png" % ((t - 360) / 60))
+		if t > 360 + 600:
 			get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--bord-test"):

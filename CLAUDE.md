@@ -226,7 +226,7 @@
   30 s d'après les images/s. Tuiles des routes et bâtiments lues en arrière-plan (`scripts/chargeur.gd`), végétation
   préparée sur un fil de travail, shaders préchauffés sous le voile de démarrage (`_prechauffer`). Essai
   `--perf-breakdown` : coût de chaque système et réglage (ombres ≈ 1/3 des triangles) ; captures `{"niveau": 0-3}`.
-- **Cultures écrasées** (v6.5, refait en v6.9 : issue #8, couchées à 90°) (`scripts/trample.gd`) : carte des passages
+- **Cultures fauchées** (v6.36, #131 : les tiges explosent en éclats de la couleur de la culture, `dust.eclats()`, couleurs `ECLATS` de `trample.gd` ; les bandes sont rasées à 10-20 cm dans la trace ; essai `-- --drive-test --champ-test [--champ-type=0-3]`, captures `user://shots/champ_N.png`). Ancien fonctionnement (v6.5, refait en v6.9 : issue #8, couchées à 90°) (`scripts/trample.gd`) : carte des passages
   de 96 m qui suit la voiture (256 px, R/V = sens, B = écrasement, A = ligne de l'atlas des cultures + 1 sur 8), peinte
   **seulement dans les champs** (`crops.field_at`), lue par `crops.gdshader` (`trample_tex`, `trample_zone`) au sommet
   ET au centre de chaque bande : les bandes basculent à plat autour de leur pied, perpendiculairement à la bande ; le
@@ -349,7 +349,7 @@
   30 s d'après les images/s. Tuiles des routes et bâtiments lues en arrière-plan (`scripts/chargeur.gd`), végétation
   préparée sur un fil de travail, shaders préchauffés sous le voile de démarrage (`_prechauffer`). Essai
   `--perf-breakdown` : coût de chaque système et réglage (ombres ≈ 1/3 des triangles) ; captures `{"niveau": 0-3}`.
-- **Cultures écrasées** (v6.5, refait en v6.9 : issue #8, couchées à 90°) (`scripts/trample.gd`) : carte des passages
+- **Cultures fauchées** (v6.36, #131 : les tiges explosent en éclats de la couleur de la culture, `dust.eclats()`, couleurs `ECLATS` de `trample.gd` ; les bandes sont rasées à 10-20 cm dans la trace ; essai `-- --drive-test --champ-test [--champ-type=0-3]`, captures `user://shots/champ_N.png`). Ancien fonctionnement (v6.5, refait en v6.9 : issue #8, couchées à 90°) (`scripts/trample.gd`) : carte des passages
   de 96 m qui suit la voiture (256 px, R/V = sens, B = écrasement, A = ligne de l'atlas des cultures + 1 sur 8), peinte
   **seulement dans les champs** (`crops.field_at`), lue par `crops.gdshader` (`trample_tex`, `trample_zone`) au sommet
   ET au centre de chaque bande : les bandes basculent à plat autour de leur pied, perpendiculairement à la bande ; le

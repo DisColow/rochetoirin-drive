@@ -13,6 +13,12 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## Fait en v6.36 : #131 (cultures qui explosent)
+- `dust.eclats()` (brins + feuilles + voile teinté), appelée par `trample.gd` pour chaque pixel fraîchement fauché
+  (couleurs `ECLATS` par type de culture) ; bandes rasées à 10-20 cm dans `crops.gdshader` ; débris plafonnés
+  120-300 selon le niveau. Essai : `-- --drive-test --champ-test [--champ-type=0-3]`.
+- #118 et #128 (agrandir la zone) : bloqués par la taille de l'APK (1,84 Go / 2 Go) ; question posée à l'utilisateur.
+
 ## En cours : tout le #126 (demande « Fais tout le 126 », 13/10)
 - **Photos terminées : compteur à 19,00 $ (2 714 photos). PLUS AUCUNE photo Street View ne peut être achetée.**
 - Par commune : `python3 sur_mesure/lots/planches.py <lot> <commune> <préfixe>` (liste + planches 3×3 dans le

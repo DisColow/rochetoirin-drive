@@ -1,4 +1,4 @@
-## Cultures écrasées au passage de la voiture (tous les champs) : carte des passages de 96 m de côté qui suit la
+## Cultures fauchées au passage de la voiture (tous les champs ; les tiges explosent en éclats, #131) : carte des passages de 96 m de côté qui suit la
 ## voiture (256 × 256 px, 0,375 m par pixel). L'empreinte de la caisse y est peinte en roulant ; le shader des cultures
 ## (crops.gdshader, trample_tex) y lit, pour chaque tige, si elle est couchée et dans quel sens, et la couche au sol.
 ## Canaux : R, V = sens de la marche (×0,5 + 0,5), B = écrasement (0 … 1), A = (ligne de l'atlas des cultures + 1) / 8
@@ -12,6 +12,12 @@ var car: VehicleBody3D
 var mats: Array = []              # matériaux qui lisent la carte (cultures)
 var crops: Node                    # champs (field_at) ; null : on peint partout
 var terrain_mat: Object            # matériau du relief (Terrain3DMaterial : set_shader_param)
+var dust: Node                     # effets (dust.gd) : tiges fauchées projetées en éclats
+# couleur des éclats par type de culture (moyennes de l'atlas des cultures) : principale, seconde (épis, fleurs)
+const ECLATS := [[Color(0.56, 0.67, 0.34), Color(0.85, 0.78, 0.45)],     # maïs
+	[Color(0.72, 0.59, 0.30), Color(0.86, 0.76, 0.42)],                    # céréales
+	[Color(0.26, 0.42, 0.15), Color(0.40, 0.52, 0.20)],                    # feuillage
+	[Color(0.38, 0.45, 0.15), Color(0.88, 0.78, 0.20)]]                    # tournesol
 const ROW := [0, 4, 5, 3]          # type de culture -> ligne de l'atlas des tiges couchées (dessus des céréales, du feuillage)
 const VIDE := Color(0.5, 0.5, 0.0, 0.0)
 const TOUT := Color(1.0, 0.5, 1.0, 5.0 / 8.0)
@@ -80,6 +86,7 @@ func _physics_process(dt: float) -> void:
 		if crops:
 			for j in 5:
 				tp[j] = crops.field_at(c + fwd * ((j - 2) * 7.5 * px))
+		var neufs := [0, 0, 0, 0]                    # pixels fauchés à l'instant, par type de culture
 		for u in range(-15, 16):                    # ~ 5,6 m de long
 			var t: int = tp[clampi(roundi((u + 15) / 7.5), 0, 4)]
 			if t < 0:
@@ -91,8 +98,23 @@ func _physics_process(dt: float) -> void:
 				var iz := int((w.y - _orig.y) / px)
 				if ix < 0 or iz < 0 or ix >= N or iz >= N:
 					continue
+				if _img.get_pixel(ix, iz).b < 0.5:
+					neufs[clampi(t, 0, 3)] += 1
 				_img.set_pixel(ix, iz, dir_c)
 		_sale = true
+		# tiges fauchées : elles explosent en éclats de la couleur de la culture (demande de l'utilisateur, #131)
+		if dust:
+			var sol := p.y - 0.5
+			for w in car.wheels:
+				if w.is_in_contact():
+					sol = w.get_contact_point().y
+					break
+			var v3 := car.linear_velocity
+			var avant := Vector3(fwd.x, 0.0, fwd.y)
+			for t in 4:
+				if neufs[t] > 0:
+					var n := clampi(int(neufs[t] / 5.0 * clampf(kmh / 40.0, 0.5, 1.8)), 2, 12)
+					dust.eclats(Vector3(p.x, sol, p.z) + avant * 2.8, v3, sol, ECLATS[t][0], ECLATS[t][1], n)
 	if _debug and Engine.get_physics_frames() % 120 == 0:
 		var n := 0
 		for y in range(0, N, 2):

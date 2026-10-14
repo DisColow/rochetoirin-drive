@@ -43,13 +43,12 @@ void vertex() {
 				float top = 1.0 - UV.y;
 				vec3 d;
 				if (h > 0.0) {
-					// bande de plants verticale : elle bascule à plat (90°) autour de son pied, du côté où va la
-					// voiture (perpendiculairement à la bande : une bande dans l'axe de la marche ne disparaît pas)
-					vec2 n = normalize(MODEL_MATRIX[2].xz + vec2(1e-4));
-					vec2 fv = n * (dot(dir, n) < 0.0 ? -1.0 : 1.0);
-					float th = clamp(tr.b * 1.15, 0.0, 1.0) * (1.47 + 0.1 * var_t);
+					// bande de plants verticale : fauchée net par la voiture (les tiges ont explosé en éclats,
+					// trample.gd + dust.gd) ; il ne reste qu'un chaume de 10 à 20 cm
+					float chaume = min(h, 0.12 + 0.08 * var_t);
 					float haut = h * top;
-					d = vec3(fv.x, 0.0, fv.y) * haut * sin(th) + vec3(0.0, haut * cos(th) - haut + 0.07 * top * tr.b, 0.0);
+					float k = clamp(tr.b * 1.3, 0.0, 1.0);
+					d = vec3(0.0, (min(haut, chaume) - haut) * k, 0.0) + vec3(dir.x, 0.0, dir.y) * 0.05 * top * k;
 				} else {
 					// nappe du dessus : découpée dans la trace (fragment), descendue au sol au bord
 					d = vec3(0.0, -0.7 * tr.b, 0.0);
