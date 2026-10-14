@@ -52,7 +52,10 @@ def write_glb(path, prims, node_name="tile", fix_winding=False):
         if len(pr) > 6 and pr[6] is not None:
             at["TEXCOORD_1"] = add(np.asarray(pr[6], np.float32), 34962, 5126, "VEC2")
         if COL is not None:
-            at["COLOR_0"] = add(np.c_[np.asarray(COL, np.float32), np.ones(len(COL), np.float32)], 34962, 5126, "VEC4")
+            COL = np.asarray(COL, np.float32)
+            if COL.shape[1] == 3:
+                COL = np.c_[COL, np.ones(len(COL), np.float32)]
+            at["COLOR_0"] = add(COL, 34962, 5126, "VEC4")
         mats.append(dict(name=name))
         meshes_prims.append(dict(attributes=at, indices=ii, material=len(mats) - 1))
       meshes.append(dict(name=gname, primitives=meshes_prims)); nodes.append(dict(name=gname, mesh=len(meshes) - 1))

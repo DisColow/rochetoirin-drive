@@ -5,6 +5,7 @@
 ## v6.21 : chargés autour de la caméra seulement (lecture en arrière-plan, scripts/chargeur.gd), libérés au-delà de
 ## R_LIBERE ; ceux à moins de R_IMMEDIAT sont posés tout de suite (démarrage, téléportation : pas d'apparition tardive).
 extends Node3D
+var _bib: Texture2D                     # bibliothèque de matières partagée (v6.38)
 
 const Env := preload("res://scripts/env.gd")
 const PerfMon := preload("res://scripts/perf_monitor.gd")
@@ -85,6 +86,9 @@ func _poser(k: String, sc: PackedScene, atlas: Texture2D) -> void:
 	# v6.26 : modèles du moteur batiment.py (orientés, toits doublés) en une face ; boulangerie et restaurant en deux
 	mat.shader = preload("res://scripts/sur_mesure_une_face.gdshader") if e.get("une_face", false) else preload("res://scripts/sur_mesure.gdshader")
 	mat.set_shader_parameter("atlas", atlas)
+	if _bib == null and ResourceLoader.exists("res://assets/sur_mesure/_bib.png"):
+		_bib = load("res://assets/sur_mesure/_bib.png")
+	mat.set_shader_parameter("bib", _bib)
 	Env.add(mat)
 	var corps := StaticBody3D.new()
 	corps.name = k + "_col"

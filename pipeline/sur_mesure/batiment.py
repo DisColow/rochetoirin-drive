@@ -51,6 +51,13 @@ import geo
 from glb import write_glb
 from build_boulangerie import Zone, bruit, ombre, griffonnage, F_SANS, F_SERIF, F_ENS, F_MAIN
 from build_boulangerie import texte as _texte
+import bibliotheque as BIB
+from scipy import ndimage as _ndi
+# v6.38 (issue #13, APK > 2 Go) : fond des murs et des toits pris dans la bibliothèque partagée (bibliotheque.py) ;
+# seules les « décalcomanies » (ouvertures, enseignes, soubassements, chaînages, ombre sous l'égout : tout ce qui
+# diffère du fond, découpé automatiquement) restent dans un petit atlas par bâtiment. SM_BIB=0 : ancien atlas complet.
+MODE_BIB = os.environ.get("SM_BIB", "1") == "1"
+VIRT = 4096                                # atlas de travail (virtuel) en mode bibliothèque
 
 
 def texte(img, box, txt, font, col, **kw):
@@ -454,6 +461,9 @@ def construire(R, feat, dem, remplir=0.4):
         d = float(R["densite"])
         besoin = sum(c["L"] * (B.FA + 0.4) for c in B.cotes) * d * d / 0.7 + 220 * 220
         taille = next((t for t in (256, 384, 512, 768, 1024) if t * t >= besoin), 1024)
+    taille_ref = taille                                # densité des façades : celle de l'ancien atlas (rendu identique)
+    if MODE_BIB:
+        taille = VIRT
     _BB.ATLAS = taille                                 # Zone.uv divise par cette taille
     A = Atlas(taille)
     M = Mesh()
@@ -521,14 +531,21 @@ def construire(R, feat, dem, remplir=0.4):
     # ---- peinture des façades
     decors = []
     tot = sum(c["L"] * (c["top"] + 0.2) for c in B.cotes)
-    s = max(8.0, min(40.0, math.sqrt(remplir * A.T * A.T / max(tot, 1.0))))
+    s = max(8.0, min(40.0, math.sqrt(remplir * taille_ref * taille_ref / max(tot, 1.0))))
     if R.get("densite"):                               # lots de communes (v6.34) : atlas réduit, ~densite px/m
         s = min(s, float(R["densite"]))
     seed = abs(hash(R["id"])) % 1000
     for k, c in enumerate(B.cotes):
         z = c["z"] = A.zone(c["L"], c["top"] + 0.2, s)
-        matiere(z, c.get("mur", mur), seed + k)
-        if R.get("soubassement"):
+        c["mat"] = c.get("mur", mur)
+        if MODE_BIB:
+            BIB.fond(z, c["mat"])
+        else:
+            matiere(z, c["mat"], seed + k)
+        if R.get("soubassement") and MODE_BIB:              # panneau de la bibliothèque (pas de décalcomanie)
+            sm = R["soubassement"] if not R["soubassement"].startswith("#") else "enduit" + R["soubassement"]
+            _panneau(c, z, 0.0, -0.1, c["L"], float(R.get("h_soub", 0.5)), sm)
+        elif R.get("soubassement"):
             if R["soubassement"].startswith("#"):
                 z.rect(0, -0.1, c["L"], float(R.get("h_soub", 0.5)), hexc(R["soubassement"]))
             else:                                            # soubassement d'une autre matière (parpaings sous bardage…)
@@ -550,16 +567,22 @@ def construire(R, feat, dem, remplir=0.4):
             for a0, a1 in xs:
                 if op["t"] in DECORS:          # enseignes, lettres, affichettes : aplat à part, en haute définition
                     w_, h_ = (a1 - a0) * c["L"], v1 - v0
-                    sd = max(s, min(140.0, 260.0 / max(h_, 0.3), 0.85 * A.T / max(w_, 0.3), 120.0 / max(h_, 0.1)))
+                    sd = max(s, min(140.0, 260.0 / max(h_, 0.3), 0.85 * taille_ref / max(w_, 0.3), 120.0 / max(h_, 0.1)))
                     if R.get("densite"):                     # atlas réduit : titre lisible sans plus (~40 px/m)
                         sd = min(sd, max(s, 40.0))
                     zd = A.zone(w_, h_, sd)
                     zd.rect(-0.05, -0.05, w_ + 0.05, h_ + 0.05, mur_c if op["t"] == "lettres" else (250, 248, 240))
                     ouverture(zd, op, 0, 0, w_, h_, mur_c)
                     decors.append((c, a0 * c["L"], a1 * c["L"], v0, v1, zd))
+                elif op["t"] == "matiere" and MODE_BIB:     # bande d'une autre matière : panneau de la bibliothèque
+                    _panneau(c, z, a0 * c["L"], v0, a1 * c["L"], v1, op.get("mur", "bardage#404448"))
+                    if op.get("liseré"):
+                        z.rect(a0 * c["L"], v0 - 0.06, a1 * c["L"], v0, hexc(op["liseré"]))
                 else:
                     ouverture(z, op, a0 * c["L"], v0, a1 * c["L"], v1, mur_c)
-        # ombre sous l'égout
+        # ombre sous l'égout (mode bibliothèque : faite par le shader, d'après la hauteur d'égout de chaque sommet)
+        if MODE_BIB:
+            continue
         a, b = z.px(0, EG), z.px(c["L"], EG - 0.45)
         reg = np.asarray(A.img.crop((int(a[0]), int(a[1]), int(b[0]), int(b[1])))).astype(np.float32)
         if reg.size:
@@ -591,9 +614,11 @@ def construire(R, feat, dem, remplir=0.4):
                 M_box(M, zpo, q, 0.0, 0.1, 0.1, B.BAS, EG)
             hb = float(R.get("bardage_haut", 0))            # bande de bardage sous l'égout (stabulation)
             if hb > 0:
+                c.setdefault("pieces", []).append([(0, EG - hb), (L, EG - hb), (L, EG), (0, EG)])
                 M.poly([(p0[0], EG - hb, p0[1]), (p1[0], EG - hb, p1[1]), (p1[0], EG, p1[1]), (p0[0], EG, p0[1])],
                        [z.uv(L, EG - hb), z.uv(0, EG - hb), z.uv(0, EG), z.uv(L, EG)], MUR_C, n3)
             continue
+        c.setdefault("pieces", []).append([(0, 0), (L, 0), (L, EG), (0, EG)])
         for (y0, y1, va, vb) in ((B.BAS, 0.0, V0, V0), (0.0, EG, 0.0, EG)):
             M.poly([(p0[0], y0, p0[1]), (p1[0], y0, p1[1]), (p1[0], y1, p1[1]), (p0[0], y1, p0[1])],
                    [z.uv(L, va), z.uv(0, va), z.uv(0, vb), z.uv(L, vb)], MUR_C, n3)
@@ -749,6 +774,7 @@ def construire(R, feat, dem, remplir=0.4):
                 return float(c["L"] - np.dot(p - c["p0"], (c["p1"] - c["p0"]) / c["L"]))
             z = c["z"]
             uvs = [z.uv(u_de(a), EG), z.uv(u_de(b), EG), z.uv(u_de(m), FA)]
+            c.setdefault("pieces", []).append([(u_de(a), EG), (u_de(b), EG), (u_de(m), FA)])
         else:
             z = uni("mur", mur_c); uvs = [z.uv(0, 0), z.uv(1.5, 0), z.uv(0.75, 1.5)]
         M.poly([(a[0], EG, a[1]), (b[0], EG, b[1]), (m[0], FA, m[1])], uvs, MUR_C)
@@ -757,6 +783,7 @@ def construire(R, feat, dem, remplir=0.4):
         for c in B.cotes:
             if c["top"] > EG + 0.1:
                 z = c["z"]; p0, p1, L = c["p0"], c["p1"], c["L"]
+                c.setdefault("pieces", []).append([(0, EG), (L, EG), (L, FA), (0, FA)])
                 M.poly([(p0[0], EG, p0[1]), (p1[0], EG, p1[1]), (p1[0], FA, p1[1]), (p0[0], FA, p0[1])],
                        [z.uv(L, EG), z.uv(0, EG), z.uv(0, FA), z.uv(L, FA)], MUR_C)
     if libre:
@@ -889,7 +916,193 @@ def construire(R, feat, dem, remplir=0.4):
                                                                         (e.get("x", 0.3), e.get("y", 0.5)))])
             zc = uni("cheminee", hexc(e.get("c"), mur_c))
             M_box(M, zc, q, -ang, 0.3, 0.3, EG, FA + 0.8)
+    if MODE_BIB:
+        A = _compacter(B, A, M, mt, zt, unis, decors)
     return B, A, M, boites
+
+
+def _sous_zone(z, u0, v0, u1, v1):
+    a, b = z.px(max(0.0, u0), v1), z.px(u1, max(0.0, v0))
+    x0, y0 = int(round(a[0])), int(round(a[1]))
+    return Zone(z.img, z.msk, x0, y0, max(1, int(round(b[0])) - x0), max(1, int(round(b[1])) - y0), z.s), (x0, y0)
+
+
+def _panneau(c, z, u0, v0, u1, v1, mat):
+    """Mode bibliothèque : bande d'une autre matière (soubassement, bardage haut…) : peinte dans la zone (pour les
+    marges des décalcomanies qui la chevauchent) et posée en panneau de la bibliothèque, 6 mm devant le mur."""
+    sz, _ = _sous_zone(z, u0, v0, u1, v1)
+    _fond_cale(z, sz, mat)
+    c.setdefault("panneaux", []).append((max(0.0, u0), max(0.0, v0), u1, v1, mat))
+
+
+def _fond_cale(z, sz, mat):
+    """Motif de la bibliothèque dans une sous-zone, calé sur l'origine de la façade (même raccord que le shader)."""
+    k = BIB.kind_de(mat); col = np.array(BIB.couleur(mat), np.float32) / np.array(BIB.BASE, np.float32)
+    per = max(4, int(round(BIB.PERIODE * z.s)))
+    t = np.asarray(BIB.tuile(k).resize((per, per), Image.LANCZOS)).astype(np.float32)
+    w, h = int(sz.w), int(sz.h)
+    H = int(math.ceil(z.h))
+    gx = np.arange(w) + (sz.x0 - z.x0); gy = np.arange(h) + (sz.y0 - z.y0)
+    xs = (gx * per / (BIB.PERIODE * z.s)).astype(np.int64) % per
+    ys = ((gy - H) * per / (BIB.PERIODE * z.s)).astype(np.int64) % per
+    img = t[ys][:, xs] * col
+    z.img.paste(Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)), (int(sz.x0), int(sz.y0)))
+
+
+def _compacter(B, A, M, mt, zt, unis, decors):
+    """Mode bibliothèque : (1) les sommets des murs et des toits passent en coordonnées de la bibliothèque (mètres /
+    PERIODE, UV2 = (case + 1, couleur RVB entière)) ; (2) ce qui diffère du fond sur chaque façade est découpé en
+    décalcomanies (rectangles, découpés aux morceaux visibles de la façade) posées 9 mm devant le mur ; (3) un petit
+    atlas reçoit ces décalcomanies, les enseignes et les petites cases unies. Renvoie le nouvel Atlas."""
+    T = A.T
+    faces = [c for c in B.cotes if c.get("z") is not None]
+    autres = list(unis.values()) + [d[5] for d in decors]
+    def rect(z):
+        return (z.x0 - 1.5, z.y0 - 1.5, z.x0 + z.w + 1.5, z.y0 + z.h + 1.5)
+    def dans(r, x, y):
+        return r[0] <= x <= r[2] and r[1] <= y <= r[3]
+    def packe(c):
+        return float((c[0] << 16) | (c[1] << 8) | c[2])
+    # ---- décalcomanies : ce qui diffère du fond de la bibliothèque, par façade
+    items = []                                     # (x0, y0, w, h) dans l'atlas de travail, zone ou None
+    decals = []                                    # (face, (x0, y0, x1, y1) px de la zone, index de l'item)
+    img = np.asarray(A.img).astype(np.int16); msk = np.asarray(A.msk)
+    for c in faces:
+        z = c["z"]
+        x0, y0 = int(round(z.x0)), int(round(z.y0)); w, h = int(math.ceil(z.w)), int(math.ceil(z.h))
+        fin = img[y0:y0 + h, x0:x0 + w]
+        t_img = Image.new("RGB", (w, h)); t_msk = Image.new("L", (w, h))
+        tz = Zone(t_img, t_msk, 0, 0, w, h, z.s)
+        BIB.fond(tz, c["mat"])
+        for (pu0, pv0, pu1, pv1, pm) in c.get("panneaux", []):
+            sz, _ = _sous_zone(tz, pu0, pv0, pu1, pv1)
+            _fond_cale(tz, sz, pm)
+        bg = np.asarray(t_img).astype(np.int16)
+        diff = (np.abs(fin - bg).max(-1) > 3) | (msk[y0:y0 + h, x0:x0 + w] > 0)
+        if not diff.any():
+            continue
+        diff = _ndi.binary_dilation(diff, iterations=2)
+        lab, n = _ndi.label(diff)
+        boxes = [[sl[1].start, sl[0].start, sl[1].stop, sl[0].stop] for sl in _ndi.find_objects(lab)]
+        fus = True
+        while fus:                                  # boîtes qui se touchent : fusionnées
+            fus = False
+            for i in range(len(boxes)):
+                for j in range(i + 1, len(boxes)):
+                    a, b = boxes[i], boxes[j]
+                    if a[0] <= b[2] + 2 and b[0] <= a[2] + 2 and a[1] <= b[3] + 2 and b[1] <= a[3] + 2:
+                        boxes[i] = [min(a[0], b[0]), min(a[1], b[1]), max(a[2], b[2]), max(a[3], b[3])]
+                        del boxes[j]; fus = True; break
+                if fus:
+                    break
+        MAXW = 256                                   # bandes longues (soubassements…) en morceaux
+        for bx in boxes:
+            bx = [max(0, bx[0]), max(0, bx[1]), min(w, bx[2]), min(h, bx[3])]
+            xa = bx[0]
+            while xa < bx[2]:
+                xb = min(bx[2], xa + MAXW)
+                p_ = [xa, bx[1], xb, bx[3]]
+                items.append((x0 + p_[0], y0 + p_[1], p_[2] - p_[0], p_[3] - p_[1]))
+                decals.append((c, p_, len(items) - 1))
+                xa = xb
+    base_autres = len(items)
+    for z in autres:
+        items.append((int(round(z.x0)) - 1, int(round(z.y0)) - 1, int(math.ceil(z.w)) + 2, int(math.ceil(z.h)) + 2))
+    # ---- rangement dans le petit atlas (étagères ; 2 px de bord recopié autour de chaque morceau) : atlas
+    #      rectangulaire (largeur du plus large morceau, hauteur au plus juste, multiples de 16)
+    PAD = 2
+    aire = sum((w + 2 * PAD) * (h + 2 * PAD) for _, _, w, h in items)
+    larg = max([w + 2 * PAD for _, _, w, _ in items] + [64])
+    Wt = int(math.ceil(max(larg, math.sqrt(aire * 1.15)) / 16.0) * 16)
+    place, x, y, hl = {}, 0, 0, 0
+    for i in sorted(range(len(items)), key=lambda i: -items[i][3]):
+        w, h = items[i][2] + 2 * PAD, items[i][3] + 2 * PAD
+        if x + w > Wt:
+            x, y, hl = 0, y + hl, 0
+        place[i] = (x + PAD, y + PAD); x += w; hl = max(hl, h)
+    Ht = int(math.ceil(max(16, y + hl) / 16.0) * 16)
+    taille = Wt
+    N = Atlas(16)
+    N.T, N.H = Wt, Ht
+    src_i = np.asarray(A.img); src_m = np.asarray(A.msk)
+    out_i = np.zeros((Ht, Wt, 3), np.uint8) + 128; out_m = np.zeros((Ht, Wt), np.uint8)
+    for i, (sx, sy, w, h) in enumerate(items):
+        dx, dy = place[i]
+        bi = np.pad(src_i[sy:sy + h, sx:sx + w], ((PAD, PAD), (PAD, PAD), (0, 0)), mode="edge")
+        bm = np.pad(src_m[sy:sy + h, sx:sx + w], ((PAD, PAD), (PAD, PAD)), mode="edge")
+        out_i[dy - PAD:dy + h + PAD, dx - PAD:dx + w + PAD] = bi
+        out_m[dy - PAD:dy + h + PAD, dx - PAD:dx + w + PAD] = bm
+    N.img = Image.fromarray(out_i); N.msk = Image.fromarray(out_m)
+    # ---- sommets existants : bibliothèque (murs, toits) ou nouvelle place (cases unies, enseignes)
+    rf = [(rect(c["z"]), c) for c in faces]
+    rt = rect(zt)
+    ra = [(rect(z), base_autres + k, z) for k, z in enumerate(autres)]
+    M.UV2 = []
+    for i, (u, v) in enumerate(M.UV):
+        x, y = u * T, v * T
+        uv2 = (0.0, 255.0, 255.0, 255.0)
+        for r, c in rf:
+            if dans(r, x, y):
+                z = c["z"]
+                mu, mv = (x - z.x0) / z.s, (z.y0 + z.h - y) / z.s
+                M.UV[i] = (mu / BIB.PERIODE, -mv / BIB.PERIODE)
+                uv2 = (BIB.slot(c["mat"]) + 1.0,) + tuple(BIB.couleur(c["mat"]))
+                break
+        else:
+            if dans(rt, x, y):
+                mu, mv = (x - zt.x0) / zt.s, (zt.y0 + zt.h - y) / zt.s
+                M.UV[i] = (mu / BIB.PERIODE, -mv / BIB.PERIODE)
+                uv2 = (BIB.slot(mt, True) + 1.0,) + tuple(BIB.couleur(mt, True))
+            else:
+                for r, k, z in ra:
+                    if dans(r, x, y):
+                        sx, sy = items[k][0], items[k][1]
+                        dx, dy = place[k]
+                        M.UV[i] = ((x - sx + dx) / Wt, (y - sy + dy) / Ht)
+                        break
+        M.UV2.append(uv2)
+    from shapely.geometry import box as _box
+    # ---- panneaux de la bibliothèque (soubassements, bandes d'autre matière), 6 mm devant le mur
+    for c in faces:
+        n3 = (c["n"][0], 0.0, c["n"][1])
+        for (pu0, pv0, pu1, pv1, pm) in c.get("panneaux", []):
+            for pc in c.get("pieces", []):
+                inter = _box(pu0, pv0, pu1, pv1).intersection(Polygon(pc))
+                if inter.is_empty or inter.area < 1e-4 or inter.geom_type != "Polygon":
+                    continue
+                pts = list(inter.exterior.coords)[:-1]
+                def P6(uu, vv):
+                    q = c["p1"] + (c["p0"] - c["p1"]) * (uu / c["L"]) + c["n"] * 0.006
+                    return (q[0], vv, q[1])
+                o = len(M.P)
+                M.poly([P6(a, b) for a, b in pts], [(a / BIB.PERIODE, -b / BIB.PERIODE) for a, b in pts], MUR_C, n3)
+                M.UV2 += [(BIB.slot(pm) + 1.0,) + tuple(BIB.couleur(pm))] * (len(M.P) - o)
+    # ---- décalcomanies en aplat, 9 mm devant le mur (entre panneaux à 6 mm et enseignes à 1,2 cm), découpées aux morceaux visibles de la façade
+    for c, bx, k in decals:
+        z = c["z"]; s_ = z.s; h = int(math.ceil(z.h))
+        u0, u1 = bx[0] / s_, bx[2] / s_
+        v0, v1 = (h - bx[3]) / s_, (h - bx[1]) / s_
+        db = _box(u0, v0, u1, v1)
+        dx, dy = place[k]
+        n3 = (c["n"][0], 0.0, c["n"][1])
+        for pc in c.get("pieces", []):
+            inter = db.intersection(Polygon(pc))
+            if inter.is_empty or inter.area < 1e-4 or inter.geom_type != "Polygon":
+                continue
+            pts = list(inter.exterior.coords)[:-1]
+            def P_(uu, vv):
+                q = c["p1"] + (c["p0"] - c["p1"]) * (uu / c["L"]) + c["n"] * 0.009
+                return (q[0], vv, q[1])
+            def UVd(uu, vv):
+                px_ = uu * s_ - bx[0] + dx
+                py_ = (h - vv * s_) - bx[1] + dy
+                return (px_ / Wt, py_ / Ht)
+            o = len(M.P)
+            M.poly([P_(a, b) for a, b in pts], [UVd(a, b) for a, b in pts], MUR_C, n3)
+            M.UV2 += [(0.0, 255.0, 255.0, 255.0)] * (len(M.P) - o)
+    eg = float(B.EG)
+    M.C = [tuple(cc[:3]) + (eg / 64.0,) for cc in M.C]
+    return N
 
 
 def M_box(M, z, q, ax, hx, hz, y0, y1):
@@ -964,7 +1177,7 @@ def toiture(z, mt, seed):
     bruit(img, (x0, y0, x1, y1), 4, grain=2.0, seed=seed)
 
 
-def deux_faces(P, N, UV, I, C):
+def deux_faces(P, N, UV, I, C, UV2=None):
     """v6.26 : le shader est en cull_back (en cull_disabled, les faces arrière des grands murs plats s'ombraient
     elles-mêmes : acné d'ombre en anneaux). Triangles orientés selon leurs normales (write_glb fix_winding) ; seuls
     les toits et les petits volumes (débords, auvents, marquises : leur dessous se voit de la rue) sont doublés côté
@@ -975,8 +1188,10 @@ def deux_faces(P, N, UV, I, C):
         u = np.unique(dbl)
         remap = np.full(len(P), -1, np.int64); remap[u] = len(P) + np.arange(len(u))
         P = np.vstack([P, P[u]]); N = np.vstack([N, -N[u]]); UV = np.vstack([UV, UV[u]]); C = np.vstack([C, C[u]])
+        if UV2 is not None:
+            UV2 = np.vstack([UV2, UV2[u]])
         T = np.vstack([T, remap[dbl][:, ::-1]])
-    return ("facade", P, N, UV, T.astype(np.uint32).ravel(), C)
+    return ("facade", P, N, UV, T.astype(np.uint32).ravel(), C, UV2)
 
 
 def main():
@@ -1010,16 +1225,22 @@ def main():
             continue
         out = Image.merge("RGBA", (*A.img.split(), A.msk))
         out.save(os.path.join(OUT_A, R["id"] + ".png"))
+        uv2 = np.array(M.UV2, np.float32) if getattr(M, "UV2", None) is not None and len(M.UV2) == len(M.P) else None
         prim = deux_faces(np.array(M.P, np.float32), np.array(M.N, np.float32), np.array(M.UV, np.float32),
-                          np.array(M.I, np.uint32), np.array(M.C, np.float32))
+                          np.array(M.I, np.uint32), np.array(M.C, np.float32), uv2)
+        if uv2 is not None:                                 # v6.38 : UV2 = (case + 1, couleur RVB entière, exacte en float32)
+            nom, P_, N_, UV_, I_, C_, U2 = prim
+            rgb = np.round(U2[:, 1:4]).astype(np.int64)
+            packe = ((rgb[:, 0] << 16) | (rgb[:, 1] << 8) | rgb[:, 2]).astype(np.float32)
+            prim = (nom, P_, N_, UV_, I_, C_, np.c_[U2[:, 0], packe].astype(np.float32))
         write_glb(os.path.join(OUT_A, R["id"] + ".glb"), {R["id"]: [prim]}, fix_winding=True)
         pose[R["id"]] = {"boites": [[round(float(v), 3) for v in b] for b in boites],
                          "glb": "res://assets/sur_mesure/%s.glb" % R["id"], "atlas": "res://assets/sur_mesure/%s.png" % R["id"],
                          "pos": [round(float(B.c[0]), 3), round(B.sol, 3), round(float(B.c[1]), 3)],
                          "remplace_bati": ([R["cleabs"]] + R.get("remplace_bati_extra", [])) if premier else [], "remplace_commerce": R.get("remplace_commerce", []),
                          "nom": R.get("nom", R["id"]), "une_face": True}
-        print("%-22s %5d triangles, %d boîtes, atlas %d px/m" % (R["id"], len(M.I) // 3, len(boites),
-                                                                  int(B.cotes[0]["z"].s)))
+        print("%-22s %5d triangles, %d boîtes, atlas %d px/m, %d × %d px" % (R["id"], len(M.I) // 3, len(boites),
+                                                                  int(B.cotes[0]["z"].s), A.T, getattr(A, "H", A.T)))
     json.dump(pose, open(sp, "w"), indent=1, ensure_ascii=False)
 
 

@@ -2,14 +2,23 @@
 #include "res://scripts/env.gdshaderinc"
 
 uniform sampler2D atlas : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+// v6.38 : bibliothèque de matières partagée (pipeline/sur_mesure/bibliotheque.py) : 4 × 4 cases de 512 px (448 px de
+// motif pour 4 m + 32 px de marge recopiée) ; UV = mètres / 4, UV2 = (case + 1 ou 0 = atlas du bâtiment, couleur RVB entière).
+uniform sampler2D bib : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform float night = 0.0;
 
 varying vec3 wpos;
 varying vec3 vcol;
+varying flat vec2 v_bib;
+varying float v_y;          // hauteur locale du sommet (m)
+varying flat float v_egout; // hauteur d'égout (alpha de la couleur de sommet × 64 ; 64 = pas d'ombre)
 
 void vertex() {
 	wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	vcol = COLOR.rgb;
+	v_bib = UV2;
+	v_y = VERTEX.y;
+	v_egout = COLOR.a * 64.0;
+	vcol = COLOR.rgb;                                    // indicateurs (rugosité, toit, mur)
 }
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -18,10 +27,30 @@ float vnoise(vec2 p) {
 	return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
 }
 
+vec4 echantillon(vec2 uv) {
+	if (v_bib.x < 0.5) {
+		return texture(atlas, uv);
+	}
+	float sl = floor(v_bib.x + 0.5) - 1.0;
+	vec2 cell = vec2(mod(sl, 4.0), floor(sl / 4.0));
+	vec2 org = (cell * 512.0 + 32.0) / 2048.0;
+	const float K = 448.0 / 2048.0;
+	vec3 t = textureGrad(bib, org + fract(uv) * K, dFdx(uv) * K, dFdy(uv) * K).rgb;
+	// UV2.y = couleur du relevé (entier RVB, maillage non compressé à l'import) ; teinte = tuile × couleur / 200,
+	// comme la peinture de l'atlas (le rendu Compatibility n'attend pas ici de passage en linéaire de la teinte)
+	float cp = floor(v_bib.y + 0.5);
+	vec3 c = vec3(floor(cp / 65536.0), mod(floor(cp / 256.0), 256.0), mod(cp, 256.0)) / 200.0;
+	return vec4(t * c, 0.0);
+}
+
 void fragment() {
-	vec4 a = texture(atlas, UV);
+	vec4 a = echantillon(UV);
 	float vitre = smoothstep(0.25, 0.45, a.a);
 	vec3 col = a.rgb;
+	if (vcol.b > 0.5 && v_y <= v_egout) {
+		// ombre sous l'égout (v6.38 : autrefois peinte dans l'atlas du bâtiment)
+		col *= mix(0.62, 1.0, clamp((v_egout - v_y) / 0.45, 0.0, 1.0));
+	}
 	if (vcol.b > 0.5) {
 		// salissures douces et coulures sous l'égout (pas sur les vitres)
 		col *= mix(0.92 + 0.12 * vnoise(wpos.xz * 0.35 + wpos.y * 0.2), 1.0, vitre);

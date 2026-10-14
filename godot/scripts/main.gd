@@ -1189,6 +1189,45 @@ func _physics_process(_dt: float) -> void:
 		if t > 1500:
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--champ-bord"):
+		# vue de la route le long d'un champ (type --champ-type=N) : voiture posée sur un tronçon droit du graphe routier
+		# bordé par ce champ sur 60 m, ~45 km/h ; captures user://shots/bord_N.png
+		car.touch_steer = 0.0; car.touch_brake = 0.0
+		car.touch_throttle = (1.0 if car.kmh() < 45.0 else 0.0) if t > 360 else 0.0
+		if t == 240:
+			var ty := 0
+			for a in OS.get_cmdline_user_args():
+				if a.begins_with("--champ-type="):
+					ty = int(a.trim_prefix("--champ-type="))
+			var it = preload("res://scripts/itineraire.gd").new()
+			var c0 := Vector2(car.global_position.x, car.global_position.z)
+			var best := Vector4(0, 0, 0, INF)
+			for k in it.arc_p0.size():
+				for j in range(it.arc_p0[k], it.arc_p0[k] + it.arc_np[k] - 1):
+					var a0 := Vector2(it.px[j], it.pz[j])
+					var a1 := Vector2(it.px[j + 1], it.pz[j + 1])
+					if a0.distance_to(a1) < 60.0 or a0.distance_to(c0) > 6000.0 or a0.distance_to(c0) > best.w:
+						continue
+					var d := (a1 - a0).normalized()
+					var n := Vector2(-d.y, d.x)
+					var plein := true
+					for kk in range(0, 60, 6):
+						if crops.field_at(a0 + d * kk + n * 9.0) != ty:
+							plein = false; break
+					if plein:
+						best = Vector4(a0.x, a0.y, atan2(d.x, -d.y), a0.distance_to(c0))
+			if best.w == INF:
+				print("  [bord] aucun champ de type %d le long d'une route" % ty); get_tree().quit()
+			else:
+				car.place(Vector3(best.x, Relief.hauteur(Vector3(best.x, 0, best.y)) + 1.0, best.y), rad_to_deg(best.z))
+				car.hold(1.0)
+				print("  [bord] type %d à %s" % [ty, Vector2(best.x, best.y)])
+		if t in [360 + 240, 360 + 420, 360 + 600]:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/bord_%d.png" % ((t - 360) / 60))
+		if t > 360 + 620:
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--champ-test"):
 		# tiges fauchées (#131) : voiture posée dans un champ (70 m de culture devant elle) (le plus proche du départ, type --champ-type=N),
 		# pleins gaz dedans ; captures user://shots/champ_N.png (vue de jeu)

@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 13/10/2026 (v6.33)
+## État au 14/10/2026 (v6.38)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
 - Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). Après une régénération des bâtiments,
   remettre les `.import` publiés : `git fetch origin donnees` puis, pour chaque `world/buildings/*.import`,
@@ -12,6 +12,21 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - Street View : **plafond absolu 20 $** (`pipeline/sv_budget.py`, compteur `pipeline/sources/sv_depenses.json` :
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
+
+## Fait en v6.38 : textures partagées des bâtiments (solution A, issues #13 et #22)
+- `pipeline/sur_mesure/bibliotheque.py` -> `godot/assets/sur_mesure/_bib.png` ; `batiment.py` (mode `SM_BIB=1` par
+  défaut) : atlas réduit aux décalcomanies (9 mm), panneaux (6 mm), enseignes (1,2 cm). `assets/sur_mesure` :
+  388 Mo -> 68 Mo. Shader : teinte = tuile × couleur / 200 (pas de pow 2,2 : murs sombres noirs sinon).
+- `.glb.import` : `meshes/force_disable_compression=true` obligatoire (UV2 = couleur entière).
+- **Import Godot de tous les modèles : tué par manque de mémoire (> 14 Go)** -> importer par lots de 450 (mettre les
+  autres .glb + .import de côté dans le scratchpad, importer, remettre).
+- Mode d'essai `-- --drive-test --champ-bord --champ-type=N` (voiture sur une route bordée d'un champ, captures
+  `user://shots/bord_N.png`).
+- Plantations (#25, tâche #142) : validées par l'utilisateur (un sprite par plant de près, fondu, amalgame de
+  loin ; les plants ÉCLATENT, ne se couchent pas ; sol en terre). Étape suivante : champ d'essai par culture,
+  captures depuis la route à 3, 20 et 100 m, à envoyer à l'utilisateur avant de généraliser.
+- Règles du 14/10 : une issue GitHub par élément en cours ou à faire ; issue laissée ouverte si le rendu est à
+  vérifier ; routine de reprise horaire (h+07) : finir le travail en cours puis les issues.
 
 ## Fait en v6.37 : #130 (cultures à la qualité du maïs)
 - Modèles Sketchfab (fetch_trees.py : ble, ble2, colza, tournesol) -> prepare_trees.gd `-- --seulement=…` -> déplacés
