@@ -24,7 +24,11 @@
 - **Une issue GitHub par élément en cours ou à faire** (demande du 14/10) :
   - toute tâche en cours, à faire ou en attente a son issue (titre suivi du n° de tâche, état en tête du corps) ;
   - la créer dès qu'une nouvelle demande arrive ;
-  - commenter à chaque avancée notable et la fermer à la livraison (version et résumé dans le commentaire).
+  - commenter à chaque avancée notable ;
+  - à la livraison, si l'utilisateur doit vérifier le rendu dans le jeu, la laisser OUVERTE avec un commentaire
+    « livré en vX.Y, à vérifier dans le jeu » : c'est lui qui la ferme ; sinon la fermer (version et résumé).
+- **Reprise automatique** (routine horaire « Reprise après limite d'utilisation », h+07) : terminer d'abord le travail
+  en cours jusqu'à la livraison complète, puis enchaîner sur les issues ouvertes (sauf `pour-toi` / en attente).
 - **API Claude (payante, crédit de l'utilisateur) : uniquement pour l'actualité du jour** (`actu.yml`, ~0,40 $/jour).
   Tout autre usage (génération ponctuelle de textes, essais…) **demande l'accord explicite de l'utilisateur avant**,
   avec le coût estimé ; ne jamais changer de méthode en cours de route sans le lui redemander. Les textes du jeu
