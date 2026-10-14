@@ -18,11 +18,10 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - Par commune : `python3 sur_mesure/lots/planches.py <lot> <commune> <préfixe>` (liste + planches 3×3 dans le
   scratchpad rev/), fiches dans `sur_mesure/lots/<lot>.py` (aides B()/D()/IC(), S = skip), `fiches.py <lot>`,
   `batiment.py <ids>` (atlas réduit : `densite` 12 px/m, tailles 256-1024).
-- Modèles faits et tuiles régénérées (v6.34) : sc, sjs, mtc, ces, lct, vgn, sbl, vas, rmc, svc, scl, dol, ssm,
-  srz, sdt, mtg, fav, ssv, vzc, suc, srm, niv.
-- Fiches écrites, modèles PAS encore construits : btm, sal, lpa, sag, mey, cor, mor, epa, bgj (Bourgoin, 380),
-  ltp (La Tour-du-Pin, 5). Ensuite : `batiment.py` sur ces relevés, build_buildings + build_shops, `.import`
-  publiés, atlas mode 2, import, livraison.
+- Modèles faits, tuiles régénérées : v6.34 (21 communes, sc à niv) et v6.35 (btm, sal, lpa, sag, mey, cor, mor,
+  epa, bgj, ltp : 506). 1 755 bâtiments BD TOPO remplacés au total.
+- Piège : ne pas doubler une église de `landmarks.CHURCHES` ; contrôle = emprise du cleabs qui recouvre à plus de
+  35 % un polygone OSM d'église (sjs_67, mtc_7, ces_38, scl_56 retirés en v6.35).
 - Puis méthode gratuite (orthophoto + BD TOPO) pour les bâtiments sans photo.
 
 ## Fait en v6.33 : Saint-Chef (#126)
