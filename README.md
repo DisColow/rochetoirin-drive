@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.41.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.41/RochetoirinSimulator-v6.41.apk)**
+**[RochetoirinSimulator-v6.42.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.42/RochetoirinSimulator-v6.42.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,11 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.41 :
-- **Terrains de sport refaits** : chaque terrain est maintenant parfaitement plat, raccordé au relief par un talus
-  enherbé, et on roule dessus. Buts, paniers et cages de hand sont posés exactement sur leurs lignes.
-- Rappel v6.40 : aide au maintien dans la voie ultra puissante ; v6.39 : champs plant par plant.
+Nouveautés de la v6.42 :
+- **Clôtures des pâtures** : elles longent maintenant les routes et les chemins au lieu de s'y arrêter ; les prés
+  sont fermés et les bêtes restent dedans.
+- Rappel : v6.41 terrains de sport aplanis ; v6.40 aide au maintien dans la voie ultra puissante ; v6.39 champs
+  plant par plant.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
