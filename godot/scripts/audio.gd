@@ -417,6 +417,8 @@ func _forme_touchee(_rid: RID, body: Node, body_shape: int, _local: int) -> void
 func _contact_matiere() -> String:
 	for b in car.get_colliding_bodies():
 		var m := _matiere(b, _derniere_forme if b == _dernier_corps else null)
+		if OS.get_cmdline_user_args().has("--choc-debug") and m != "":
+			print("[choc-debug] ", m, " ", (b as Node).get_path() if b is Node else b)
 		if m != "":
 			return m
 	return ""
