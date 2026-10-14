@@ -13,6 +13,10 @@ var tiles := {}
 var loaded := {}
 var meshes := []
 var _t := 0.0
+# clôtures des prés défonçables (issue #27) : tuile -> {spans: [[p0, p1, origine, cassée]], grille: case 16 m ->
+# indices, mis: MultiMeshInstance3D des travées}
+const G := 16.0
+var travees := {}
 
 func _ready() -> void:
 	if not DirAccess.dir_exists_absolute("res://world/animaux"):
@@ -87,6 +91,7 @@ func _process_corps(dt: float) -> void:
 		if not ws.has(k):
 			loaded[k].queue_free()
 			loaded.erase(k)
+			travees.erase(k)
 
 func _add(k: Vector2i) -> void:
 	if loaded.has(k):
@@ -98,6 +103,8 @@ func _add(k: Vector2i) -> void:
 	var body := StaticBody3D.new()
 	root.add_child(body)
 	var by := {}
+	var spans := []
+	var grille := {}
 	for i in cnt:
 		var o := i * 17
 		var m := int(f[o])
@@ -107,7 +114,23 @@ func _add(k: Vector2i) -> void:
 			by[m] = []
 		by[m].append([xf, Color(f[o + 13], f[o + 14], f[o + 15], f[o + 16])])
 		if m == 4:
-			continue                     # piquet : la collision de la travée le couvre
+			continue                     # piquet
+		if m == 3:
+			# travée de clôture : défonçable, sans collision (issue #27) ; repérée sur une grille de 16 m
+			var p0 := Vector2(xf.origin.x, xf.origin.z)
+			var p1 := p0 + Vector2(b.x.x, b.x.z)
+			var tr := [p0, p1, xf.origin, false]
+			var ix := spans.size()
+			spans.append(tr)
+			var lo := Vector2i(floori(minf(p0.x, p1.x) / G) - 1, floori(minf(p0.y, p1.y) / G) - 1)
+			var hi := Vector2i(floori(maxf(p0.x, p1.x) / G) + 1, floori(maxf(p0.y, p1.y) / G) + 1)
+			for gx in range(lo.x, hi.x + 1):
+				for gz in range(lo.y, hi.y + 1):
+					var gk := Vector2i(gx, gz)
+					if not grille.has(gk):
+						grille[gk] = PackedInt32Array()
+					grille[gk].append(ix)
+			continue
 		var cs := CollisionShape3D.new()
 		var bs := BoxShape3D.new()
 		if m == 3:
@@ -119,7 +142,60 @@ func _add(k: Vector2i) -> void:
 			cs.transform = xf * Transform3D(Basis.IDENTITY, Vector3(0, bs.size.y / 2, 0))
 		cs.shape = bs
 		body.add_child(cs)
+	var mis3 := []
 	for m in by:
-		Cells.add(root, meshes[m], by[m], 380.0 if m < 3 else 300.0, m < 3)
+		var mis := Cells.add(root, meshes[m], by[m], 380.0 if m < 3 else 300.0, m < 3)
+		if m == 3:
+			mis3 = mis
 	add_child(root)
 	loaded[k] = root
+	if not spans.is_empty():
+		travees[k] = {"spans": spans, "grille": grille, "mis": mis3}
+
+## Clôtures des prés défonçables (issue #27, demande de l'utilisateur) : la voiture qui touche une travée (devant ou
+## milieu de la caisse à moins de 1,2 m du fil) l'arrache : travée cachée, éclats de bois, craquement de branche
+## arrachée (audio.impact « bois », casse), et presque pas de perte de vitesse (3 %).
+func _physics_process(_dt: float) -> void:
+	var car := target as VehicleBody3D
+	if car == null or travees.is_empty():
+		return
+	var v := car.linear_velocity
+	if v.length() < 1.5:
+		return
+	var c3 := car.global_position
+	var f3 := car.global_basis.z
+	var pts := [Vector2(c3.x, c3.z), Vector2(c3.x + f3.x * 2.2, c3.z + f3.z * 2.2)]
+	var kt := Vector2i(floori(c3.x / TILE), floori(c3.z / TILE))
+	var gk := Vector2i(floori(c3.x / G), floori(c3.z / G))
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			var T: Dictionary = travees.get(kt + Vector2i(dx, dz), {})
+			if T.is_empty():
+				continue
+			for i in T.grille.get(gk, PackedInt32Array()):
+				var tr: Array = T.spans[i]
+				if tr[3]:
+					continue
+				for q in pts:
+					if q.distance_to(Geometry2D.get_closest_point_to_segment(q, tr[0], tr[1])) < 1.2:
+						_arracher(T, tr, car)
+						break
+
+func _arracher(T: Dictionary, tr: Array, car: VehicleBody3D) -> void:
+	tr[3] = true
+	print("[clôture du pré] arrachée en %s à %d km/h" % [tr[2], int(car.kmh())])
+	var org: Vector3 = tr[2]
+	for mi in T.mis:
+		var o: PackedVector3Array = mi.get_meta("origines", PackedVector3Array())
+		var i := o.find(org)
+		if i >= 0:
+			mi.multimesh.set_instance_transform(i, Transform3D(Basis.from_scale(Vector3.ONE * 0.001), org - Vector3(0, 50, 0)))
+			break
+	var spd := car.linear_velocity.length()
+	car.linear_velocity *= 0.97
+	var m := get_parent()
+	var mid := Vector3((tr[0].x + tr[1].x) * 0.5, org.y + 0.7, (tr[0].y + tr[1].y) * 0.5)
+	if m and m.get("sound") and m.sound.has_method("impact"):
+		m.sound.impact("bois", maxf(spd, 5.0), mid, true)
+	if m and m.get("dust") and m.dust.has_method("eclats"):
+		m.dust.eclats(mid, car.linear_velocity, org.y, Color(0.38, 0.28, 0.18), Color(0.52, 0.52, 0.54), 10)

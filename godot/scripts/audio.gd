@@ -332,6 +332,7 @@ func _fracas(hard: float) -> void:
 ##  - au-delà de 11 m/s contre du dur : verre brisé, puis débris qui retombent.
 ## Appelée aussi par casse.gd (objet cassé : casse = true ajoute le craquement du bois ou les débris).
 func impact(m: String, force: float, pos: Vector3, casse := false) -> void:
+	print("[choc] %s %.1f m/s%s" % [m, force, " (cassé)" if casse else ""])
 	var g := clampf(force / 9.0, 0.25, 1.0)
 	var p := randf_range(0.92, 1.08)
 	match m:
