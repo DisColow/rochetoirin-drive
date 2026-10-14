@@ -2,8 +2,9 @@
  - prairies du RPG (PPH permanentes, PTR temporaires, SPH pâturées) : environ une sur deux est pâturée ;
  - petites prairies près des maisons : chevaux ou moutons ; ailleurs : troupeau de vaches (Montbéliardes surtout,
    quelques Charolaises), environ 1,2 bête par hectare, en 1 ou 2 groupes, à l'écart des bords ;
- - les prés pâturés sont clos : piquets et 3 fils de barbelé posés 0,7 m à l'intérieur de la parcelle, coupés près
-   des routes (jamais sur la chaussée ni le trottoir), des bâtiments et là où une haie ferme déjà le pré.
+ - les prés pâturés sont clos : piquets et 3 fils de barbelé posés 0,7 m à l'intérieur du pré, lui-même privé de
+   l'emprise des routes et chemins (v6.42 : la clôture longe la route au lieu d'y être coupée) ; coupée seulement
+   par les bâtiments et là où une haie ferme déjà le pré.
 Modèles : blender_animaux.py. Sortie : ../godot/world/animaux/a_tx_tz.bin : int32 n, n × 17 float32
 (modèle 0 vache, 1 mouton, 2 cheval, 3 travée de clôture ; base 3 × 3 colonnes, origine, robe, phase, 0, 0)."""
 import hashlib, json, math, os, pickle, shutil
@@ -53,6 +54,13 @@ def main():
             g = max(getattr(g, "geoms", [g]), key=lambda q: q.area)
         if g.is_empty or not zone.contains(g.centroid):
             continue
+        # v6.42 : le pré est privé de l'emprise des routes et chemins (parcelle RPG souvent à cheval sur eux) ; la
+        # clôture longe ainsi la route au lieu d'être coupée, et les bêtes restent dans le pré
+        g = ROAD.cut(g).buffer(0)
+        if g.is_empty:
+            continue
+        if g.geom_type != "Polygon":
+            g = max(getattr(g, "geoms", [g]), key=lambda q: q.area)
         key = pr.get("id_parcel") or "%s_%s" % (pr.get("num_ilot"), pr.get("num_parcel"))
         if rnd(key, "pature") > 0.5:
             continue
@@ -95,12 +103,14 @@ def main():
             rb = (0.0 if robe < 0.75 else 1.0) if sp == 0 else (rnd(key, "rb%d" % i) if sp == 2 else 0.0)
             out.append(inst(sp, p, y, rnd(key, "h%d" % i) * math.tau, (rb, rnd(key, "ph%d" % i), 0.0, 0.0)))
         stats[("vaches", "moutons", "chevaux")[sp]] += len(placed)
-        # clôture : contour intérieur, coupé près des routes, des bâtiments et des haies
-        ring = LineString(g.buffer(-0.7).exterior.coords) if not g.buffer(-0.7).is_empty and g.buffer(-0.7).geom_type == "Polygon" else None
-        if ring is None:
+        # clôture : contour intérieur du pré (déjà privé des routes), coupé seulement par les bâtiments et les haies
+        gi = g.buffer(-0.7)
+        if gi.is_empty:
             continue
-        cut = ROAD.cut(ring)
-        for ln in lines_of(cut):
+        if gi.geom_type != "Polygon":
+            gi = max(gi.geoms, key=lambda q: q.area)
+        ring = LineString(gi.exterior.coords)
+        for ln in lines_of(ring):
             L = ln.length
             if L < 2.0:
                 continue
