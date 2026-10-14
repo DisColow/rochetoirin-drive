@@ -2,12 +2,12 @@
 
 Refonte complète sous **Godot 4** : relief IGN à 2 m, routes OpenStreetMap posées sur le relief réel, textures PBR,
 ciel HDRI, horizon réel (Alpes, courbure terrestre). Zone : Rochetoirin, La Tour-du-Pin, Saint-Clair-de-la-Tour,
-Saint-Chef (commune entière, Chamont compris), Bourgoin-Jallieu (commune entière), L'Isle-d'Abeau et les routes qui y
-mènent.
+Saint-Chef (commune entière, Chamont compris), Bourgoin-Jallieu, Montcarra, Saint-Didier-de-la-Tour et La
+Chapelle-de-la-Tour (communes entières), L'Isle-d'Abeau et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.44.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.44/RochetoirinSimulator-v6.44.apk)**
+**[RochetoirinSimulator-v6.45.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.45/RochetoirinSimulator-v6.45.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,12 +16,14 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.44 :
-- **Multijoueur jusqu'à 4** (Activités > Multijoueur) : un joueur héberge, les autres rejoignent sur le même Wi-Fi
-  ou le point d'accès d'un téléphone (partie trouvée toute seule, ou par son adresse). On voit et on percute les
-  Raptor des autres, chacun de sa couleur avec son nom ; l'hôte lance des courses pour tout le monde (classement
-  à l'arrivée) ; au taxi, classement commun des gains.
-- Rappel : v6.43 cockpit du Ranger Raptor ; v6.42 clôtures des pâtures ; v6.41 terrains de sport.
+Nouveautés de la v6.45 :
+- **Carte agrandie** : Saint-Didier-de-la-Tour, La Chapelle-de-la-Tour et Montcarra en entier, et les routes de
+  Montcarra, de Chamont et de Saint-Chef vers Bourgoin-Jallieu (environ 150 km² jouables).
+- **Plantations plus fluides** : les champs se construisent sur un fil de calcul à part (plus d'à-coups en roulant
+  dedans) et les plants s'éclaircissent au loin.
+- **Plants écrasés** : de vrais morceaux de plants (découpés dans leurs sprites) volent, tournoient et retombent ; bruit
+  de feuillage froissé (et de tiges cassées pour le maïs et le tournesol).
+- Rappel : v6.44 multijoueur jusqu'à 4 ; v6.43 cockpit du Ranger Raptor.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

@@ -58,6 +58,9 @@ SONS = {
     **{"choc_leger_%d" % i: dict(file=K % ("impactMetal_light_%03d" % i), db=-16) for i in range(5)},
     **{"choc_bois_%d" % i: dict(file=K % ("impactWood_heavy_%03d" % i), db=-13) for i in range(5)},
     **{"choc_plastique_%d" % i: dict(file=K % ("impactPlate_medium_%03d" % i), db=-15) for i in range(5)},
+    # plants des champs écrasés par la voiture (#8) : feuillage froissé (Miscanthus sinensis) et tiges qui cassent
+    **{"feuillage_%d" % i: dict(bsb=n, trim=True, hp=150, db=-17, fi=0.01, fo=0.25) for i, n in enumerate((1811, 1812, 1813, 1814, 1815))},
+    **{"brindille_%d" % i: dict(bsb=n, trim=True, hp=200, db=-19, fo=0.15) for i, n in enumerate((1299, 1300))},
     **{"choc_sol_%d" % i: dict(file=K % ("impactSoft_heavy_%03d" % i), db=-13, lp=900) for i in range(5)},
 }
 

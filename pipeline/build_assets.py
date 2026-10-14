@@ -118,6 +118,9 @@ def far():
                 write_glb("%s/near_%d_%d.glb" % (GF, a, b), [("far_near", P, Nn, UV, I)])
     Image.open("data/ortho/near.jpg").save("../godot/assets/tex/far_near.jpg", quality=90)
     # lointain : 500 m sur ±75 km, trou à l'emplacement des environs
+    if not os.path.exists("data/dem/pano.npy"):         # relief lointain non conservé : pano.glb existant gardé
+        print("pano.npy absent : %s/pano.glb inchangé" % GF)
+        return
     B = np.load("data/dem/pano.npy")
     x1, z1 = nm["x0"] + nm["w"] * nm["step"], nm["z0"] + nm["h"] * nm["step"]
     skip = lambda X, Z: (X > nm["x0"] + 1000) & (X < x1 - 1000) & (Z > nm["z0"] + 1000) & (Z < z1 - 1000)

@@ -40,6 +40,14 @@ var _dp := PackedVector3Array(); var _dv := PackedVector3Array()
 var _dage := PackedFloat32Array(); var _dsol := PackedFloat32Array()
 var _dtaille := PackedVector3Array(); var _drot := PackedVector3Array(); var _drv := PackedVector3Array()
 var _dc := PackedColorArray()
+# morceaux de plants (sprites découpés dans l'atlas des plants, issue #8)
+const MAX_MORCEAUX := [50, 90, 140, 200]
+const HCASE := [3.0, 1.2, 1.4, 2.4]               # hauteur de la case du sprite par culture (crops.gd)
+var _mm_f: MultiMesh
+var _fp := PackedVector3Array(); var _fv := PackedVector3Array()
+var _fage := PackedFloat32Array(); var _fvie := PackedFloat32Array(); var _fsol := PackedFloat32Array()
+var _ft := PackedVector2Array(); var _fr := PackedVector3Array(); var _frv := PackedVector3Array()
+var _fuv := PackedColorArray()
 var _acc := {}                  # émission fractionnaire par roue et matière
 var _demo := OS.get_cmdline_user_args().has("--fx-demo")
 
@@ -81,6 +89,25 @@ func _ready() -> void:
 	md.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	md.extra_cull_margin = 16384.0
 	add_child(md)
+	# morceaux de plants : plan 1 × 1 texturé par un bout de l'atlas des plants
+	var mat_f := ShaderMaterial.new()
+	mat_f.shader = preload("res://scripts/eclats_plants.gdshader")
+	if ResourceLoader.exists("res://assets/veg/plants_albedo.png"):
+		mat_f.set_shader_parameter("plants_atlas", load("res://assets/veg/plants_albedo.png"))
+	var qf := QuadMesh.new(); qf.size = Vector2(1, 1)
+	_mm_f = MultiMesh.new()
+	_mm_f.transform_format = MultiMesh.TRANSFORM_3D
+	_mm_f.use_colors = true
+	_mm_f.use_custom_data = true
+	_mm_f.mesh = qf
+	_mm_f.instance_count = MAX_MORCEAUX[-1]
+	_mm_f.visible_instance_count = 0
+	var mf := MultiMeshInstance3D.new()
+	mf.multimesh = _mm_f
+	mf.material_override = mat_f
+	mf.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mf.extra_cull_margin = 16384.0
+	add_child(mf)
 
 func _niveau() -> int:
 	return clampi(int(Engine.get_meta("niveau_perf", 1)), 0, 3)
@@ -131,6 +158,77 @@ func eclats(p: Vector3, v: Vector3, sol: float, c: Color, c2: Color, n: int) -> 
 	if randf() < 0.5:
 		var m := {"c": c.lerp(Color(0.8, 0.74, 0.58), 0.45), "t0": 0.6, "t1": 2.8, "vie": 1.5, "monte": 0.2, "a": 0.35}
 		_nuage(m, p + Vector3(0, 0.4, 0), v * 0.25, 1.0)
+
+## Plants fauchés (trample.gd, issue #8) : n morceaux découpés dans les sprites de la culture t (atlas des plants :
+## 4 cultures × 8 variantes) projetés en gerbe devant la voiture ; ils tournoient, planent en retombant (feuilles
+## légères, fort freinage par l'air), se posent au sol puis s'effacent. Plus un voile de poussière teinté.
+func eclats_plants(p: Vector3, v: Vector3, sol: float, t: int, n: int, c: Color) -> void:
+	var hc: float = HCASE[clampi(t, 0, 3)]
+	for k in n:
+		if _fp.size() >= MAX_MORCEAUX[_niveau()]:
+			break
+		var dir := Vector3(randf_range(-1.0, 1.0), randf_range(1.0, 2.2), randf_range(-1.0, 1.0))
+		_fp.append(p + Vector3(randf_range(-1.0, 1.0), randf_range(0.2, hc * 0.6), randf_range(-1.0, 1.0)))
+		_fv.append(v * randf_range(0.45, 1.0) + dir * randf_range(2.0, 6.0))
+		_fage.append(0.0); _fvie.append(randf_range(2.2, 3.4)); _fsol.append(sol + randf_range(0.01, 0.05))
+		# morceau : 30 à 60 % de la largeur du sprite, 15 à 35 % de sa hauteur, pris vers le milieu (là où il y a
+		# des feuilles, la case a des bords vides)
+		var fw := randf_range(0.3, 0.6); var fh := randf_range(0.15, 0.35)
+		var u0 := clampf(randf_range(0.5 - fw, 0.5) + randf_range(-0.1, 0.1), 0.0, 1.0 - fw)
+		var v0 := randf_range(0.08, 0.92 - fh)
+		var var_i := randi() % 8
+		_fuv.append(Color((var_i + u0) / 8.0, (t + v0) / 4.0, fw / 8.0, fh / 4.0))
+		_ft.append(Vector2(fw * hc * 0.5, fh * hc))
+		_fr.append(Vector3(randf(), randf(), randf()) * TAU)
+		_frv.append(Vector3(randf_range(-9, 9), randf_range(-9, 9), randf_range(-9, 9)))
+	if randf() < 0.4:
+		var m := {"c": c.lerp(Color(0.8, 0.74, 0.58), 0.45), "t0": 0.6, "t1": 2.8, "vie": 1.5, "monte": 0.2, "a": 0.3}
+		_nuage(m, p + Vector3(0, 0.4, 0), v * 0.25, 1.0)
+
+func _suppr_morceau(i: int) -> void:
+	var l := _fp.size() - 1
+	if i != l:
+		_fp[i] = _fp[l]; _fv[i] = _fv[l]; _fage[i] = _fage[l]; _fvie[i] = _fvie[l]; _fsol[i] = _fsol[l]
+		_ft[i] = _ft[l]; _fr[i] = _fr[l]; _frv[i] = _frv[l]; _fuv[i] = _fuv[l]
+	_fp.resize(l); _fv.resize(l); _fage.resize(l); _fvie.resize(l); _fsol.resize(l)
+	_ft.resize(l); _fr.resize(l); _frv.resize(l); _fuv.resize(l)
+
+func _animer_morceaux(dt: float, v_vent: Vector3) -> void:
+	var i := 0
+	while i < _fp.size():
+		_fage[i] += dt
+		if _fage[i] > _fvie[i]:
+			_suppr_morceau(i)
+			continue
+		var p := _fp[i]
+		if p.y > _fsol[i] + 0.02:
+			# en l'air : gravité, fort freinage (feuilles) qui tend vers le vent, tournoiement
+			var v := _fv[i] + Vector3(0, -9.8, 0) * dt
+			v = v.lerp(v_vent + Vector3(0, -1.6, 0), 1.0 - exp(-dt * 2.4))
+			_fv[i] = v
+			p += v * dt
+			_fr[i] += _frv[i] * dt
+			if p.y <= _fsol[i]:
+				p.y = _fsol[i]
+				# posé à plat (ou presque) sur la terre
+				_fr[i] = Vector3(PI * 0.5 + randf_range(-0.3, 0.3), _fr[i].y, randf_range(-0.3, 0.3))
+			_fp[i] = p
+		i += 1
+	var b := PackedFloat32Array()
+	b.resize(_mm_f.instance_count * 20)
+	for j in _fp.size():
+		var bs := Basis.from_euler(_fr[j]).scaled(Vector3(_ft[j].x, _ft[j].y, 1.0))
+		var a := 1.0 - clampf((_fage[j] - (_fvie[j] - 0.6)) / 0.6, 0.0, 1.0)
+		var o := j * 20
+		var p := _fp[j]
+		b[o] = bs.x.x; b[o + 1] = bs.y.x; b[o + 2] = bs.z.x; b[o + 3] = p.x
+		b[o + 4] = bs.x.y; b[o + 5] = bs.y.y; b[o + 6] = bs.z.y; b[o + 7] = p.y
+		b[o + 8] = bs.x.z; b[o + 9] = bs.y.z; b[o + 10] = bs.z.z; b[o + 11] = p.z
+		b[o + 12] = 1.0; b[o + 13] = 1.0; b[o + 14] = 1.0; b[o + 15] = a
+		var u := _fuv[j]
+		b[o + 16] = u.r; b[o + 17] = u.g; b[o + 18] = u.b; b[o + 19] = u.a
+	_mm_f.buffer = b
+	_mm_f.visible_instance_count = _fp.size()
 
 func _emettre(i: int, mat: String, rate: float, dt: float, p: Vector3, v: Vector3, force: float) -> void:
 	var key := i * 16 + MATIERES.keys().find(mat)
@@ -287,6 +385,8 @@ func _animer(dt: float) -> void:
 		bd[o + 12] = c.r; bd[o + 13] = c.g; bd[o + 14] = c.b; bd[o + 15] = 1.0
 	_mm_d.buffer = bd
 	_mm_d.visible_instance_count = _dp.size()
+	if not _fp.is_empty() or _mm_f.visible_instance_count > 0:
+		_animer_morceaux(dt, v_vent)
 
 func _suppr_nuage(i: int) -> void:
 	var l := _np.size() - 1

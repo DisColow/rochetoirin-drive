@@ -65,6 +65,13 @@
   haies continues, pas de routes superposées, pas de taches ni de piscines absurdes. `python3 tools/check_coherence.py`
   doit rapporter 0 violation avant de livrer.
 
+## Économie d'utilisation (demande du 14/10)
+- Le suivi est dans les issues GitHub et docs/REPRISE.md : liste de tâches interne réduite aux tâches en cours.
+- Captures d'écran seulement à la livraison ou sur demande ; sorties de commandes filtrées ; attentes en arrière-plan
+  (pas de surveillance qui réveille à chaque étape) ; messages courts.
+- Après chaque livraison, une session neuve (ou `/clear`) repart de REPRISE.md : bien moins coûteux qu'une longue
+  conversation.
+
 ## Branche `godot` (refonte, depuis le 4 octobre 2026)
 
 - Moteur **Godot 4.4.1** (`godot/`) + **Terrain3D 1.0.2**, rendu **Compatibility (OpenGL ES 3)** : le rendu Vulkan

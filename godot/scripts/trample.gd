@@ -12,7 +12,8 @@ var car: VehicleBody3D
 var mats: Array = []              # matériaux qui lisent la carte (cultures)
 var crops: Node                    # champs (field_at) ; null : on peint partout
 var terrain_mat: Object            # matériau du relief (Terrain3DMaterial : set_shader_param)
-var dust: Node                     # effets (dust.gd) : tiges fauchées projetées en éclats
+var dust: Node                     # effets (dust.gd) : plants fauchés projetés en morceaux de sprite
+var audio: Node                    # sons (audio.gd) : froissement du feuillage (issue #8)
 # couleur des éclats par type de culture (moyennes de l'atlas des cultures) : principale, seconde (épis, fleurs)
 const ECLATS := [[Color(0.56, 0.67, 0.34), Color(0.85, 0.78, 0.45)],     # maïs
 	[Color(0.68, 0.58, 0.36), Color(0.86, 0.76, 0.42)],                    # céréales (blé cuit d'après modèle, v6.37)
@@ -102,7 +103,7 @@ func _physics_process(dt: float) -> void:
 					neufs[clampi(t, 0, 3)] += 1
 				_img.set_pixel(ix, iz, dir_c)
 		_sale = true
-		# tiges fauchées : elles explosent en éclats de la couleur de la culture (demande de l'utilisateur, #131)
+		# plants fauchés : ils éclatent en morceaux de sprite qui volent, avec un bruit de feuillage (issues #8, #131)
 		if dust:
 			var sol := p.y - 0.5
 			for w in car.wheels:
@@ -113,8 +114,12 @@ func _physics_process(dt: float) -> void:
 			var avant := Vector3(fwd.x, 0.0, fwd.y)
 			for t in 4:
 				if neufs[t] > 0:
-					var n := clampi(int(neufs[t] / 5.0 * clampf(kmh / 40.0, 0.5, 1.8)), 2, 12)
-					dust.eclats(Vector3(p.x, sol, p.z) + avant * 2.8, v3, sol, ECLATS[t][0], ECLATS[t][1], n)
+					var n := clampi(int(neufs[t] / 4.0 * clampf(kmh / 40.0, 0.5, 1.8)), 2, 14)
+					dust.eclats_plants(Vector3(p.x, sol, p.z) + avant * 2.8, v3, sol, t, n, ECLATS[t][0])
+		if audio:
+			var tot: int = neufs[0] + neufs[1] + neufs[2] + neufs[3]
+			if tot > 0:
+				audio.feuillage(tot, kmh, neufs[0] + neufs[3] > 0)
 	if _debug and Engine.get_physics_frames() % 120 == 0:
 		var n := 0
 		for y in range(0, N, 2):

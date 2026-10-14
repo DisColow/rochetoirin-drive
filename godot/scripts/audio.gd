@@ -349,6 +349,38 @@ func _family(b: Object) -> String:
 		return ""
 	return "dur"
 
+## Plants des champs écrasés (trample.gd, issue #8) : froissement de feuillage, plus fort et plus serré selon le nombre
+## de plants fauchés et la vitesse ; tiges qui cassent pour le maïs et le tournesol (grosses tiges). Deux sources non
+## positionnées (le bruit vient de sous la voiture), relancées en alternance.
+var _fe: Array = []
+var _fe_t := 0.0
+var _fe_i := 0
+func feuillage(n: int, kmh: float, tiges: bool) -> void:
+	if _fe.is_empty():
+		for i in 3:
+			var pl := AudioStreamPlayer.new()
+			pl.bus = AudioServer.get_bus_name(_bus_world)
+			add_child(pl)
+			_fe.append(pl)
+	var now := Time.get_ticks_msec() / 1000.0
+	var ecart := lerpf(0.45, 0.16, clampf(kmh / 60.0, 0.0, 1.0))
+	if now - _fe_t < ecart:
+		return
+	_fe_t = now
+	var g := clampf(0.35 + n / 40.0, 0.35, 1.0) * clampf(0.5 + kmh / 50.0, 0.5, 1.2)
+	var pl: AudioStreamPlayer = _fe[_fe_i % 2]
+	_fe_i += 1
+	pl.stream = _stream("feuillage_%d" % (randi() % 5), false)
+	pl.pitch_scale = randf_range(0.9, 1.15) * clampf(0.9 + kmh / 200.0, 0.9, 1.25)
+	pl.volume_db = linear_to_db(g) + 4.0
+	pl.play(randf() * 0.3)
+	if tiges and randf() < 0.55:
+		var pt: AudioStreamPlayer = _fe[2]
+		pt.stream = _stream("brindille_%d" % (randi() % 2), false)
+		pt.pitch_scale = randf_range(0.85, 1.1)
+		pt.volume_db = linear_to_db(g) + 1.0
+		pt.play()
+
 func _one_shot(name: String, pos: Vector3, gain: float, pitch := 1.0, unit := 14.0, maxd := 400.0) -> void:
 	var st := _stream(name, false)
 	if st == null:
@@ -400,6 +432,13 @@ func _process(dt: float) -> void:
 	PerfMon.note("audio", Time.get_ticks_usec() - t0_perf)
 
 func _process_corps(dt: float) -> void:
+	# froissement des plants : s'éteint vite quand on ne fauche plus (les enregistrements durent plusieurs secondes)
+	if not _fe.is_empty() and Time.get_ticks_msec() / 1000.0 - _fe_t > 0.3:
+		for pl in _fe:
+			if pl.playing:
+				pl.volume_db -= dt * 90.0
+				if pl.volume_db < -50.0:
+					pl.stop()
 	if car == null or not is_instance_valid(car):
 		return
 	var cam := get_viewport().get_camera_3d()

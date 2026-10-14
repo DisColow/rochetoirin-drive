@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 14/10/2026 (v6.44)
+## État au 14/10/2026 (v6.45)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
 - Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). Après une régénération des bâtiments,
   remettre les `.import` publiés : `git fetch origin donnees` puis, pour chaque `world/buildings/*.import`,
@@ -12,6 +12,20 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - Street View : **plafond absolu 20 $** (`pipeline/sv_budget.py`, compteur `pipeline/sources/sv_depenses.json` :
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
+
+## Fait en v6.45 : zone agrandie (#118, #128 ; issues #15, #16) et plantations (issues #25, #8)
+- Zone (`pipeline/routes_plan.py`) : communes entières Montcarra, Saint-Didier-de-la-Tour, La Chapelle-de-la-Tour ;
+  routes Montcarra / Chamont / Saint-Chef > Bourgoin-Jallieu (couloirs de 450 m) ; 209 régions, ~149 km².
+- Emprise des téléchargements (BB des fetch_*.py) étendue au sud : 45,51° (Saint-Didier). Ajout fait sur la seule
+  bande 45,51-45,53 puis fusion par identifiant avec les données existantes (pas de re-téléchargement complet, pour
+  ne rien changer ailleurs). `data/dem/pano.npy` n'existe plus : `build_assets.py` garde alors `far/pano.glb`.
+- Overpass : overpass-api.de répond 406 au proxy, maps.mail.ru souvent 504 : relancer jusqu'à réussite.
+- Plantations (issue #25, « ça rame ») : `crops.gd` calcule les cases sur un fil (WorkerThreadPool : plants + sol,
+  hauteurs lues dans la grille de 4 m de la case, plus d'appel au relief par sommet), instances mélangées puis
+  `visible_instance_count` selon la distance (100 % de près, 40 % au bord de la portée).
+- Plants écrasés (issue #8) : `dust.eclats_plants` = morceaux découpés dans l'atlas des plants
+  (`eclats_plants.gdshader`), qui tournoient, planent et se posent ; `audio.feuillage()` : froissement
+  (BigSoundBank 1811-1815, Miscanthus) et tiges cassées (1299, 1300) pour maïs et tournesol.
 
 ## Fait en v6.44 : multijoueur jusqu'à 4 (#139, issue #20)
 - `scripts/net.gd` (nœud « Net » de main) : ENet port 47601, annonces UDP 47602 (diffusion), état des voitures

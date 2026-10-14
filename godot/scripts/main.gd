@@ -275,6 +275,8 @@ func _ready() -> void:
 	sound.cam_rig = cam_rig
 	sound.main = self
 	add_child(sound)
+	if _trample:
+		_trample.audio = sound
 	# décor destructible : panneaux, lampadaires, clôtures, petits arbres (casse.gd)
 	var ca = preload("res://scripts/casse.gd").new()
 	ca.name = "Casse"
@@ -1302,8 +1304,8 @@ func _physics_process(_dt: float) -> void:
 			if not trouve:
 				print("  [champ] aucun champ trouvé"); get_tree().quit()
 		if t > 360 and t % 60 == 0:
-			print("  [champ] t=%.1f %d km/h éclats %d" % [(t - 360) / 120.0, car.kmh(), dust._dp.size()])
-		if t in [360 + 300, 360 + 420, 360 + 560]:
+			print("  [champ] t=%.1f %d km/h morceaux %d, %d img/s, cases à construire %d" % [(t - 360) / 120.0, car.kmh(), dust._fp.size(), Engine.get_frames_per_second(), crops.pending])
+		if t in [360 + 150, 360 + 200, 360 + 300, 360 + 420, 360 + 560]:
 			DirAccess.make_dir_recursive_absolute("user://shots")
 			get_viewport().get_texture().get_image().save_png("user://shots/champ_%d.png" % ((t - 360) / 60))
 		if t > 360 + 600:

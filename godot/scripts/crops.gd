@@ -1,7 +1,8 @@
 ## Champs cultivés en 3D (parcelles RPG 2024), refaits en v6.39 (#142, issue #25 : « plante juste les sprites ») : de
 ## près, un sprite par plant (deux plans croisés, atlas des plants tools/bake_cultures.gd -- --seulement=plants) planté
 ## sur la grille du champ, sur un sol de terre à sillons ; fondu au loin, puis l'orthophoto (vue d'ensemble du champ).
-## Cases de 32 m générées autour de la voiture (une par image au plus). Un plant touché par la voiture éclate.
+## Cases de 32 m générées autour de la voiture sur un fil de calcul (une à la fois), plants plus clairsemés au loin
+## (v6.45, issue #25). Un plant touché par la voiture éclate.
 extends Node3D
 const Relief := preload("res://scripts/relief.gd")
 const PerfMon := preload("res://scripts/perf_monitor.gd")
@@ -25,7 +26,12 @@ var mat_sol: ShaderMaterial
 var cross: ArrayMesh
 var _t := 0.0
 var pending := 0         # cases encore à construire (essais : attendre que tout soit planté)
-var _rng := RandomNumberGenerator.new()
+# construction des cases sur un fil de calcul (issue #25 : « ça rame dans une plantation ») : le fil principal ne lit
+# que le relief (81 points par case) puis pose les maillages déjà calculés
+var _tache := -1          # tâche WorkerThreadPool en cours (-1 : aucune)
+var _tache_k := Vector2i.ZERO
+var _res: Array = []      # résultat de la tâche : [buffer des plants, nombre, [[sommets du sol, custom]]]
+var _lod_t := 0.0
 
 func _ready() -> void:
 	mat = ShaderMaterial.new()
@@ -49,6 +55,11 @@ func _ready() -> void:
 			st.set_uv(Vector2(q[i][2], q[i][3]))
 			st.add_vertex(ax * q[i][0] + Vector3(0, q[i][1], 0))
 	cross = st.commit()
+
+func _exit_tree() -> void:
+	if _tache >= 0:
+		WorkerThreadPool.wait_for_task_completion(_tache)
+		_tache = -1
 
 func set_level(l: int) -> void:
 	level = l
@@ -124,12 +135,31 @@ func _process_corps(dt: float) -> void:
 			if not cells.has(k):
 				todo.append([cc.length(), k])
 	todo.sort_custom(func(a, b): return a[0] < b[0])
-	pending = maxi(todo.size() - 1, 0)
-	for it in todo:
-		_build(it[1])
-		made += 1
-		if made >= 1:
-			break
+	pending = todo.size() + (1 if _tache >= 0 else 0)
+	if _tache >= 0 and WorkerThreadPool.is_task_completed(_tache):
+		WorkerThreadPool.wait_for_task_completion(_tache)
+		_tache = -1
+		if keep.has(_tache_k) and not cells.has(_tache_k):
+			_poser(_tache_k, _res)
+		_res = []
+	if _tache < 0 and not todo.is_empty():
+		_lancer(todo[0][1])
+	# densité selon la distance (instances mélangées à la construction : en afficher une partie = éclaircir
+	# uniformément) ; pleine densité de près, 40 % au bord de la portée, où le fondu tramé prend le relais
+	_lod_t -= dt
+	if _lod_t <= 0.0:
+		_lod_t = 0.2
+		var cam := get_viewport().get_camera_3d()
+		var o := cam.global_position if cam else c
+		var rg: float = RANGE[level]
+		for k in cells:
+			var nd: Node3D = cells[k]
+			if nd == null or not nd.has_meta("mm"):
+				continue
+			var mm: MultiMesh = nd.get_meta("mm")
+			var dd := Vector2((k.x + 0.5) * CELL - o.x, (k.y + 0.5) * CELL - o.z).length() - CELL * 0.5
+			var f := 1.0 - 0.6 * clampf((dd - rg * 0.35) / (rg * 0.65), 0.0, 1.0)
+			mm.visible_instance_count = maxi(1, int(mm.instance_count * f))
 	if _t <= 0.0:
 		_t = 0.5
 		for k in cells.keys():
@@ -138,42 +168,93 @@ func _process_corps(dt: float) -> void:
 					cells[k].queue_free()
 				cells.erase(k)
 
-func _build(k: Vector2i) -> void:
+## Fil principal : relief de la case (grille de 4 m) et parcelles, puis calcul confié à un fil de calcul.
+func _lancer(k: Vector2i) -> void:
 	var x0 := k.x * CELL; var z0 := k.y * CELL
 	var rect := Rect2(x0, z0, CELL, CELL)
-	var cellpoly := PackedVector2Array([Vector2(x0, z0), Vector2(x0 + CELL, z0), Vector2(x0 + CELL, z0 + CELL), Vector2(x0, z0 + CELL)])
 	var tk := Vector2i(floori(x0 / TILE), floori(z0 / TILE))
-	var root := Node3D.new()
-	_rng.seed = hash(k)
-	var hg := PackedFloat32Array()            # relief de la case (grille de 4 m, interpolée pour chaque plant)
+	var fs := []
+	for f in _tile_fields(tk):
+		if f[3].intersects(rect):
+			fs.append(f)
+	if fs.is_empty():
+		cells[k] = null
+		return
+	var hg := PackedFloat32Array()
 	for gz in 9:
 		for gx in 9:
 			var y: float = Relief.hauteur(Vector3(x0 + gx * 4.0, 0, z0 + gz * 4.0))
 			hg.append(NAN if is_nan(y) else y)
+	_tache_k = k
+	_tache = WorkerThreadPool.add_task(_calcul.bind(k, fs, hg), false, "cultures")
+
+## Fil de calcul : plants (mélangés pour le niveau de détail) et sol de terre de la case ; aucun accès à la scène.
+func _calcul(k: Vector2i, fs: Array, hg: PackedFloat32Array) -> void:
+	var x0 := k.x * CELL; var z0 := k.y * CELL
+	var cellpoly := PackedVector2Array([Vector2(x0, z0), Vector2(x0 + CELL, z0), Vector2(x0 + CELL, z0 + CELL), Vector2(x0, z0 + CELL)])
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(k)
 	var buf := PackedFloat32Array()
-	var count := 0
-	for f in _tile_fields(tk):
-		if not f[3].intersects(rect):
-			continue
+	var sols := []
+	for f in fs:
 		var t: int = f[0]
-		var part := _plants(f, t, cellpoly, hg, x0, z0)
-		buf.append_array(part)
-		count += part.size() / 16
-		var sol := _sol(f, t, cellpoly)
-		if sol:
-			root.add_child(sol)
+		buf.append_array(_plants(f, t, cellpoly, hg, x0, z0, rng))
+		var v := _sol(f, cellpoly, hg, x0, z0)
+		if not v.is_empty():
+			var d: Vector2 = f[1]
+			sols.append([v, Color(d.x, d.y, ROWS[t], 0.0)])
+	var n := buf.size() / 16
+	for i in range(n - 1, 0, -1):                 # mélange (Fisher-Yates) par blocs de 16 flottants
+		var j := rng.randi_range(0, i)
+		if j != i:
+			for q in 16:
+				var tmp := buf[i * 16 + q]
+				buf[i * 16 + q] = buf[j * 16 + q]
+				buf[j * 16 + q] = tmp
+	_res = [buf, n, sols]
+
+## Fil principal : maillages de la case (plants : MultiMesh ; sol : un maillage par parcelle).
+func _poser(k: Vector2i, res: Array) -> void:
+	if res.is_empty():
+		cells[k] = null
+		return
+	var root := Node3D.new()
+	for sv in res[2]:
+		var arr := []
+		arr.resize(Mesh.ARRAY_MAX)
+		arr[Mesh.ARRAY_VERTEX] = sv[0]
+		var nrm := PackedVector3Array()
+		nrm.resize(sv[0].size())
+		nrm.fill(Vector3.UP)
+		arr[Mesh.ARRAY_NORMAL] = nrm
+		var am := ArrayMesh.new()
+		am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_custom_data = true
+		mm.mesh = am
+		mm.instance_count = 1
+		mm.set_instance_transform(0, Transform3D.IDENTITY)
+		mm.set_instance_custom_data(0, sv[1])
+		var mi := MultiMeshInstance3D.new()
+		mi.multimesh = mm
+		mi.material_override = mat_sol
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(mi)
+	var count: int = res[1]
 	if count > 0:
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_custom_data = true
 		mm.mesh = cross
 		mm.instance_count = count
-		mm.buffer = buf
+		mm.buffer = res[0]
 		var node := MultiMeshInstance3D.new()
 		node.multimesh = mm
 		node.material_override = mat
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		root.add_child(node)
+		root.set_meta("mm", mm)
 	if root.get_child_count() == 0:
 		root.free()
 		cells[k] = null
@@ -189,7 +270,7 @@ func _h(hg: PackedFloat32Array, x0: float, z0: float, p: Vector2) -> float:
 
 ## Plants d'une parcelle dans une case : rangs parallèles à d (grille commune à tout le champ), un pied tous les
 ## STEP[t] m, un peu décalés ; données d'instance : culture, variante, teinte, hauteur de la case.
-func _plants(f: Array, t: int, cellpoly: PackedVector2Array, hg: PackedFloat32Array, x0: float, z0: float) -> PackedFloat32Array:
+func _plants(f: Array, t: int, cellpoly: PackedVector2Array, hg: PackedFloat32Array, x0: float, z0: float, rg: RandomNumberGenerator) -> PackedFloat32Array:
 	var buf := PackedFloat32Array()
 	var d: Vector2 = f[1]
 	var nrm := Vector2(-d.y, d.x)
@@ -208,25 +289,24 @@ func _plants(f: Array, t: int, cellpoly: PackedVector2Array, hg: PackedFloat32Ar
 				var s1 := maxf(a.dot(d), b.dot(d))
 				var s := ceilf(minf(a.dot(d), b.dot(d)) / st) * st
 				while s <= s1:
-					var q := nrm * off + d * s + nrm * _rng.randf_range(-jit, jit) * sp + d * _rng.randf_range(-0.3, 0.3) * st
+					var q := nrm * off + d * s + nrm * rg.randf_range(-jit, jit) * sp + d * rg.randf_range(-0.3, 0.3) * st
 					s += st
 					var y := _h(hg, x0, z0, q)
 					if is_nan(y):
 						continue
-					var sc := hc * _rng.randf_range(0.9, 1.08)
+					var sc := hc * rg.randf_range(0.9, 1.08)
 					var w := sc * 0.5
-					var ang := _rng.randf() * TAU
+					var ang := rg.randf() * TAU
 					var bx := Vector3(cos(ang), 0, sin(ang)) * w
 					var bz := Vector3(-sin(ang), 0, cos(ang)) * w
 					buf.append_array([bx.x, 0.0, bz.x, q.x, bx.y, sc, bz.y, y - 0.04, bx.z, 0.0, bz.z, q.y,
-						float(t), float(_rng.randi_range(0, 7)), _rng.randf_range(0.76, 0.94), sc])
+						float(t), float(rg.randi_range(0, 7)), rg.randf_range(0.76, 0.94), sc])
 	return buf
 
-## Sol de terre d'une parcelle dans une case : découpé au contour, posé sur le relief par carrés de 4 m (+3 cm).
-func _sol(f: Array, t: int, cellpoly: PackedVector2Array) -> MultiMeshInstance3D:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var n := 0
+## Sol de terre d'une parcelle dans une case : découpé au contour, posé sur le relief par carrés de 4 m (+3 cm ; hauteurs
+## interpolées dans la grille de la case, sans relire le relief). Rend les sommets (triangles vus du dessus).
+func _sol(f: Array, cellpoly: PackedVector2Array, hg: PackedFloat32Array, x0: float, z0: float) -> PackedVector3Array:
+	var out := PackedVector3Array()
 	var Q := 4.0
 	for poly in Geometry2D.intersect_polygons(f[2], cellpoly):
 		var r := Rect2(poly[0], Vector2.ZERO)
@@ -240,26 +320,10 @@ func _sol(f: Array, t: int, cellpoly: PackedVector2Array) -> MultiMeshInstance3D
 						piece.reverse()
 					var hs := []
 					for v in piece:
-						var y: float = Relief.hauteur(Vector3(v.x, 0, v.y))
+						var y := _h(hg, x0, z0, v)
 						hs.append(0.0 if is_nan(y) else y + 0.03)
 					for i in range(1, piece.size() - 1):
 						for j in [0, i, i + 1]:              # sens des faces vues du dessus (sinon normale retournée)
 							var v: Vector2 = piece[j]
-							st.set_normal(Vector3.UP)
-							st.add_vertex(Vector3(v.x, hs[j], v.y))
-							n += 1
-	if n == 0:
-		return null
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.use_custom_data = true
-	mm.mesh = st.commit()
-	mm.instance_count = 1
-	mm.set_instance_transform(0, Transform3D.IDENTITY)
-	var d: Vector2 = f[1]
-	mm.set_instance_custom_data(0, Color(d.x, d.y, ROWS[t], 0.0))
-	var mi := MultiMeshInstance3D.new()
-	mi.multimesh = mm
-	mi.material_override = mat_sol
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	return mi
+							out.append(Vector3(v.x, hs[j], v.y))
+	return out
