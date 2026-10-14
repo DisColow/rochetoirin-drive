@@ -1,6 +1,8 @@
 """Atlas des cultures (1024 × 6144 : 4 bandes de 3 m × 3 m vues de côté, sol en bas, puis 2 vues de dessus) :
 0 maïs (rangée cuite depuis le modèle 3D, tools/bake_impostors), 1 céréales (épis dorés), 2 feuillage bas (colza, soja),
-3 tournesol, 4 céréales vues de dessus, 5 feuillage vu de dessus. Sorties : ../godot/assets/veg/crops_albedo.png, crops_normal.png."""
+3 tournesol, 4 céréales vues de dessus, 5 feuillage vu de dessus. Depuis la v6.37 (#130) : rangées 1 à 5 cuites
+depuis de vrais modèles 3D (tools/bake_cultures.gd : blé, colza, tournesol) quand leurs rendus existent, sinon dessinées
+ici (anciennes fonctions cereal/leafy/top). Sorties : ../godot/assets/veg/crops_albedo.png, crops_normal.png."""
 import numpy as np
 from PIL import Image, ImageDraw
 from scipy import ndimage as ndi
@@ -98,8 +100,37 @@ def main():
     mn = Image.open("../godot/assets/veg/strip_mais_normal.png").convert("RGBA").resize((S, S))
     rows_a.append(ma); rows_n.append(mn)
     flat = Image.new("RGBA", (S, S), (128, 128, 255, 255))
-    for im in (cereal(), leafy(False), leafy(True), top("cereal"), top("leafy")):
-        rows_a.append(im); rows_n.append(flat)
+    V = "../godot/import/cultures/"   # rendus de tools/bake_cultures.gd (hors export)
+
+    def cuit(nom, repli, opaque=False):
+        """Rendu de tools/bake_cultures.gd (albédo + normales) ; nappe vue de dessus : trous comblés par l'ombre du
+        couvert (couleur moyenne assombrie), la nappe reste opaque comme avant."""
+        import os
+        if not os.path.exists(V + nom + "_albedo.png"):
+            return repli, flat
+        a = Image.open(V + nom + "_albedo.png").convert("RGBA").resize((S, S))
+        n = Image.open(V + nom + "_normal.png").convert("RGBA").resize((S, S))
+        if nom.startswith("strip_"):
+            # normales penchées vers le haut (comme celles du maïs) : tiges éclairées par le soleil, pas comme un mur
+            arr = np.asarray(n).astype(np.float32)
+            v = arr[..., :3] / 127.5 - 1.0
+            v[..., 1] += 2.2
+            v /= np.linalg.norm(v, axis=-1, keepdims=True) + 1e-6
+            arr[..., :3] = (v + 1.0) * 127.5
+            n = Image.fromarray(arr.astype(np.uint8), "RGBA")
+        if opaque:
+            arr = np.asarray(a).astype(np.float32)
+            m = arr[..., 3] > 128
+            moy = arr[m][:, :3].mean(0) * 0.55
+            fond = Image.new("RGBA", (S, S), tuple(int(v) for v in moy) + (255,))
+            fond.alpha_composite(a); a = fond
+            nf = Image.new("RGBA", (S, S), (128, 128, 255, 255)); nf.alpha_composite(n); n = nf
+        return a, n
+    for nom, repli, op in (("strip_ble2", cereal(), False), ("strip_colza", leafy(False), False),
+                           ("strip_tournesol", leafy(True), False), ("top_ble", top("cereal"), True),
+                           ("top_colza", top("leafy"), True)):
+        a, n = cuit(nom, repli, op)
+        rows_a.append(a); rows_n.append(n)
     A = np.vstack([np.asarray(r) for r in rows_a]).astype(np.float32)
     N = np.vstack([np.asarray(r) for r in rows_n]).astype(np.float32)
     # débord de couleur sous les pixels transparents

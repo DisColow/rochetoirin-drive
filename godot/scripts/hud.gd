@@ -66,6 +66,7 @@ Soucoupe du gardien : « UFO » par sebslom (sketchfab.com/3d-models), licence C
 Pluie et orage : Sound Effect by Premankur Adhikary from Pixabay.
 Sons (moteur, roulement, ambiances, oiseaux, animaux, cloches, essuie-glaces, soucoupe…) : enregistrements de Joseph SARDIN - BigSoundBank.com (licence CC0) ; chocs : « Impact Sounds » de Kenney (CC0).
 Arbres : modèles Sketchfab (licences CC BY / CC0, auteurs listés dans le dépôt).
+Cultures (Sketchfab) : « Maize Corn Plant » par gilles.schaeck, « Wheat — FREE » par Yaroslav Karas, « Realistic Wheat » par Graphetta, « Sunflower » par zvanstone (licences CC BY 4.0), « Rapeseed, Brassica napus » par ffish.asia / floraZia (CC0).
 Animaux (Sketchfab, licence CC BY 4.0) : « Cow » par JosueBoisvert, « Sheep » par kenchoo, « Horse Rigged (Game Ready) » par abhayexe.
 Voitures garées (Sketchfab, licence CC BY 4.0) : « Generic 80s european car » par henryviii, « Low Poly Small car » et « Low-Poly Sedan car » par scailman, « Blue Sedan | Stylized Low Poly » par R3indeer.
 Clients du taxi : « Low Poly Characters (PACK) » par micaelsampaio (Sketchfab, licence CC BY 4.0).

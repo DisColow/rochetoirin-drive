@@ -11,6 +11,10 @@ MODELS = {
     "sapin": "0965de5def1342cd8b8b1a0fa5643e27",      # Fir tree — intice184
     "pin": "d45218a3fab349e5b1de040f29e7b6f9",        # Pine Tree — evolveduk
     "mais": "5fd3b104d8104519b061469c365d4974",       # Maize Corn Plant — gilles.schaeck
+    "ble": "ddff74ac0661414a9478bd4d7581c854",        # Wheat — FREE (Yaroslav Karas), v6.37 (#130)
+    "ble2": "50270968690441d3ad9d2a8924c7338b",       # Realistic Wheat — Graphetta (bandes vues de côté)
+    "tournesol": "3a9514b8df044abe809432201b8f1c6e",  # Sunflower — zvanstone
+    "colza": "b5917d75d92b4108b0c2a2421bf25c13",      # Rapeseed, Brassica napus — ffish.asia / floraZia (CC0)
 }
 TOK = os.environ.get("SKETCHFAB_TOKEN", "")
 OUT = "../godot/import/trees"

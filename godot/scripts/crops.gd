@@ -8,7 +8,7 @@ const TILE := 256.0
 const CELL := 32.0
 const STRIP := 3.0
 const SPACING := [0.85, 0.7, 0.6, 0.75]         # écartement des rangs (m) : maïs, céréales, feuillage, tournesol
-const HEIGHT := [3.0, 1.0, 1.0, 1.9]           # hauteur des bandes (m)
+const HEIGHT := [3.0, 1.0, 1.2, 1.95]           # hauteur des bandes (m)
 const RANGE := [80.0, 110.0, 140.0, 170.0]     # selon la densité de végétation
 
 var target: Node3D
@@ -124,7 +124,7 @@ func _build(k: Vector2i) -> void:
 		if not f[3].intersects(rect):
 			continue
 		var t: int = f[0]
-		var part := _rows(f, t, f[1], SPACING[t] if t != 2 and t != 1 else 3.0, cellpoly)
+		var part := _rows(f, t, f[1], (0.8 if t == 1 else 1.2) if t == 1 or t == 2 else SPACING[t], cellpoly)   # v6.37 : rangs aussi dans le blé et le colza
 		buf.append_array(part)
 		count += part.size() / 16
 		if t == 1 or t == 2:
@@ -153,7 +153,7 @@ func _build(k: Vector2i) -> void:
 ## posée sur le relief par carrés de 4 m, à hauteur des épis (les bandes verticales ne font plus que la bordure).
 ## Un seul exemplaire de MultiMesh pour garder les données d'instance du shader des cultures (ligne de l'atlas, teinte).
 func _sheet(f: Array, t: int, cellpoly: PackedVector2Array) -> MultiMeshInstance3D:
-	var hh: float = 0.85 if t == 1 else 0.75
+	var hh: float = 0.76 if t == 1 else 1.0          # nappe sous les épis/fleurs des rangs (v6.37)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var n := 0
@@ -225,12 +225,12 @@ func _rows(f: Array, t: int, d: Vector2, sp: float, cellpoly: PackedVector2Array
 						var y: float = Relief.hauteur(Vector3(m.x, 0, m.y))
 						if is_nan(y) or w < 0.3:
 							continue
-						var h: float = (0.95 if t == 1 else 0.85)
+						var h: float = (1.0 if t == 1 else 1.2)          # bordure : hauteur des plants cuits (bake_cultures)
 						buf.append_array([dd.x * w, 0.0, nn.x, m.x, 0.0, h, 0.0, y - 0.05, dd.y * w, 0.0, nn.y, m.y,
 							t / 6.0, _rng.randf(), 1.0, h])
 		for poly in clipped:
-			if t == 1 or t == 2:
-				break                            # dessus : _sheet
+			if (t == 1 or t == 2) and level == 0:
+				break                            # niveau Économie : blé et colza en nappe seule (sans rangs, v6.37)
 			for kk in range(ceili(tmin / sp), floori(tmax / sp) + 1):
 				var off := kk * sp
 				var line := PackedVector2Array([nrm * off + d * (smin - 1.0), nrm * off + d * (smax + 1.0)])
@@ -252,8 +252,6 @@ func _rows(f: Array, t: int, d: Vector2, sp: float, cellpoly: PackedVector2Array
 						var yb: float = Relief.hauteur(Vector3(m.x + dn.x * w * 0.5, 0, m.y + dn.y * w * 0.5))
 						var slope := 0.0 if is_nan(ya) or is_nan(yb) else (yb - ya) * signf(dn.dot(d))
 						var h: float = HEIGHT[t] * _rng.randf_range(0.92, 1.06)
-						if t == 2 or t == 1:
-							continue                     # dessus du champ : _sheet (nappe découpée au contour)
 						# transformation : x = rang (largeur w), y = hauteur, z = travers (1 m)
 						var bx := Vector3(d.x, 0, d.y) * w
 						var bz := Vector3(nrm.x, 0, nrm.y)

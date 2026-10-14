@@ -5,13 +5,21 @@
 ## godot --headless --path . --script res://tools/prepare_trees.gd
 extends SceneTree
 
-const NAMES := ["chene", "feuillu", "chene2", "bouleau", "peuplier", "epicea", "sapin", "pin", "mais"]
+const NAMES := ["chene", "feuillu", "chene2", "bouleau", "peuplier", "epicea", "sapin", "pin", "mais", "ble", "ble2", "tournesol", "colza"]
 
 func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute("res://assets/veg")
 	var meta := {}
+	# -- --seulement=a,b : ne refait que ces modèles (les autres gardent leur meta)
+	var seuls := []
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--seulement="):
+			seuls = a.trim_prefix("--seulement=").split(",")
+			if FileAccess.file_exists("res://assets/veg/meta.json"):
+				meta = JSON.parse_string(FileAccess.get_file_as_string("res://assets/veg/meta.json"))
 	for n in NAMES:
-		meta[n] = _prepare(n)
+		if seuls.is_empty() or n in seuls:
+			meta[n] = _prepare(n)
 	var f := FileAccess.open("res://assets/veg/meta.json", FileAccess.WRITE)
 	f.store_string(JSON.stringify(meta, " "))
 	f.close()

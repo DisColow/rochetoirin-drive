@@ -1201,7 +1201,7 @@ func _physics_process(_dt: float) -> void:
 					ty = int(a.trim_prefix("--champ-type="))
 			var c0 := Vector2(car.global_position.x, car.global_position.z)
 			var trouve := false
-			for r in range(30, 900, 15):
+			for r in range(30, 4000, 20):
 				for k in 48:
 					var ang := TAU * k / 48.0
 					var d := Vector2(cos(ang), sin(ang))

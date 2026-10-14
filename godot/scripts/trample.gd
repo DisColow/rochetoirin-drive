@@ -15,9 +15,9 @@ var terrain_mat: Object            # matériau du relief (Terrain3DMaterial : se
 var dust: Node                     # effets (dust.gd) : tiges fauchées projetées en éclats
 # couleur des éclats par type de culture (moyennes de l'atlas des cultures) : principale, seconde (épis, fleurs)
 const ECLATS := [[Color(0.56, 0.67, 0.34), Color(0.85, 0.78, 0.45)],     # maïs
-	[Color(0.72, 0.59, 0.30), Color(0.86, 0.76, 0.42)],                    # céréales
-	[Color(0.26, 0.42, 0.15), Color(0.40, 0.52, 0.20)],                    # feuillage
-	[Color(0.38, 0.45, 0.15), Color(0.88, 0.78, 0.20)]]                    # tournesol
+	[Color(0.68, 0.58, 0.36), Color(0.86, 0.76, 0.42)],                    # céréales (blé cuit d'après modèle, v6.37)
+	[Color(0.45, 0.52, 0.20), Color(0.92, 0.82, 0.22)],                    # colza : tiges vertes, fleurs jaunes
+	[Color(0.40, 0.50, 0.14), Color(0.92, 0.76, 0.14)]]                    # tournesol
 const ROW := [0, 4, 5, 3]          # type de culture -> ligne de l'atlas des tiges couchées (dessus des céréales, du feuillage)
 const VIDE := Color(0.5, 0.5, 0.0, 0.0)
 const TOUT := Color(1.0, 0.5, 1.0, 5.0 / 8.0)
