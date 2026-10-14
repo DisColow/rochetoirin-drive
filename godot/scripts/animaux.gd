@@ -101,6 +101,7 @@ func _add(k: Vector2i) -> void:
 	var f := a.slice(4).to_float32_array()
 	var root := Node3D.new()
 	var body := StaticBody3D.new()
+	body.set_meta("matiere", "sol")                 # bêtes : choc sourd (audio.gd)
 	root.add_child(body)
 	var by := {}
 	var spans := []

@@ -59,6 +59,7 @@ func _ready() -> void:
 	quad.size = Vector2(1, 1)
 	quad.material = imp_mat
 	trunks = StaticBody3D.new()
+	trunks.set_meta("matiere", "bois")            # sons des chocs (audio.gd)
 	add_child(trunks)
 	set_level(level)
 
