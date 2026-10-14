@@ -1,0 +1,14 @@
+{
+ "id": "sag_2",
+ "cleabs": "BATIMENT0000000301136306",
+ "nom": "Poulailler",
+ "mur": "beton#c8c4bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 2.5,
+ "faitage": 3.5,
+ "densite": 12
+}

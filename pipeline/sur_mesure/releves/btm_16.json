@@ -1,0 +1,55 @@
+{
+ "id": "btm_16",
+ "cleabs": "BATIMENT0000000302154740",
+ "nom": "Commerces",
+ "mur": "enduit#e8c070",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 10.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.8,
+     8.0
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

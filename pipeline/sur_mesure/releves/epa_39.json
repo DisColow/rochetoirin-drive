@@ -1,0 +1,31 @@
+{
+ "id": "epa_39",
+ "cleabs": "BATIMENT0000000301229727",
+ "nom": "Usine",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#a8a8a0",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 9.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.2,
+     2.2
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,33 @@
+{
+ "id": "sag_8",
+ "cleabs": "BATIMENT0000000301143433",
+ "nom": "Usine",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#ecebe8",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "soubassement": "beton#c8c4bc",
+ "h_soub": 0.6,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.4,
+     2.4
+    ],
+    "n": 5,
+    "l": 1.2
+   }
+  ]
+ }
+}

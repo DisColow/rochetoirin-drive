@@ -1,0 +1,16 @@
+{
+ "id": "lpa_0",
+ "cleabs": "BATIMENT0000002334034903",
+ "nom": "Hangar",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#7a7e84"
+}

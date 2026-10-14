@@ -1,0 +1,56 @@
+{
+ "id": "mey_29",
+ "cleabs": "BATIMENT0000000302139533",
+ "nom": "Marc Rozier",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 8,
+    "l": 0.75
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.26,
+     0.33999999999999997
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "MARC ROZIER",
+    "c": "#ecebe6",
+    "tc": "#2a2a2a"
+   }
+  ]
+ }
+}

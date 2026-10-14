@@ -1,0 +1,44 @@
+{
+ "id": "sag_18",
+ "cleabs": "BATIMENT0000000301136327",
+ "nom": "Immeuble",
+ "mur": "enduit#e8c0a8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 10.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

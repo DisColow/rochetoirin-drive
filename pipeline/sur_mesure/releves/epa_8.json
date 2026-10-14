@@ -1,0 +1,17 @@
+{
+ "id": "epa_8",
+ "cleabs": "BATIMENT0000000301226338",
+ "nom": "Stabulation",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#5a6a7a",
+ "pignons_clos": true
+}

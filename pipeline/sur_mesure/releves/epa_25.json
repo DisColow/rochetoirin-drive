@@ -1,0 +1,42 @@
+{
+ "id": "epa_25",
+ "cleabs": "BATIMENT0000000301231016",
+ "nom": "Coiffure",
+ "mur": "enduit#e8c890",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

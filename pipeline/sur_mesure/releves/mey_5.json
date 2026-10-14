@@ -1,0 +1,25 @@
+{
+ "id": "mey_5",
+ "cleabs": "BATIMENT0000000302138396",
+ "nom": "Selfbeton",
+ "mur": "bardage#d8c8a8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8a8a4",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12,
+ "extras": [
+  {
+   "t": "silo",
+   "face": "N",
+   "x": 0.3,
+   "d": 2,
+   "r": 1.6,
+   "h": 12,
+   "c": "#c82a2a"
+  }
+ ]
+}

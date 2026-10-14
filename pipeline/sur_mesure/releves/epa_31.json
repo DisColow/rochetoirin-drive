@@ -1,0 +1,14 @@
+{
+ "id": "epa_31",
+ "cleabs": "BATIMENT0000000290562835",
+ "nom": "Atelier",
+ "mur": "bardageh#4a4e56",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#4a4e56",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12
+}

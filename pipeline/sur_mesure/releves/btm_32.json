@@ -1,0 +1,52 @@
+{
+ "id": "btm_32",
+ "cleabs": "BATIMENT0000000302153058",
+ "nom": "Église",
+ "mur": "pierre#ece8e0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "ardoise",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 12.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.0,
+     6.0
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "clocher",
+   "face": "N",
+   "x": 0.2,
+   "w": 4,
+   "h": 26,
+   "fleche": 10
+  }
+ ]
+}

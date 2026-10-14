@@ -1,0 +1,14 @@
+{
+ "id": "epa_5",
+ "cleabs": "BATIMENT0000000301226368",
+ "nom": "Grange",
+ "mur": "beton#c8c4bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12
+}

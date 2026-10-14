@@ -1,0 +1,41 @@
+{
+ "id": "mey_26",
+ "cleabs": "BATIMENT0000000302139487",
+ "nom": "Église",
+ "mur": "pierre#a89070",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 10.0,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.0,
+     5.0
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "clocher",
+   "face": "O",
+   "x": 0.5,
+   "w": 3.5,
+   "h": 18,
+   "fleche": 6
+  }
+ ]
+}

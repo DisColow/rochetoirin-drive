@@ -1,0 +1,45 @@
+{
+ "id": "epa_24",
+ "cleabs": "BATIMENT0000000301230984",
+ "nom": "Bâtiment communal",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 7.0,
+ "faitage": 9.0,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 3,
+    "l": 3.6,
+    "c": "#a8acb0"
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

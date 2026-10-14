@@ -1,0 +1,32 @@
+{
+ "id": "btm_3",
+ "cleabs": "BATIMENT0000000302154426",
+ "nom": "Atelier",
+ "mur": "enduit#a8a8a4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#ecebe8"
+   }
+  ]
+ }
+}

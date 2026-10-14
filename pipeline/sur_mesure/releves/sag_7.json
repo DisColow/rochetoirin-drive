@@ -1,0 +1,29 @@
+{
+ "id": "sag_7",
+ "cleabs": "BATIMENT0000000301143437",
+ "nom": "Usine",
+ "mur": "enduit#d8b4a0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a85a4a",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "porte",
+    "x": [
+     0.8099999999999999,
+     0.89
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,32 @@
+{
+ "id": "mey_11",
+ "cleabs": "BATIMENT0000000302138379",
+ "nom": "Entrepôt",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 7.5,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#ecebe8"
+   }
+  ]
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "id": "lpa_7",
+ "cleabs": "BATIMENT0000002001968707",
+ "nom": "Hangar agricole",
+ "mur": "enduit#e0d8c8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a6a50",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "ouvert": true,
+ "c_poteaux": "#5a4a3a",
+ "pignons_clos": true
+}

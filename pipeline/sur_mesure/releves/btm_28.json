@@ -1,0 +1,56 @@
+{
+ "id": "btm_28",
+ "cleabs": "BATIMENT0000000302152873",
+ "nom": "L'Étal Batieland",
+ "mur": "enduit#d8c8a8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 10.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#ecebe8"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

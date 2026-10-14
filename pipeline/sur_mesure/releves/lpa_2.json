@@ -1,0 +1,45 @@
+{
+ "id": "lpa_2",
+ "cleabs": "BATIMENT0000000349419337",
+ "nom": "Atelier",
+ "mur": "enduit#c8c4bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "fibro#9a9a92",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.4
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#c8ccd0"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.2
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "id": "epa_32",
+ "cleabs": "BATIMENT0000000301229738",
+ "nom": "Usine",
+ "mur": "pierre#a89070",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.0,
+ "faitage": 4.0,
+ "densite": 12
+}

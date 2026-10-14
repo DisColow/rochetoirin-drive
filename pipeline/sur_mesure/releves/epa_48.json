@@ -1,0 +1,14 @@
+{
+ "id": "epa_48",
+ "cleabs": "BATIMENT0000000301229700",
+ "nom": "Usine",
+ "mur": "bardage#d8c8a0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a85a3a",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12
+}

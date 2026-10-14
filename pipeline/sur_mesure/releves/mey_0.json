@@ -1,0 +1,14 @@
+{
+ "id": "mey_0",
+ "cleabs": "BATIMENT0000000302138390",
+ "nom": "Entrepôt",
+ "mur": "bardage#a8acb0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8acb0",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 5.0,
+ "densite": 12
+}

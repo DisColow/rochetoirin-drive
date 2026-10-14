@@ -1,0 +1,58 @@
+{
+ "id": "btm_10",
+ "cleabs": "BATIMENT0000000302157675",
+ "nom": "Bar de la Pattie",
+ "mur": "pierre#b8a888",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "soubassement": "pierre#b8a888",
+ "h_soub": 3.4,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.8
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.0
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "BAR DE LA PATTIE",
+    "c": "#8a2a2a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

@@ -1,0 +1,46 @@
+{
+ "id": "mey_1",
+ "cleabs": "BATIMENT0000000302138383",
+ "nom": "Atelier",
+ "mur": "enduit#e8d8b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#a82a2a"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.6,
+     4.5
+    ],
+    "txt": "ATELIER",
+    "c": "#ffffff",
+    "tc": "#2a2a2a"
+   }
+  ]
+ }
+}

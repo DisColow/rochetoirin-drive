@@ -1,0 +1,54 @@
+{
+ "id": "btm_0",
+ "cleabs": "BATIMENT0000000302157728",
+ "nom": "Garage du Replat",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.6,
+     0.95
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "porte",
+    "x": [
+     0.36000000000000004,
+     0.44
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "GARAGE DU REPLAT",
+    "c": "#ffffff",
+    "tc": "#c02a2a"
+   }
+  ]
+ }
+}

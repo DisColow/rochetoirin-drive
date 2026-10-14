@@ -1,0 +1,43 @@
+{
+ "id": "btm_4",
+ "cleabs": "BATIMENT0000000302157729",
+ "nom": "Citron",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.0,
+ "faitage": 4.0,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.8
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "CITRON",
+    "c": "#ffffff",
+    "tc": "#c02a2a"
+   }
+  ]
+ }
+}

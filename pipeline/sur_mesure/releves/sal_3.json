@@ -1,0 +1,58 @@
+{
+ "id": "sal_3",
+ "cleabs": "BATIMENT0000000301686742",
+ "nom": "Bar Le Relais",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 8.0,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.6
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "BAR",
+    "c": "#ecebe6",
+    "tc": "#c02a2a"
+   }
+  ]
+ },
+ "extras": [
+  {
+   "t": "store",
+   "face": "NE",
+   "x": [
+    0.1,
+    0.5
+   ],
+   "y": 2.6,
+   "p": 1.4,
+   "c": "#a82a2a"
+  }
+ ]
+}

@@ -1,0 +1,29 @@
+{
+ "id": "sal_9",
+ "cleabs": "BATIMENT0000000330799639",
+ "nom": "Bâtiment",
+ "mur": "bardage#5a5e64",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a5e64",
+  "debord": 0.4
+ },
+ "egout": 4.0,
+ "faitage": 6.0,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "porte",
+    "x": [
+     0.5599999999999999,
+     0.64
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

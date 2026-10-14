@@ -1,0 +1,32 @@
+{
+ "id": "epa_15",
+ "cleabs": "BATIMENT0000000301223265",
+ "nom": "Menuiserie",
+ "mur": "bois#8a6a4a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#8a5a3a"
+   }
+  ]
+ }
+}

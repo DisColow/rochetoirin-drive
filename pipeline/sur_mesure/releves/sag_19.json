@@ -1,0 +1,69 @@
+{
+ "id": "sag_19",
+ "cleabs": "BATIMENT0000000301136333",
+ "nom": "Commerces",
+ "mur": "enduit#f0c080",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 10.0,
+ "faitage": 12.0,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.4,
+     5.8
+    ],
+    "n": 5,
+    "l": 1.2
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     7.2,
+     8.4
+    ],
+    "n": 5,
+    "l": 1.2
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     8.6,
+     9.5
+    ],
+    "txt": "GEMINA",
+    "c": "#2a5a8a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

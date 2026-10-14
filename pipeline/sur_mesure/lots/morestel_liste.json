@@ -1,0 +1,23 @@
+[
+{
+"k": 0,
+"cleabs": "BATIMENT0000000302104562",
+"usage": "Commercial et services",
+"nature": "Indifférenciée",
+"h": 4.2,
+"aire": 307,
+"vue": "E",
+"Lvue": 23,
+"R": {
+"id": "mor_0",
+"cleabs": "BATIMENT0000000302104562",
+"mur": "enduit#e0d8c8",
+"toit": {
+"type": "2pans",
+"matiere": "tuile"
+},
+"egout": 3.2,
+"faitage": 4.2
+}
+}
+]

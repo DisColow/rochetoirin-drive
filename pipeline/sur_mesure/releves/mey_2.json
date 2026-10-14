@@ -1,0 +1,32 @@
+{
+ "id": "mey_2",
+ "cleabs": "BATIMENT0000000302138397",
+ "nom": "Metalcob",
+ "mur": "bardage#d8d0b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8c8c4",
+  "debord": 0.4
+ },
+ "egout": 6.0,
+ "faitage": 7.5,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.6,
+     5.5
+    ],
+    "txt": "METALCOB",
+    "c": "#2e3036",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "id": "epa_18",
+ "cleabs": "BATIMENT0000000301224166",
+ "nom": "Église",
+ "mur": "pierre#b8a888",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 11.0,
+ "densite": 12,
+ "soubassement": "brique#a85a3a",
+ "h_soub": 0.0,
+ "faces": {
+  "SE": [
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     5.0,
+     6.0
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

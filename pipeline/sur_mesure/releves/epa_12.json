@@ -1,0 +1,32 @@
+{
+ "id": "epa_12",
+ "cleabs": "BATIMENT0000000301226341",
+ "nom": "Garages",
+ "mur": "beton#c8c4bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 2.6,
+ "faitage": 3.6,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     2.0
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#a8643a"
+   }
+  ]
+ }
+}
