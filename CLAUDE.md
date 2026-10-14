@@ -21,6 +21,9 @@
   assignée à `DisColow`, en français : contexte en deux lignes, étapes numérotées, ce qu'on attend en retour. Ne pas
   créer de doublon (vérifier les issues ouvertes). Ces issues ne sont pas des tâches pour Claude : les relire pour
   traiter les réponses de l'utilisateur, puis les refermer quand l'action est faite (en le disant dans un commentaire).
+- **Étiquettes des issues** (demande du 14/10) : `pending` quand l'utilisateur doit donner une réponse ou une
+  décision ; `à tester` quand il doit vérifier dans le jeu (livré). Elles remplacent `pour-toi`. Changer l'étiquette
+  dès que l'état change (réponse reçue -> retirer `pending` ; livraison -> `à tester`).
 - **Une issue GitHub par élément en cours ou à faire** (demande du 14/10) :
   - toute tâche en cours, à faire ou en attente a son issue (titre suivi du n° de tâche, état en tête du corps) ;
   - la créer dès qu'une nouvelle demande arrive ;
@@ -28,7 +31,7 @@
   - à la livraison, si l'utilisateur doit vérifier le rendu dans le jeu, la laisser OUVERTE avec un commentaire
     « livré en vX.Y, à vérifier dans le jeu » : c'est lui qui la ferme ; sinon la fermer (version et résumé).
 - **Jamais inactif** (demande du 14/10) : pendant que l'utilisateur teste ou qu'un build tourne, enchaîner sur
-  les autres issues ouvertes (hors `pour-toi` / en attente) au lieu d'attendre ; ne s'arrêter que s'il ne reste rien.
+  les autres issues ouvertes (hors `pending` / `à tester`) au lieu d'attendre ; ne s'arrêter que s'il ne reste rien.
 - **Reprise automatique** (routine horaire « Reprise après limite d'utilisation », h+07) : terminer d'abord le travail
   en cours jusqu'à la livraison complète, puis enchaîner sur les issues ouvertes (sauf `pour-toi` / en attente).
 - **API Claude (payante, crédit de l'utilisateur) : uniquement pour l'actualité du jour** (`actu.yml`, ~0,40 $/jour).
