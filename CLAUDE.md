@@ -27,6 +27,8 @@
   - commenter à chaque avancée notable ;
   - à la livraison, si l'utilisateur doit vérifier le rendu dans le jeu, la laisser OUVERTE avec un commentaire
     « livré en vX.Y, à vérifier dans le jeu » : c'est lui qui la ferme ; sinon la fermer (version et résumé).
+- **Jamais inactif** (demande du 14/10) : pendant que l'utilisateur teste ou qu'un build tourne, enchaîner sur
+  les autres issues ouvertes (hors `pour-toi` / en attente) au lieu d'attendre ; ne s'arrêter que s'il ne reste rien.
 - **Reprise automatique** (routine horaire « Reprise après limite d'utilisation », h+07) : terminer d'abord le travail
   en cours jusqu'à la livraison complète, puis enchaîner sur les issues ouvertes (sauf `pour-toi` / en attente).
 - **API Claude (payante, crédit de l'utilisateur) : uniquement pour l'actualité du jour** (`actu.yml`, ~0,40 $/jour).
