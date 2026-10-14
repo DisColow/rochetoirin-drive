@@ -13,7 +13,8 @@ from fetch_sons import bsb
 SR = 44100
 OUT = "../godot/assets/sfx"
 
-K = "data/sons/kenney_impact/Audio/%s.ogg"          # Kenney « Impact Sounds » (CC0)
+K = "data/sons/kenney_impact/Audio/%s.ogg"
+MK = "data/sons/mixkit_%d.wav"                      # Mixkit (fetch_sons.mixkit)          # Kenney « Impact Sounds » (CC0)
 SONS = {
     # soucoupe du gardien : vrombissement tournant (boucle), passage en piqué, rayon tracteur
     "soucoupe": dict(bsb=2121, t0=0.5, t1=9.4, loop=True, xf=0.8, db=-16),
@@ -61,6 +62,24 @@ SONS = {
     # plants des champs écrasés par la voiture (#8) : feuillage froissé (Miscanthus sinensis) et tiges qui cassent
     **{"feuillage_%d" % i: dict(bsb=n, trim=True, hp=150, db=-17, fi=0.01, fo=0.25) for i, n in enumerate((1811, 1812, 1813, 1814, 1815))},
     **{"brindille_%d" % i: dict(bsb=n, trim=True, hp=200, db=-19, fo=0.15) for i, n in enumerate((1299, 1300))},
+    # collisions façon jeux de voiture modernes (issue #28) : couches selon la violence du choc et la matière heurtée
+    # (enregistrements réels : BigSoundBank CC0 et Mixkit, licence libre)
+    **{"tole_%d" % i: dict(bsb=n, trim=True, db=-14, fo=0.2) for i, n in enumerate((1771, 1772, 1773, 1774, 1775))},
+    "tole_lourd_0": dict(bsb=1776, trim=True, db=-13, fo=0.3),
+    "tole_lourd_1": dict(file=MK % 2958, t0=0.6, t1=2.4, db=-13, fi=0.01, fo=0.5),
+    "verre_0": dict(file=MK % 1551, trim=True, db=-15, fo=0.3),
+    "verre_1": dict(file=MK % 759, trim=True, db=-15, fo=0.3),
+    "debris_0": dict(file=MK % 1562, t0=2.5, t1=6.0, db=-22, fi=0.05, fo=1.2),
+    **{"metal_%d" % i: dict(bsb=n, t0=1.6, t1=3.8, trim=True, db=-15, fo=0.4) for i, n in enumerate((2358, 2359, 2360))},
+    "metal_3": dict(file=MK % 2980, trim=True, db=-14, fo=0.4),
+    "metal_4": dict(file=MK % 833, trim=True, db=-15, fo=0.2),
+    "raclement": dict(bsb=683, t0=6.8, t1=10.4, loop=True, xf=0.5, hp=120, db=-18),
+    "pierre_0": dict(bsb=1022, t0=16.2, t1=17.6, trim=True, db=-14, fo=0.3),
+    "pierre_1": dict(bsb=1022, t0=11.4, t1=12.8, trim=True, db=-14, fo=0.3),
+    "poubelle_0": dict(bsb=1266, t0=3.4, t1=5.2, trim=True, db=-15, fo=0.4),
+    "poubelle_1": dict(bsb=1266, t0=8.4, t1=9.9, trim=True, db=-15, fo=0.4),
+    "poubelle_2": dict(file=MK % 389, trim=True, db=-16, fo=0.3),
+    "bois_casse_0": dict(file=MK % 2182, trim=True, db=-14, fo=0.1),
     **{"choc_sol_%d" % i: dict(file=K % ("impactSoft_heavy_%03d" % i), db=-13, lp=900) for i in range(5)},
 }
 

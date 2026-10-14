@@ -180,9 +180,9 @@ func _draw_layer(l: Control) -> void:
 	l.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 ## Flèche du joueur (écran), pointe vers dir.
-static func arrow(ci: CanvasItem, c: Vector2, dir: Vector2, s: float, col := Color8(255, 176, 32)) -> void:
+static func arrow(ci: CanvasItem, c: Vector2, dir: Vector2, s: float, col := Color8(255, 176, 32), ep := 3.0) -> void:
 	var d := dir.normalized(); var n := Vector2(-d.y, d.x)
 	var pts := PackedVector2Array([c + d * s, c - d * s * 0.8 + n * s * 0.75, c - d * s * 0.35, c - d * s * 0.8 - n * s * 0.75])
 	ci.draw_colored_polygon(pts, col)
 	pts.append(pts[0])
-	ci.draw_polyline(pts, Color.BLACK, 3.0, true)
+	ci.draw_polyline(pts, Color.BLACK, ep, ep > 1.5)

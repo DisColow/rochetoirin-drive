@@ -178,6 +178,7 @@ func _physique(c: Vector3) -> void:
 func _activer(it: Dictionary) -> void:
 	var t: int = it.t
 	var rb := RigidBody3D.new()
+	rb.set_meta("matiere", "metal")
 	rb.mass = MASSES[t]
 	rb.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 	rb.center_of_mass = Vector3(0, BOXES[t].y * 0.35, 0)

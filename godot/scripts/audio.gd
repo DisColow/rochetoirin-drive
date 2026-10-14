@@ -33,6 +33,7 @@ var _loops := []                 # [{f0, on, off}] triées par fréquence
 var _roll := {}                  # surface -> AudioStreamPlayer
 var _wind: AudioStreamPlayer
 var _squeal: AudioStreamPlayer
+var _racle: AudioStreamPlayer            # raclement contre un mur ou une glissière (boucle)
 var _beds := {}                  # nom -> [AudioStreamPlayer, volume courant]
 var _streams := []               # 2 sources 3D de ruisseau
 var _pool := []                  # sources 3D pour les sons ponctuels
@@ -76,6 +77,9 @@ func _ready() -> void:
 		_roll[s] = _player("roule_" + s, _bus_car)
 	_wind = _player("vent", _bus_car)
 	_squeal = _player("crissement", _bus_car)
+	_racle = _player("raclement", _bus_car)
+	if car and not car.body_shape_entered.is_connected(_forme_touchee):
+		car.body_shape_entered.connect(_forme_touchee)
 	# monde
 	for b in ["amb_jour", "amb_jour2", "amb_soir", "amb_nuit", "amb_village", "amb_ville", "amb_bois", "amb_autoroute"]:
 		_beds[b] = [_player(b, _bus_world), 0.0]
@@ -83,7 +87,7 @@ func _ready() -> void:
 		var p := _player3d(n, true)
 		p.unit_size = 9.0; p.max_distance = 160.0
 		_streams.append(p)
-	for i in 8:
+	for i in 14:          # chocs en couches : jusqu'à 4 sons à la fois
 		_pool.append(_player3d("", false))
 	_load_ambiance()
 	if car:
@@ -287,32 +291,22 @@ func _physics_process(dt: float) -> void:
 	else:
 		if _air_t > 0.35 and on:
 			_one_shot("choc_sol_%d" % (randi() % 5), car.global_position, clampf(_air_t * 0.8, 0.3, 1.0), 0.9)
+			if _air_t > 0.7:      # suspension en butée : la caisse claque
+				_one_shot("tole_%d" % (randi() % 5), car.global_position, clampf(_air_t * 0.5, 0.3, 0.8), randf_range(0.8, 0.95))
 		_air_t = 0.0
+	# raclement : glissade contre un mur, une glissière, une voiture (boucle, plus forte avec la vitesse)
+	var racle := 0.0
+	var touche := _contact_matiere()
+	if on and touche in ["metal", "dur"]:
+		racle = clampf((v - 2.5) / 12.0, 0.0, 1.0)
+	_vol(_racle, racle * 0.9)
+	if _racle:
+		_racle.pitch_scale = 0.85 + 0.3 * racle
 	if on and _hit_cd <= 0.0 and dv.length() > 2.2 and not car.carried:
-		var kind := "sol"
-		for b in car.get_colliding_bodies():
-			var c := _family(b)
-			if c != "":
-				kind = c
-				break
-		if kind != "sol" or dv.length() > 5.0:
-			var hard := dv.length()
-			var name := ""
-			match kind:
-				"dur":
-					name = ("choc_dur_%d" if hard > 7.0 else ("choc_moyen_%d" if hard > 4.0 else "choc_leger_%d")) % (randi() % 5)
-				"bois":
-					name = "choc_bois_%d" % (randi() % 5)
-				"plastique":
-					name = "choc_plastique_%d" % (randi() % 5)
-				_:
-					name = "choc_sol_%d" % (randi() % 5)
-			_one_shot(name, car.global_position, clampf(hard / 9.0, 0.25, 1.0), randf_range(0.9, 1.08))
+		var kind := touche
+		if kind != "" or dv.length() > 5.0:
+			impact(kind if kind != "" else "sol", dv.length(), car.global_position)
 			_hit_cd = 0.18
-			# v6.22 (demande de l'utilisateur) : choc qui arrête net la voiture contre le décor -> fracas fort, non
-			# positionné (bus « Voiture », pas étouffé en vue conducteur), deux impacts lourds superposés
-			if kind != "sol" and hard > 6.0:
-				_fracas(hard)
 
 var _fr: Array = []
 func _fracas(hard: float) -> void:
@@ -326,10 +320,105 @@ func _fracas(hard: float) -> void:
 	print("[fracas] choc de %.1f m/s contre le décor" % hard)
 	for i in 2:
 		var pl: AudioStreamPlayer = _fr[i]
-		pl.stream = _stream("choc_dur_%d" % (randi() % 5), false)
+		pl.stream = _stream("tole_lourd_%d" % (i % 2) if i == 0 else "choc_dur_%d" % (randi() % 5), false)
 		pl.pitch_scale = 0.78 if i == 0 else randf_range(0.95, 1.05)    # le premier, plus grave : la masse du pick-up
 		pl.volume_db = linear_to_db(g) + 6.0
 		pl.play()
+
+## Chocs façon jeux de voiture modernes (issue #28) : plusieurs couches d'enregistrements réels jouées ensemble selon
+## la matière heurtée et la violence du choc (force = variation de vitesse, m/s) :
+##  - l'objet : métal (poteau, glissière, voiture), pierre (mur, bâtiment), bois, haie, plastique (poubelle), sol ;
+##  - la caisse du Raptor qui encaisse (tôle), plus lourde au-delà de 8 m/s ;
+##  - au-delà de 11 m/s contre du dur : verre brisé, puis débris qui retombent.
+## Appelée aussi par casse.gd (objet cassé : casse = true ajoute le craquement du bois ou les débris).
+func impact(m: String, force: float, pos: Vector3, casse := false) -> void:
+	var g := clampf(force / 9.0, 0.25, 1.0)
+	var p := randf_range(0.92, 1.08)
+	match m:
+		"metal":
+			_one_shot("metal_%d" % (randi() % 5), pos, g, p)
+			_one_shot("tole_%d" % (randi() % 5), pos, g * 0.8, p)
+		"dur":
+			_one_shot("pierre_%d" % (randi() % 2), pos, g, p * 0.9)
+			_one_shot("tole_%d" % (randi() % 5), pos, g, p)
+		"bois":
+			_one_shot("choc_bois_%d" % (randi() % 5), pos, g, p)
+			if casse or force > 5.0:
+				_one_shot("bois_casse_0", pos, g, randf_range(0.85, 1.1))
+				_one_shot("brindille_%d" % (randi() % 2), pos, g * 0.7, p)
+			if force > 4.0:
+				_one_shot("tole_%d" % (randi() % 5), pos, g * 0.5, p)
+		"haie":
+			_one_shot("feuillage_%d" % (randi() % 5), pos, clampf(g * 1.3, 0.5, 1.0), p)
+			_one_shot("brindille_%d" % (randi() % 2), pos, g * 0.8, p)
+		"plastique":
+			_one_shot("poubelle_%d" % (randi() % 3), pos, g, p)
+			_one_shot("choc_plastique_%d" % (randi() % 5), pos, g * 0.6, p)
+		_:
+			_one_shot("choc_sol_%d" % (randi() % 5), pos, g, p)
+			if force > 7.0:
+				_one_shot("tole_%d" % (randi() % 5), pos, g * 0.6, p * 0.9)
+	if m in ["metal", "dur"] and force > 8.0 and not (casse and m == "metal"):
+		_one_shot("tole_lourd_%d" % (randi() % 2), pos, g, randf_range(0.85, 1.0))
+	if m in ["metal", "dur"] and force > 11.0 and not casse:
+		_one_shot("verre_%d" % (randi() % 2), pos, clampf(g * 0.9, 0.4, 0.9), randf_range(0.95, 1.05))
+		get_tree().create_timer(0.25).timeout.connect(func(): _one_shot("debris_0", car.global_position, 0.7, randf_range(0.9, 1.1)))
+	elif casse and m == "dur":
+		_one_shot("debris_0", pos, 0.5, randf_range(0.9, 1.1))
+	# choc qui arrête net la voiture : fracas fort, non positionné (bus « Voiture »)
+	if m in ["metal", "dur", "bois"] and force > 6.0 and not casse:
+		_fracas(force)
+
+## Matière d'un corps touché : méta « matiere » de la boîte de collision touchée (clôture, haie, muret), du corps ou
+## d'un parent, sinon d'après le chemin du nœud ; "" = route ou relief (roulage).
+func _matiere(b: Object, forme: Object = null) -> String:
+	if forme and forme.has_meta("matiere"):
+		return String(forme.get_meta("matiere"))
+	if b == null or not (b is Node):
+		return ""
+	if (b as Node).has_meta("surface"):
+		return ""
+	var n := b as Node
+	while n:
+		if n.has_meta("matiere"):
+			return String(n.get_meta("matiere"))
+		n = n.get_parent()
+	var path := String((b as Node).get_path()).to_lower()
+	if path.contains("haie"):
+		return "haie"
+	for k in ["vegetation", "fences", "tree", "arbre"]:
+		if path.contains(k):
+			return "bois"
+	if path.contains("animaux"):
+		return "sol"
+	for k in ["props", "poubelle", "bin"]:
+		if path.contains(k):
+			return "plastique"
+	for k in ["autoroute", "poles", "net"]:
+		if path.contains(k):
+			return "metal"
+	if path.contains("terrain") or path.contains("bord") or path.contains("relief"):
+		return ""
+	return "dur"
+
+## Dernière boîte touchée par la caisse (signal body_shape_entered) : la matière des clôtures dépend du tronçon.
+var _derniere_forme: Object = null
+var _dernier_corps: Object = null
+func _forme_touchee(_rid: RID, body: Node, body_shape: int, _local: int) -> void:
+	_dernier_corps = body
+	_derniere_forme = null
+	if body is CollisionObject3D:
+		var co := body as CollisionObject3D
+		var own := co.shape_find_owner(body_shape)
+		if own >= 0:
+			_derniere_forme = co.shape_owner_get_owner(own)
+
+func _contact_matiere() -> String:
+	for b in car.get_colliding_bodies():
+		var m := _matiere(b, _derniere_forme if b == _dernier_corps else null)
+		if m != "":
+			return m
+	return ""
 
 ## Famille de l'objet heurté : bâtiments, poteaux, voitures garées -> dur ; arbres, clôtures, haies -> bois ;
 ## poubelles, mobilier -> plastique ; routes et relief -> "".

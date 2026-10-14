@@ -26,6 +26,8 @@ const KINDS := {
 	"muret": [0.38, "choc_dur_%d", 0.22, 7.0],
 }
 const LIGNES := ["cloture", "haie", "muret"]      # fences.genres
+# matière de chaque genre pour les sons de choc (audio.impact, issue #28)
+const MATIERE := {"panneau": "metal", "lampadaire": "metal", "arbre": "bois", "cloture": "bois", "haie": "haie", "muret": "dur"}
 
 var main: Node
 var car: VehicleBody3D
@@ -260,8 +262,8 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 		_debris.append([corps, 0.0])
 		while _debris.size() > MAX_DEBRIS:
 			_rendre(_debris.pop_front()[0])
-	if main and main.get("sound") and main.sound.has_method("_one_shot"):
-		main.sound._one_shot(str(k[1]) % (randi() % 5), p + Vector3(0, 1, 0), clampf(spd / 10.0, 0.4, 1.0), randf_range(0.9, 1.1))
+	if main and main.get("sound") and main.sound.has_method("impact"):
+		main.sound.impact(MATIERE.get(genre, "dur"), maxf(spd, 3.0), p + Vector3(0, 1, 0), true)
 	if main and main.get("dust"):
 		var D = main.dust
 		var mat: Dictionary = D.MATIERES.get("poussiere", {})

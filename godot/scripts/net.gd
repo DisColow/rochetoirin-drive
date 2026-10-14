@@ -201,6 +201,7 @@ func _auto(id: int) -> Node3D:
 		roues.append([piv, w, front])
 	# caisse qu'on peut percuter (déplacée par le réseau)
 	var corps := AnimatableBody3D.new()
+	corps.set_meta("matiere", "metal")
 	corps.sync_to_physics = false
 	var cs := CollisionShape3D.new()
 	var bx: Array = meta.get("box", [1.76, 1.15, 4.24])

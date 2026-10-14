@@ -64,7 +64,7 @@ Voiture : « Ford Ranger Raptor 2019 » par David_Holiday (Sketchfab, licence CC
 Lampadaires : « Street Lantern » par Samuel Francis Johnson (Oneironauticus) (Sketchfab, licence CC BY 4.0).
 Soucoupe du gardien : « UFO » par sebslom (sketchfab.com/3d-models), licence CC BY 4.0.
 Pluie et orage : Sound Effect by Premankur Adhikary from Pixabay.
-Sons (moteur, roulement, ambiances, oiseaux, animaux, cloches, essuie-glaces, soucoupe…) : enregistrements de Joseph SARDIN - BigSoundBank.com (licence CC0) ; chocs : « Impact Sounds » de Kenney (CC0).
+Sons (moteur, roulement, ambiances, oiseaux, animaux, cloches, essuie-glaces, soucoupe…) : enregistrements de Joseph SARDIN - BigSoundBank.com (licence CC0) ; chocs : « Impact Sounds » de Kenney (CC0) et effets sonores de Mixkit.co (licence Mixkit, gratuite).
 Arbres : modèles Sketchfab (licences CC BY / CC0, auteurs listés dans le dépôt).
 Cultures (Sketchfab) : « Maize Corn Plant » par gilles.schaeck, « Wheat — FREE » par Yaroslav Karas, « Realistic Wheat » par Graphetta, « Sunflower » par zvanstone (licences CC BY 4.0), « Rapeseed, Brassica napus » par ffish.asia / floraZia (CC0).
 Animaux (Sketchfab, licence CC BY 4.0) : « Cow » par JosueBoisvert, « Sheep » par kenchoo, « Horse Rigged (Game Ready) » par abhayexe.

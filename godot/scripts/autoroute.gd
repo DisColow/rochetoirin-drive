@@ -133,6 +133,7 @@ func _add(k: Vector2i) -> void:
 	var f := a.slice(4).to_float32_array()
 	var root := Node3D.new()
 	var body := StaticBody3D.new()
+	body.set_meta("matiere", "metal")
 	root.add_child(body)
 	var by := {}
 	for i in cnt:

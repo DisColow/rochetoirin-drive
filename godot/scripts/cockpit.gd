@@ -20,6 +20,8 @@ var back: Node2D
 var lit: Node2D
 var glow: Node2D
 var front: Node2D
+var ecran: Control          # écran central (GPS)
+var gps_ecran: Control
 var mirror_vp: SubViewport
 var mirror_cam: Camera3D
 var meta: Dictionary
@@ -64,6 +66,20 @@ func _ready() -> void:
 		n.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 		vp.add_child(n)
 		set(k, n)
+	# écran central du Raptor : vrai GPS (mini-carte en tout petit, issue #29), entre la planche et le volant
+	ecran = Control.new()
+	ecran.clip_contents = true
+	ecran.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sc: Array = meta.get("screen_map", [314, 31, 48, 47])
+	ecran.position = Vector2(float(sc[0]), float(sc[1]))
+	ecran.size = Vector2(float(sc[2]), float(sc[3]))
+	vp.add_child(ecran)
+	vp.move_child(ecran, front.get_index())
+	gps_ecran = preload("res://scripts/gps.gd").new()
+	gps_ecran.mini = true
+	gps_ecran.set_anchors_preset(Control.PRESET_FULL_RECT)
+	gps_ecran.size = ecran.size
+	ecran.add_child(gps_ecran)
 	back.draw.connect(_draw_back)
 	lit.draw.connect(_draw_lit)
 	glow.draw.connect(_draw_glow)
@@ -134,6 +150,9 @@ func set_active(on: bool) -> void:
 	for r in _doors:
 		r.visible = false
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
+	if gps_ecran:
+		gps_ecran.car = car
+		gps_ecran.visible = on
 	mirror_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	if car and car.has_method("set_cockpit"):
 		car.set_cockpit(on)
@@ -184,6 +203,9 @@ func _process_corps(dt: float) -> void:
 	var off := Vector2(0, round(_bob))
 	for n in [lit, glow, front, back]:
 		n.position = off
+	if ecran:
+		var sc: Array = meta.get("screen_map", [314, 31, 48, 47])
+		ecran.position = Vector2(float(sc[0]), float(sc[1]) + float(vh - 100)) + off
 	# éclairage de l'habitacle selon l'heure
 	var amb: Color = [Color(0.96, 0.96, 0.96), Color(0.95, 0.86, 0.74), Color(0.78, 0.56, 0.46), Color(0.17, 0.19, 0.28)][_tod()]
 	lit.modulate = amb
