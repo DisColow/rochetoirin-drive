@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 14/10/2026 (v6.43)
+## État au 14/10/2026 (v6.44)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
 - Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). Après une régénération des bâtiments,
   remettre les `.import` publiés : `git fetch origin donnees` puis, pour chaque `world/buildings/*.import`,
@@ -12,6 +12,15 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - Street View : **plafond absolu 20 $** (`pipeline/sv_budget.py`, compteur `pipeline/sources/sv_depenses.json` :
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
+
+## Fait en v6.44 : multijoueur jusqu'à 4 (#139, issue #20)
+- `scripts/net.gd` (nœud « Net » de main) : ENet port 47601, annonces UDP 47602 (diffusion), état des voitures
+  20 Hz (unreliable_ordered), voitures distantes = body.glb + roues + AnimatableBody3D (collision), Label3D du nom,
+  couleur par rang ; course : `lancer_course` (hôte) -> `activities.course_reseau(route, rang)` (départ 9 m × rang
+  derrière) ; arrivées et gains du taxi partagés (toasts de classement). Menu : Activités > Multijoueur.
+- Essai local : hôte `-- --net-host`, invité `-- --drive-test --net-join=127.0.0.1` (lignes « [net] » toutes les 2 s).
+- Android : permissions access_network_state, access_wifi_state, change_wifi_multicast_state. Sans « multicast
+  lock » certains téléphones ne reçoivent pas les annonces : l'adresse de l'hôte est affichée pour la taper.
 
 ## Fait en v6.43 : cockpit du Ford Ranger Raptor (#133, issue #17)
 - `pipeline/build_cockpit.py` : dash() / top() / wheel() redessinés (rampes black, orange, magnesium, screen) en

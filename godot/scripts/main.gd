@@ -23,6 +23,7 @@ var birds: Node3D
 var props: Node3D
 var pools: Node3D
 var activities: CanvasLayer
+var net: Node
 var shops: Node3D
 var sport: Node3D
 var animaux: Node3D
@@ -316,6 +317,11 @@ func _ready() -> void:
 		radio.hud = hud
 	activities.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(activities)
+	# multijoueur sur le réseau local (v6.44)
+	net = preload("res://scripts/net.gd").new()
+	net.name = "Net"
+	net.main = self; net.car = car; net.act = activities
+	add_child(net)
 	hud.teleport.connect(_teleport)
 	cam_rig.hud = hud
 	editeur = preload("res://scripts/editeur_monde.gd").new()

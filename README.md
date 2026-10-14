@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.43.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.43/RochetoirinSimulator-v6.43.apk)**
+**[RochetoirinSimulator-v6.44.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.44/RochetoirinSimulator-v6.44.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,11 +16,12 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.43 :
-- **Vue cockpit du Ford Ranger Raptor** en pixel art : combiné numérique aux arcs orange, écran central vertical
-  avec carte et heure, volant trois branches à repère rouge et surpiqûres orange, palettes en magnésium, liseré
-  « Code Orange », console de plafond à interrupteurs, inscription RAPTOR.
-- Rappel : v6.42 clôtures des pâtures ; v6.41 terrains de sport ; v6.40 aide au maintien dans la voie ; v6.39 champs.
+Nouveautés de la v6.44 :
+- **Multijoueur jusqu'à 4** (Activités > Multijoueur) : un joueur héberge, les autres rejoignent sur le même Wi-Fi
+  ou le point d'accès d'un téléphone (partie trouvée toute seule, ou par son adresse). On voit et on percute les
+  Raptor des autres, chacun de sa couleur avec son nom ; l'hôte lance des courses pour tout le monde (classement
+  à l'arrivée) ; au taxi, classement commun des gains.
+- Rappel : v6.43 cockpit du Ranger Raptor ; v6.42 clôtures des pâtures ; v6.41 terrains de sport.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

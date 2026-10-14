@@ -297,9 +297,50 @@ func open_menu() -> void:
 		_btn(v, "Recommencer le dernier tracé" + ("" if _best == INF else "  (record " + _fmt(_best) + ")"), _course_again)
 	_btn(v, "Chasse au lieu (un joueur cache, l'autre cherche)", _hunt_menu)
 	_btn(v, "Taxi" + ("" if _rides == 0 else "  (%d courses, %s)" % [_rides, _euros(_total)]), _taxi_start)
+	_btn(v, "Multijoueur (jusqu'à 4)" + ("  — %d joueur(s)" % main.net.joueurs.size() if main.net and main.net.en_ligne() else ""), _net_menu)
 	if mode != "":
 		_btn(v, "Arrêter l'activité en cours", _stop_and_close)
 	_btn(v, "Fermer", _resume)
+
+# ================================================================ multijoueur (v6.44, net.gd)
+func _net_menu() -> void:
+	var net = main.net
+	net.chercher(true)
+	var v := _panel("Multijoueur")
+	if net.en_ligne():
+		var l := []
+		for j in net.joueurs.values():
+			l.append(j.nom)
+		_text(v, ("Vous hébergez la partie" if net.hote() else "Vous êtes dans une partie") + " : " + ", ".join(l) + ".")
+		if net.hote():
+			_text(v, "Adresse pour rejoindre : " + net.adresse() + ". Lancez une course (Activités > Course) : elle démarre pour tout le monde.", 24)
+		else:
+			_text(v, "L'hôte lance les courses ; au taxi, chacun ses clients et un classement commun des gains.", 24)
+		_btn(v, "Quitter la partie", func(): net.quitter(); _net_menu())
+		_btn(v, "Fermer", _resume)
+		return
+	var h := HBoxContainer.new(); h.add_theme_constant_override("separation", 12); v.add_child(h)
+	var nl := Label.new(); nl.text = "Votre nom :"; nl.add_theme_font_size_override("font_size", 28); h.add_child(nl)
+	var ne := LineEdit.new(); ne.text = net.nom; ne.custom_minimum_size = Vector2(380, 70)
+	ne.add_theme_font_size_override("font_size", 30); h.add_child(ne)
+	ne.text_changed.connect(func(t): net.sauver_nom(t))
+	_btn(v, "Héberger une partie (même Wi-Fi ou point d'accès du téléphone)", func(): net.sauver_nom(ne.text); if net.heberger(): _net_menu())
+	if net.parties.is_empty():
+		_text(v, "Aucune partie trouvée pour l'instant sur le réseau.", 24)
+	for ip in net.parties:
+		var p: Dictionary = net.parties[ip]
+		_btn(v, "Rejoindre la partie de %s (%d/4)" % [p.nom, p.n], func(): net.sauver_nom(ne.text); net.rejoindre(ip); _resume())
+	var h2 := HBoxContainer.new(); h2.add_theme_constant_override("separation", 12); v.add_child(h2)
+	var ie := LineEdit.new(); ie.placeholder_text = "adresse de l'hôte (ex. 192.168.1.20)"
+	ie.custom_minimum_size = Vector2(520, 70); ie.add_theme_font_size_override("font_size", 28); h2.add_child(ie)
+	_btn(h2, "Rejoindre", func(): net.sauver_nom(ne.text); net.rejoindre(ie.text); _resume())
+	_btn(v, "Actualiser", _net_menu)
+	_btn(v, "Fermer", func(): net.chercher(false); _resume())
+
+## Course lancée par l'hôte : même tracé, départ décalé derrière les autres selon le rang du joueur.
+func course_reseau(route: Array, rang: int) -> void:
+	_route = route.duplicate()
+	_course_start(rang)
 
 func _resume() -> void:
 	_close_menu(true)
@@ -396,7 +437,7 @@ func _course_marks() -> void:
 				b.disabled = n < 2
 	map.queue_redraw()
 
-func _course_start() -> void:
+func _course_start(rang := -1) -> void:
 	if _route.size() < 2:
 		hud.toast("Il faut un départ et une arrivée")
 		return
@@ -409,7 +450,15 @@ func _course_start() -> void:
 	map.visible = false
 	hud._show_drive(true)
 	var s = _start_at(_route[0], _rp(_route[1]))
+	if rang > 0:
+		# course en multijoueur : départ en file, 9 m derrière le joueur précédent
+		var dir := (_rp(_route[1]) - _rp(_route[0])).normalized()
+		var p: Vector3 = s[0] - Vector3(dir.x, 0.0, dir.y) * 9.0 * rang
+		p.y = _ground(p.x, p.z, p.y) + (s[0].y - _ground(s[0].x, s[0].z, s[0].y))
+		s[0] = p
 	hud.teleport.emit(s[0], s[1])
+	if rang < 0 and main.net and main.net.hote():
+		main.net.lancer_course(_route)
 	_next = 1
 	_count = 3.99
 	_t = 0.0
@@ -457,6 +506,8 @@ func _course_process(dt: float) -> void:
 			var rec := _t < _best
 			_best = minf(_best, _t)
 			hud.toast("Arrivée ! %s%s" % [_fmt(_t), "  — record !" if rec else "  (record %s)" % _fmt(_best)], 6.0)
+			if main.net:
+				main.net.arrivee_course(_t)
 			_set_status("Arrivée en %s\n★ pour recommencer ou créer un autre tracé" % _fmt(_t))
 			_status_t = 12.0
 			_clear_world()
@@ -729,6 +780,8 @@ func _taxi_drop() -> void:
 	var tip: float = maxf(0.0, fare * ([0.0, 0.0, 0.05, 0.1, 0.15, 0.25][stars] + 0.06 * float(talk.sat)))
 	_rides += 1
 	_total += fare + tip
+	if main.net:
+		main.net.gains_taxi(_total, _rides)
 	_bip.play()
 	var conv := ""
 	if float(talk.sat) >= 1.5:
