@@ -14,21 +14,16 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
 ## En cours : tout le #126 (demande « Fais tout le 126 », 13/10)
-- Budget : photos jusqu'à 19 $ au total (marge 1 $ sous le plafond absolu), UNE photo par bâtiment
-  (`fetch_sv_batiments.py tous <commune> --une --jusqua=19`, panoramas non Google écartés), communes par distance
-  à Rochetoirin (boucle en arrière-plan : scratchpad fetch_all.log ; à ~13,6 $ au moment d'écrire).
+- **Photos terminées : compteur à 19,00 $ (2 714 photos). PLUS AUCUNE photo Street View ne peut être achetée.**
 - Par commune : `python3 sur_mesure/lots/planches.py <lot> <commune> <préfixe>` (liste + planches 3×3 dans le
-  scratchpad rev/), fiches dans `sur_mesure/lots/<lot>.py` (aides B()/O(), S = skip), `fiches.py <lot>`,
+  scratchpad rev/), fiches dans `sur_mesure/lots/<lot>.py` (aides B()/D()/IC(), S = skip), `fiches.py <lot>`,
   `batiment.py <ids>` (atlas réduit : `densite` 12 px/m, tailles 256-1024).
-- Communes faites (fiches + modèles) : Saint-Chef (sc, v6.33), Saint-Jean-de-Soudain (sjs), Montcarra (mtc),
-  Cessieu (ces), La Chapelle-de-la-Tour (lct), Vignieu (vgn), Sainte-Blandine (sbl), Vasselin (vas),
-  Ruy-Montceau (rmc), Saint-Victor (svc), Saint-Clair (scl), Dolomieu (dol), Saint-Sorlin (ssm), Sérézin (srz),
-  Saint-Didier (sdt), Montagnieu (mtg), Faverges (fav), Saint-Savin (ssv), Vézeronce-Curtin (vzc).
-- La Tour-du-Pin : boucle interrompue pour la correction des panoramas (7 bâtiments seulement) : relancer
-  `fetch_sv_batiments.py tous "La Tour-du-Pin" --une --jusqua=19` à la fin de la boucle.
-- Ensuite : build_buildings + build_shops (en cours), remettre les `.import` publiés, patcher les nouveaux atlas
-  (mode 2), import, comparatif d'échantillon, publier_donnees, version. Puis méthode gratuite (orthophoto + BD TOPO)
-  pour les bâtiments sans photo.
+- Modèles faits et tuiles régénérées (v6.34) : sc, sjs, mtc, ces, lct, vgn, sbl, vas, rmc, svc, scl, dol, ssm,
+  srz, sdt, mtg, fav, ssv, vzc, suc, srm, niv.
+- Fiches écrites, modèles PAS encore construits : btm, sal, lpa, sag, mey, cor, mor, epa, bgj (Bourgoin, 380),
+  ltp (La Tour-du-Pin, 5). Ensuite : `batiment.py` sur ces relevés, build_buildings + build_shops, `.import`
+  publiés, atlas mode 2, import, livraison.
+- Puis méthode gratuite (orthophoto + BD TOPO) pour les bâtiments sans photo.
 
 ## Fait en v6.33 : Saint-Chef (#126)
 - Photos Street View de Saint-Chef payées (accord de l'utilisateur) : compteur 605 photos = 4,24 $ / 20 $.
