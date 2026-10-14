@@ -105,3 +105,5 @@ FICHES = {
     109: dict(nom="Dépôt", mur="pierre#a88a6a", toit="2pans:tuile", h=(4.0, 5.5), o=["garage:1:#e8e8e8"]),
     114: dict(nom="Hangar", mur="bardage#e4e4e0", toit="2pans:bac#c8c8c4", h=(3.0, 4.0)),
 }
+
+FICHES[67] = S   # église : déjà un modèle dédié (landmarks.CHURCHES)

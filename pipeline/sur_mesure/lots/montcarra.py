@@ -12,3 +12,5 @@ FICHES = {
     10: dict(nom="Hangar à foin", ouvert=True, c_poteaux="#7a6a58", toit="2pans:tuile", h=(4.5, 7.0)),
     11: dict(nom="Hangar en bois", mur="bois#8a5a3a", toit="2pans:bac#b04a3a", h=(4.0, 6.0)),
 }
+
+FICHES[7] = S   # église : déjà un modèle dédié (landmarks.CHURCHES)

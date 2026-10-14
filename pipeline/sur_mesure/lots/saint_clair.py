@@ -94,3 +94,5 @@ FICHES = {
     136: B("Tunnel", "bardage#2a9a8a", "berceau:bac#2a9a8a", (0.5, 3.5)),
     138: B("Poulailler", "bardage#3a4a3a", "2pans:fibro#a8a8a0", (1.8, 3.2)),
 }
+
+FICHES[56] = S   # église : déjà un modèle dédié (landmarks.CHURCHES)

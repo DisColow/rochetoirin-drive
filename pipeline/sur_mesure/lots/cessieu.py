@@ -90,3 +90,5 @@ FICHES = {
              o=["mat:0.0-1.0:bardage#3a5aa0", "garage:2:#2a2a2a", "ens:MGM LOCATION:#f0c020:#1a1a1a"]),
     89: dict(nom="Usine", mur="bardage#d8dadc", toit="plat", h=(5.0, 5.0), o=["fen:6:1.2-2.4"]),
 }
+
+FICHES[38] = S   # église : déjà un modèle dédié (landmarks.CHURCHES)
