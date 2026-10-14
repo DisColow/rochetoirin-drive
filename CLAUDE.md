@@ -41,6 +41,8 @@
   s'écrivent par Claude Code directement (pas par l'API). Les rebonds du 12/10 (`taxi_rebonds.py`, ~4,50 $) ont été
   générés par l'API sans cet accord : erreur à ne pas reproduire ; l'action `taxi_rebonds.yml` est en lancement
   manuel seulement.
+- **Contrôle avant chaque livraison** (issue #30) : `tools/verifier.sh` (scripts GDScript, ~1 min) ; `--complet` ajoute
+  les essais en jeu sans écran (casse, champ, conduite, ~30 min) après une modification du jeu. 0 erreur exigée.
 - **Notification à la fin de chaque tour** : quand le travail est fini et que c'est à l'utilisateur d'écrire, lui
   envoyer une notification (outil PushNotification, message court en français : ce qui est prêt / ce qu'on attend de lui).
 - Après chaque livraison (modification du jeu, nouvel APK), **mettre à jour ce dépôt systématiquement** :
@@ -63,8 +65,9 @@
   aux structures extérieures, bâtiment reconnaissable plutôt qu'exact, corriger le volume existant par une fiche
   d'une ligne plutôt que modéliser.
 - **La logique prime sur la donnée brute** (cf. `docs/kb/21-coherence.md`) : rien sur les routes/trottoirs, clôtures et
-  haies continues, pas de routes superposées, pas de taches ni de piscines absurdes. `python3 tools/check_coherence.py`
-  doit rapporter 0 violation avant de livrer.
+  haies continues, pas de routes superposées, pas de taches ni de piscines absurdes. (`tools/check_coherence.py` ne vaut
+  que pour l'ancienne version du jeu : sur `godot`, contrôles propres à chaque script du pipeline, ex. « rien sur la
+  route » de `build_fences.py` et `build_sport.py`.)
 
 ## Économie d'utilisation (demande du 14/10)
 - Le suivi est dans les issues GitHub et docs/REPRISE.md : liste de tâches interne réduite aux tâches en cours.
@@ -238,7 +241,7 @@
   suivants exportent un paquet cumulatif (`--export-patch --patches base.pck`) joint à la release `vX.Y` et inscrit
   au catalogue. (Ancienne règle, caduque : ne changer `version/code` que si un APK complet était nécessaire (moteur Godot, permissions Android,
   `boot.gd`, réglages du projet).)
-- **Éditeur de monde** : bâtiments refaits sur demande dans `pipeline/sources/bati_editeur.txt` (cleabs + relevé
+- **Éditeur de monde : bâtiments refaits sur demande** : bâtiments refaits sur demande dans `pipeline/sources/bati_editeur.txt` (cleabs + relevé
   Street View, photos dans le cache privé `streetview/editeur/`), appliqués par `build_buildings.py`.
 - **Performances** : `scripts/perf_monitor.gd` (images/s mesurées en temps réel — le delta de Godot est plafonné
   quand le jeu rame —, 1 % bas, à-coups > 50 ms, appels de dessin, coût de chaque système : chaque `_process` est
@@ -374,99 +377,6 @@
   commentaire », façade = code de `shops_bati.txt` ou `crepi#rrggbb`, volets = code ou `#rrggbb`. Depuis la v6.20, la méthode pour les bâtiments non résidentiels (directive du 13/10) n'est plus la fiche mais **celle du
   restaurant « Le Rochefestin »** : modèle sur mesure en aplats d'après Street View (voir `docs/kb/aplats.md`). La
   fiche ne sert plus que pour un bâtiment peu visible sur les photos.
-- **Performances** : `scripts/perf_monitor.gd` (images/s mesurées en temps réel — le delta de Godot est plafonné
-  quand le jeu rame —, 1 % bas, à-coups > 50 ms, appels de dessin, coût de chaque système : chaque `_process` est
-  enveloppé et chronométré par `PerfMon.note()` ; `[perf]` dans le journal ; relevé de 3 min depuis ⚙ envoyé en ticket
-  GitHub « Performances »). Les temps `Performance.TIME_PROCESS` et `viewport_get_measured_render_time_*` sont faux en
-  Compatibility : ne pas s'y fier. Réglage ⚙ > Performances (Économie, Équilibré, Élevée, Maximale, Auto ; `NIVEAUX` de
-  `main.gd` : anticrénelage, ombres, seuil de détail `mesh_lod_threshold`, résolution 3D, distances d'affichage `VIEW`
-  des systèmes, étalonnage ; végétation/herbe/cultures par leurs `LEVELS`) ; Auto = Équilibré puis ajusté toutes les
-  30 s d'après les images/s. Tuiles des routes et bâtiments lues en arrière-plan (`scripts/chargeur.gd`), végétation
-  préparée sur un fil de travail, shaders préchauffés sous le voile de démarrage (`_prechauffer`). Essai
-  `--perf-breakdown` : coût de chaque système et réglage (ombres ≈ 1/3 des triangles) ; captures `{"niveau": 0-3}`.
-- **Cultures fauchées** (v6.36, #131 : les tiges explosent en éclats de la couleur de la culture, `dust.eclats()`, couleurs `ECLATS` de `trample.gd` ; les bandes sont rasées à 10-20 cm dans la trace ; essai `-- --drive-test --champ-test [--champ-type=0-3]`, captures `user://shots/champ_N.png`). Ancien fonctionnement (v6.5, refait en v6.9 : issue #8, couchées à 90°) (`scripts/trample.gd`) : carte des passages
-  de 96 m qui suit la voiture (256 px, R/V = sens, B = écrasement, A = ligne de l'atlas des cultures + 1 sur 8), peinte
-  **seulement dans les champs** (`crops.field_at`), lue par `crops.gdshader` (`trample_tex`, `trample_zone`) au sommet
-  ET au centre de chaque bande : les bandes basculent à plat autour de leur pied, perpendiculairement à la bande ; le
-  dessus des céréales (nappe en carrés de 4 m : une trace passe entre ses sommets) est **découpé au pixel** dans la
-  trace, et le relief (`terrain.gdshader` : `trample_tex`, `crops_albedo`) y dessine les tiges couchées dans le sens
-  de la marche.
-  Essais : `--trample-debug` (journal), `--trample-all` (tout couché) ; captures `{"cam": 0, "place": [x, y, z, cap]}`.
-- **Mémoire vidéo** (image figée sur le téléphone : la 3D cesse d'être dessinée quand la mémoire vidéo sature, l'écran
-  alterne alors entre les deux dernières images) : **toute texture de plus de 4 Mo doit être importée compressée**
-  (`compress/mode=2`, sauf pixel art de `assets/ui` et `assets/cockpit`) ; le sprite de la voiture n'est chargé qu'à
-  la demande (`car.set_sprite_mode`). Contrôle : `-- --mem-test` (mémoire vidéo, textures, tampons). **Le gel persiste
-  en v6.7 (issue #4)** : témoin de rendu depuis la v6.10 (`crash_report.gd` : vignette 4 × 4 px relue toutes les 5 s de
-  temps réel ; deux échecs -> `[figé]` dans le journal, `user://fige.txt`, bandeau « Image figée » au lancement
-  suivant avec rapport) ; essai : `-- --fige-test` (simule l'arrêt du rendu). Attendre un rapport avant de corriger.
-- **Décor destructible** (v6.9, issue #7, `scripts/casse.gd`) : panneaux de signalisation (positions
-  `world/panneaux.bin` relevées dans les tuiles de routes par `pipeline/build_casse.py`), lampadaires (`poles.pieds`,
-  `poles.casser`), clôtures (grillages, panneaux, poteaux : `fences.lignes`, `fences.breche` ; **haies et murets aussi
-  depuis la v6.24** : `fences.genres`, vitesse minimale `KINDS[…][3]`, sinon obstacles) et **petits arbres seulement** (moins de 9 m, `vegetation.casser` ; les gros restent des obstacles, choix de
-  l'utilisateur). Détection avant contact (boîte de la voiture élargie), objet caché (exemplaire de MultiMesh : méta
-  `origines` posée par `cells.gd`) ou effacé par le shader (`env_casse` d'`env.gdshaderinc`, uniform `casse_pts` : 16
-  points, simple/fence), débris physique 15 s, poussière et éclats (`dust.gd`), son selon la matière, vitesse réduite
-  selon l'objet. Tout réapparaît au rechargement de la tuile. Essai : `-- --casse-test [--casse-debug]` (captures
-  `user://shots/casse_*.png`).
-- **Écran de chargement** (v6.14, `scripts/chargement.gd`) : `main._ready` construit le monde par **étapes nommées**
-  (`await _etape("Routes")`…), une image dessinée entre chaque ; le voile (`voile_demarrage.gd`, posé aussi sur PC)
-  affiche l'étape et une barre calée sur la durée de chaque étape mesurée au lancement précédent
-  (`user://chargement.cfg`, défauts `DEFAUT`). Pendant le chargement : `set_process(false)`, voiture tenue
-  (`car.hold`) ; les essais attendent `Chargement.fini`. Essai :
-  `-- --capture-chargement` (captures `user://shots/chargement_N.png`). Toute nouvelle grosse initialisation :
-  l'ajouter dans une étape (ou en créer une, avec sa durée par défaut).
-- **Jeu sans friction** : rien ne doit gêner le joueur (démarrage direct, commandes souples, pas d'à-coups de
-  chargement). **Plus de remise sur la route automatique quand la voiture est bloquée ou coincée** (demande de
-  l'utilisateur, v6.22).
-  - Restent : le bouton rouge (« replacer »), la voiture retournée, la chute hors du monde.
-- **Conduite (v6.22)** :
-  - Freinage façon jeu : freins des roues + `BRAKE_AIDE` (7 m/s² roues au sol), soit ≈ 16 m/s², 100 à 0 km/h en
-    ~24 m. Essai : `-- --drive-test --brake-test --drive-from=-8410.95,221,-7187.25,45.2` (longue ligne droite).
-  - Roues :
-    - rayon physique 0,40 m (le modèle n'en fait que 0,267 m), axe abaissé d'autant ;
-    - roue affichée à l'échelle (0,40 − 0,045) / 0,267, car la physique de Godot enfonce la roue de ~4,5 cm ;
-    - essai `--roues-test` (enfoncement mesuré), capture `{"cam": 0, "place": [...], "cote": 4.5}` (vue de côté).
-  - Fracas fort (`audio._fracas`, bus « Voiture ») quand un choc contre le décor arrête net la voiture.
-  - Arbres cassables : seulement ceux affichés (`vegetation.visibles(k)`, densité réglable). Avant, des arbres
-    non dessinés « surgissaient » cassés devant la voiture.
-- **Relief chargé autour de la voiture** (v6.16, issue #11, `scripts/relief.gd`) : plus de `data_directory` (qui
-  lisait les 173 régions d'un bloc : 765 Mo, 8 s) ; régions lues d'avance sur un fil (`R_LIRE` 2,6 km), mises dans
-  Terrain3D à moins de `R_CHARGE` (1,8 km), libérées au-delà de `R_GARDE` (`remove_regionl` puis `save_region` vers
-  un dossier vide : seul moyen de les sortir de la mémoire de Terrain3D 1.0.2) ; ajouts et retraits groupés en une
-  seule `update_maps()` (Terrain3D refait alors toutes ses textures, ≈ 3 ms par région). Au démarrage et à la
-  téléportation : régions à moins de 1,2 km chargées tout de suite (`charger_autour`). **Pas de popping** : ailleurs,
-  relief de remplacement (`relief.gdshader`, maillage de 32 m) habillé de l'albédo, des normales et de la matière du
-  vrai relief cuits par `tools/bake_relief.gd` (`bake_mode` de `terrain.gdshader`), effacé là où le vrai relief est
-  chargé (masque 32 × 32), bordure de 32 m glissée dessous. Altitude du sol partout : `Relief.hauteur(p)` (vrai relief,
-  sinon grille de secours `world/relief/hauteurs.bin`) — **ne plus appeler `terrain.data.get_height`**. Essais :
-  `godot --path godot --script res://tools/essai_relief.gd -- --relief-debug` (trajet de 16 km, mémoire, durées),
-  captures `{"relief": 99999}` (tout le vrai relief) contre `{"relief": 1800}`, `"nuages": false` pour comparer.
-- **Bâtiments sur mesure** (v6.17, `scripts/sur_mesure.gd` + `sur_mesure.gdshader`, `world/sur_mesure.json`) : un
-  modèle par bâtiment refait d'après Street View, façades « en aplat » (choix de l'utilisateur : ouvertures, volets,
-  devanture, enseignes peintes dans un atlas avec leurs ombres ; en volume seulement toits, débords, annexes,
-  escaliers, rampes, enseignes en drapeau…). Le bâtiment BD TOPO et la devanture remplacés (`remplace_bati`,
-  `remplace_commerce`) sont sautés par `build_buildings.py` et `build_shops.py`. **Boulangerie de Rochetoirin**
-  (`pipeline/boulangerie/` : `releve.md` = relevé, `calage.py` = fil de fer projeté sur les photos,
-  `build_boulangerie.py` = atlas + modèle, `abords.py` = haie/grillage retirés devant la façade, à relancer après
-  `build_fences.py`) ; photos dans le cache privé `streetview/boulangerie/` (index : position exacte de chaque
-  caméra). Mesures par visée depuis plusieurs panoramas (position, cap, inclinaison, champ connus). Comparatif :
-  captures `--shots` aux mêmes positions/caps que les photos, `--resolution 640x640` (champ vertical = horizontal).
-  **Photos Google jamais dans ce dépôt** (planches photo/jeu : cache privé seulement). Régénérer les bâtiments
-  refait toutes les tuiles : vérifier que seules celles du bâtiment changent (empreintes contre la branche
-  `donnees`) et remettre les `.import` publiés (Godot leur donne de nouveaux identifiants).
-- **Aplats partout** (v6.18, directive de l'utilisateur, `docs/kb/aplats.md`) : `build_buildings.py` ne fait plus
-  aucune micro-géométrie (`wall_edge` : menuiserie au nu du mur, plus de tableaux, d'appuis saillants ni de kit 3D
-  fenêtre/volet/porte/garage/marquise ; volets et appuis = quads collés à 1 cm ; fenêtres de comble idem) ;
-  `build_bld_tex.py` peint l'ombre d'embrasure dans les couches fenêtre/porte/vitrine (`embrasure()`) ;
-  `build_shops_plats.py` (après `blender_commerces.py`) remplace vitrine, porte, pilastre, coffre de rideau, porte
-  sectionnelle, bardage, bandeau, caisson d'enseigne et affiche par des quads plats (une vitrine : 652 -> 14
-  triangles). Le kit `assets/maisons` ne sert plus qu'aux faîtières, mitrons, antennes et paraboles.
-- **Fiches rapides des bâtiments** (v6.18, `pipeline/sources/bati_fiches.txt`, `fiches_overrides` de
-  `build_buildings.py`) : « cleabs niveaux toit façade volets [usage=… chainage=#rrggbb porche=tuile|verre h=…] ␣␣#
-  commentaire », façade = code de `shops_bati.txt` ou `crepi#rrggbb`, volets = code ou `#rrggbb`. Méthode voulue par
-  l'utilisateur pour les bâtiments non résidentiels (2 583 dans la zone) : garder le volume généré et le rendre
-  reconnaissable (couleur, matériaux, aplats, structures extérieures). Premier essai : restaurant Le Rochetoirin
-  (`BATIMENT0000000301133202`, rouge à chaînages jaunes, porche en tuiles).
 - **Performances, 5 directives de l'utilisateur** (v6.19, `docs/kb/performances.md`, à respecter partout) :
   - tuiles lues en arrière-plan (`chargeur.gd`, désormais aussi pour l'eau) ;
   - pas d'occlusion possible en Compatibility ; LOD générés à l'import ;
