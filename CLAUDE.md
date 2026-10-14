@@ -70,7 +70,8 @@
 - Moteur **Godot 4.4.1** (`godot/`) + **Terrain3D 1.0.2**, rendu **Compatibility (OpenGL ES 3)** : le rendu Vulkan
   plante avec Terrain3D sur le Vulkan logiciel du conteneur, impossible à vérifier ; Compatibility est vérifiable ici.
 - Données : `pipeline/` (Python) -> `godot/world`, `godot/terrain`, `godot/assets` (générés, non versionnés).
-  Ordre : `routes_plan.py` (zone : couloirs et communes ; Rochetoirin, Saint-Chef et Bourgoin-Jallieu entières, d'après
+  Ordre : `routes_plan.py` (zone : couloirs et communes ; Rochetoirin, Saint-Chef, Bourgoin-Jallieu, Montcarra, Saint-Didier-de-la-Tour et La Chapelle-de-la-Tour entières
+  (v6.45), routes Montcarra / Chamont / Saint-Chef > Bourgoin-Jallieu ; d'après
   `data/communes.json` de `fetch_communes.py`), `fetch_dem.py` (relief : MNT LiDAR HD 1 m moyenné à 2 m ; jamais RGE ALTI brut, servi en marches d'escalier), `fetch_ortho.py`, `fetch_polyhaven.py`, `fetch_buildings.py` (bâtiments +
   ralentisseurs), `fetch_vegetation.py` (LiDAR HD MNH, zones de végétation, haies, RPG), `fetch_parking.py` (parkings OSM), `build_roads.py`
   (autoroutes : `autoroute_geom.py` — tracé, profil, terre-plein, voies auxiliaires, marquages ; parkings :

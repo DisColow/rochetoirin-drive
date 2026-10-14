@@ -1,7 +1,7 @@
 """Parkings (OSM) : contours amenity=parking (surface, type), places amenity=parking_space s'il y en a.
 Sortie : data/osm_parking.json (géométries incluses), pour build_parking.py."""
 import json, time, urllib.parse, urllib.request
-BB = "45.53,5.19,45.67,5.53"
+BB = "45.51,5.19,45.67,5.53"
 q = """[out:json][timeout:300];(
 way["amenity"="parking"](%(b)s);
 relation["amenity"="parking"](%(b)s);

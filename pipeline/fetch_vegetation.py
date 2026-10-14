@@ -9,7 +9,7 @@ import geo
 REG = 1024.0
 WMS = "https://data.geopf.fr/wms-r/wms"
 WFS = "https://data.geopf.fr/wfs/ows"
-BB = (45.53, 5.19, 45.67, 5.53)
+BB = (45.51, 5.19, 45.67, 5.53)
 
 
 def get(u, tries=6):

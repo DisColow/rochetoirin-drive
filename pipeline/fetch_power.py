@@ -1,7 +1,7 @@
 """Lignes électriques (OSM : lignes haute tension et pylônes, lignes basse / moyenne tension et poteaux) et lampadaires.
 Sortie : data/osm_power.json (géométries incluses)."""
 import json, time, urllib.parse, urllib.request
-BB = "45.53,5.19,45.67,5.53"
+BB = "45.51,5.19,45.67,5.53"
 q = """[out:json][timeout:300];(
 way["power"~"^(line|minor_line|cable)$"](%(b)s);
 node["power"~"^(tower|pole)$"](%(b)s);

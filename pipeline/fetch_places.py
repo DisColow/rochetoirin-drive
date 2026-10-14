@@ -4,7 +4,7 @@ musées, châteaux, parcs, places) : jamais de commerces ni de marques.
 Sortie : data/osm_places.json (éléments avec centre)."""
 import json, time, urllib.parse, urllib.request
 
-BB = "45.53,5.19,45.67,5.53"
+BB = "45.51,5.19,45.67,5.53"
 SEL = [
     'nwr["railway"~"^(station|halt)$"]["name"]',
     'nwr["amenity"~"^(townhall|school|college|university|hospital|clinic|post_office|library|police|fire_station|'
