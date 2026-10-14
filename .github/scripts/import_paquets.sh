@@ -5,7 +5,13 @@
 # réimporter. À lancer depuis godot/.
 H=${HORS:-/tmp/hors_import}
 D="assets/voix assets/sur_mesure world/buildings world/veg world/roads world/fences world/crops world/poles world/animaux world/props world/water world/bord"
-imp() { timeout 3000 godot --headless --import > /tmp/import_$1.log 2>&1; local c=$?; echo "import $1 : code $c"; [ $c -ne 0 ] && tail -5 /tmp/import_$1.log; }
+imp() {
+  timeout 3000 godot --headless --import > /tmp/import_$1.log 2>&1
+  local c=$?
+  echo "import $1 : code $c"
+  if [ $c -ne 0 ]; then tail -5 /tmp/import_$1.log; fi
+  return 0
+}
 rm -rf $H; mkdir -p $H
 for d in $D; do
   [ -d $d ] || continue
@@ -29,3 +35,4 @@ for d in $D; do
 done
 imp final
 imp final2
+exit 0
