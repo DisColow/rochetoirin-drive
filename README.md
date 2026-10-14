@@ -7,7 +7,7 @@ mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.34.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.34/RochetoirinSimulator-v6.34.apk)**
+**[RochetoirinSimulator-v6.35.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.35/RochetoirinSimulator-v6.35.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,11 +16,12 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.34 :
-- **21 communes refaites d'après Street View** : 1 026 bâtiments non résidentiels (Ruy-Montceau, Saint-Clair-de-la-Tour,
-  Saint-Savin, Nivolas-Vermelle, Saint-Jean-de-Soudain, Saint-Victor, Cessieu, Saint-Didier-de-la-Tour, Vézeronce,
-  Dolomieu et les villages voisins) : commerces, mairies, écoles, ateliers, usines, fermes, avec leurs couleurs,
-  toits, ouvertures et enseignes parodiées.
+Nouveautés de la v6.35 :
+- **Bourgoin-Jallieu refait d'après Street View** : 380 bâtiments non résidentiels (centre-ville et ses commerces,
+  zones d'activités, hôpital, écoles), avec leurs couleurs, toits, ouvertures et enseignes parodiées.
+- La Bâtie-Montgascon, Les Éparres, Meyrié, Saint-André-le-Gaz, Salagnon, Le Passage, Corbelin, Morestel et
+  La Tour-du-Pin : 126 bâtiments de plus.
+- Corrigé : quatre églises de village apparaissaient en double.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
