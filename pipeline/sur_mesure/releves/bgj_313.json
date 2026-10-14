@@ -1,0 +1,44 @@
+{
+ "id": "bgj_313",
+ "cleabs": "BATIMENT0000000301272729",
+ "nom": "Commerce",
+ "mur": "enduit#e8b890",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.2,
+ "faitage": 8.3,
+ "densite": 12,
+ "soubassement": "enduit#3a4048",
+ "h_soub": 3.0,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.9
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

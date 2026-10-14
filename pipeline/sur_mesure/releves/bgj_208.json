@@ -1,0 +1,45 @@
+{
+ "id": "bgj_208",
+ "cleabs": "BATIMENT0000000290574644",
+ "nom": "Bureaux",
+ "mur": "bardage#b8bcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8acb0",
+  "debord": 0.4
+ },
+ "egout": 6.1,
+ "faitage": 8.2,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.699999999999999,
+     5.6
+    ],
+    "txt": "PLATRERIE",
+    "c": "#2a5a2a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

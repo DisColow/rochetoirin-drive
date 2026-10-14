@@ -1,0 +1,14 @@
+{
+ "id": "bgj_19",
+ "cleabs": "BATIMENT0000000301271151",
+ "nom": "Atelier",
+ "mur": "bardage#b8bcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8acb0",
+  "debord": 0.4
+ },
+ "egout": 3.2,
+ "faitage": 4.2,
+ "densite": 12
+}

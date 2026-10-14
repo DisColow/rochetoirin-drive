@@ -1,0 +1,58 @@
+{
+ "id": "bgj_88",
+ "cleabs": "BATIMENT0000000301272131",
+ "nom": "Unifléxo",
+ "mur": "bardage#d8dce0",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.9,
+ "faitage": 7.9,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     5.0,
+     7.0
+    ],
+    "c": "#8a8e90"
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#a8acb0"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     6.5,
+     7.4
+    ],
+    "txt": "UNIFLÉXO",
+    "c": "#d8dce0",
+    "tc": "#2a2a5a"
+   }
+  ]
+ }
+}

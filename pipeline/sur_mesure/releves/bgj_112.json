@@ -1,0 +1,43 @@
+{
+ "id": "bgj_112",
+ "cleabs": "BATIMENT0000000301272087",
+ "nom": "Garage Openel",
+ "mur": "bardage#a8acb0",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.1,
+ "faitage": 4.1,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6999999999999997,
+     3.5999999999999996
+    ],
+    "txt": "OPENEL",
+    "c": "#2a2a2e",
+    "tc": "#f0c020"
+   }
+  ]
+ }
+}

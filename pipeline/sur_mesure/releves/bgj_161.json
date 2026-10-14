@@ -1,0 +1,14 @@
+{
+ "id": "bgj_161",
+ "cleabs": "BATIMENT0000000301272461",
+ "nom": "Halle",
+ "mur": "bardage#a8a8a4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#7a6a5a",
+  "debord": 0.4
+ },
+ "egout": 4.3,
+ "faitage": 5.8,
+ "densite": 12
+}

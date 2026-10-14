@@ -1,0 +1,44 @@
+{
+ "id": "bgj_217",
+ "cleabs": "BATIMENT0000000301272805",
+ "nom": "Maison",
+ "mur": "enduit#ecebe8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 2.5,
+ "faitage": 3.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.8,
+     5.0
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

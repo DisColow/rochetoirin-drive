@@ -1,0 +1,43 @@
+{
+ "id": "bgj_75",
+ "cleabs": "BATIMENT0000000301271317",
+ "nom": "AutoAisé",
+ "mur": "enduit#e0d4bc",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 4.9,
+ "faitage": 6.5,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.3,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.5000000000000004,
+     4.4
+    ],
+    "txt": "AUTOAISÉ",
+    "c": "#3a3a3e",
+    "tc": "#4ac85a"
+   }
+  ]
+ }
+}

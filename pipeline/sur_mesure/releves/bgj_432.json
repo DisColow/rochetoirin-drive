@@ -1,0 +1,14 @@
+{
+ "id": "bgj_432",
+ "cleabs": "BATIMENT0000000301273787",
+ "nom": "Kiosque",
+ "mur": "bois#c8a060",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 2.5,
+ "faitage": 2.5,
+ "densite": 12
+}

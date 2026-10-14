@@ -1,0 +1,43 @@
+{
+ "id": "bgj_180",
+ "cleabs": "BATIMENT0000000301272419",
+ "nom": "Grand Frais",
+ "mur": "bardage#8a8e92",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.9,
+ "faitage": 4.9,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.0,
+     0.5
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.5000000000000004,
+     4.4
+    ],
+    "txt": "GRAND FRAICHEUR",
+    "c": "#e84a2a",
+    "tc": "#f0e040"
+   }
+  ]
+ }
+}

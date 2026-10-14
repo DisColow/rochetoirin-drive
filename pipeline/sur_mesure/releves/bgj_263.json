@@ -1,0 +1,69 @@
+{
+ "id": "bgj_263",
+ "cleabs": "BATIMENT0000000301272739",
+ "nom": "Les Duo",
+ "mur": "enduit#ecdcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.8,
+ "faitage": 7.7,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.9
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.5,
+     7.8
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.4,
+     5.300000000000001
+    ],
+    "txt": "LES DUO",
+    "c": "#a82a2a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

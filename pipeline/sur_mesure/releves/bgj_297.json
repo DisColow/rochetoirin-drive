@@ -1,0 +1,44 @@
+{
+ "id": "bgj_297",
+ "cleabs": "BATIMENT0000000301274067",
+ "nom": "Maison à tourelle",
+ "mur": "enduit#ecdca0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 10.7,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.8
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.4,
+     7.6
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

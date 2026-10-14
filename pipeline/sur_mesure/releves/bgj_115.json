@@ -1,0 +1,45 @@
+{
+ "id": "bgj_115",
+ "cleabs": "BATIMENT0000000301272108",
+ "nom": "Ateliers",
+ "mur": "bardage#a8b0b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a6a80",
+  "debord": 0.4
+ },
+ "egout": 3.3,
+ "faitage": 4.4,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     2.6999999999999997
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#7a7e84"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,56 @@
+{
+ "id": "bgj_251",
+ "cleabs": "BATIMENT0000000301272855",
+ "nom": "Centre d'épilation",
+ "mur": "enduit#e8d8a0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.9,
+ "faitage": 7.9,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.9
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.5,
+     5.4
+    ],
+    "txt": "CENTRE D'ÉPILATION",
+    "c": "#3a3a3e",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

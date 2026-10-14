@@ -1,0 +1,44 @@
+{
+ "id": "bgj_369",
+ "cleabs": "BATIMENT0000000301273942",
+ "nom": "Salle de sport",
+ "mur": "enduit#e8c8c0",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.1,
+ "faitage": 6.1,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.4
+    ],
+    "n": 5,
+    "l": 1.2
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.8,
+     5.2
+    ],
+    "n": 5,
+    "l": 1.2
+   }
+  ]
+ }
+}

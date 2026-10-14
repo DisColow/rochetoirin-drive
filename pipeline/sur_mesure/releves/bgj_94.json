@@ -1,0 +1,44 @@
+{
+ "id": "bgj_94",
+ "cleabs": "BATIMENT0000000301272073",
+ "nom": "Usine",
+ "mur": "enduit#c8c0b0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.4,
+ "faitage": 7.2,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

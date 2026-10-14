@@ -1,0 +1,14 @@
+{
+ "id": "bgj_93",
+ "cleabs": "BATIMENT0000000301272446",
+ "nom": "Atelier",
+ "mur": "enduit#d8ccb0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.3,
+ "faitage": 5.8,
+ "densite": 12
+}

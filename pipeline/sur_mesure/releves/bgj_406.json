@@ -1,0 +1,44 @@
+{
+ "id": "bgj_406",
+ "cleabs": "BATIMENT0000000301273351",
+ "nom": "Bureaux",
+ "mur": "enduit#e0e0dc",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 3.4,
+ "faitage": 3.4,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 8,
+    "l": 0.75
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.8,
+     5.0
+    ],
+    "n": 8,
+    "l": 0.75
+   }
+  ]
+ }
+}

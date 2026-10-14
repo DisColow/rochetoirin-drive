@@ -1,0 +1,42 @@
+{
+ "id": "bgj_22",
+ "cleabs": "BATIMENT0000000301271149",
+ "nom": "Entrepôt",
+ "mur": "bardage#7a7e84",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#7a7e84",
+  "debord": 0.4
+ },
+ "egout": 4.3,
+ "faitage": 5.7,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.0
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.5599999999999999,
+     0.64
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

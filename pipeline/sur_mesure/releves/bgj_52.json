@@ -1,0 +1,30 @@
+{
+ "id": "bgj_52",
+ "cleabs": "BATIMENT0000000301271397",
+ "nom": "Bureaux",
+ "mur": "bardageh#6a6c70",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.3,
+ "faitage": 4.3,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     1.0,
+     5.0
+    ],
+    "c": "#8a8e90"
+   }
+  ]
+ }
+}

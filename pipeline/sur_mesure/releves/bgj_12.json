@@ -1,0 +1,71 @@
+{
+ "id": "bgj_12",
+ "cleabs": "BATIMENT0000000290574004",
+ "nom": "Pâtisserie Pierrot",
+ "mur": "enduit#e8e4dc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.9,
+ "faitage": 6.6,
+ "densite": 12,
+ "soubassement": "enduit#4a5a72",
+ "h_soub": 3.4,
+ "faces": {
+  "SO": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.05,
+     0.4
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.2
+    ],
+    "n": 6,
+    "l": 0.9999999999999999
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.5000000000000004,
+     4.4
+    ],
+    "txt": "PÂTISSERIE PIERROT",
+    "c": "#3a4a6a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

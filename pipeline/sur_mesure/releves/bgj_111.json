@@ -1,0 +1,14 @@
+{
+ "id": "bgj_111",
+ "cleabs": "BATIMENT0000000301272465",
+ "nom": "Usine",
+ "mur": "bardage#a8acb0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 4.2,
+ "faitage": 5.6,
+ "densite": 12
+}

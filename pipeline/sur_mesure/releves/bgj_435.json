@@ -1,0 +1,57 @@
+{
+ "id": "bgj_435",
+ "cleabs": "BATIMENT0000000301273765",
+ "nom": "Déco Concept",
+ "mur": "beton#a8a49c",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 2.8,
+ "faitage": 3.7,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     2.1999999999999997
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#8a6a4a"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "DÉCO CONCEPT",
+    "c": "#ecebe8",
+    "tc": "#2a2a2e"
+   }
+  ]
+ }
+}

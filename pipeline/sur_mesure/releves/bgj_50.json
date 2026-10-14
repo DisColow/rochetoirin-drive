@@ -1,0 +1,43 @@
+{
+ "id": "bgj_50",
+ "cleabs": "BATIMENT0000000301271393",
+ "nom": "Motoculture",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 7.1,
+ "faitage": 7.1,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.699999999999999,
+     6.6
+    ],
+    "txt": "MOTOCULTURE",
+    "c": "#2a2a2e",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

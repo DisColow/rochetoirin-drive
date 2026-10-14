@@ -1,0 +1,42 @@
+{
+ "id": "bgj_261",
+ "cleabs": "BATIMENT0000000301272742",
+ "nom": "Commerce",
+ "mur": "enduit#d8ccbc",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.5,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.9
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

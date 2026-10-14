@@ -1,0 +1,57 @@
+{
+ "id": "bgj_13",
+ "cleabs": "BATIMENT0000000301271212",
+ "nom": "Contrôle technique",
+ "mur": "bardage#ecebe8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.7,
+ "faitage": 4.7,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     4.1000000000000005
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#e8e8e4"
+   },
+   {
+    "t": "vitrine",
+    "x": [
+     0.6,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.3000000000000003,
+     4.2
+    ],
+    "txt": "AUTO CONTRÔLE",
+    "c": "#2a4a8a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

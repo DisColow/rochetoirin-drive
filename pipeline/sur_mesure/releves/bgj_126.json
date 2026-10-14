@@ -1,0 +1,45 @@
+{
+ "id": "bgj_126",
+ "cleabs": "BATIMENT0000000301270964",
+ "nom": "Bureau de tabac",
+ "mur": "brique#a85a3a",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 2.8,
+ "faitage": 2.8,
+ "densite": 12,
+ "soubassement": "brique#a85a3a",
+ "h_soub": 0.0,
+ "faces": {
+  "S": [
+   {
+    "t": "affiche",
+    "x": [
+     0.3,
+     0.38
+    ],
+    "y": [
+     1.4,
+     2.4
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "TABAC PRESSE",
+    "c": "#ecebe8",
+    "tc": "#c82a2a"
+   }
+  ]
+ }
+}

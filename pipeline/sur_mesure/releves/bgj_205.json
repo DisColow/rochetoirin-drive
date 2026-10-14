@@ -1,0 +1,43 @@
+{
+ "id": "bgj_205",
+ "cleabs": "BATIMENT0000000301272530",
+ "nom": "Salle",
+ "mur": "enduit#e0c860",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 3.7,
+ "faitage": 3.7,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "matiere",
+    "x": [
+     0.0,
+     1.0
+    ],
+    "y": [
+     0,
+     3.7
+    ],
+    "mur": "enduit#c84a9a"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.5,
+     2.5
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

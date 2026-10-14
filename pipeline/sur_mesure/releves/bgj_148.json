@@ -1,0 +1,31 @@
+{
+ "id": "bgj_148",
+ "cleabs": "BATIMENT0000000301271525",
+ "nom": "Usine",
+ "mur": "enduit#d8ccb0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 4.4,
+ "faitage": 5.9,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "rideau",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.8000000000000003
+    ],
+    "n": 1,
+    "l": 3.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "id": "bgj_71",
+ "cleabs": "BATIMENT0000000301272478",
+ "nom": "Halle",
+ "mur": "beton#c8c4bc",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#8a8e92",
+  "debord": 0.0
+ },
+ "egout": 7.8,
+ "faitage": 10.4,
+ "densite": 12
+}

@@ -1,0 +1,14 @@
+{
+ "id": "bgj_91",
+ "cleabs": "BATIMENT0000000301272438",
+ "nom": "Local technique",
+ "mur": "bardage#c8ccd0",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#a8acb0",
+  "debord": 0.0
+ },
+ "egout": 2.7,
+ "faitage": 3.6,
+ "densite": 12
+}

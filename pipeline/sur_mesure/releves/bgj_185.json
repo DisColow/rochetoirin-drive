@@ -1,0 +1,29 @@
+{
+ "id": "bgj_185",
+ "cleabs": "BATIMENT0000000301272493",
+ "nom": "Local",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 2.7,
+ "faitage": 3.6,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "porte",
+    "x": [
+     0.26,
+     0.33999999999999997
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

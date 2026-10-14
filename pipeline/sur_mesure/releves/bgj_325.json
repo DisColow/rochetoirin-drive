@@ -1,0 +1,43 @@
+{
+ "id": "bgj_325",
+ "cleabs": "BATIMENT0000000301272699",
+ "nom": "Café",
+ "mur": "enduit#ecebe6",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.2,
+ "faitage": 4.3,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.6
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "CAFÉ",
+    "c": "#2a8a7a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

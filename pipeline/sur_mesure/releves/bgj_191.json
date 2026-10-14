@@ -1,0 +1,32 @@
+{
+ "id": "bgj_191",
+ "cleabs": "BATIMENT0000000301272086",
+ "nom": "Gymnase",
+ "mur": "enduit#e0d8c4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 4.7,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     2.9
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#a83a3a"
+   }
+  ]
+ }
+}

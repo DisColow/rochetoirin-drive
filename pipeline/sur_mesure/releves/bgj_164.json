@@ -1,0 +1,14 @@
+{
+ "id": "bgj_164",
+ "cleabs": "BATIMENT0000000301272045",
+ "nom": "Hangar",
+ "mur": "bardage#c8ccd0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8acb0",
+  "debord": 0.4
+ },
+ "egout": 4.3,
+ "faitage": 5.8,
+ "densite": 12
+}

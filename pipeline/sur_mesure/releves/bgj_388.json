@@ -1,0 +1,45 @@
+{
+ "id": "bgj_388",
+ "cleabs": "BATIMENT0000000301274017",
+ "nom": "Atelier",
+ "mur": "pierre#c8b090",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.7,
+ "faitage": 6.2,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.1000000000000005
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#ecebe6"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.2
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

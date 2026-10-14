@@ -1,0 +1,69 @@
+{
+ "id": "bgj_317",
+ "cleabs": "BATIMENT0000000301272590",
+ "nom": "Sergent Mayor",
+ "mur": "enduit#e8d8b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.7,
+ "faitage": 8.9,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.9
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.5,
+     7.8
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.300000000000001,
+     6.200000000000001
+    ],
+    "txt": "SERGENT MAYOR",
+    "c": "#5a3a6a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

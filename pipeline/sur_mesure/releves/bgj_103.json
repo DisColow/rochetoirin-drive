@@ -1,0 +1,30 @@
+{
+ "id": "bgj_103",
+ "cleabs": "BATIMENT0000000301271680",
+ "nom": "Bureaux",
+ "mur": "enduit#d8dcd8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 3.8,
+ "faitage": 3.8,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     1.0,
+     2.6
+    ],
+    "c": "#8a8e90"
+   }
+  ]
+ }
+}

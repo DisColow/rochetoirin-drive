@@ -1,0 +1,69 @@
+{
+ "id": "bgj_363",
+ "cleabs": "BATIMENT0000000301272581",
+ "nom": "Le Studio",
+ "mur": "enduit#e8b890",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 8.0,
+ "faitage": 10.7,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.9
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.5,
+     7.8
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     6.6,
+     7.5
+    ],
+    "txt": "LE STUDIO",
+    "c": "#2a2a2e",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

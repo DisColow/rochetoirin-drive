@@ -1,0 +1,14 @@
+{
+ "id": "bgj_147",
+ "cleabs": "BATIMENT0000000301272090",
+ "nom": "Atelier",
+ "mur": "bardage#d8c890",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#8a8e92",
+  "debord": 0.0
+ },
+ "egout": 4.7,
+ "faitage": 6.2,
+ "densite": 12
+}

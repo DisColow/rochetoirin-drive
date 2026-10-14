@@ -1,0 +1,44 @@
+{
+ "id": "bgj_421",
+ "cleabs": "BATIMENT0000000301273569",
+ "nom": "Bureaux",
+ "mur": "bardageh#8a8e92",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a5e64",
+  "debord": 0.4
+ },
+ "egout": 4.1,
+ "faitage": 5.4,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 5,
+    "l": 1.2
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.8,
+     5.0
+    ],
+    "n": 5,
+    "l": 1.2
+   }
+  ]
+ }
+}

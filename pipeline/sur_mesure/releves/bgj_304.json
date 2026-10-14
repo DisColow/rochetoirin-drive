@@ -1,0 +1,72 @@
+{
+ "id": "bgj_304",
+ "cleabs": "BATIMENT0000000301273852",
+ "nom": "Commerce",
+ "mur": "enduit#ecdcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 6.5,
+ "faitage": 8.7,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#ecebe6"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.9
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.5,
+     7.8
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.1,
+     6.0
+    ],
+    "txt": "META SHOP",
+    "c": "#2a2a2e",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

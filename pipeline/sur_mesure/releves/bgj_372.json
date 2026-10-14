@@ -1,0 +1,69 @@
+{
+ "id": "bgj_372",
+ "cleabs": "BATIMENT0000000301273974",
+ "nom": "Cerfrance",
+ "mur": "enduit#e8dcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 7.1,
+ "faitage": 9.4,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.9
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.5,
+     7.8
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.699999999999999,
+     6.6
+    ],
+    "txt": "CERFRANCE",
+    "c": "#ffffff",
+    "tc": "#4ab83a"
+   }
+  ]
+ }
+}

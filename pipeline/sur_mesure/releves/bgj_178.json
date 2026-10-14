@@ -1,0 +1,56 @@
+{
+ "id": "bgj_178",
+ "cleabs": "BATIMENT0000000301272172",
+ "nom": "École primaire",
+ "mur": "enduit#e0d0a8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.4,
+ "faitage": 4.6,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "porte",
+    "x": [
+     0.46,
+     0.54
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.6
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "ÉCOLE PRIMAIRE",
+    "c": "#ffffff",
+    "tc": "#2a2a2a"
+   }
+  ]
+ }
+}

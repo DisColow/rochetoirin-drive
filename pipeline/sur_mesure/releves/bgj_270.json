@@ -1,0 +1,58 @@
+{
+ "id": "bgj_270",
+ "cleabs": "BATIMENT0000000301274132",
+ "nom": "Ambulances",
+ "mur": "enduit#c8b8a0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.8,
+ "faitage": 7.8,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#5a4a3a"
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.9
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.5,
+     7.8
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

@@ -1,0 +1,57 @@
+{
+ "id": "bgj_132",
+ "cleabs": "BATIMENT0000000301272395",
+ "nom": "Boulangerie Provinciale",
+ "mur": "bardageh#3a3c40",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.2,
+ "faitage": 6.2,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.6,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#3a3c40"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.800000000000001,
+     5.700000000000001
+    ],
+    "txt": "BOULANGERIE",
+    "c": "#3a3c40",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

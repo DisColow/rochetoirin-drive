@@ -1,0 +1,55 @@
+{
+ "id": "bgj_232",
+ "cleabs": "BATIMENT0000000301272845",
+ "nom": "Immeuble",
+ "mur": "enduit#e8d8b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 7.7,
+ "faitage": 10.3,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.9
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.5,
+     7.8
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

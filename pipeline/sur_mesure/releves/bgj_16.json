@@ -1,0 +1,43 @@
+{
+ "id": "bgj_16",
+ "cleabs": "BATIMENT0000000301271172",
+ "nom": "Atelier",
+ "mur": "bardage#d8d8d4",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.6,
+ "faitage": 4.6,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "garage",
+    "x": [
+     0.15,
+     0.85
+    ],
+    "y": [
+     0,
+     3.9999999999999996
+    ],
+    "n": 2,
+    "l": 3.6,
+    "c": "#a8acb0"
+   },
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.3
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   }
+  ]
+ }
+}

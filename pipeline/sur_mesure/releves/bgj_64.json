@@ -1,0 +1,43 @@
+{
+ "id": "bgj_64",
+ "cleabs": "BATIMENT0000000301271320",
+ "nom": "Poltronic",
+ "mur": "bardage#5a6a80",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.7,
+ "faitage": 4.7,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.3000000000000003,
+     4.2
+    ],
+    "txt": "POLTRONIC",
+    "c": "#e8e8e4",
+    "tc": "#c82a2a"
+   },
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.5
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   }
+  ]
+ }
+}

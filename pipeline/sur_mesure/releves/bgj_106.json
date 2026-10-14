@@ -1,0 +1,45 @@
+{
+ "id": "bgj_106",
+ "cleabs": "BATIMENT0000000301272107",
+ "nom": "Maison",
+ "mur": "enduit#e8d0a0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.4,
+ "faitage": 5.9,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.8000000000000003
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#6a4a3a"
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.4,
+     4.8
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

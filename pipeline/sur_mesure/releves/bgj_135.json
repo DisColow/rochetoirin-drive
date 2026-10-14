@@ -1,0 +1,33 @@
+{
+ "id": "bgj_135",
+ "cleabs": "BATIMENT0000000301272392",
+ "nom": "Usine",
+ "mur": "beton#c8c4bc",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.9,
+ "faitage": 6.9,
+ "densite": 12,
+ "soubassement": "bardage#c8ccd0",
+ "h_soub": 4.4,
+ "faces": {
+  "NO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     5.0,
+     6.4
+    ],
+    "n": 12,
+    "l": 0.49999999999999994
+   }
+  ]
+ }
+}

@@ -1,0 +1,32 @@
+{
+ "id": "bgj_219",
+ "cleabs": "BATIMENT0000000301273003",
+ "nom": "Usine",
+ "mur": "enduit#d8ccb0",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 8.3,
+ "faitage": 8.3,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#d8ccb0"
+   }
+  ]
+ }
+}

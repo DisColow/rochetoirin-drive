@@ -1,0 +1,43 @@
+{
+ "id": "bgj_195",
+ "cleabs": "BATIMENT0000000301272046",
+ "nom": "Thabosa",
+ "mur": "bardageh#3a3a40",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.3,
+ "faitage": 4.3,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.9,
+     3.8
+    ],
+    "txt": "L'USINE À BIJOUX",
+    "c": "#c84a2a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

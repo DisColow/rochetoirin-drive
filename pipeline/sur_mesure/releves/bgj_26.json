@@ -1,0 +1,31 @@
+{
+ "id": "bgj_26",
+ "cleabs": "BATIMENT0000000290574017",
+ "nom": "Église",
+ "mur": "beton#ece8e0",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.5,
+ "faitage": 5.5,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     12.0
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

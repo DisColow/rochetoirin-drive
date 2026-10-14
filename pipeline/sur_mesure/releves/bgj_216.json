@@ -1,0 +1,69 @@
+{
+ "id": "bgj_216",
+ "cleabs": "BATIMENT0000000301272819",
+ "nom": "Agence de voyages",
+ "mur": "enduit#d8ccbc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 7.4,
+ "faitage": 9.9,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.8
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.4
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     7.0,
+     8.4
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     6.0,
+     6.9
+    ],
+    "txt": "SÉLECTOUR",
+    "c": "#e85a3a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "id": "bgj_125",
+ "cleabs": "BATIMENT0000000301271865",
+ "nom": "Silos",
+ "mur": "beton#a8a49c",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.5,
+ "faitage": 6.0,
+ "densite": 12
+}

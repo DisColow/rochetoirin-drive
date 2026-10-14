@@ -1,0 +1,14 @@
+{
+ "id": "bgj_400",
+ "cleabs": "BATIMENT0000000301273380",
+ "nom": "Grange",
+ "mur": "beton#a8a49c",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.2,
+ "faitage": 7.0,
+ "densite": 12
+}

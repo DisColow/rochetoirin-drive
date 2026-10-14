@@ -1,0 +1,14 @@
+{
+ "id": "bgj_268",
+ "cleabs": "BATIMENT0000000301272936",
+ "nom": "Grange",
+ "mur": "pierre#a89070",
+ "toit": {
+  "type": "berceau",
+  "matiere": "bac#8a6a4a",
+  "debord": 0.0
+ },
+ "egout": 2.5,
+ "faitage": 3.5,
+ "densite": 12
+}

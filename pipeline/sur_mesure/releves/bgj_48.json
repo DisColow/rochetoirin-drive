@@ -1,0 +1,55 @@
+{
+ "id": "bgj_48",
+ "cleabs": "BATIMENT0000000301271450",
+ "nom": "Maison du garde",
+ "mur": "enduit#d8c8b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile_brune",
+  "debord": 0.4
+ },
+ "egout": 3.5,
+ "faitage": 4.7,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "porte",
+    "x": [
+     0.61,
+     0.6900000000000001
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     0.9,
+     2.0
+    ],
+    "n": 1,
+    "l": 1.6
+   },
+   {
+    "t": "ogive",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     4.0,
+     5.6
+    ],
+    "n": 1,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,30 @@
+{
+ "id": "bgj_420",
+ "cleabs": "BATIMENT0000000301273629",
+ "nom": "Entrepôt",
+ "mur": "bardage#a83a2a",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#8a3a2a",
+  "debord": 0.4
+ },
+ "egout": 5.0,
+ "faitage": 6.7,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "matiere",
+    "x": [
+     0.4,
+     1.0
+    ],
+    "y": [
+     0,
+     5.0
+    ],
+    "mur": "bardage#e8c830"
+   }
+  ]
+ }
+}

@@ -1,0 +1,31 @@
+{
+ "id": "bgj_2",
+ "cleabs": "BATIMENT0000000301271025",
+ "nom": "Annexe",
+ "mur": "enduit#d8d0c4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 5.2,
+ "faitage": 7.0,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     2.0,
+     3.4
+    ],
+    "n": 2,
+    "l": 1.6
+   }
+  ]
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "id": "bgj_160",
+ "cleabs": "BATIMENT0000000301272374",
+ "nom": "Serres",
+ "mur": "enduit#d8d8d4",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#c8d0d0",
+  "debord": 0.4
+ },
+ "egout": 3.2,
+ "faitage": 4.3,
+ "densite": 12,
+ "faces": {
+  "NO": [
+   {
+    "t": "bande_vitree",
+    "x": [
+     0.05,
+     0.95
+    ],
+    "y": [
+     0.8,
+     3.6
+    ],
+    "c": "#8a8e90"
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.5599999999999999,
+     0.64
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

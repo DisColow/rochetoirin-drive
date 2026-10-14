@@ -1,0 +1,14 @@
+{
+ "id": "bgj_175",
+ "cleabs": "BATIMENT0000000301270881",
+ "nom": "Atelier",
+ "mur": "beton#b8b0a0",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 3.6,
+ "faitage": 4.8,
+ "densite": 12
+}

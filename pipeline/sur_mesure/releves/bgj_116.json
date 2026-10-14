@@ -1,0 +1,32 @@
+{
+ "id": "bgj_116",
+ "cleabs": "BATIMENT0000000301272110",
+ "nom": "Atelier",
+ "mur": "bardage#a8b0b8",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#5a6a80",
+  "debord": 0.4
+ },
+ "egout": 3.6,
+ "faitage": 4.8,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.0
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#7a7e84"
+   }
+  ]
+ }
+}

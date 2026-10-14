@@ -1,0 +1,43 @@
+{
+ "id": "bgj_53",
+ "cleabs": "BATIMENT0000000290573519",
+ "nom": "Laser Game",
+ "mur": "bardageh#5a6068",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.7,
+ "faitage": 6.7,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.300000000000001,
+     6.200000000000001
+    ],
+    "txt": "LASER GAME",
+    "c": "#3a3c40",
+    "tc": "#ffffff"
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.5599999999999999,
+     0.64
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

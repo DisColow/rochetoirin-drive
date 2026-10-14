@@ -1,0 +1,32 @@
+{
+ "id": "bgj_24",
+ "cleabs": "BATIMENT0000000301271144",
+ "nom": "Entrepôt",
+ "mur": "bardage#b8bcc0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "bac#a8acb0",
+  "debord": 0.4
+ },
+ "egout": 2.6,
+ "faitage": 3.5,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     2.0
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#8a8e92"
+   }
+  ]
+ }
+}

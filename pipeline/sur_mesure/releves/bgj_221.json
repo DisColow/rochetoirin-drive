@@ -1,0 +1,44 @@
+{
+ "id": "bgj_221",
+ "cleabs": "BATIMENT0000000301273002",
+ "nom": "Atelier",
+ "mur": "beton#c8c4b8",
+ "toit": {
+  "type": "appentis",
+  "matiere": "bac#8a8e92",
+  "debord": 0.4
+ },
+ "egout": 6.4,
+ "faitage": 8.5,
+ "densite": 12,
+ "faces": {
+  "O": [
+   {
+    "t": "rideau",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     2.6,
+     3.6
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

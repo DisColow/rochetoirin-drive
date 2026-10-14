@@ -1,0 +1,46 @@
+{
+ "id": "bgj_122",
+ "cleabs": "BATIMENT0000000301271956",
+ "nom": "Bricabol",
+ "mur": "bardage#7a7e84",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 5.4,
+ "faitage": 5.4,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#e8e8e4"
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     4.0,
+     4.9
+    ],
+    "txt": "BRICABOL",
+    "c": "#c84a2a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

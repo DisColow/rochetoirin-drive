@@ -1,0 +1,14 @@
+{
+ "id": "bgj_187",
+ "cleabs": "BATIMENT0000000301272380",
+ "nom": "Bâtiment",
+ "mur": "enduit#e0d4bc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.8,
+ "faitage": 5.0,
+ "densite": 12
+}

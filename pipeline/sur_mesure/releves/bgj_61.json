@@ -1,0 +1,45 @@
+{
+ "id": "bgj_61",
+ "cleabs": "BATIMENT0000000301271437",
+ "nom": "McDonnell's",
+ "mur": "bois#a8704a",
+ "toit": {
+  "type": "4pans",
+  "matiere": "bac#3a6a4a",
+  "debord": 0.4
+ },
+ "egout": 3.4,
+ "faitage": 4.5,
+ "densite": 12,
+ "soubassement": "enduit#ecebe8",
+ "h_soub": 1.0,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.8
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.6,
+     3.5
+    ],
+    "txt": "McDONNELL'S",
+    "c": "#b02a2a",
+    "tc": "#ffd040"
+   }
+  ]
+ }
+}

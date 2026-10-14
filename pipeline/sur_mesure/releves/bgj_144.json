@@ -1,0 +1,32 @@
+{
+ "id": "bgj_144",
+ "cleabs": "BATIMENT0000000301272370",
+ "nom": "Quai",
+ "mur": "beton#b8b4ac",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 3.8,
+ "faitage": 3.8,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     3.1999999999999997
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#8a7a5a"
+   }
+  ]
+ }
+}

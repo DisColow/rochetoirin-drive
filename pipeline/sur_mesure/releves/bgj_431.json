@@ -1,0 +1,43 @@
+{
+ "id": "bgj_431",
+ "cleabs": "BATIMENT0000000301273768",
+ "nom": "Marché aux affaires",
+ "mur": "bardage#c8a880",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.3,
+ "faitage": 4.3,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.6,
+     0.95
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     2.9,
+     3.8
+    ],
+    "txt": "MARCHÉ AUX AFFAIRES",
+    "c": "#e8c830",
+    "tc": "#2a2a6a"
+   }
+  ]
+ }
+}

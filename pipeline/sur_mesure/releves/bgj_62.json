@@ -1,0 +1,29 @@
+{
+ "id": "bgj_62",
+ "cleabs": "BATIMENT0000000301271373",
+ "nom": "Restaurant",
+ "mur": "bois#a87050",
+ "toit": {
+  "type": "4pans",
+  "matiere": "bac#3a3a3e",
+  "debord": 0.4
+ },
+ "egout": 3.7,
+ "faitage": 4.9,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   }
+  ]
+ }
+}

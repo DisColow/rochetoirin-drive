@@ -1,0 +1,31 @@
+{
+ "id": "bgj_184",
+ "cleabs": "BATIMENT0000000301272208",
+ "nom": "Bâtiment",
+ "mur": "bardage#e0c060",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 3.2,
+ "faitage": 3.2,
+ "densite": 12,
+ "faces": {
+  "NE": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}

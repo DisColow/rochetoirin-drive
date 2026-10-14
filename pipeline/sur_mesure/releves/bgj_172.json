@@ -1,0 +1,58 @@
+{
+ "id": "bgj_172",
+ "cleabs": "BATIMENT0000000301271786",
+ "nom": "Dupront Immobilier",
+ "mur": "pierre#c8a888",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 4.6,
+ "faitage": 6.1,
+ "densite": 12,
+ "soubassement": "enduit#4a4c50",
+ "h_soub": 3.0,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     5.0
+    ],
+    "n": 2,
+    "l": 1.6
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     3.1999999999999997,
+     4.1
+    ],
+    "txt": "DUPRONT",
+    "c": "#e06a50",
+    "tc": "#3a3a3e"
+   }
+  ]
+ }
+}

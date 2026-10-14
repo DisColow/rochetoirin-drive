@@ -1,0 +1,69 @@
+{
+ "id": "bgj_239",
+ "cleabs": "BATIMENT0000000301272877",
+ "nom": "Serrurerie",
+ "mur": "enduit#c8c0b0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 7.3,
+ "faitage": 9.7,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.9
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.5,
+     7.8
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     5.9,
+     6.800000000000001
+    ],
+    "txt": "COFFRE · SÉCURITÉ",
+    "c": "#2a2a2e",
+    "tc": "#f0c020"
+   }
+  ]
+ }
+}

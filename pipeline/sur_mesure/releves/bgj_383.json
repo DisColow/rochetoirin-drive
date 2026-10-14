@@ -1,0 +1,44 @@
+{
+ "id": "bgj_383",
+ "cleabs": "BATIMENT0000000301272576",
+ "nom": "Immeuble",
+ "mur": "enduit#c8987a",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.9,
+ "faitage": 6.9,
+ "densite": 12,
+ "faces": {
+  "E": [
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     1.0,
+     2.2
+    ],
+    "n": 3,
+    "l": 1.6
+   },
+   {
+    "t": "fenetre",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.8,
+     5.0
+    ],
+    "n": 3,
+    "l": 1.6
+   }
+  ]
+ }
+}

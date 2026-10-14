@@ -1,0 +1,69 @@
+{
+ "id": "bgj_364",
+ "cleabs": "BATIMENT0000000301272583",
+ "nom": "Tabac-librairie",
+ "mur": "enduit#d8b8a0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 7.4,
+ "faitage": 9.8,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.1,
+     0.9
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     4.9
+    ],
+    "n": 8,
+    "l": 0.75
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.5,
+     7.8
+    ],
+    "n": 8,
+    "l": 0.75
+   },
+   {
+    "t": "enseigne",
+    "x": [
+     0.3,
+     0.7
+    ],
+    "y": [
+     6.0,
+     6.9
+    ],
+    "txt": "TABAC · LIBRAIRIE · ÉPICERIE",
+    "c": "#c82a2a",
+    "tc": "#ffffff"
+   }
+  ]
+ }
+}

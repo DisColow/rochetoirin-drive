@@ -1,0 +1,29 @@
+{
+ "id": "bgj_67",
+ "cleabs": "BATIMENT0000000301271396",
+ "nom": "Concession",
+ "mur": "bardage#2a4a8a",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 4.1,
+ "faitage": 4.1,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.8
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   }
+  ]
+ }
+}

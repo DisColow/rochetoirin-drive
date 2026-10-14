@@ -1,0 +1,42 @@
+{
+ "id": "bgj_196",
+ "cleabs": "BATIMENT0000000301271552",
+ "nom": "Atelier",
+ "mur": "enduit#e8e0cc",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 2.5,
+ "faitage": 3.5,
+ "densite": 12,
+ "faces": {
+  "SE": [
+   {
+    "t": "rideau",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     1.9
+    ],
+    "n": 1,
+    "l": 3.6
+   },
+   {
+    "t": "porte_vitree",
+    "x": [
+     0.26,
+     0.33999999999999997
+    ],
+    "y": [
+     0,
+     2.2
+    ]
+   }
+  ]
+ }
+}

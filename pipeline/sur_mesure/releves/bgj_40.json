@@ -1,0 +1,14 @@
+{
+ "id": "bgj_40",
+ "cleabs": "BATIMENT0000000301271387",
+ "nom": "Entrepôt",
+ "mur": "bardage#b8bcc0",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 6.1,
+ "faitage": 6.1,
+ "densite": 12
+}

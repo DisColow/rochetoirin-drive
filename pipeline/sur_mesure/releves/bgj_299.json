@@ -1,0 +1,29 @@
+{
+ "id": "bgj_299",
+ "cleabs": "BATIMENT0000000301274102",
+ "nom": "Atelier",
+ "mur": "enduit#d8ccb0",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 3.8,
+ "faitage": 5.1,
+ "densite": 12,
+ "faces": {
+  "S": [
+   {
+    "t": "vitrine",
+    "x": [
+     0.2,
+     0.8
+    ],
+    "y": [
+     0.3,
+     2.6
+    ]
+   }
+  ]
+ }
+}

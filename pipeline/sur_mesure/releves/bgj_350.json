@@ -1,0 +1,31 @@
+{
+ "id": "bgj_350",
+ "cleabs": "BATIMENT0000000301272663",
+ "nom": "Local",
+ "mur": "enduit#ecebe8",
+ "toit": {
+  "type": "plat",
+  "matiere": "tuile",
+  "debord": 0.0
+ },
+ "egout": 2.8,
+ "faitage": 2.8,
+ "densite": 12,
+ "faces": {
+  "N": [
+   {
+    "t": "rideau",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     2.1999999999999997
+    ],
+    "n": 1,
+    "l": 3.6
+   }
+  ]
+ }
+}

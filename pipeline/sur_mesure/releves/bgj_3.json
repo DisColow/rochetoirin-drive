@@ -1,0 +1,58 @@
+{
+ "id": "bgj_3",
+ "cleabs": "BATIMENT0000000301271035",
+ "nom": "Maisons de ville",
+ "mur": "pierre#a89878",
+ "toit": {
+  "type": "2pans",
+  "matiere": "tuile",
+  "debord": 0.4
+ },
+ "egout": 8.7,
+ "faitage": 11.6,
+ "densite": 12,
+ "faces": {
+  "SO": [
+   {
+    "t": "garage",
+    "x": [
+     0.4,
+     0.6
+    ],
+    "y": [
+     0,
+     4.2
+    ],
+    "n": 1,
+    "l": 3.6,
+    "c": "#6a4a3a"
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     3.6,
+     5.0
+    ],
+    "n": 4,
+    "l": 1.5
+   },
+   {
+    "t": "fenetre_volets",
+    "x": [
+     0.08,
+     0.92
+    ],
+    "y": [
+     6.2,
+     7.6
+    ],
+    "n": 4,
+    "l": 1.5
+   }
+  ]
+ }
+}
