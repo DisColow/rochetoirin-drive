@@ -22,6 +22,12 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   epa, bgj, ltp : 506). 1 755 bâtiments BD TOPO remplacés au total.
 - Piège : ne pas doubler une église de `landmarks.CHURCHES` ; contrôle = emprise du cleabs qui recouvre à plus de
   35 % un polygone OSM d'église (sjs_67, mtc_7, ces_38, scl_56 retirés en v6.35).
+- **Taille de l'APK : limite GitHub 2 Go par fichier** (v6.35 refusée à ~2,05 Go). Atlas sur mesure des lots
+  plafonnés à l'import : `process/size_limit=512` dans le `.import` de tout atlas de lot > 512 px (fait pour les
+  340 concernés, publié sur `donnees`). À refaire pour chaque nouvel atlas de lot (avec mode 2 + mipmaps).
+  L'alpha des atlas est un masque (vitres, lumières) : ne pas le retirer.
+- Méthode gratuite (1 722 bâtiments sans photo) : en attente de l'accord de l'utilisateur (gain faible, APK lourd,
+  enseignes « d'après le métier » perdues).
 - Puis méthode gratuite (orthophoto + BD TOPO) pour les bâtiments sans photo.
 
 ## Fait en v6.33 : Saint-Chef (#126)
