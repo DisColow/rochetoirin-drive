@@ -81,11 +81,15 @@ jobs:
           mv templates/windows_* templates/linux_* templates/version.txt ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
           rm -rf templates Godot_v${GODOT_VERSION}-stable_export_templates.tpz
 
+      - name: Mémoire d'échange (import du monde complet)
+        run: |
+          sudo swapoff -a || true
+          sudo fallocate -l 12G /mnt/swapfile && sudo chmod 600 /mnt/swapfile && sudo mkswap /mnt/swapfile && sudo swapon /mnt/swapfile
+          free -h; df -h / /mnt
+
       - name: Import
         working-directory: godot
-        run: |
-          godot --headless --import || true
-          godot --headless --import || true
+        run: bash ../.github/scripts/import_paquets.sh
 
       - name: Export Windows et Steam Deck
         working-directory: godot
