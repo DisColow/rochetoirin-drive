@@ -23,7 +23,9 @@ Nouveautés de la v6.45 :
   dedans) et les plants s'éclaircissent au loin.
 - **Plants écrasés** : de vrais morceaux de plants (découpés dans leurs sprites) volent, tournoient et retombent ; bruit
   de feuillage froissé (et de tiges cassées pour le maïs et le tournesol).
-- Rappel : v6.44 multijoueur jusqu'à 4 ; v6.43 cockpit du Ranger Raptor.
+- **Chocs plus réalistes** : sons en couches selon ce qu'on percute (tôle, poteau, mur, bois, haie, poubelle) et la
+  violence du choc (verre brisé et débris sur les gros chocs), raclement le long des murs et des glissières.
+- **GPS dans le cockpit** : l'écran central du Raptor montre la vraie carte, la position et l'itinéraire.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

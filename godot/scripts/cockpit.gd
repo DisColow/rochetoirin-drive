@@ -77,7 +77,7 @@ func _ready() -> void:
 	vp.move_child(ecran, front.get_index())
 	gps_ecran = preload("res://scripts/gps.gd").new()
 	gps_ecran.mini = true
-	gps_ecran.set_anchors_preset(Control.PRESET_FULL_RECT)
+	gps_ecran.position = Vector2.ZERO
 	gps_ecran.size = ecran.size
 	ecran.add_child(gps_ecran)
 	back.draw.connect(_draw_back)
@@ -206,6 +206,7 @@ func _process_corps(dt: float) -> void:
 	if ecran:
 		var sc: Array = meta.get("screen_map", [314, 31, 48, 47])
 		ecran.position = Vector2(float(sc[0]), float(sc[1]) + float(vh - 100)) + off
+		gps_ecran.size = ecran.size
 	# éclairage de l'habitacle selon l'heure
 	var amb: Color = [Color(0.96, 0.96, 0.96), Color(0.95, 0.86, 0.74), Color(0.78, 0.56, 0.46), Color(0.17, 0.19, 0.28)][_tod()]
 	lit.modulate = amb

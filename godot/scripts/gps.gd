@@ -55,7 +55,7 @@ func _process_corps(_dt: float) -> void:
 	var xf := Transform2D.IDENTITY.translated(-p).rotated(_th).scaled(Vector2(_ppm, _ppm)).translated(anchor)
 	_xf = xf
 	var r := size.length() / _ppm
-	data.draw_layers(layers, xf, _ppm, Rect2(p - Vector2(r, r), Vector2(r, r) * 2.0), 0.3 if mini else 1.0)
+	data.draw_layers(layers, xf, _ppm, Rect2(p - Vector2(r, r), Vector2(r, r) * 2.0), 0.6 if mini else 1.0)
 	overlay.queue_redraw()
 
 func _draw_overlay() -> void:

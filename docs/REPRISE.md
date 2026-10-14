@@ -27,6 +27,17 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   (`eclats_plants.gdshader`), qui tournoient, planent et se posent ; `audio.feuillage()` : froissement
   (BigSoundBank 1811-1815, Miscanthus) et tiges cassées (1299, 1300) pour maïs et tournesol.
 
+- Chocs (issue #28) : `audio.impact(matière, force, pos, casse)` superpose des couches (objet, tôle du Raptor, tôle
+  lourde > 8 m/s, verre et débris > 11 m/s) ; matière = méta `matiere` de la boîte touchée (clôtures : par tronçon,
+  `fences.MATIERES`), du corps (voitures garées actives, autoroute, joueurs distants), sinon d'après le chemin du nœud ;
+  raclement en boucle contre métal ou dur ; `casse.gd` appelle `impact(..., true)`. Sons : BigSoundBank (tôle 1771-1776,
+  barrières 2358-2360, grille 683, pierres 1022, poubelle 1266) et Mixkit (`fetch_sons.mixkit` : verre 1551/759,
+  débris 1562, métal 2980/833, bois 2182, effondrement 2958, canette 389).
+- GPS du cockpit (issue #29) : `gps.gd` avec `mini = true` dans l'écran central (`cockpit.gd`, `meta.screen_map`
+  ou [314, 31, 48, 47]), taille fixée à la main (pas d'ancres dans le SubViewport).
+- Import Godot qui manque de mémoire (code 137) : ne PAS utiliser `.gdignore` (tout est réimporté à leur retrait) ;
+  sortir les fichiers du projet et les remettre par paquets de 700 avec un import à chaque fois.
+
 ## Fait en v6.44 : multijoueur jusqu'à 4 (#139, issue #20)
 - `scripts/net.gd` (nœud « Net » de main) : ENet port 47601, annonces UDP 47602 (diffusion), état des voitures
   20 Hz (unreliable_ordered), voitures distantes = body.glb + roues + AnimatableBody3D (collision), Label3D du nom,
