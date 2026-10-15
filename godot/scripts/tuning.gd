@@ -31,6 +31,7 @@ const MOTEUR := [[1.0, 230.0], [1.15, 240.0], [1.3, 252.0], [1.5, 265.0]]   # [p
 const BOITE := [1.0, 1.12, 1.25]
 const FREINS := [1.0, 1.15, 1.3]
 const PNEUS := [2.6, 2.95, 3.3]
+const JANTES_RETOURNEES := [3]
 const VITRES := [Color(0.07, 0.085, 0.10), Color(0.035, 0.045, 0.055), Color(0.008, 0.008, 0.01)]
 
 func _ready() -> void:
@@ -288,11 +289,15 @@ func _jantes(n_choix: int) -> void:
 			w.remove_child(neuve)
 			neuve.queue_free()
 			neuve = null
-		orig.visible = not dispo
+		# tout ce qui n'est pas la nouvelle roue est caché (#54 : le pneu d'origine restait autour de la jante)
+		for c in w.get_children():
+			if c is Node3D and c.name != "Jantes":
+				(c as Node3D).visible = not dispo
 		if dispo and neuve == null:
 			neuve = load(f).instantiate()
 			neuve.name = "Jantes"
 			neuve.set_meta("choix", n_choix)
 			neuve.scale = Vector3.ONE * 2.0 * (w.wheel_radius - 0.045)
-			neuve.rotation.y = 0.0 if i % 2 == 0 else PI           # face extérieure de la jante vers l'extérieur
+			# face extérieure de la jante vers l'extérieur ; la n° 3 est livrée retournée (étrier côté face)
+			neuve.rotation.y = (0.0 if i % 2 == 0 else PI) + (PI if n_choix in JANTES_RETOURNEES else 0.0)
 			w.add_child(neuve)
