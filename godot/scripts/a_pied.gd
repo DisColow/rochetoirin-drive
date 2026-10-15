@@ -102,7 +102,7 @@ func _appliquer_regard() -> void:
 	cam.rotation = Vector3(-_pitch, PI, 0.0)
 
 func _process(_dt: float) -> void:
-	if Input.is_action_just_pressed("pied") and not get_tree().paused:
+	if Input.is_action_just_pressed("pied") and not get_tree().paused and not preload("res://scripts/ui.gd").saisie_active():
 		basculer()
 
 func _physics_process(dt: float) -> void:

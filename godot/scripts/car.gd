@@ -543,7 +543,7 @@ func _physics_process(dt: float) -> void:
 	# zéro empêchait la marche arrière)
 	var thr := clampf(_zone(Input.get_action_strength("accelerer")) + touch_throttle, 0.0, 1.0)
 	var brk := clampf(_zone(Input.get_action_strength("freiner")) + touch_brake, 0.0, 1.0)
-	if Input.is_action_just_pressed("frein_parking"):
+	if Input.is_action_just_pressed("frein_parking") and not preload("res://scripts/ui.gd").saisie_active():
 		frein_parking = not frein_parking
 	if frein_parking and thr > 0.5 and absf(forward_speed()) < 0.3:
 		frein_parking = false                       # on accélère franchement : le frein de parking se desserre
@@ -664,7 +664,7 @@ func _recovery(dt: float) -> void:
 	_flip_t = _flip_t + dt if (up < 0.5 and kmh() < 25.0) else 0.0
 	# v6.22 (demande de l'utilisateur) : plus de remise sur la route automatique quand la voiture est bloquée ou
 	# coincée à l'arrêt ; il reste le bouton rouge (« replacer »), la voiture retournée et la chute hors du monde
-	if p.y < -50.0 or _flip_t > 1.2 or Input.is_action_just_pressed("replacer"):
+	if p.y < -50.0 or _flip_t > 1.2 or (Input.is_action_just_pressed("replacer") and not preload("res://scripts/ui.gd").saisie_active()):
 		reset_to_road()
 
 ## Objets du décor qui touchent la carrosserie (diagnostic d'une voiture coincée).

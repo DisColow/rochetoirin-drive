@@ -754,10 +754,10 @@ func _process_corps(_dt: float) -> void:
 		_toast.modulate.a = clampf(_toast_t / 0.6, 0.0, 1.0)
 		if _toast_t <= 0.0:
 			_toast.visible = false
-	if Input.is_action_just_pressed("carte") and not map.visible:
+	if Input.is_action_just_pressed("carte") and not map.visible and not UI.saisie_active():
 		_open_map()
 	var nav = get_parent().get("nav")
-	if Input.is_action_just_pressed("reglages") and not map.visible and not (nav and (nav.vient_de_fermer() or nav.menu_ouvert() != null)):
+	if Input.is_action_just_pressed("reglages") and not map.visible and not UI.saisie_active() and not (nav and (nav.vient_de_fermer() or nav.menu_ouvert() != null)):
 		_open_settings()
 	if car:
 		speed_panel.queue_redraw()

@@ -27,6 +27,15 @@ static func lcd_font() -> Font:
 ## Saisie au doigt (issue #39) : sur écran tactile, toucher le champ ouvre une fenêtre en haut de l'écran (au-dessus du
 ## clavier du téléphone) avec une grande zone de texte, « Valider » et une croix ✕ pour annuler. Le texte validé est
 ## recopié dans le champ d'origine (signal text_changed émis, et text_submitted pour un LineEdit).
+## Vrai quand un champ de texte a le focus (#79) : les raccourcis du jeu (R, M, T, N, E, P, C…) ne doivent pas se
+## déclencher pendant qu'on écrit.
+static func saisie_active() -> bool:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return false
+	var f := tree.root.gui_get_focus_owner()
+	return f is LineEdit or f is TextEdit
+
 static func saisie_tactile(champ: Control, titre: String) -> void:
 	if not DisplayServer.is_touchscreen_available():
 		return

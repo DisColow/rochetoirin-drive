@@ -71,7 +71,7 @@ func _process(dt: float) -> void:
 	PerfMon.note("camera_rig", Time.get_ticks_usec() - t0_perf)
 
 func _process_corps(dt: float) -> void:
-	if Input.is_action_just_pressed("camera"):
+	if Input.is_action_just_pressed("camera") and not preload("res://scripts/ui.gd").saisie_active():
 		cycle()
 	shake = move_toward(shake, 0.0, dt * 1.2)
 	if _drag.is_empty():

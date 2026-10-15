@@ -612,11 +612,61 @@ func reperes_epreuves() -> Array:
 func _medaille(id: int) -> String:
 	return str(main.garage.medailles.get(str(id), "")) if main.garage else ""
 
+## Départs d'épreuves visibles dans le monde (#78 : seulement sur la carte, on les trouvait mal) : colonne de lumière
+## dorée et grand drapeau à damier sur un mât, à moins de 700 m, hors activité.
+var _balises := {}                # id d'épreuve -> Node3D
+var _balises_t := 0.0
+func _balises_epreuves() -> void:
+	var c := _car2()
+	var garder := {}
+	if mode == "":
+		for e in epreuves:
+			var p := Vector2(e.a[0], e.a[1])
+			if c.distance_to(p) < 700.0:
+				garder[int(e.id)] = true
+				if not _balises.has(int(e.id)):
+					var y: float = Relief.hauteur(Vector3(p.x, 0.0, p.y))
+					var b := _beacon(Vector3(p.x, y, p.y), Color(2.2, 1.6, 0.35), 7.0, 90.0)   # couleur > 1 : colonne plus dense
+					_beacons.erase(b)                       # géré ici, pas effacé avec les repères d'activité
+					b.add_child(_drapeau())
+					_balises[int(e.id)] = b
+	for k in _balises.keys():
+		if not garder.has(k):
+			if is_instance_valid(_balises[k]):
+				_balises[k].queue_free()
+			_balises.erase(k)
+
+func _drapeau() -> Node3D:
+	var n := Node3D.new()
+	var mat := StandardMaterial3D.new(); mat.albedo_color = Color(0.85, 0.85, 0.88); mat.metallic = 0.6
+	var mat_d := ShaderMaterial.new()
+	mat_d.shader = Shader.new()
+	mat_d.shader.code = """
+shader_type spatial;
+render_mode cull_disabled;
+void vertex() { VERTEX.z += sin(VERTEX.x * 1.6 - TIME * 4.0) * 0.2 * (VERTEX.x + 2.1) / 4.2; }
+void fragment() {
+	vec2 q = floor(UV * vec2(6.0, 4.0));
+	float d = mod(q.x + q.y, 2.0);
+	ALBEDO = vec3(d * 0.95 + 0.03);
+	ROUGHNESS = 0.8;
+}
+"""
+	var mat_ = MeshInstance3D.new()
+	var cy := CylinderMesh.new(); cy.top_radius = 0.09; cy.bottom_radius = 0.12; cy.height = 9.0
+	mat_.mesh = cy; mat_.material_override = mat; mat_.position = Vector3(3.5, 4.5, 0)
+	n.add_child(mat_)
+	var dr := MeshInstance3D.new()
+	var pm := PlaneMesh.new(); pm.size = Vector2(4.2, 2.8); pm.orientation = PlaneMesh.FACE_Z; pm.subdivide_width = 8
+	dr.mesh = pm; dr.material_override = mat_d; dr.position = Vector3(3.5 + 2.15, 7.5, 0)
+	n.add_child(dr)
+	return n
+
 func _epreuve_proche() -> void:
 	var c := _car2()
 	var ici := -1
 	for e in epreuves:
-		if c.distance_to(Vector2(e.a[0], e.a[1])) < 18.0:
+		if c.distance_to(Vector2(e.a[0], e.a[1])) < 25.0:          # #78 : rayon élargi
 			ici = int(e.id)
 	if ici < 0:
 		_offre_vue = -1
@@ -1142,7 +1192,7 @@ func _process(dt: float) -> void:
 	PerfMon.note("activities", Time.get_ticks_usec() - t0_perf)
 
 func _process_corps(dt: float) -> void:
-	if Input.is_action_just_pressed("activites") and not map.visible and _menu == null:
+	if Input.is_action_just_pressed("activites") and not map.visible and _menu == null and not preload("res://scripts/ui.gd").saisie_active():
 		open_menu()
 	if get_tree().paused or car == null:
 		return
@@ -1152,6 +1202,10 @@ func _process_corps(dt: float) -> void:
 			_set_status("")
 	if mode == "" and not map.pick_mode:
 		_epreuve_proche()
+	_balises_t -= dt
+	if _balises_t <= 0.0:
+		_balises_t = 1.0
+		_balises_epreuves()
 	match mode:
 		"course":
 			_course_process(dt)

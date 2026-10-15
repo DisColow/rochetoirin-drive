@@ -102,7 +102,7 @@ func _process(dt: float) -> void:
 	PerfMon.note("radio", Time.get_ticks_usec() - t0_perf)
 
 func _process_corps(dt: float) -> void:
-	if Input.is_action_just_pressed("radio"):
+	if Input.is_action_just_pressed("radio") and not preload("res://scripts/ui.gd").saisie_active():
 		next()
 	var inside := 1.0 if (cam_rig and cam_rig.mode == 1) else 0.0
 	_cockpit = move_toward(_cockpit, inside, dt * 3.0)

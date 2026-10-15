@@ -65,6 +65,11 @@ func _input(e: InputEvent) -> void:
 		return
 	if e is InputEventJoypadMotion and absf(e.axis_value) < 0.5:
 		return
+	# #79 : on écrit dans un champ (clavier du téléphone ou clavier physique) : les touches sont pour lui, rien ne
+	# doit lui reprendre le focus (le clavier du téléphone disparaissait à la première touche)
+	var f0 := get_viewport().gui_get_focus_owner()
+	if f0 is LineEdit or f0 is TextEdit:
+		return
 	physique = true
 	var m := menu_ouvert()
 	if m == null:
