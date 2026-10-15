@@ -17,6 +17,8 @@ K = "data/sons/kenney_impact/Audio/%s.ogg"
 MK = "data/sons/mixkit_%d.wav"                      # Mixkit (fetch_sons.mixkit)          # Kenney « Impact Sounds » (CC0)
 SONS = {
     # soucoupe du gardien : vrombissement tournant (boucle), passage en piqué, rayon tracteur
+    # clients du taxi (#55) : apparition / disparition façon téléportation de Dragon Ball Z (souffle bref, aigu)
+    "teleport": dict(bsb=572, t0=0.0, t1=0.55, hp=300, speed=1.5, db=-13, fo=0.12),
     # aéronefs du ciel (issue #46) : passages entiers, joués pour que le maximum tombe au plus près (PIC de ciel.gd)
     "avion_passage": dict(bsb=2478, t0=1.0, t1=14.5, hp=70, db=-15, fi=0.8, fo=2.0),
     "helico_passage": dict(bsb=113, t0=0.0, t1=17.0, hp=40, db=-14, fi=1.5, fo=2.5),

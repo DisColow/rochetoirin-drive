@@ -613,6 +613,31 @@ func _physics_process(_dt: float) -> void:
 		if t > 240 + 120 * 20:
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--pieton-test"):
+		# clients MakeHuman (#55) : cinq piétons devant la voiture, deux immobiles, trois qui marchent ; captures
+		car.touch_throttle = 0.0; car.touch_brake = 1.0
+		if t == 300:
+			var tr := car.global_transform
+			for i in 5:
+				var p: Node3D = load("res://assets/clients/mh_%d.glb" % (i * 2 + (1 if i == 4 else 0))).instantiate()
+				p.set_script(preload("res://scripts/pieton.gd"))
+				p.name = "Pieton%d" % i
+				add_child(p)
+				p.global_position = tr * Vector3(-3.0 + i * 1.5, 0.0, 6.0)
+				p.global_position.y = Relief.hauteur(p.global_position)
+				p.rotation.y = car.rotation.y + PI + (0.0 if i < 2 else PI / 2)
+				p.vitesse = 0.0 if i < 2 else 1.4
+		if t in [420, 470, 520]:
+			cam_rig.set_process(false)
+			var cm := get_viewport().get_camera_3d()
+			cm.global_position = car.global_transform * Vector3(0.0, 1.6, 1.5)
+			cm.look_at(car.global_transform * Vector3(0.0, 1.0, 6.0), Vector3.UP)
+			await RenderingServer.frame_post_draw
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/pieton_%d.png" % t)
+		if t > 540:
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--taxi-test"):
 		# courses de taxi enchaînées (#53) : la voiture est posée sur chaque cible ; journal [taxi]
 		if t == 300:
