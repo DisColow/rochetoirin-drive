@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.48.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.48/RochetoirinSimulator-v6.48.apk)**
+**[RochetoirinSimulator-v6.49.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.49/RochetoirinSimulator-v6.49.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,15 +16,11 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.48 :
-- **L'Isle-d'Abeau** entière, et la route depuis Montcarra.
-- **Épreuves chronométrées** : 14 départs sur la carte (drapeaux à damier), médailles d'or, d'argent et de bronze avec
-  prime ; l'argent est toujours affiché sous le compteur.
-- **Radio « Rochetoirin Info »** : flash info et titres du jour entre les chansons ; **nuages** dans le ciel le soir,
-  la nuit et par temps couvert ; nouveaux vinyles.
-- **Interface** : boutons du haut repliables, icône activités et garage, plus de bouton carte (toucher la mini-carte),
-  carte sans fond noir, GPS de la planche de bord qui ouvre la carte en vue cockpit ; corrections des jantes, du
-  compteur de taxi et des réponses du client avec le doigt sur l'accélérateur.
+Nouveautés de la v6.49 :
+- **Nouveaux clients du taxi** (MakeHuman) : ils marchent jusqu'à la voiture, montent dans un éclair façon Dragon
+  Ball Z, et repartent à pied à la dépose.
+- **Courses variées, sans pression de temps** : petites courses où l'on attend le client compteur tournant, rendez-vous
+  où l'on revient le chercher plus tard pour qu'il raconte ; réponses proposées plus variées.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

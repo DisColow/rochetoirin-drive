@@ -13,6 +13,19 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## En cours : v6.49 (15/10 soir) — #53 (suite) et #55
+- #53 : `activities.gd` : sortes de course `normale` / `arret` (on attend le client à un lieu en chemin, compteur au
+  tarif d'attente, `ARRETS`) / `retour` (on revient le chercher après la course suivante, même client et même
+  modèle, il raconte : `RETOURS`, `_rappel`) ; plus de retard dans la note (`_stars` = chocs) ; réponses génériques
+  par ton (`taxi_talk.GENERIQUES`, 35 %, sans rebond). Essai : `--drive-test --taxi-test [--taxi-sorte=arret|retour]`.
+- #55 : clients MakeHuman `assets/clients/mh_0-9.glb` + `mh.json` (`pipeline/blender_makehuman.py`). Installation :
+  venv bpy ; `git clone --depth 1 https://github.com/makehumancommunity/mpfb2` ; lien
+  `~/.config/blender/5.0/extensions/user_default/mpfb` -> `mpfb2/src/mpfb` ; pack
+  `https://files2.makehumancommunity.org/asset_packs/makehuman_system_assets/makehuman_system_assets_cc0.zip`
+  décompressé, sous-dossiers liés dans `~/.config/blender/5.0/extensions/.user/user_default/mpfb/data/`.
+  Marche procédurale `pieton.gd` (os du squelette game_engine, `cible` + signal `arrive`), téléportation
+  `activities._teleport_fx` + son `teleport` (BSB 572). Essai : `--drive-test --pieton-test`.
+
 ## Livré : v6.48 (15/10 après-midi)
 - Zone #50 : commune de L'Isle-d'Abeau entière + route Montcarra > L'Isle-d'Abeau (par 45,6356 N 5,2426 E) ;
   228 régions, 189 km². BB des fetch_*.py : 45,51-45,67 / 5,165-5,53 (bande ouest téléchargée seule puis fusionnée).
