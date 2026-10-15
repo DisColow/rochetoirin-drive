@@ -6,6 +6,7 @@ extends Node3D
 const Relief := preload("res://scripts/relief.gd")
 
 var vitesse := 0.0                 # m/s (0 : immobile)
+var ivre := false                  # #72 : titube (zigzag, corps qui penche, bras ballants), même à l'arrêt
 var cible := Vector3.INF           # marche vers ce point (repère monde), puis s'arrête ; signal arrive
 signal arrive
 var _sk: Skeleton3D
@@ -45,8 +46,10 @@ func _process(dt: float) -> void:
 			vitesse = 0.0
 			arrive.emit()
 		else:
-			vitesse = 1.4
+			vitesse = 1.0 if ivre else 1.4
 			var dir := d.normalized()
+			if ivre:                     # zigzag : la marche dévie d'un côté puis de l'autre
+				dir = dir.rotated(Vector3.UP, sin(_phase * 0.35) * 0.75)
 			global_position += dir * vitesse * dt
 			global_position.y = Relief.hauteur(global_position)
 			rotation.y = lerp_angle(rotation.y, atan2(dir.x, dir.z), 1.0 - exp(-dt * 8.0))
@@ -54,7 +57,15 @@ func _process(dt: float) -> void:
 		return
 	if vitesse > 0.05:
 		_phase += dt * vitesse * 3.2            # ~1,1 pas par seconde à 1,4 m/s
+	elif ivre:
+		_phase += dt * 1.2                      # à l'arrêt, il oscille sur place
 	_poser(clampf(vitesse / 1.4, 0.0, 1.0))
+	if ivre:
+		# tout le corps penche d'un côté puis de l'autre, en avant par moments (on ne peut pas s'y tromper)
+		_tourner("pelvis", Vector3.BACK, 0.22 * sin(_phase * 0.6))
+		_tourner_plus("pelvis", Vector3.RIGHT, 0.12 + 0.08 * sin(_phase * 0.9))
+		if _os.has("spine_01"):
+			_tourner_plus("spine_01", Vector3.BACK, -0.15 * sin(_phase * 0.6 + 0.8))
 
 ## Rotation d'un os : angle (rad) autour d'un axe du repère du personnage, appliquée à sa pose de repos.
 func _tourner(nom: String, axe: Vector3, angle: float) -> void:

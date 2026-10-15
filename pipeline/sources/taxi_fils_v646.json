@@ -60,17 +60,17 @@
     }
    },
    {
-    "dit": "Hic. Pardon. Vous croyez que ma femme va m'attendre derrière la porte ?",
+    "dit": "Hic. Pardon. Vous croyez que {ma femme|mon mari} va m'attendre derrière la porte ?",
     "rep": {
      "chaleureux": {
-      "t": "Elle sera surtout contente de vous voir rentré entier.",
+      "t": "{Elle|Il} sera surtout {contente|content} de vous voir {rentré entier|rentrée entière}.",
       "ok": "Vous avez raison. Entier, c'est déjà beaucoup.",
       "ko": "Entier, entier… avec la migraine demain."
      },
      "drole": {
       "t": "Avec le rouleau à pâtisserie ?",
       "ok": "Ha ha ! Avec le rouleau ET la poêle !",
-      "ko": "C'est pas drôle, elle en est capable."
+      "ko": "C'est pas drôle, {elle|il} en est capable."
      },
      "curieux": {
       "t": "Vous lui avez dit à quelle heure vous rentriez ?",
@@ -110,7 +110,7 @@
      },
      "sobre": {
       "t": "Vous rentrez à pied si vous êtes malade.",
-      "ok": "Promis ! Je suis pas malade. Je suis heureux, nuance.",
+      "ok": "Promis ! Je suis pas malade. Je suis {heureux|heureuse}, nuance.",
       "ko": "Ah bon… vous êtes dur, vous."
      }
     },

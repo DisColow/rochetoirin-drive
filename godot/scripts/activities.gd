@@ -855,6 +855,8 @@ func _taxi_new_client() -> void:
 		_profil["modele"] = k
 		_client = (load("res://assets/clients/" + str(mh[k].fichier)) as PackedScene).instantiate()
 		_client.set_script(preload("res://scripts/pieton.gd"))
+		if not _en_rappel and _talk.choisir_caractere() == "ivre":
+			_client.ivre = true
 	else:
 		var path := "res://assets/clients/client%d.glb" % (randi() % 4)
 		_client = (load(path) as PackedScene).instantiate() if ResourceLoader.exists(path) else Node3D.new()

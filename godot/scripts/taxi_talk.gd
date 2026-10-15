@@ -65,8 +65,7 @@ const GENERIQUES := {
 		"Ça fait longtemps que ça dure ?", "Et ça vous a surpris ?", "C'est-à-dire ? Je veux tout savoir.",
 		"Ah bon ? Comment c'est arrivé ?", "Et vous comptez faire quoi, maintenant ?", "Il y en a d'autres qui pensent comme vous ?",
 		"C'est la première fois ?"],
-	"sobre": ["Je vois.", "D'accord.", "Je comprends.", "Ah.", "Bien sûr.", "C'est noté.", "Mm, oui.", "Entendu.",
-		"Ça arrive.", "C'est la vie."],
+	"sobre": ["Je vois.", "D'accord.", "Je comprends.", "Mm, oui.", "Entendu.", "Ah, d'accord.", "Je note."],
 }
 const SEP := " ¦ "                # entre le rebond et la suite (une bulle, une lecture ; morceaux des voix enregistrées)
 var _node := 0
@@ -174,6 +173,9 @@ func start_ride(home: String, dest: String, dest_commune: String, dest_kind: Str
 		_verdict.text = ""
 		return ""
 	var car_: Dictionary = data.caracteres[_rng.randi() % data.caracteres.size()]
+	if _car_suivant >= 0:
+		car_ = data.caracteres[_car_suivant]
+		_car_suivant = -1
 	var g := {}
 	for k in car_.gouts:
 		g[k] = float(car_.gouts[k]) + _rng.randf_range(-0.4, 0.4)
@@ -209,6 +211,22 @@ func start_ride(home: String, dest: String, dest_commune: String, dest_kind: Str
 	_verdict.text = ""
 	_client_says(_pick(data.bonjour), 2.5)
 	return ""
+
+## Caractère du prochain client, tiré dès qu'il apparaît au bord de la route (#72 : un ivre titube déjà en
+## marchant jusqu'au taxi). Renvoie son identifiant (« ivre », « colere »…).
+var _car_suivant := -1
+func choisir_caractere() -> String:
+	if data.is_empty():
+		return ""
+	_car_suivant = _rng.randi() % data.caracteres.size()
+	return str(data.caracteres[_car_suivant].id)
+
+func _triste(t: String) -> bool:
+	var l := t.to_lower()
+	for m in ["mort", "décéd", "malad", "hôpital", "triste", "peur", "inquiet", "accident", "cancer", "perdu", "seul", "pleur", "enterre", "divorc", "licenci", "chômage"]:
+		if l.contains(m):
+			return true
+	return false
 
 ## Une phrase du client hors des fils de conversation (courses avec arrêt ou retour, #53).
 func dire(t: String, tenue := 1.5) -> void:
@@ -410,11 +428,38 @@ func _start_fil(subject: String) -> void:
 		_exchange()
 		return
 	_used[subject] = true
-	var pool: Array = data.fils[subject]
+	# seulement les fils qui collent au client (#71 : un étudiant ne raconte pas son premier jour de retraite)
+	var tous: Array = data.fils[subject]
+	var pool := []
+	for i in tous.size():
+		if _fil_possible(subject, i):
+			pool.append(tous[i])
+	if pool.is_empty():
+		_next = 6.0
+		return
 	_fil = pool[_rng.randi() % pool.size()]
 	_node = 0
 	_since = 0.0
 	_exchange()
+
+## Fils réservés à certains clients (#71) : âge minimal / maximal, métier.
+const FIL_AGE := {"metier.2": [30, 99], "metier.4": [0, 60], "famille.1": [45, 99], "famille.3": [60, 99],
+	"famille.4": [50, 75], "loisir.0": [30, 99], "meteo.2": [60, 99], "musique.0": [40, 99], "musique.2": [60, 99],
+	"souvenir.1": [50, 99], "souvenir.2": [65, 99], "souvenir.3": [68, 99], "sport.1": [50, 99]}
+const FIL_ACTIFS := ["metier.1", "metier.3", "metier.4"]          # pas les retraités ni les étudiants
+func _fil_possible(sujet: String, i: int) -> bool:
+	var cle := "%s.%d" % [sujet, i]
+	var age := int(client.get("age", 40))
+	var met := str(client.get("metier", ""))
+	if FIL_AGE.has(cle) and (age < FIL_AGE[cle][0] or age > FIL_AGE[cle][1]):
+		return false
+	if cle in FIL_ACTIFS and (met.begins_with("retrait") or met.begins_with("étudiant")):
+		return false
+	if cle == "metier.5" and not met.begins_with("retrait"):
+		return false
+	if cle == "vip.1" and not met.begins_with("cuisini"):
+		return false
+	return true
 
 func _exchange() -> void:
 	if _node >= _fil.size():
@@ -440,7 +485,10 @@ func _exchange() -> void:
 	var opts := []
 	for t in pick:
 		var txt: String = n.rep[t].t if n.rep[t] is Dictionary else n.rep[t]
-		if GENERIQUES.has(t) and _rng.randf() < 0.35:
+		# réponse générique (#71 : tirées au hasard, elles tombaient souvent à côté) : seulement sur le ton sobre, quand
+		# le client ne pose pas de question et n'annonce rien de triste ou d'inquiétant
+		var dit := str(n.dit)
+		if t == "sobre" and not dit.contains("?") and not _triste(dit) and _rng.randf() < 0.35:
 			txt = _pick(GENERIQUES[t])
 		opts.append({"t": txt, "ton": t})
 	_queue.append({"kind": "choix", "options": opts, "timeout": func(): _answer("", "silence")})
@@ -578,6 +626,8 @@ func _clear_choices() -> void:
 	_timer_bar.visible = false
 
 func _say(t: String, who: String) -> void:
+	if who != "joueur" and _ivre():
+		t = _bourre(_fill(t))               # #72 : aucun doute possible sur son état
 	var filled := _fill(t.replace(SEP, " "))
 	_full = filled
 	_shown = 0.0
@@ -699,6 +749,51 @@ func _stop_voice() -> void:
 		DisplayServer.tts_stop()
 		_tts_id = -1
 
+func _ivre() -> bool:
+	return not client.is_empty() and str((client.get("car", {}) as Dictionary).get("id", "")) == "ivre"
+
+## Diction d'ivrogne caricaturale (#72) : « s » mouillés en « ch », voyelles qui traînent, hoquets, mots répétés,
+## points de suspension. Tirage fixé par la réplique (la même phrase sort toujours pareil).
+func _bourre(t: String) -> String:
+	var r := RandomNumberGenerator.new()
+	r.seed = hash(t)
+	var mots := t.split(" ", false)
+	var out := PackedStringArray()
+	if r.randf() < 0.45:
+		out.append(["Hééé…", "Hic !", "Alors… alors…", "Ooooh…"][r.randi_range(0, 3)])
+	for i in mots.size():
+		var m := mots[i]
+		if m == "¦" or m.length() < 2:
+			out.append(m)
+			continue
+		var low := m.to_lower()
+		# « s » en « ch » (début de mot, « ss »), un mot sur deux
+		if r.randf() < 0.55:
+			if low.begins_with("s") and not low.begins_with("sh"):
+				m = ("Ch" if m[0] == "S" else "ch") + m.substr(1)
+			m = m.replace("ss", "ch").replace("ç", "ch")
+		# voyelle finale qui traîne
+		if r.randf() < 0.18:
+			var k := m.length() - 1
+			while k > 0 and not "aeiouéèêàâôûy".contains(m[k].to_lower()):
+				k -= 1
+			if k > 0:
+				m = m.substr(0, k + 1) + m[k].repeat(3) + m.substr(k + 1)
+		# mot bégayé
+		if r.randf() < 0.1 and m.length() > 3:
+			m = m.substr(0, 2) + "… " + m
+		out.append(m)
+		# hoquet ou blanc après une ponctuation
+		if (m.ends_with(",") or m.ends_with(".") or m.ends_with("!") or m.ends_with("?")) and i < mots.size() - 1:
+			if r.randf() < 0.5:
+				out.append("Hic !")
+			elif r.randf() < 0.5:
+				out.append("…")
+	var res := " ".join(out)
+	if r.randf() < 0.35:
+		res += " Hic !"
+	return res
+
 ## Dit une réplique : le fichier de la réplique entière, ou (répliques à variables) ses morceaux fixes et les valeurs
 ## des variables joués à la suite. Renvoie la durée (0 sans voix : le texte s'écrit alors seul).
 func _speak(t: String, who: String) -> float:
@@ -706,6 +801,10 @@ func _speak(t: String, who: String) -> float:
 	if VT.dispo():
 		# chauffeur : voix d'homme fixe ; client : voix de son sexe, propre à lui
 		var ch := VT.choisir("m", 7) if who == "joueur" else VT.choisir("f" if client.get("fem", false) else "m", int(client.get("graine", 0)))
+		if who != "joueur" and _ivre() and not ch.is_empty():
+			ch = ch.duplicate()
+			ch.debit = float(ch.debit) * 0.78                # élocution pâteuse (#72)
+			ch.hauteur = clampf(float(ch.hauteur) * 0.93, 0.5, 1.8)
 		var txt := _fill(t.replace(SEP, " "))
 		var AU := preload("res://scripts/audio.gd")
 		AU.volume_db("voix")

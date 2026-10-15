@@ -3191,7 +3191,7 @@
     }
    },
    {
-    "dit": "Je l'aime toujours autant. Même quand il ronfle.",
+    "dit": "Je l'aime toujours autant. Même quand {elle|il} ronfle.",
     "rep": {
      "chaleureux": {
       "t": "C'est ça, le vrai amour.",
@@ -3200,7 +3200,7 @@
      },
      "drole": {
       "t": "Le ronflement, c'est la preuve d'amour ultime.",
-      "ok": "Alors notre amour est immense, parce qu'il ronfle comme un tracteur.",
+      "ok": "Alors notre amour est immense, parce qu'{elle|il} ronfle comme un tracteur.",
       "ko": "Preuve d'amour, dites ça à mes nuits blanches."
      },
      "curieux": {
