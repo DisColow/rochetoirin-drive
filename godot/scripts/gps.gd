@@ -64,15 +64,16 @@ func _process_corps(_dt: float) -> void:
 
 func _draw_overlay() -> void:
 	var anchor := Vector2(size.x * 0.5, size.y * 0.66)
-	data.arrow(overlay, anchor, Vector2(0, -1), 17.0 * k, Color8(255, 176, 32), 3.0 * k)
 	if mini:
 		_draw_activity(anchor)
+		data.arrow(overlay, anchor, Vector2(0, -1), 17.0 * k, Color8(255, 176, 32), 3.0 * k)
 		return
 	var north := Vector2(0, -1).rotated(_th)
 	var nc := Vector2(size.x - 34, 34)
 	overlay.draw_circle(nc, 20, Color(0, 0, 0, 0.55))
 	overlay.draw_string(get_theme_default_font(), nc + north * 11 - Vector2(8, -8), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color8(255, 90, 80))
 	_draw_activity(anchor)
+	data.arrow(overlay, anchor, Vector2(0, -1), 17.0 * k, Color8(255, 176, 32), 3.0 * k)   # par-dessus l'itinéraire (#49)
 	overlay.draw_rect(Rect2(Vector2.ZERO, size), Color(1, 1, 1, 0.55), false, 3.0)
 
 ## Repères des activités : point visé (ou flèche au bord du GPS s'il est hors champ) et cercle de la chasse au lieu.

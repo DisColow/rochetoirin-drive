@@ -104,13 +104,13 @@ func appliquer() -> void:
 	# néons
 	_neons(garage.choix("neons"))
 	# pièces
-	_poser("taxi", garage.choix("taxi") > 0, _faire_taxi)
-	_poser("barre_led", garage.choix("barre_led") > 0, _faire_led)
-	_poser("prise_air", garage.choix("prise_air") > 0, _faire_prise)
-	_poser("bas_caisse", garage.choix("bas_caisse") > 0, _faire_jupes)
-	_poser("aileron", garage.choix("aileron") > 0, _faire_aileron)
-	_poser("echappement", garage.choix("echappement") > 0, _faire_echappement)
-	_jantes(garage.choix("jantes") > 0)
+	_poser("taxi", garage.choix("taxi"), _faire_taxi)
+	_poser("barre_led", garage.choix("barre_led"), _faire_led)
+	_poser("prise_air", garage.choix("prise_air"), _faire_prise)
+	_poser("bas_caisse", garage.choix("bas_caisse"), _faire_jupes)
+	_poser("aileron", garage.choix("aileron"), _faire_aileron)
+	_poser("echappement", garage.choix("echappement"), _faire_echappement)
+	_jantes(garage.choix("jantes"))
 	var audio = main.get("sound") if main else null
 	if audio and "echappement" in audio:
 		audio.echappement = garage.choix("echappement") > 0
@@ -159,19 +159,23 @@ func _neons(i: int) -> void:
 	_neon_mat.albedo_color = col.lerp(Color.WHITE, 0.3)
 
 # ---------------------------------------------------------------- pièces
-func _poser(r: String, oui: bool, faire: Callable) -> void:
-	if oui and not _pieces.has(r):
-		var n: Node3D
-		if ResourceLoader.exists("res://assets/garage/%s.glb" % r):
-			n = load("res://assets/garage/%s.glb" % r).instantiate()
-			n.position = Vector3.ZERO                        # modèle déjà calé dans le repère de la voiture
-		else:
-			n = faire.call()
-		car.add_child(n)
-		_pieces[r] = n
-	elif not oui and _pieces.has(r):
+func _poser(r: String, n_choix: int, faire: Callable) -> void:
+	# modèle n° n_choix (assets/garage/<rubrique>_<n>.glb, déjà calé dans le repère de la voiture) ou forme simple
+	if _pieces.has(r) and int(_pieces[r].get_meta("choix", -1)) != n_choix:
 		_pieces[r].queue_free()
 		_pieces.erase(r)
+	if n_choix > 0 and not _pieces.has(r):
+		var n: Node3D
+		var f := "res://assets/garage/%s_%d.glb" % [r, n_choix]
+		if ResourceLoader.exists(f):
+			n = load(f).instantiate()
+		else:
+			n = faire.call()
+		n.set_meta("choix", n_choix)
+		for g in n.find_children("*", "GeometryInstance3D", true, false):
+			(g as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		car.add_child(n)
+		_pieces[r] = n
 	if _pieces.has(r) and r in ["prise_air", "bas_caisse", "aileron"]:
 		var col: Color = Garage.COULEURS[garage.choix("couleur")]
 		for mi in _pieces[r].find_children("*", "MeshInstance3D", true, false):
@@ -272,23 +276,23 @@ func _faire_echappement() -> Node3D:
 		n.add_child(fi)
 	return n
 
-## Jantes : modèle de roue remplacé (assets/garage/jantes.glb : une roue complète, axe x, diamètre 1 m).
-func _jantes(oui: bool) -> void:
-	var dispo := ResourceLoader.exists("res://assets/garage/jantes.glb")
+## Jantes : modèle de roue remplacé (assets/garage/jantes_<n>.glb : roue complète, axe x, diamètre 1 m).
+func _jantes(n_choix: int) -> void:
+	var f := "res://assets/garage/jantes_%d.glb" % n_choix
+	var dispo := n_choix > 0 and ResourceLoader.exists(f)
 	for i in car.wheels.size():
 		var w: VehicleWheel3D = car.wheels[i]
 		var orig: Node3D = _roues_origine[i]
 		var neuve := w.get_node_or_null("Jantes")
-		if oui and dispo:
-			orig.visible = false
-			if neuve == null:
-				neuve = load("res://assets/garage/jantes.glb").instantiate()
-				neuve.name = "Jantes"
-				var d := 2.0 * (w.wheel_radius - 0.045)
-				neuve.scale = Vector3.ONE * d
-				neuve.rotation.y = 0.0 if i % 2 == 0 else PI
-				w.add_child(neuve)
-		else:
-			orig.visible = true
-			if neuve:
-				neuve.queue_free()
+		if neuve and int(neuve.get_meta("choix", -1)) != n_choix:
+			w.remove_child(neuve)
+			neuve.queue_free()
+			neuve = null
+		orig.visible = not dispo
+		if dispo and neuve == null:
+			neuve = load(f).instantiate()
+			neuve.name = "Jantes"
+			neuve.set_meta("choix", n_choix)
+			neuve.scale = Vector3.ONE * 2.0 * (w.wheel_radius - 0.045)
+			neuve.rotation.y = 0.0 if i % 2 == 0 else PI           # face extérieure de la jante vers l'extérieur
+			w.add_child(neuve)

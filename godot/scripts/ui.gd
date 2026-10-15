@@ -41,6 +41,7 @@ static func ouvrir_saisie(champ: Control, titre: String) -> void:
 	var tree := champ.get_tree()
 	var cl := CanvasLayer.new()
 	cl.layer = 120
+	cl.process_mode = Node.PROCESS_MODE_ALWAYS            # #48 : utilisable aussi jeu en pause (réglages, carte)
 	var fond := ColorRect.new()
 	fond.color = Color(0, 0, 0, 0.55)
 	fond.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -61,6 +62,10 @@ static func ouvrir_saisie(champ: Control, titre: String) -> void:
 	h.add_child(t)
 	var croix := Button.new(); croix.text = "✕"; croix.custom_minimum_size = Vector2(80, 70)
 	croix.add_theme_font_size_override("font_size", 34)
+	# #48 : « Valider » en haut, à côté de la croix (en paysage, le clavier du téléphone cache le bas de l'écran)
+	var ok := Button.new(); ok.text = "Valider"; ok.custom_minimum_size = Vector2(240, 70)
+	ok.add_theme_font_size_override("font_size", 30)
+	h.add_child(ok)
 	h.add_child(croix)
 	var multi := champ is TextEdit
 	var ed: Control
@@ -69,7 +74,7 @@ static func ouvrir_saisie(champ: Control, titre: String) -> void:
 		te.text = (champ as TextEdit).text
 		te.placeholder_text = (champ as TextEdit).placeholder_text
 		te.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-		te.custom_minimum_size = Vector2(0, vs.y * 0.24)
+		te.custom_minimum_size = Vector2(0, vs.y * 0.17)
 		ed = te
 	else:
 		var le := LineEdit.new()
@@ -79,10 +84,6 @@ static func ouvrir_saisie(champ: Control, titre: String) -> void:
 		ed = le
 	ed.add_theme_font_size_override("font_size", 30)
 	v.add_child(ed)
-	var ok := Button.new(); ok.text = "Valider"; ok.custom_minimum_size = Vector2(260, 70)
-	ok.add_theme_font_size_override("font_size", 30)
-	ok.size_flags_horizontal = Control.SIZE_SHRINK_END
-	v.add_child(ok)
 	tree.root.add_child(cl)
 	var fermer := func(garder: bool):
 		if garder:

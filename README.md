@@ -7,7 +7,7 @@ Chapelle-de-la-Tour (communes entières), L'Isle-d'Abeau et les routes qui y mè
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.46.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.46/RochetoirinSimulator-v6.46.apk)**
+**[RochetoirinSimulator-v6.47.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.47/RochetoirinSimulator-v6.47.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,14 +16,13 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.46 :
-- **Taxi** : vrai compteur à l'américaine (le client paie ce qu'il affiche) et nouveaux clients : éméchés, furieux,
-  personnalités, avec des anecdotes et de la culture locale.
-- **Bords de carte** : catapulte façon Motocross Madness, très haut et en tournoyant.
-- **Destruction** : clôtures des prés arrachées et poubelles qui volent, sans ralentir ; chocs contre les murs plus
-  réalistes.
-- **Corrections** : relief manquant entre Saint-Chef et Bourgoin, petits ponts qui débordaient sur la route, GPS du
-  cockpit, noms de communes sur la carte, réglages qui défilent au doigt, saisie de texte au-dessus du clavier.
+Nouveautés de la v6.47 :
+- **Garage** (menu ★) : moteur, boîte, suspension, freins, pneus, peinture et finitions, vinyles, vitres, néons, jantes,
+  ailerons, échappements, jupes, prise d'air, barre de LED, enseigne TAXI, payés avec l'argent gagné au taxi, aux
+  courses et à la chasse au lieu.
+- **Ciel** : avions de tourisme, hélicoptères, planeurs et avions de ligne avec leur traînée.
+- **Sauvegarde** : on repart là où on s'était arrêté.
+- **Corrections** : saisie de texte, flèche du GPS cachée par l'itinéraire, plantage à la fermeture sur PC.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

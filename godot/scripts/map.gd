@@ -119,8 +119,8 @@ func _draw_overlay() -> void:
 		overlay.draw_string(f, p + Vector2(-w * 0.5, 0), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color.WHITE)
 	var c := world_to_screen(Vector2(car.global_position.x, car.global_position.z))
 	var fwd: Vector3 = car.global_transform.basis.z
-	data.arrow(overlay, c, Vector2(fwd.x, fwd.z), 22.0)
 	_draw_activity(f)
+	data.arrow(overlay, c, Vector2(fwd.x, fwd.z), 22.0)          # par-dessus l'itinéraire (#49)
 	overlay.draw_string(f, Vector2(size.x - 24, size.y - 18), "Données : © contributeurs OpenStreetMap, IGN (RGE ALTI, BD TOPO, RPG, LiDAR HD)",
 		HORIZONTAL_ALIGNMENT_RIGHT, -1, 18, Color(0.7, 0.72, 0.75))
 

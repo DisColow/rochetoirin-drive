@@ -63,6 +63,7 @@ Voix du taxi : synthèse vocale de l'appareil ; à défaut, synthèse Piper (rha
 Voiture : « Ford Ranger Raptor 2019 » par David_Holiday (Sketchfab, licence CC BY 4.0), repeint en noir.
 Lampadaires : « Street Lantern » par Samuel Francis Johnson (Oneironauticus) (Sketchfab, licence CC BY 4.0).
 Aéronefs (Sketchfab, licence CC BY 4.0) : « Free Cessna 172 Replica » par quadzii, « Low Poly Airliner » par maurogsw, « Low Poly Helicopter » par antonmoek, « UNDERPOLY: Free Sailplane Glider » par underpolyproject.
+Pièces du garage (Sketchfab, licence CC BY 4.0) : « Universal Spoiler 1 » et « 2 » par the_86_guy, « Ultimate Car Spoiler Pack » par DevPoly3D, « Universal Custom Car Spoiler » par JollyFox, « Car agressive Wing modification » par knitro_vedant, « Dual Exhaust Tip » par wojteX, « Exhaust Tips » par wiktors360, « Basic Low-Poly Exhaust Tip » 1 et 2 par NANOxDucko, « BBS RS16 Tuner Car Wheel », « Mugen M7 Tuner Car Wheel » et « Tuner Car Wheel » par TinoD2, « Volkswagen Rim » par PolyTigr, « Concept car Rim » par LagzDesign.
 Soucoupe du gardien : « UFO » par sebslom (sketchfab.com/3d-models), licence CC BY 4.0.
 Pluie et orage : Sound Effect by Premankur Adhikary from Pixabay.
 Sons (moteur, roulement, ambiances, oiseaux, animaux, cloches, essuie-glaces, soucoupe…) : enregistrements de Joseph SARDIN - BigSoundBank.com (licence CC0) ; chocs : « Impact Sounds » de Kenney (CC0) et effets sonores de Mixkit.co (licence Mixkit, gratuite).
@@ -110,6 +111,9 @@ func _open_settings() -> void:
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	sc.get_v_scroll_bar().custom_minimum_size.x = 34          # barre facile à attraper au doigt (issue #38)
 	settings.add_child(sc)
+	var dfl := preload("res://scripts/defilement.gd").new()   # défilement au doigt depuis un bouton (issue #38)
+	dfl.sc = sc
+	settings.add_child(dfl)
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 12)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sc.add_child(v)
@@ -599,41 +603,3 @@ func _pastille(c: Color) -> ImageTexture:
 					col = col.lightened(0.45)
 				img.set_pixel(x, y, col)
 	return ImageTexture.create_from_image(img)
-
-## Défilement des réglages au doigt même en partant d'un bouton (issue #38) : au-delà de 14 px de glissé, la liste
-## suit le doigt et le bouton de départ n'est pas déclenché au lâcher (événements tactiles et souris émulée absorbés).
-var _glisse := 0.0
-var _defile := false
-var _appui := false
-var _fin_defile := 0
-func _input(e: InputEvent) -> void:
-	if not (settings and is_instance_valid(settings) and settings.visible):
-		_appui = false; _defile = false
-		return
-	var sc: ScrollContainer = settings.get_child(0)
-	var lacher: bool = ((e is InputEventScreenTouch) or (e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT)) and not e.pressed
-	if lacher:
-		if _defile:
-			_fin_defile = Time.get_ticks_msec()
-			_defile = false
-		_appui = false
-		if Time.get_ticks_msec() - _fin_defile < 150:
-			get_viewport().set_input_as_handled()          # le bouton de départ n'est pas déclenché
-		return
-	if (e is InputEventScreenTouch) or (e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT):
-		if e.pressed and sc.get_global_rect().has_point(e.position):
-			_appui = true; _glisse = 0.0; _defile = false
-		return
-	if _appui and ((e is InputEventScreenDrag) or (e is InputEventMouseMotion)):
-		# le doigt produit un glissé tactile ET une souris émulée : un seul des deux fait défiler
-		var pilote: bool = e is InputEventScreenDrag or not Input.is_emulating_mouse_from_touch() or DisplayServer.get_name() != "android"
-		if not _defile:
-			if pilote:
-				_glisse += e.relative.y
-			if absf(_glisse) > 14.0:
-				_defile = true
-				sc.scroll_vertical -= int(_glisse)
-		elif pilote:
-			sc.scroll_vertical -= int(e.relative.y)
-		if _defile:
-			get_viewport().set_input_as_handled()

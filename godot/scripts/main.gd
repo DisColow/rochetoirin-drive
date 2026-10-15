@@ -118,6 +118,11 @@ func _ready() -> void:
 	var spawn: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://world/spawn.json"))
 	var depart := Vector3(spawn.x, spawn.y + 0.6, spawn.z)
 	var cap_depart := float(spawn.heading)
+	# partie sauvegardée (#51) : on repart de là où on s'était arrêté (pas pendant les essais)
+	var sauv: Array = preload("res://scripts/sauvegarde.gd").lire()
+	if not sauv.is_empty() and OS.get_cmdline_user_args().is_empty():
+		depart = sauv[0]
+		cap_depart = sauv[1]
 	# essai : --drive-from=x,y,z,cap (départ de l'essai de conduite ailleurs qu'au point de départ)
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--drive-from="):
@@ -330,6 +335,10 @@ func _ready() -> void:
 	tuning = preload("res://scripts/tuning.gd").new()
 	tuning.car = car; tuning.garage = garage; tuning.main = self; tuning.activities = activities
 	add_child(tuning)
+	var sv = preload("res://scripts/sauvegarde.gd").new()
+	sv.name = "Sauvegarde"
+	sv.car = car
+	add_child(sv)
 	# multijoueur sur le réseau local (v6.44)
 	net = preload("res://scripts/net.gd").new()
 	net.name = "Net"

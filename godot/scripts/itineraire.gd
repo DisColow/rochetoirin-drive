@@ -197,6 +197,33 @@ static func _extraire(f: PackedFloat32Array, n: PackedInt32Array) -> int:
 	return v
 
 ## Distance du point à l'itinéraire (m) : sortie de route -> nouveau calcul.
+## Partie de l'itinéraire qui reste à faire (#49 : le trajet déjà parcouru n'est plus tracé) : depuis le point de
+## l'itinéraire le plus proche de p, cherché vers l'avant à partir du dernier (un tracé qui repasse près de lui-même
+## ne fait pas sauter la position).
+var _avance := 0
+var _route_suivie := PackedVector2Array()
+func restant(p: Vector2) -> PackedVector2Array:
+	if route.size() < 2:
+		return route
+	if route != _route_suivie:
+		_route_suivie = route
+		_avance = 0
+	var bd := INF
+	var bi := _avance
+	var bq := route[_avance]
+	for i in range(_avance, mini(route.size() - 1, _avance + 60)):
+		var a := route[i]; var b := route[i + 1]
+		var ab := b - a
+		var tt := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 1e-6), 0.0, 1.0)
+		var q := a + ab * tt
+		var d := p.distance_to(q)
+		if d < bd:
+			bd = d; bi = i; bq = q
+	_avance = bi
+	var r := PackedVector2Array([bq])
+	r.append_array(route.slice(bi + 1))
+	return r
+
 func ecart(p: Vector2) -> float:
 	var bd := INF
 	for i in range(0, route.size() - 1):

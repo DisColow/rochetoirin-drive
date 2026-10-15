@@ -319,6 +319,7 @@ func _garage() -> void:
 		return
 	_close_menu()
 	hud._show_drive(false)
+	get_tree().paused = false            # la caméra tourne autour de la voiture, qui reste freinée à l'arrêt
 	var g = preload("res://scripts/garage_ui.gd").new()
 	g.garage = main.garage; g.tuning = main.tuning; g.cam_rig = main.cam_rig
 	g.ferme.connect(func(): _menu = null; hud._show_drive(true))
@@ -741,7 +742,7 @@ func _itineraire(dt: float, cible: Vector2) -> void:
 		_itin = preload("res://scripts/itineraire.gd").new()
 	_itin.suivre()
 	if _itin.pret:
-		route_gps = _itin.route
+		route_gps = _itin.restant(_car2())
 	_itin_t -= dt
 	if _itin_t > 0.0:
 		return
