@@ -13,7 +13,7 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
-## En cours : v6.47 (15/10) — garage, ciel, sauvegarde ; puis v6.48 = zone L'Isle-d'Abeau (#50)
+## Livré : v6.47 (15/10 midi), APK 1 486 Mo — garage, ciel, sauvegarde ; en cours : v6.48 = zone L'Isle-d'Abeau (#50)
 - Garage (#43, tout d'un coup, payé avec l'argent du jeu) : `garage.gd` (catalogue `CATALOGUE`, argent et pièces dans
   `user://garage.cfg`, `apercu` = essai non acheté), `tuning.gd` (effets : variables `puissance`, `force_max`, `vmax`,
   `freinage` de car.gd, roues, `carrosserie.gdshader` = couleur/finition/vinyles dans le repère de la voiture,
@@ -31,6 +31,13 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   via `hud._show_drive(false)`) ; « Valider » en haut. #49 : `itineraire.restant()` + flèche dessinée après le tracé.
 - #47 : `vegetation._exit_tree` attend la tâche du fil de travail (plus de plantage à la fermeture).
 - Défilement au doigt commun : `defilement.gd` (réglages et garage).
+- Issues à tester : #43, #46, #47, #48, #49, #51.
+- `publier_donnees.sh` : récupère la branche `donnees` sans le contenu des fichiers (`--filter=blob:none --depth=1`) ;
+  un `git fetch` complet (plus de 1,8 Go) remplissait le disque de la session.
+- #50 en cours : `routes_plan.py` modifié (228 régions, 189 km²) ; BB des fetch_*.py mis sur la bande ouest
+  45,51-45,67 / 5,165-5,19 (à remettre à 5,165-5,53 après fusion) ; anciens fichiers dans
+  `scratchpad/zone650/old/`, fusion par `scratchpad/zone650/merge.py <ancien> <bande> <sortie>` (à recréer si
+  perdu : ajout des features/éléments d'identifiant inconnu).
 - #50 (v6.48) : route Montcarra -> (45.6356, 5.2426) -> impasse des Glycines (45.6265, 5.2181) + commune de
   L'Isle-d'Abeau entière (~+10 km²) ; BB des fetch à étendre à l'ouest (5,17°) ; procédure par bande comme en v6.45.
 
