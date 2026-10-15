@@ -584,7 +584,7 @@ func _physics_process(_dt: float) -> void:
 			if not trouve:
 				print("  [champ] aucun champ trouvé"); get_tree().quit()
 		if t > 360 and t % 60 == 0:
-			print("  [champ] t=%.1f %d km/h morceaux %d, %d img/s, cases à construire %d" % [(t - 360) / 120.0, car.kmh(), dust._fp.size(), Engine.get_frames_per_second(), crops.pending])
+			print("  [champ] t=%.1f %d km/h morceaux %d, %d img/s, cases à construire %d, plans de plantes %d, primitives %d" % [(t - 360) / 120.0, car.kmh(), dust._fp.size(), Engine.get_frames_per_second(), crops.pending, crops.instances_visibles(), Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)])
 		if t in [360 + 150, 360 + 200, 360 + 300, 360 + 420, 360 + 560]:
 			DirAccess.make_dir_recursive_absolute("user://shots")
 			get_viewport().get_texture().get_image().save_png("user://shots/champ_%d.png" % ((t - 360) / 60))
@@ -611,6 +611,26 @@ func _physics_process(_dt: float) -> void:
 			DirAccess.make_dir_recursive_absolute("user://shots")
 			get_viewport().get_texture().get_image().save_png("user://shots/bord_%d.png" % ((t - 240) / 120))
 		if t > 240 + 120 * 20:
+			get_tree().quit()
+		return
+	if OS.get_cmdline_user_args().has("--pedales-test"):
+		# #64 et #65 : gâchette d'accélérateur restée à 18 % + frein (marche arrière attendue), puis frein à main lancé,
+		# puis frein de parking (voiture immobile malgré les gaz à 40 %) ; journal [pédales]
+		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 0.0
+		if t == 300:
+			Input.action_press("accelerer", 0.18); Input.action_press("freiner", 1.0)
+		if t == 300 + 480:
+			Input.action_release("freiner"); Input.action_press("accelerer", 1.0)
+		if t == 300 + 960:
+			Input.action_press("frein_main", 1.0)
+		if t == 300 + 1200:
+			Input.action_release("frein_main"); Input.action_release("accelerer")
+			car.frein_parking = true
+			Input.action_press("accelerer", 0.4)
+		if t > 300 and t % 60 == 0:
+			print("  [pédales] t=%.1f s vitesse %.1f km/h (avant %+.1f m/s) marche arrière %s frein à main %.1f parking %s" % [(t - 300) / 120.0, car.kmh(), car.forward_speed(), car.reversing, car.frein_main_in, car.frein_parking])
+		if t > 300 + 1560:
+			Input.action_release("accelerer")
 			get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--pieton-test"):

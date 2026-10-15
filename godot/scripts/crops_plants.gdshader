@@ -1,7 +1,7 @@
-// Plants des champs un par un (#142, issue #25) : deux plans croisés par plant, sprite tiré de l'atlas des plants
-// (tools/bake_cultures.gd -- --seulement=plants : 4 cultures × 8 variantes, cases de 256 × 512 px).
-// Données d'instance : x = culture (0 maïs, 1 céréales, 2 colza, 3 tournesol), y = variante (0-7), z = teinte,
-// w = hauteur de la case (m). Un plant touché par la voiture disparaît (il a éclaté : trample.gd + dust.gd).
+// Touffes des champs façon GTA San Andreas (v6.50, issue #61) : deux plans croisés par touffe, bande de champ tirée de
+// l'atlas des touffes (pipeline/build_touffes.py : 4 cultures × 4 variantes, cases de 512 × 512 px).
+// Données d'instance : x = culture (0 maïs, 1 céréales, 2 colza, 3 tournesol), y = variante (0-3), z = teinte,
+// w = hauteur de la case (m). Une touffe touchée par la voiture disparaît (il a éclaté : trample.gd + dust.gd).
 shader_type spatial;
 render_mode cull_disabled;
 #include "res://scripts/env.gdshaderinc"
@@ -30,7 +30,7 @@ void vertex() {
 		}
 	}
 	v_wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	UV = vec2((INSTANCE_CUSTOM.y + UV.x) / 8.0, (INSTANCE_CUSTOM.x + UV.y) / 4.0);
+	UV = vec2((INSTANCE_CUSTOM.y + UV.x) / 4.0, (INSTANCE_CUSTOM.x + UV.y) / 4.0);
 	v_tint = INSTANCE_CUSTOM.z;
 }
 

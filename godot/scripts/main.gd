@@ -24,6 +24,7 @@ var ciel: Node3D            # aéronefs de passage (#46)
 var props: Node3D
 var pools: Node3D
 var activities: CanvasLayer
+var nav: Node                      # nav_physique.gd (#62)
 var garage: Node            # argent et pièces achetées (#43, garage.gd)
 var tuning: Node            # pièces montées sur la voiture (tuning.gd)
 var net: Node
@@ -324,6 +325,9 @@ func _ready() -> void:
 	add_child(hud)
 	if cockpit:
 		cockpit.ouvrir_carte.connect(hud._open_map)       # écran GPS de la planche de bord (#60)
+	nav = preload("res://scripts/nav_physique.gd").new()   # menus au clavier et à la manette (#62)
+	nav.main = self
+	add_child(nav)
 	activities = preload("res://scripts/activities.gd").new()
 	activities.main = self; activities.car = car; activities.hud = hud; activities.map = hud.map
 	if radio:

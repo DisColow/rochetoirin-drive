@@ -25,6 +25,9 @@ var tuning: Node                 # tuning.gd (peinture du garage)
 var touch_throttle := 0.0
 var touch_brake := 0.0
 var touch_steer := 0.0
+var touch_frein_main := 0.0       # bouton du frein à main (#64)
+var frein_parking := false        # frein de parking (#64) : voiture immobilisée, moteur coupé
+var frein_main_in := 0.0          # frein à main lu à ce pas (son, témoin)
 var aide_voie := true            # aide au maintien dans la voie (v6.25, ⚙ > Conduite)
 var voie = preload("res://scripts/voie.gd").new()
 var steer_value := 0.0
@@ -535,16 +538,25 @@ func _physics_process(dt: float) -> void:
 		linear_velocity = Vector3.ZERO
 		angular_velocity = Vector3.ZERO
 		return
-	var thr := clampf(Input.get_action_strength("accelerer") + touch_throttle, 0.0, 1.0)
-	var brk := clampf(Input.get_action_strength("freiner") + touch_brake, 0.0, 1.0)
+	# gâchettes de manette : zone morte de 15 % (#65 : une gâchette d'accélérateur qui ne revient pas tout à fait à
+	# zéro empêchait la marche arrière)
+	var thr := clampf(_zone(Input.get_action_strength("accelerer")) + touch_throttle, 0.0, 1.0)
+	var brk := clampf(_zone(Input.get_action_strength("freiner")) + touch_brake, 0.0, 1.0)
+	if Input.is_action_just_pressed("frein_parking"):
+		frein_parking = not frein_parking
+	if frein_parking and thr > 0.5 and absf(forward_speed()) < 0.3:
+		frein_parking = false                       # on accélère franchement : le frein de parking se desserre
+	var fm := clampf(Input.get_action_strength("frein_main") + touch_frein_main, 0.0, 1.0)
+	frein_main_in = fm
 	thr_in = thr; brk_in = brk
 	var st := clampf(Input.get_action_strength("gauche") - Input.get_action_strength("droite") + touch_steer, -1.0, 1.0)
 	var v := forward_speed()
 	# sens de marche « jeu » : la pédale opposée au mouvement freine, puis la voiture repart dans l'autre sens dès
 	# qu'elle est presque arrêtée (pas besoin d'attendre l'arrêt complet)
-	if brk > 0.1 and thr < 0.1 and v < 0.6:
+	# pédale dominante (#65) : l'autre peut rester un peu enfoncée sans bloquer le changement de sens
+	if brk > 0.1 and brk > thr + 0.15 and v < 0.6:
 		reversing = true
-	elif thr > 0.1 and brk < 0.1 and v > -0.6:
+	elif thr > 0.1 and thr > brk + 0.15 and v > -0.6:
 		reversing = false
 	if aide_voie and not reversing:
 		st = clampf(st + voie.correction(global_position, global_transform.basis.z, v, st, dt), -1.0, 1.0)
@@ -561,7 +573,7 @@ func _physics_process(dt: float) -> void:
 		_wheel_rim.rotation.z = -steer_value * 8.0          # démultiplication : ~ 1 tour de volant pour 0,55 rad
 	var spd := absf(v) * 3.6
 	if reversing:
-		if thr > 0.1:
+		if thr > 0.1 and thr > brk:
 			# en reculant, GAZ freine (puis repart en avant, voir plus haut)
 			engine_force = 0.0
 			brake = BRAKE * freinage * thr
@@ -576,6 +588,18 @@ func _physics_process(dt: float) -> void:
 			f = 0.0
 		engine_force = f if brk < 0.1 or thr > brk else 0.0
 		brake = BRAKE * freinage * brk + (2.0 if thr < 0.05 and spd < 3.0 and brk < 0.1 else 0.0)
+	# frein à main (#64) : roues arrière bloquées et moins d'adhérence derrière (dérapage), moteur débrayé ; frein de
+	# parking : toutes les roues bloquées, moteur coupé
+	for w in wheels:
+		var arriere: bool = not w.use_as_steering
+		w.wheel_friction_slip = 2.6 * (0.42 if arriere and fm > 0.3 else 1.0)
+	if fm > 0.3 or frein_parking:
+		engine_force = 0.0
+		if frein_parking:
+			brake = BRAKE * 2.0
+		else:
+			for w in wheels:
+				w.brake = BRAKE * 1.6 * fm if not w.use_as_steering else w.brake
 	# aide au freinage (pédale opposée au sens de marche), seulement roues au sol
 	var pedale := thr if reversing else brk
 	if pedale > 0.1 and linear_velocity.length() > 0.5 and wheels.any(func(w): return w.is_in_contact()):
@@ -594,6 +618,9 @@ func _physics_process(dt: float) -> void:
 	apply_central_force(-side * lat * mass * 0.6 * dt * 60.0 * 0.05)
 	_anti_roll()
 	_recovery(dt)
+
+static func _zone(x: float) -> float:
+	return clampf((x - 0.15) / 0.85, 0.0, 1.0) if x < 0.999 else 1.0
 
 ## Aide à la stabilité : ramène doucement la caisse à plat autour de son axe longitudinal (roulis), sans toucher au
 ## tangage (montées, descentes) ; plus ferme en l'air pour retomber sur les roues après un saut.

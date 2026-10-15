@@ -53,6 +53,7 @@ func _ready() -> void:
 	_add_button("activites", "★", 7)
 	_add_button("radio", "♪", 8)
 	_faire_pli()
+	_freins_tactiles()
 	map = preload("res://scripts/map.gd").new()
 	map.car = car
 	map.visible = false
@@ -62,6 +63,25 @@ func _ready() -> void:
 	_layout()
 
 var settings: Control
+
+## Guide des touches (#63) : commande, clavier, manette (boutons à la Xbox ; A = croix, B = rond… sur PlayStation).
+const GUIDE := [
+	["Commande", "Clavier", "Manette"],
+	["Accélérer", "↑", "Gâchette droite"],
+	["Freiner, marche arrière", "↓", "Gâchette gauche"],
+	["Tourner", "← →", "Stick gauche"],
+	["Frein à main", "Espace", "A"],
+	["Frein de parking", "P", "Croix ↓"],
+	["Caméra", "C", "Y"],
+	["Remettre sur la route", "R", "X"],
+	["Carte", "M", "Select / View"],
+	["Activités et garage", "T", "RB"],
+	["Radio", "N", "LB"],
+	["Réglages", "Échap", "Start / Menu"],
+	["Menus : choisir", "↑ ↓ ← →, 1 à 9", "Croix directionnelle"],
+	["Menus : valider", "Entrée", "A"],
+	["Menus : fermer", "Échap", "B"],
+]
 
 ## Rangée de boutons du haut repliable (#52) : bouton ‹ / › à gauche ; repliée, il ne reste que lui.
 var replie := false
@@ -337,6 +357,23 @@ func _open_settings() -> void:
 		_fit_settings.call_deferred())
 	v.add_child(bb)
 	v.add_child(bug_box)
+	# guide des touches (#63) : clavier et manette, déplié à la demande
+	var gk := Button.new(); gk.text = "Guide des touches (clavier et manette)"
+	gk.custom_minimum_size = Vector2(0, 70); gk.add_theme_font_size_override("font_size", 28)
+	var guide := GridContainer.new(); guide.columns = 3; guide.visible = false
+	guide.add_theme_constant_override("h_separation", 28); guide.add_theme_constant_override("v_separation", 6)
+	for ligne in GUIDE:
+		for j in 3:
+			var c := Label.new(); c.text = ligne[j]
+			c.add_theme_font_size_override("font_size", 24 if ligne[0] != "Commande" else 26)
+			if ligne[0] == "Commande":
+				c.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+			guide.add_child(c)
+	gk.pressed.connect(func():
+		guide.visible = not guide.visible
+		_fit_settings.call_deferred())
+	v.add_child(gk)
+	v.add_child(guide)
 	var close := Button.new(); close.text = "Fermer"; close.custom_minimum_size = Vector2(0, 76)
 	close.add_theme_font_size_override("font_size", 32)
 	close.pressed.connect(func():
@@ -541,12 +578,44 @@ func _update_leds() -> void:
 			b.texture_normal = load("res://assets/ui/btn_%s%s.png" % [e[2], "_on" if on else ""])
 			b.texture_pressed = load("res://assets/ui/btn_%s_p%s.png" % [e[2], "_on" if on else ""])
 
+## Frein à main (#64) : disque translucide au-dessus de FREIN (on le tient) ; frein de parking : petit bouton « P »
+## sous l'argent, témoin rouge quand il est serré.
+var b_frein_main: TouchScreenButton
+var b_parking: Button
+func _freins_tactiles() -> void:
+	b_frein_main = TouchScreenButton.new()
+	b_frein_main.action = "frein_main"
+	b_frein_main.passby_press = true
+	b_frein_main.texture_normal = _disc(40, Color(0.08, 0.09, 0.1, 0.38), Color.WHITE)
+	b_frein_main.texture_pressed = _disc(40, Color(0.9, 0.9, 0.9, 0.45), Color.WHITE)
+	var sh := CircleShape2D.new(); sh.radius = 40
+	b_frein_main.shape = sh; b_frein_main.shape_centered = true
+	var l := Label.new(); l.text = "F. À\nMAIN"; l.add_theme_font_size_override("font_size", 17)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.size = Vector2(80, 80); l.modulate = Color(1, 1, 1, 0.85)
+	b_frein_main.add_child(l)
+	add_child(b_frein_main)
+	b_parking = Button.new()
+	b_parking.text = "P"
+	b_parking.custom_minimum_size = Vector2(46, 46)
+	b_parking.add_theme_font_size_override("font_size", 22)
+	b_parking.focus_mode = Control.FOCUS_NONE
+	b_parking.add_to_group("ui_zone")
+	b_parking.pressed.connect(func():
+		var c = get_parent().get("car")
+		if c:
+			c.frein_parking = not c.frein_parking)
+	add_child(b_parking)
+
 func _layout() -> void:
 	var s := get_viewport().get_visible_rect().size
 	var gw := minf(s.x * 0.28, 540.0); var gh := minf(s.y * 0.36, 310.0)
 	gps.position = Vector2(s.x - gw - 24, 24); gps.size = Vector2(gw, gh)
 	speed_panel.position = Vector2(s.x - gw - 24, 24 + gh + 14); speed_panel.size = Vector2(gw, 96)
 	argent_panel.position = Vector2(s.x - gw - 24, 24 + gh + 14 + 96 + 10); argent_panel.size = Vector2(gw, 58)
+	if b_parking:
+		b_parking.position = Vector2(s.x - 24 - 46, 24 + gh + 14 + 96 + 10 + 58 + 10)
+		b_frein_main.position = Vector2(s.x - 470 + 12, s.y - 230 - 100)
 	pill.position = Vector2(0, 20); pill.size = Vector2(s.x, 90)
 	var pos := [Vector2(60, s.y - 230), Vector2(290, s.y - 230), Vector2(s.x - 470, s.y - 230), Vector2(s.x - 240, s.y - 260),
 		Vector2(214, 22), Vector2(90, 22), Vector2(338, 22), Vector2(462, 22), Vector2(586, 22)]
@@ -606,6 +675,9 @@ func _show_drive(on: bool) -> void:
 	pill.visible = on
 	speed_panel.visible = on
 	argent_panel.visible = on
+	if b_parking:
+		b_parking.visible = on
+		b_frein_main.visible = on
 	get_tree().paused = not on
 
 func _process(_dt: float) -> void:
@@ -620,6 +692,8 @@ func _process_corps(_dt: float) -> void:
 	var gps_vu: bool = _conduite and not (ck != null and ck.active)
 	if gps.visible != gps_vu:
 		gps.visible = gps_vu
+	if b_parking and car:
+		b_parking.modulate = Color(1.0, 0.35, 0.3) if car.frein_parking else Color(1, 1, 1, 0.75)
 	var g = get_parent().get("garage")
 	if g and float(g.argent) != _argent:
 		_argent = float(g.argent)
@@ -637,7 +711,8 @@ func _process_corps(_dt: float) -> void:
 			_toast.visible = false
 	if Input.is_action_just_pressed("carte") and not map.visible:
 		_open_map()
-	if Input.is_action_just_pressed("reglages") and not map.visible:
+	var nav = get_parent().get("nav")
+	if Input.is_action_just_pressed("reglages") and not map.visible and not (nav and (nav.vient_de_fermer() or nav.menu_ouvert() != null)):
 		_open_settings()
 	if car:
 		speed_panel.queue_redraw()

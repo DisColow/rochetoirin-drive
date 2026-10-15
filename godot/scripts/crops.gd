@@ -1,6 +1,8 @@
-## Champs cultivés en 3D (parcelles RPG 2024), refaits en v6.39 (#142, issue #25 : « plante juste les sprites ») : de
-## près, un sprite par plant (deux plans croisés, atlas des plants tools/bake_cultures.gd -- --seulement=plants) planté
-## sur la grille du champ, sur un sol de terre à sillons ; fondu au loin, puis l'orthophoto (vue d'ensemble du champ).
+## Champs cultivés en 3D (parcelles RPG 2024) : de près, des touffes façon GTA San Andreas (v6.50, issue #61 : un
+## sprite par plant, jusqu'à 10 par m², faisait trop ramer) : deux plans croisés montrant chacun une bande de champ de
+## LARGEUR m (plusieurs plants sur trois profondeurs : atlas touffes_albedo.png de pipeline/build_touffes.py), l'un le
+## long des rangs, l'autre en travers, posés tous les PAS m sur un rang sur RANG_K ; 10 à 20 fois moins de plans. Sol de
+## terre à sillons dessous ; fondu au loin, puis l'orthophoto (vue d'ensemble du champ).
 ## Cases de 32 m générées autour de la voiture sur un fil de calcul (une à la fois), plants plus clairsemés au loin
 ## (v6.45, issue #25). Un plant touché par la voiture éclate.
 extends Node3D
@@ -15,6 +17,10 @@ const ROWS := [0.75, 0.32, 0.42, 0.75]
 const STEP := [0.22, 0.30, 0.38, 0.34]
 const HCASE := [3.0, 1.2, 1.4, 2.4]
 const RANGE := [20.0, 35.0, 50.0, 60.0]        # portée des plants selon le réglage (Économie … Ultra)
+# touffes (#61) : largeur d'une touffe (m, build_touffes.py), touffes sur un rang sur RANG_K, une tous les PAS m
+const LARGEUR := 2.4
+const RANG_K := [2, 4, 3, 2]
+const PAS := [1.2, 1.4, 1.4, 1.2]
 
 var target: Node3D
 var terrain: Node
@@ -38,7 +44,7 @@ func _ready() -> void:
 	mat.shader = preload("res://scripts/crops_plants.gdshader")
 	preload("res://scripts/env.gd").add(mat)
 	preload("res://scripts/env.gd").fade(mat, RANGE[level])
-	mat.set_shader_parameter("plants_atlas", load("res://assets/veg/plants_albedo.png"))
+	mat.set_shader_parameter("plants_atlas", load("res://assets/veg/touffes_albedo.png"))
 	mat_sol = ShaderMaterial.new()
 	mat_sol.shader = preload("res://scripts/crops_sol.gdshader")
 	preload("res://scripts/env.gd").add(mat_sol)
@@ -168,6 +174,14 @@ func _process_corps(dt: float) -> void:
 					cells[k].queue_free()
 				cells.erase(k)
 
+## Essais (#61) : instances de plantes affichées (toutes cases).
+func instances_visibles() -> int:
+	var n := 0
+	for k in cells:
+		if cells[k] and cells[k].has_meta("mm"):
+			n += (cells[k].get_meta("mm") as MultiMesh).visible_instance_count
+	return n
+
 ## Fil principal : relief de la case (grille de 4 m) et parcelles, puis calcul confié à un fil de calcul.
 func _lancer(k: Vector2i) -> void:
 	var x0 := k.x * CELL; var z0 := k.y * CELL
@@ -270,18 +284,18 @@ static func _h(hg: PackedFloat32Array, x0: float, z0: float, p: Vector2) -> floa
 	var a := hg[j * 9 + i]; var b := hg[j * 9 + i + 1]; var c := hg[j * 9 + 9 + i]; var d := hg[j * 9 + 9 + i + 1]
 	return lerpf(lerpf(a, b, fu), lerpf(c, d, fu), fv)
 
-## Plants d'une parcelle dans une case : rangs parallèles à d (grille commune à tout le champ), un pied tous les
-## STEP[t] m, un peu décalés ; données d'instance : culture, variante, teinte, hauteur de la case.
+## Touffes d'une parcelle dans une case (#61) : sur un rang sur RANG_K[t] (grille commune à tout le champ), une touffe
+## tous les PAS[t] m, un peu décalée ; deux plans de LARGEUR m, le long du rang et en travers ; données d'instance :
+## culture, variante (0-3), teinte, hauteur de la case.
 static func _plants(f: Array, t: int, cellpoly: PackedVector2Array, hg: PackedFloat32Array, x0: float, z0: float, rg: RandomNumberGenerator) -> PackedFloat32Array:
 	var buf := PackedFloat32Array()
 	var d: Vector2 = f[1]
 	var nrm := Vector2(-d.y, d.x)
-	var sp: float = ROWS[t]; var st: float = STEP[t]; var hc: float = HCASE[t]
+	var sp: float = ROWS[t] * RANG_K[t]; var st: float = PAS[t]; var hc: float = HCASE[t]
 	var tmin := INF; var tmax := -INF; var smin := INF; var smax := -INF
 	for p in cellpoly:
 		tmin = minf(tmin, p.dot(nrm)); tmax = maxf(tmax, p.dot(nrm))
 		smin = minf(smin, p.dot(d)); smax = maxf(smax, p.dot(d))
-	var jit := 0.25 if t == 0 or t == 3 else 0.45          # céréales et colza : rangs moins nets (touffes)
 	for poly in Geometry2D.intersect_polygons(f[2], cellpoly):
 		for kk in range(ceili(tmin / sp), floori(tmax / sp) + 1):
 			var off := kk * sp
@@ -289,20 +303,21 @@ static func _plants(f: Array, t: int, cellpoly: PackedVector2Array, hg: PackedFl
 			for seg in Geometry2D.intersect_polyline_with_polygon(line, poly):
 				var a: Vector2 = seg[0]; var b: Vector2 = seg[seg.size() - 1]
 				var s1 := maxf(a.dot(d), b.dot(d))
-				var s := ceilf(minf(a.dot(d), b.dot(d)) / st) * st
+				# décalage d'un demi-pas un rang sur deux : pas d'alignement en damier vu de loin
+				var s := ceilf(minf(a.dot(d), b.dot(d)) / st) * st + (st * 0.5 if kk % 2 != 0 else 0.0)
 				while s <= s1:
-					var q := nrm * off + d * s + nrm * rg.randf_range(-jit, jit) * sp + d * rg.randf_range(-0.3, 0.3) * st
+					var q := nrm * off + d * s + nrm * rg.randf_range(-0.2, 0.2) * sp + d * rg.randf_range(-0.3, 0.3) * st
 					s += st
 					var y := _h(hg, x0, z0, q)
 					if is_nan(y):
 						continue
-					var sc := hc * rg.randf_range(0.9, 1.08)
-					var w := sc * 0.5
-					var ang := rg.randf() * TAU
+					var sc := hc * rg.randf_range(0.92, 1.06)
+					var w := LARGEUR * sc / hc
+					var ang := atan2(d.y, d.x) + rg.randf_range(-0.12, 0.12)
 					var bx := Vector3(cos(ang), 0, sin(ang)) * w
 					var bz := Vector3(-sin(ang), 0, cos(ang)) * w
 					buf.append_array([bx.x, 0.0, bz.x, q.x, bx.y, sc, bz.y, y - 0.04, bx.z, 0.0, bz.z, q.y,
-						float(t), float(rg.randi_range(0, 7)), rg.randf_range(0.76, 0.94), sc])
+						float(t), float(rg.randi_range(0, 3)), rg.randf_range(0.8, 0.94), sc])
 	return buf
 
 ## Sol de terre d'une parcelle dans une case : découpé au contour, posé sur le relief par carrés de 4 m (+3 cm ; hauteurs
