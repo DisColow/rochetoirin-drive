@@ -15,7 +15,8 @@ git --work-tree=. add -f $L
 T=$(git write-tree)
 rm -f "$GIT_INDEX_FILE"
 P=""
-if git fetch -q origin donnees; then P=$(git rev-parse FETCH_HEAD); fi
+# arbres seulement, sans le contenu des fichiers (la branche pèse plusieurs Go : le disque de la session débordait)
+if git fetch -q --filter=blob:none --depth=1 origin donnees; then P=$(git rev-parse FETCH_HEAD); fi
 if [ -n "$P" ] && [ "$(git rev-parse "$P^{tree}")" = "$T" ]; then
   echo "données inchangées"; exit 0
 fi
