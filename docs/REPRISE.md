@@ -13,6 +13,8 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## Livré : v6.52 (16/10) : balises des épreuves (#78), saisie (#79, nav_physique ignore les touches quand un LineEdit/TextEdit a le focus ; UI.saisie_active() bloque les raccourcis)
+
 ## Livré : v6.51 (15/10 nuit), APK 1 574 Mo — tickets #66 à #77
 - #66 à pied : `scripts/a_pied.gd` (CharacterBody3D, caméra 1re personne retournée de 180°, `main.suivre(n)` fait
   suivre le chargement du monde, `car.controle`) ; action « pied » (E / Y), caméra déplacée sur le clic du stick droit.
