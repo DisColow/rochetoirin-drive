@@ -647,6 +647,7 @@ func _physics_process(_dt: float) -> void:
 				p.global_position.y = Relief.hauteur(p.global_position)
 				p.rotation.y = car.rotation.y + PI + (0.0 if i < 2 else PI / 2)
 				p.vitesse = 0.0 if i < 2 else 1.4
+				p.ivre = i == 4
 		if t in [420, 470, 520]:
 			cam_rig.set_process(false)
 			var cm := get_viewport().get_camera_3d()

@@ -1,6 +1,7 @@
-## Piéton (clients du taxi faits avec MakeHuman, issue #55) : marche calculée sur le squelette « game_engine » de MPFB
-## (cuisses, genoux, bras, balancement du bassin), sans fichier d'animation ; au repos, bras le long du corps (les
-## modèles sont en pose A). Le modèle regarde vers +Z.
+## Piéton (clients du taxi faits avec MakeHuman, issue #55) : depuis la v6.51 (#77), animations de Quaternius
+## transférées sur le squelette par pipeline/blender_animer_clients.py (marche, titube, attente_0-3) et jouées par
+## l'AnimationPlayer du modèle ; sinon (ancien modèle sans animation), marche calculée sur les os. Le modèle regarde
+## vers +Z.
 ## Rotations données dans le repère du personnage (x : côté, y : haut, z : avant) puis ramenées au repère de chaque os.
 extends Node3D
 const Relief := preload("res://scripts/relief.gd")
@@ -12,6 +13,8 @@ signal arrive
 var _sk: Skeleton3D
 var _os := {}                      # nom -> indice
 var _phase := 0.0
+var _ap: AnimationPlayer
+var _attente := ""                 # animation d'attente tirée pour ce piéton
 
 func _ready() -> void:
 	# cheveux, cils, sourcils : transparence coupée au seuil, deux faces (pas de transparence mélangée, et les mèches
@@ -26,6 +29,14 @@ func _ready() -> void:
 				c.alpha_scissor_threshold = 0.35
 				c.cull_mode = BaseMaterial3D.CULL_DISABLED
 				m3.set_surface_override_material(k, c)
+	var aps := find_children("*", "AnimationPlayer", true, false)
+	if not aps.is_empty() and (aps[0] as AnimationPlayer).has_animation("marche"):
+		_ap = aps[0]
+		for n in _ap.get_animation_list():
+			_ap.get_animation(n).loop_mode = Animation.LOOP_LINEAR
+		_attente = "attente_%d" % (randi() % 4)
+		_ap.play(_attente)
+		_ap.seek(randf() * _ap.current_animation_length, true)
 	var l := find_children("*", "Skeleton3D", true, false)
 	if l.is_empty():
 		return
@@ -53,6 +64,21 @@ func _process(dt: float) -> void:
 			global_position += dir * vitesse * dt
 			global_position.y = Relief.hauteur(global_position)
 			rotation.y = lerp_angle(rotation.y, atan2(dir.x, dir.z), 1.0 - exp(-dt * 8.0))
+	if _ap:
+		# animations (#77) : marche à la vitesse du pas (cycle de Walk_Loop ≈ 1,4 m/s), titube pour les ivres (aussi à
+		# l'arrêt, plus lentement), sinon l'attente tirée au hasard
+		var voulu := _attente
+		var vit := 1.0
+		if ivre:
+			voulu = "titube"
+			vit = 1.0 if vitesse > 0.05 else 0.45
+		elif vitesse > 0.05:
+			voulu = "marche"
+			vit = vitesse / 1.4
+		if _ap.current_animation != voulu:
+			_ap.play(voulu, 0.25)
+		_ap.speed_scale = vit
+		return
 	if _sk == null:
 		return
 	if vitesse > 0.05:
