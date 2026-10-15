@@ -74,6 +74,7 @@ var _arret := -1                   # point de l'arrêt en chemin (-1 : aucun ou 
 var _arret_nom := ""
 var _arret_t := 0.0                # temps d'attente restant à l'arrêt
 var _arret_recit := ""
+var _arret_annonce := ""
 var _rappel := {}                  # client à reprendre : {idx, nom, retour, retour_nom, recit, courses, client}
 var _en_rappel := false
 const ARRETS := [
@@ -983,9 +984,7 @@ func _taxi_pickup() -> void:
 				var paire: Array = ARRETS[randi() % ARRETS.size()]
 				_arret_recit = paire[1]
 				_arret_t = randf_range(35.0, 70.0)
-				get_tree().create_timer(6.0).timeout.connect(func():
-					if mode == "taxi" and _arret >= 0:
-						_talk.dire(str(paire[0]).replace("{lieu}", _arret_nom)))
+				_arret_annonce = str(paire[0]).replace("{lieu}", _arret_nom)
 	_fare_d = c.distance_to(_rp(_dest)) * 1.3
 	_expected = _fare_d / 11.0 + 20.0
 	_t = 0.0
@@ -1011,13 +1010,13 @@ func _taxi_pickup() -> void:
 		_rappel = {}
 	else:
 		_talk.start_ride(hud.names.commune_at(car.global_position), p.n, p.c, str(p.get("k", "autre")))
+	if _arret >= 0:
+		_talk.dire(_arret_annonce)                     # juste après le bonjour (file des répliques)
 	if _sorte == "retour":
 		var mot: Array = RETOURS[randi() % RETOURS.size()]
 		_rappel = {"idx": _dest, "nom": _dest_name, "retour": _nearest(c), "retour_nom": _cl_nom if _cl_nom != "" else "son point de départ",
 			"recit": mot[1], "courses": 1, "client": {}}
-		get_tree().create_timer(8.0).timeout.connect(func():
-			if mode == "taxi" and _phase == "course":
-				_talk.dire(str(mot[0])))
+		_talk.dire(str(mot[0]))
 
 func _taxi_drop() -> void:
 	# prix au compteur (issue #44) ; à défaut, l'ancien forfait sur la distance

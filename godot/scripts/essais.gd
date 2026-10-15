@@ -624,7 +624,7 @@ func _physics_process(_dt: float) -> void:
 				cible = activities._cl_pos
 			elif ph == "course":
 				cible = activities._rp(activities._dest if activities._arret < 0 else activities._arret)
-			print("  [taxi] t=%d phase %s sorte %s arrêt %d rappel %s courses %d" % [t, ph, activities._sorte, activities._arret, not activities._rappel.is_empty(), activities._rides])
+			print("  [taxi] t=%d phase %s sorte %s arrêt %d (%.0f s) rappel %s courses %d compteur %.2f" % [t, ph, activities._sorte, activities._arret, activities._arret_t, not activities._rappel.is_empty(), activities._rides, activities._compteur.montant if activities._compteur else 0.0])
 			if cible != Vector2.INF and _car2_dist(cible) > 12.0:
 				var i: int = activities._nearest(cible)
 				car.place(Vector3(cible.x, activities.pts[i + 2] + 1.0, cible.y), activities.pts[i + 3])
