@@ -131,6 +131,8 @@ jobs:
           gh release upload "v$V" out/RochetoirinSimulator-v$V.apk --clobber
 
       - name: "Dépôt de l'APK dans releases/ (premier build de la version seulement, quota Git LFS)"
+        # v6.48 : quota Git LFS du dépôt dépassé ; l'APK reste publié dans la release GitHub (lien du README)
+        continue-on-error: true
         run: |
           if git ls-files --error-unmatch releases/RochetoirinSimulator-v$V.apk >/dev/null 2>&1; then
             echo "APK v$V déjà dans releases/ : la release GitHub porte la version à jour."

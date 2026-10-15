@@ -33,6 +33,9 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - #53 (partie) : réponses du taxi au 2e doigt (`taxi_talk._input`). Reste : courses avec attente / retour plus tard,
   réponses qui varient. #55 (personnages MakeHuman qui marchent) : à faire.
 - Essais : `--garage-test [--jantes]`, captures `{"haut": degrés}` (caméra relevée, ciel).
+- **Quota Git LFS du dépôt dépassé** (v6.48) : l'étape « Dépôt de l'APK dans releases/ » d'`apk.yml` échoue (rendue
+  non bloquante) ; l'APK est publié dans la release GitHub. Pousser la branche de travail SANS LFS :
+  `git push --no-verify -f origin HEAD:refs/heads/zone-wip` (sinon l'APK de 1,5 Go repart à chaque fois).
 
 ## Livré : v6.47 (15/10 midi), APK 1 486 Mo — garage, ciel, sauvegarde ; en cours : v6.48 = zone L'Isle-d'Abeau (#50)
 - Garage (#43, tout d'un coup, payé avec l'argent du jeu) : `garage.gd` (catalogue `CATALOGUE`, argent et pièces dans
