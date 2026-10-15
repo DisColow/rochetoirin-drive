@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.49.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.49/RochetoirinSimulator-v6.49.apk)**
+**[RochetoirinSimulator-v6.50.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.50/RochetoirinSimulator-v6.50.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,11 +16,11 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.49 :
-- **Nouveaux clients du taxi** (MakeHuman) : ils marchent jusqu'à la voiture, montent dans un éclair façon Dragon
-  Ball Z, et repartent à pied à la dépose.
-- **Courses variées, sans pression de temps** : petites courses où l'on attend le client compteur tournant, rendez-vous
-  où l'on revient le chercher plus tard pour qu'il raconte ; réponses proposées plus variées.
+Nouveautés de la v6.50 :
+- **Champs beaucoup plus fluides** : touffes façon GTA San Andreas, 11 à 16 fois moins de plans à dessiner.
+- **Frein à main** (Espace, A, ou bouton au-dessus de FREIN) et **frein de parking** (petit bouton P, touche P).
+- **Clavier et manette** : menus navigables (flèches, chiffres 1 à 9, Échap / B), guide des touches dans ⚙ ; la
+  marche arrière marche même si la gâchette d'accélérateur reste un peu enfoncée.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

@@ -317,7 +317,7 @@ static func _plants(f: Array, t: int, cellpoly: PackedVector2Array, hg: PackedFl
 					var bx := Vector3(cos(ang), 0, sin(ang)) * w
 					var bz := Vector3(-sin(ang), 0, cos(ang)) * w
 					buf.append_array([bx.x, 0.0, bz.x, q.x, bx.y, sc, bz.y, y - 0.04, bx.z, 0.0, bz.z, q.y,
-						float(t), float(rg.randi_range(0, 3)), rg.randf_range(0.8, 0.94), sc])
+						float(t), float(rg.randi_range(0, 3)), rg.randf_range(0.72, 0.88), sc])
 	return buf
 
 ## Sol de terre d'une parcelle dans une case : découpé au contour, posé sur le relief par carrés de 4 m (+3 cm ; hauteurs
