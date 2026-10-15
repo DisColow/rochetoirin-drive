@@ -81,8 +81,8 @@
 - Moteur **Godot 4.4.1** (`godot/`) + **Terrain3D 1.0.2**, rendu **Compatibility (OpenGL ES 3)** : le rendu Vulkan
   plante avec Terrain3D sur le Vulkan logiciel du conteneur, impossible à vérifier ; Compatibility est vérifiable ici.
 - Données : `pipeline/` (Python) -> `godot/world`, `godot/terrain`, `godot/assets` (générés, non versionnés).
-  Ordre : `routes_plan.py` (zone : couloirs et communes ; Rochetoirin, Saint-Chef, Bourgoin-Jallieu, Montcarra, Saint-Didier-de-la-Tour et La Chapelle-de-la-Tour entières
-  (v6.45), routes Montcarra / Chamont / Saint-Chef > Bourgoin-Jallieu ; d'après
+  Ordre : `routes_plan.py` (zone : couloirs et communes ; Rochetoirin, Saint-Chef, Bourgoin-Jallieu, Montcarra, Saint-Didier-de-la-Tour, La Chapelle-de-la-Tour et (v6.48) L'Isle-d'Abeau entières
+  (v6.45), routes Montcarra / Chamont / Saint-Chef > Bourgoin-Jallieu et Montcarra > L'Isle-d'Abeau ; d'après
   `data/communes.json` de `fetch_communes.py`), `fetch_dem.py` (relief : MNT LiDAR HD 1 m moyenné à 2 m ; jamais RGE ALTI brut, servi en marches d'escalier), `fetch_ortho.py`, `fetch_polyhaven.py`, `fetch_buildings.py` (bâtiments +
   ralentisseurs), `fetch_vegetation.py` (LiDAR HD MNH, zones de végétation, haies, RPG), `fetch_parking.py` (parkings OSM), `build_roads.py`
   (autoroutes : `autoroute_geom.py` — tracé, profil, terre-plein, voies auxiliaires, marquages ; parkings :
@@ -93,7 +93,7 @@
   `build_fences.py` (clôtures : relevé `clotures_bourg.json` ; contrôle « rien sur la route » doit donner 0),
   `fetch_water.py`, `build_water.py` (eau ; à lancer avant `prepare_terrain.py`, qui creuse le terrain dessous),
   `build_ground.py` (carte de l'herbe, après `prepare_terrain.py` ; les ombres douces du terrain viennent de son
-  `ao_region`), `build_grass_tex.py`, `build_zone.py` (limite de la carte pour le gardien), `fetch_ufo.py` + `blender_ufo.py` (soucoupe du gardien),
+  `ao_region`), `build_grass_tex.py`, `build_zone.py` (limite de la carte pour le gardien), `build_epreuves.py` (épreuves chronométrées, après `build_places.py`), `build_nuages_tex.py` (nuages du ciel peint), `build_vinyles.py` + `fetch_garage.py` + `blender_garage.py` (garage), `fetch_ufo.py` + `blender_ufo.py` (soucoupe du gardien),
   `build_sfx.py` (sons de synthèse : pluie, bip), `build_ui.py` (interface pixel art, polices), `fetch_sons.py` + `build_sons.py` (sons d'après enregistrements réels : BigSoundBank / Joseph Sardin, CC0, et Kenney CC0 ; catalogue `SONS` de `build_sons.py`, boucles sans couture, Ogg), `build_ambiance.py` (carte sonore `world/ambiance.bin/json` : bâti, bois, eau, autoroute, points des ruisseaux, églises, troupeaux), `fetch_radio.py` (autoradio : Kevin MacLeod, CC BY 4.0), `fetch_power.py`, `build_poles.py` (pylônes, poteaux, fils, lampadaires ; modèle du lampadaire : `fetch_lampadaire.py` + `blender_lampadaire.py` -> `assets/props/lampadaire.glb`, « Street Lantern » CC BY 4.0, émission en mode multiplication pour n'allumer que les vitres), `build_cockpit.py` (vue cockpit en pixel art), `build_props.py`
   (voitures garées, poubelles, tracteurs ; après `build_fences.py`, qui fournit les portails ; voitures : modèles
   Sketchfab de `fetch_voitures.py` + `blender_voitures.py`, sans logo de vraie marque), `fetch_shops.py`, `fetch_cinemas.py` (cinémas OSM, posés par `build_shops.py` : marquise, affiches parodiques),

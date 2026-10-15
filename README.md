@@ -3,11 +3,11 @@
 Refonte complète sous **Godot 4** : relief IGN à 2 m, routes OpenStreetMap posées sur le relief réel, textures PBR,
 ciel HDRI, horizon réel (Alpes, courbure terrestre). Zone : Rochetoirin, La Tour-du-Pin, Saint-Clair-de-la-Tour,
 Saint-Chef (commune entière, Chamont compris), Bourgoin-Jallieu, Montcarra, Saint-Didier-de-la-Tour et La
-Chapelle-de-la-Tour (communes entières), L'Isle-d'Abeau et les routes qui y mènent.
+Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y mènent.
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.47.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.47/RochetoirinSimulator-v6.47.apk)**
+**[RochetoirinSimulator-v6.48.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.48/RochetoirinSimulator-v6.48.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,13 +16,15 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.47 :
-- **Garage** (menu ★) : moteur, boîte, suspension, freins, pneus, peinture et finitions, vinyles, vitres, néons, jantes,
-  ailerons, échappements, jupes, prise d'air, barre de LED, enseigne TAXI, payés avec l'argent gagné au taxi, aux
-  courses et à la chasse au lieu.
-- **Ciel** : avions de tourisme, hélicoptères, planeurs et avions de ligne avec leur traînée.
-- **Sauvegarde** : on repart là où on s'était arrêté.
-- **Corrections** : saisie de texte, flèche du GPS cachée par l'itinéraire, plantage à la fermeture sur PC.
+Nouveautés de la v6.48 :
+- **L'Isle-d'Abeau** entière, et la route depuis Montcarra.
+- **Épreuves chronométrées** : 14 départs sur la carte (drapeaux à damier), médailles d'or, d'argent et de bronze avec
+  prime ; l'argent est toujours affiché sous le compteur.
+- **Radio « Rochetoirin Info »** : flash info et titres du jour entre les chansons ; **nuages** dans le ciel le soir,
+  la nuit et par temps couvert ; nouveaux vinyles.
+- **Interface** : boutons du haut repliables, icône activités et garage, plus de bouton carte (toucher la mini-carte),
+  carte sans fond noir, GPS de la planche de bord qui ouvre la carte en vue cockpit ; corrections des jantes, du
+  compteur de taxi et des réponses du client avec le doigt sur l'accélérateur.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

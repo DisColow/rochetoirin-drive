@@ -74,6 +74,15 @@ func _shots(path: String) -> void:
 			print("capture ", s.name, " : objets ", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
 				", appels de dessin ", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
 				", primitives ", Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
+			if s.has("haut"):
+				# caméra relevée de « haut » degrés (ciel, nuages : #57) : capture <nom>_haut.png
+				cam_rig.set_process(false)
+				var ch := get_viewport().get_camera_3d()
+				ch.rotate_object_local(Vector3.RIGHT, deg_to_rad(float(s.haut)))
+				for i in 6:
+					await get_tree().process_frame
+				get_viewport().get_texture().get_image().save_png("user://shots/%s_haut.png" % s.name)
+				cam_rig.set_process(true)
 			# "views": [[lacet, tangage], …] (rad) : autres angles de caméra autour de la voiture arrêtée (sprite)
 			if s.has("views"):
 				car.freeze = true
