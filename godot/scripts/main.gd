@@ -25,6 +25,17 @@ var props: Node3D
 var pools: Node3D
 var activities: CanvasLayer
 var nav: Node                      # nav_physique.gd (#62)
+var pied: Node                     # a_pied.gd (#66)
+
+## Tout ce qui se charge et se calcule autour du joueur suit ce nœud : la voiture, ou le piéton quand on marche (#66).
+func suivre(n: Node3D) -> void:
+	for s in [roads, buildings, fences, water, vegetation, crops, grass, poles, props, pools, shops, sport, animaux, autoroute, birds, ciel]:
+		if s and "target" in s:
+			s.target = n
+	if relief and "cible" in relief:
+		relief.cible = n
+	if terrain and "collision_target" in terrain:
+		terrain.set("collision_target", n)
 var garage: Node            # argent et pièces achetées (#43, garage.gd)
 var tuning: Node            # pièces montées sur la voiture (tuning.gd)
 var net: Node
@@ -325,6 +336,9 @@ func _ready() -> void:
 	add_child(hud)
 	if cockpit:
 		cockpit.ouvrir_carte.connect(hud._open_map)       # écran GPS de la planche de bord (#60)
+	pied = preload("res://scripts/a_pied.gd").new()        # sortir de la voiture, à pied (#66)
+	pied.main = self
+	add_child(pied)
 	nav = preload("res://scripts/nav_physique.gd").new()   # menus au clavier et à la manette (#62)
 	nav.main = self
 	add_child(nav)

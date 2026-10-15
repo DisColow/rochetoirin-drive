@@ -613,6 +613,32 @@ func _physics_process(_dt: float) -> void:
 		if t > 240 + 120 * 20:
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--pied-test"):
+		# #66 : descendre, marcher 5 s, tourner, capture, revenir près de la voiture et remonter ; journal [pied]
+		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0
+		var pd = pied
+		if t == 300:
+			print("  [pied] avant de descendre : %.1f km/h, activité « %s »" % [car.kmh(), activities.mode])
+			car.linear_velocity = Vector3.ZERO
+			pd.sortir()
+			Input.action_press("accelerer", 1.0)
+		if t == 300 + 600:
+			Input.action_release("accelerer"); Input.action_press("gauche", 1.0)
+		if t == 300 + 720:
+			Input.action_release("gauche")
+		if t in [300 + 360, 300 + 840]:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/pied_%d.png" % t)
+		if t > 300 and t % 60 == 0 and pd.corps:
+			print("  [pied] t=%.1f pos %s, %.1f m de la voiture, au sol %s, voiture %.1f km/h" % [(t - 300) / 120.0, pd.corps.global_position, pd.corps.global_position.distance_to(car.global_position), pd.corps.is_on_floor(), car.kmh()])
+		if t == 300 + 900 and pd.corps:
+			pd.corps.global_position = car.global_transform * Vector3(1.6, 0.3, 0.4)
+		if t == 300 + 960:
+			pd.basculer()
+			print("  [pied] remonté : ", not pd.actif, " voiture contrôlée ", car.controle)
+		if t > 300 + 1020:
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--pedales-test"):
 		# #64 et #65 : gâchette d'accélérateur restée à 18 % + frein (marche arrière attendue), puis frein à main lancé,
 		# puis frein de parking (voiture immobile malgré les gaz à 40 %) ; journal [pédales]

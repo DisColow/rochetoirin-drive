@@ -27,6 +27,7 @@ var touch_brake := 0.0
 var touch_steer := 0.0
 var touch_frein_main := 0.0       # bouton du frein à main (#64)
 var frein_parking := false        # frein de parking (#64) : voiture immobilisée, moteur coupé
+var controle := true              # false : le joueur est à pied (#66), la voiture ne lit plus les commandes
 var frein_main_in := 0.0          # frein à main lu à ce pas (son, témoin)
 var aide_voie := true            # aide au maintien dans la voie (v6.25, ⚙ > Conduite)
 var voie = preload("res://scripts/voie.gd").new()
@@ -548,8 +549,11 @@ func _physics_process(dt: float) -> void:
 		frein_parking = false                       # on accélère franchement : le frein de parking se desserre
 	var fm := clampf(Input.get_action_strength("frein_main") + touch_frein_main, 0.0, 1.0)
 	frein_main_in = fm
-	thr_in = thr; brk_in = brk
 	var st := clampf(Input.get_action_strength("gauche") - Input.get_action_strength("droite") + touch_steer, -1.0, 1.0)
+	if not controle:
+		thr = 0.0; brk = 0.0; st = 0.0; fm = 0.0
+		frein_parking = true
+	thr_in = thr; brk_in = brk
 	var v := forward_speed()
 	# sens de marche « jeu » : la pédale opposée au mouvement freine, puis la voiture repart dans l'autre sens dès
 	# qu'elle est presque arrêtée (pas besoin d'attendre l'arrêt complet)

@@ -72,7 +72,8 @@ const GUIDE := [
 	["Tourner", "← →", "Stick gauche"],
 	["Frein à main", "Espace", "A"],
 	["Frein de parking", "P", "Croix ↓"],
-	["Caméra", "C", "Y"],
+	["Caméra", "C", "Clic du stick droit"],
+	["Descendre / monter (à l'arrêt)", "E", "Y"],
 	["Remettre sur la route", "R", "X"],
 	["Carte", "M", "Select / View"],
 	["Activités et garage", "T", "RB"],
@@ -601,6 +602,7 @@ func _update_leds() -> void:
 ## sous l'argent, témoin rouge quand il est serré.
 var b_frein_main: TouchScreenButton
 var b_parking: Button
+var b_pied: Button
 func _freins_tactiles() -> void:
 	b_frein_main = TouchScreenButton.new()
 	b_frein_main.action = "frein_main"
@@ -625,6 +627,19 @@ func _freins_tactiles() -> void:
 		if c:
 			c.frein_parking = not c.frein_parking)
 	add_child(b_parking)
+	# descendre / monter (#66) : petit bouton à côté du « P », seulement quand c'est possible
+	b_pied = Button.new()
+	b_pied.text = "À PIED"
+	b_pied.custom_minimum_size = Vector2(110, 46)
+	b_pied.add_theme_font_size_override("font_size", 20)
+	b_pied.focus_mode = Control.FOCUS_NONE
+	b_pied.add_to_group("ui_zone")
+	b_pied.visible = false
+	b_pied.pressed.connect(func():
+		var pd = get_parent().get("pied")
+		if pd:
+			pd.basculer())
+	add_child(b_pied)
 
 func _layout() -> void:
 	var s := get_viewport().get_visible_rect().size
@@ -634,6 +649,7 @@ func _layout() -> void:
 	argent_panel.position = Vector2(s.x - gw - 24, 24 + gh + 14 + 96 + 10); argent_panel.size = Vector2(gw, 58)
 	if b_parking:
 		b_parking.position = Vector2(s.x - 24 - 46, 24 + gh + 14 + 96 + 10 + 58 + 10)
+		b_pied.position = b_parking.position - Vector2(110 + 10, 0)
 		b_frein_main.position = Vector2(s.x - 470 + 12, s.y - 230 - 100)
 	pill.position = Vector2(0, 20); pill.size = Vector2(s.x, 90)
 	var pos := [Vector2(60, s.y - 230), Vector2(290, s.y - 230), Vector2(s.x - 470, s.y - 230), Vector2(s.x - 240, s.y - 260),
@@ -713,6 +729,15 @@ func _process_corps(_dt: float) -> void:
 		gps.visible = gps_vu
 	if b_parking and car:
 		b_parking.modulate = Color(1.0, 0.35, 0.3) if car.frein_parking else Color(1, 1, 1, 0.75)
+		var pd = get_parent().get("pied")
+		if pd:
+			var a_pied: bool = pd.actif
+			b_pied.visible = _conduite and (pd.pres_de_la_voiture() if a_pied else pd.peut_sortir())
+			b_pied.text = "MONTER" if a_pied else "À PIED"
+			# à pied : plus de compteur ni de freins à l'écran
+			speed_panel.visible = _conduite and not a_pied
+			b_parking.visible = _conduite and not a_pied
+			b_frein_main.visible = _conduite and not a_pied
 	var g = get_parent().get("garage")
 	if g and float(g.argent) != _argent:
 		_argent = float(g.argent)
