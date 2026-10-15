@@ -613,6 +613,25 @@ func _physics_process(_dt: float) -> void:
 		if t > 240 + 120 * 20:
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--taxi-test"):
+		# courses de taxi enchaînées (#53) : la voiture est posée sur chaque cible ; journal [taxi]
+		if t == 300:
+			activities._taxi_start()
+		if t > 300 and t % 120 == 0:
+			var ph: String = activities._phase
+			var cible := Vector2.INF
+			if ph == "attente":
+				cible = activities._cl_pos
+			elif ph == "course":
+				cible = activities._rp(activities._dest if activities._arret < 0 else activities._arret)
+			print("  [taxi] t=%d phase %s sorte %s arrêt %d rappel %s courses %d" % [t, ph, activities._sorte, activities._arret, not activities._rappel.is_empty(), activities._rides])
+			if cible != Vector2.INF and _car2_dist(cible) > 12.0:
+				var i: int = activities._nearest(cible)
+				car.place(Vector3(cible.x, activities.pts[i + 2] + 1.0, cible.y), activities.pts[i + 3])
+				car.hold(0.4)
+		if t > 300 + 120 * 70 or activities._rides >= 4:
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--garage-test"):
 		# garage (#43) : écran ouvert, plusieurs préparations essayées tour à tour ; captures user://shots/garage_N.png
 		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
@@ -745,6 +764,9 @@ func _physics_process(_dt: float) -> void:
 # ---------------------------------------------------------------- essai mémoire (pipeline) : --mem-test
 # La voiture saute de point en point le long des routes (tout le réseau) ; mémoire et objets affichés.
 var _mem_pts := PackedFloat32Array()
+func _car2_dist(p: Vector2) -> float:
+	return Vector2(car.global_position.x, car.global_position.z).distance_to(p)
+
 func _mem_test() -> void:
 	var t := Engine.get_physics_frames()
 	if _mem_pts.is_empty():

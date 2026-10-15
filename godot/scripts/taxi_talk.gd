@@ -50,6 +50,24 @@ var _wait := 0.0
 var _wait_max := 1.0
 var _fil: Array = []              # fil de conversation en cours
 var _rebond := ""                 # rebond du client sur notre dernière réponse (dit avant sa réplique suivante)
+## Réponses génériques de chaque ton (#53 : que les propositions ne soient pas toujours les mêmes) : environ une fois
+## sur trois, l'une d'elles remplace la réponse écrite pour le fil, avec le même effet sur le client.
+const GENERIQUES := {
+	"chaleureux": ["Ça me fait plaisir que vous me racontiez ça.", "Vous avez bien raison, allez.", "Ah, ça c'est chouette.",
+		"Je vous comprends tout à fait.", "C'est gentil de partager ça avec moi.", "Prenez soin de vous, surtout.",
+		"Ça réchauffe le cœur, ce genre d'histoire.", "Vous méritez bien ça.", "Je suis content pour vous, sincèrement.",
+		"On a de la chance de croiser des gens comme vous."],
+	"drole": ["Comme dirait ma grand-mère : ça dépend !", "Et le pire, c'est que je vous crois.", "Ça mériterait un film, ça.",
+		"Je le note pour mon livre de souvenirs de taxi.", "Vous me faites une réduction sur l'anecdote ?",
+		"Si on m'avait dit ça ce matin…", "Avec ça, je tiens ma conversation du dîner.", "Rien ne m'étonne plus, dans ce taxi.",
+		"C'est le genre de chose qui n'arrive qu'en Isère.", "Il faudrait qu'on en fasse une chanson."],
+	"curieux": ["Ah oui ? Racontez-moi ça.", "Et comment ça s'est fini ?", "Vous en pensez quoi, vous ?",
+		"Ça fait longtemps que ça dure ?", "Et ça vous a surpris ?", "C'est-à-dire ? Je veux tout savoir.",
+		"Ah bon ? Comment c'est arrivé ?", "Et vous comptez faire quoi, maintenant ?", "Il y en a d'autres qui pensent comme vous ?",
+		"C'est la première fois ?"],
+	"sobre": ["Je vois.", "D'accord.", "Je comprends.", "Ah.", "Bien sûr.", "C'est noté.", "Mm, oui.", "Entendu.",
+		"Ça arrive.", "C'est la vie."],
+}
 const SEP := " ¦ "                # entre le rebond et la suite (une bulle, une lecture ; morceaux des voix enregistrées)
 var _node := 0
 var _next := 0.0                  # le client reprend la parole dans…
@@ -138,9 +156,23 @@ func _build_ui() -> void:
 
 # ---------------------------------------------------------------- client et course
 ## Nouveau client : caractère tiré au sort (goûts un peu variés d'un client à l'autre), identité, voix.
-func start_ride(home: String, dest: String, dest_commune: String, dest_kind: String) -> String:
+func start_ride(home: String, dest: String, dest_commune: String, dest_kind: String, ancien := {}) -> String:
 	if data.is_empty():
 		return "« Bonjour ! %s, %s, s'il vous plaît. »" % [dest, dest_commune]
+	if not ancien.is_empty():
+		# le même client qu'à une course précédente (on revient le chercher, #53)
+		client = ancien.duplicate()
+		client.dest = dest
+		client.sat = 0.0
+		_used = {}
+		_asked = {}
+		_queue.clear()
+		_fil = []
+		riding = true
+		_since = 0.0
+		_next = lerpf(30.0, 8.0, client.bavard) * _rng.randf_range(0.8, 1.2)
+		_verdict.text = ""
+		return ""
 	var car_: Dictionary = data.caracteres[_rng.randi() % data.caracteres.size()]
 	var g := {}
 	for k in car_.gouts:
@@ -174,6 +206,10 @@ func start_ride(home: String, dest: String, dest_commune: String, dest_kind: Str
 	_client_says(_pick(data.bonjour), 2.5)
 	return ""
 
+## Une phrase du client hors des fils de conversation (courses avec arrêt ou retour, #53).
+func dire(t: String, tenue := 1.5) -> void:
+	_client_says(_fill(t), tenue)
+
 ## Fin de course : satisfaction de la conversation (-3 … 4) et mot de la fin (selon les étoiles de conduite aussi).
 func end_ride(stars: int) -> Dictionary:
 	riding = false
@@ -206,6 +242,8 @@ func stop() -> void:
 
 # ---------------------------------------------------------------- déroulé
 func _client_says(t: String, hold := 1.2) -> void:
+	if OS.get_cmdline_user_args().has("--taxi-test"):
+		print("  [taxi] client : ", t)
 	_queue.append({"kind": "dit", "who": "client", "t": t, "hold": hold})
 	if _step.is_empty():
 		_advance()
@@ -397,7 +435,10 @@ func _exchange() -> void:
 	pick.shuffle()
 	var opts := []
 	for t in pick:
-		opts.append({"t": n.rep[t].t if n.rep[t] is Dictionary else n.rep[t], "ton": t})
+		var txt: String = n.rep[t].t if n.rep[t] is Dictionary else n.rep[t]
+		if GENERIQUES.has(t) and _rng.randf() < 0.35:
+			txt = _pick(GENERIQUES[t])
+		opts.append({"t": txt, "ton": t})
 	_queue.append({"kind": "choix", "options": opts, "timeout": func(): _answer("", "silence")})
 
 func _answer(text: String, ton: String) -> void:
@@ -415,7 +456,9 @@ func _answer(text: String, ton: String) -> void:
 	if _node < _fil.size():
 		var n: Dictionary = _fil[_node]
 		var r = n.get("silence", null) if ton == "silence" else n.rep.get(ton, null)
-		if r is Dictionary and r.has("ok"):
+		# réponse générique (GENERIQUES) : le rebond écrit pour la réponse du fil ne lui correspondrait pas
+		var ecrite: String = (r.t if r is Dictionary and r.has("t") else str(r)) if r != null else ""
+		if r is Dictionary and r.has("ok") and (ton == "silence" or text == ecrite):
 			_rebond = str(r.ok if d > 0.0 else r.ko)
 	# pas de réplique d'appréciation après notre réponse (elle cassait le rythme, v6.6) : le client enchaîne
 	# directement ; son humeur évolue en silence (jauge et pourboire)

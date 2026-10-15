@@ -67,6 +67,31 @@ var _cl_pos := Vector2.ZERO
 var _dest := -1
 var _dest_name := ""
 var _cl_nom := ""                  # lieu de prise en charge annoncé (v6.25)
+# courses variées (#53, sans pression de temps) : « arret » = petite course en chemin, on attend le client (le
+# compteur tourne) ; « retour » = on le dépose, puis on revient le chercher plus tard et il raconte
+var _sorte := "normale"
+var _arret := -1                   # point de l'arrêt en chemin (-1 : aucun ou déjà fait)
+var _arret_nom := ""
+var _arret_t := 0.0                # temps d'attente restant à l'arrêt
+var _arret_recit := ""
+var _rappel := {}                  # client à reprendre : {idx, nom, retour, retour_nom, recit, courses, client}
+var _en_rappel := false
+const ARRETS := [
+	["Vous pouvez vous arrêter à {lieu} ? J'ai un colis à récupérer, j'en ai pour deux minutes.", "Voilà, c'est fait ! Le colis était plus gros que prévu, mais il rentre."],
+	["Arrêtez-moi deux minutes à {lieu}, je dépose un papier et je reviens.", "C'est bon, ils avaient même le tampon. On peut repartir."],
+	["On fait un petit arrêt à {lieu} ? Je dois dire bonjour à quelqu'un, ce ne sera pas long.", "Il m'a gardé plus longtemps que prévu, désolé ! Prenez votre temps pour repartir."],
+	["Vous m'attendez à {lieu} ? Je prends un truc et je reviens tout de suite.", "Me revoilà ! Merci d'avoir attendu."],
+	["Petit détour par {lieu}, ça ne vous embête pas ? J'ai oublié mes clés chez une amie.", "Les clés étaient dans la poche de son manteau à elle. Ne me demandez pas comment."],
+]
+const RETOURS := [
+	["J'ai rendez-vous chez le coiffeur. Vous pourrez revenir me chercher tout à l'heure ?", "Alors, la coupe ? Le coiffeur m'a parlé de pêche pendant une heure, je sais tout sur le brochet maintenant."],
+	["Je vais voir ma sœur, ça fait des mois. Vous repassez me prendre plus tard ?", "Ma sœur m'a fait goûter son nouveau gratin. Une catastrophe, mais je l'adore."],
+	["J'ai un entretien d'embauche. Vous revenez me chercher après ? Je vous ferai le récit !", "L'entretien s'est bien passé, je crois ! Ils m'ont demandé ma plus grande qualité, j'ai dit : la ponctualité. J'étais en avance."],
+	["Je vais au marché. Vous me reprenez tout à l'heure ? J'aurai des sacs.", "Le marché était plein à craquer. J'ai trouvé des champignons magnifiques, et un melon qui sent jusqu'ici."],
+	["Rendez-vous à la banque. Vous repassez me chercher ? Je vous dirai si je suis riche.", "La banque a dit oui ! Enfin, peut-être. Enfin, ils réfléchissent."],
+	["Réunion de l'association. Vous pourrez revenir me prendre ? Ça ne devrait pas durer.", "Trois heures de réunion pour choisir la couleur des nappes. On a pris blanc, comme l'an dernier."],
+	["Je vais chez le médecin, rien de grave. Vous me reprenez après ?", "Le médecin dit que tout va bien, il faut juste que je marche plus. Alors je prends le taxi, logique."],
+]
 var route_gps := PackedVector2Array()   # itinéraire affiché sur la carte et le GPS (v6.30, taxi)
 var _itin = null
 var _itin_t := 0.0
@@ -258,6 +283,8 @@ func _clear_world() -> void:
 
 func _stop() -> void:
 	_epreuve = -1
+	_rappel = {}
+	_arret = -1
 	if _compteur:
 		_compteur.visible = false
 		_compteur.arreter()
@@ -776,12 +803,18 @@ func _taxi_new_client() -> void:
 	# v6.25 : le client attend le plus souvent devant un lieu nommé (places.json), annoncé par son nom pour que les
 	# connaisseurs prennent des raccourcis ; sinon au bord d'une route, annoncée par son nom et sa commune
 	_cl_nom = ""
+	_en_rappel = false
+	if not _rappel.is_empty() and int(_rappel.courses) <= 0:
+		# on revient chercher le client déposé plus tôt (#53)
+		_en_rappel = true
+		pick = int(_rappel.idx)
+		_cl_nom = str(_rappel.nom)
 	var lieux := []
 	for k in places.size():
 		var d := c.distance_to(Vector2(places[k].x, places[k].z))
 		if d > 250.0 and d < 1500.0 and str(places[k].n) != str(places[k].get("c", "")):
 			lieux.append(k)
-	if not lieux.is_empty() and randf() < 0.8:
+	if pick < 0 and not lieux.is_empty() and randf() < 0.8:
 		var pl = places[lieux[randi() % lieux.size()]]
 		var i := _nearest(Vector2(pl.x, pl.z))
 		if i >= 0 and _rp(i).distance_to(Vector2(pl.x, pl.z)) < 60.0:
@@ -819,7 +852,9 @@ func _taxi_new_client() -> void:
 	main.add_child(_client)
 	_beacon(Vector3(_cl_pos.x, pts[pick + 2], _cl_pos.y), Color(0.25, 0.75, 1.0), 6.0, 40.0)
 	marks = [{p = _cl_pos, col = Color(0.25, 0.75, 1.0), txt = "Client", gps = true}]
-	if _cl_nom != "":
+	if _en_rappel:
+		hud.toast("Retour : allez rechercher votre client à " + _cl_nom, 5.0)
+	elif _cl_nom != "":
 		hud.toast("Client à prendre : " + _cl_nom, 5.0)
 	_shocks = 0
 	_stop_t = 0.0
@@ -841,7 +876,8 @@ func _itineraire(dt: float, cible: Vector2) -> void:
 		_itin.calculer(c, cible)
 
 func _taxi_process(dt: float) -> void:
-	_itineraire(dt, _cl_pos if _phase == "attente" else _rp(_dest))
+	var vise := _dest if _arret < 0 else _arret
+	_itineraire(dt, _cl_pos if _phase == "attente" else _rp(vise))
 	var c := _car2()
 	var slow: bool = car.kmh() < 10.0
 	var head := "TAXI  ·  %d course(s)  ·  %s" % [_rides, _euros(_total)]
@@ -857,24 +893,50 @@ func _taxi_process(dt: float) -> void:
 				_taxi_pickup()
 		else:
 			_stop_t = 0.0
+	elif _phase == "arret":
+		# le client fait sa course (#53) : le compteur tourne au tarif d'attente, rien ne presse
+		if _compteur:
+			_compteur.compter(dt, 0.0, 0.0)
+		_arret_t -= dt
+		_set_status("%s\nLe client est à %s… (le compteur tourne)" % [head, _arret_nom])
+		if _arret_t <= 0.0:
+			_arret = -1
+			_phase = "course"
+			for bc in _beacons:
+				if is_instance_valid(bc):
+					bc.queue_free()
+			_beacons.clear()
+			if _client and is_instance_valid(_client):
+				_client.visible = false
+			_beacon(_r3(_dest), Color(0.2, 0.95, 0.4), 8.0, 60.0)
+			marks = [{p = _rp(_dest), col = Color(0.2, 0.95, 0.4), txt = "Dépôt", gps = true}]
+			_talk.dire(_arret_recit)
+			_bip.play()
 	elif _phase == "course":
 		_t += dt
 		if _compteur:
 			_compteur.compter(dt, Vector2(car.linear_velocity.x, car.linear_velocity.z).length() * dt, car.kmh())
-		var dest := _rp(_dest)
+		var dest := _rp(vise)
 		var d := c.distance_to(dest)
 		var stars := _stars()
-		_set_status("%s\n→ %s : %d m  ·  %s  ·  %s" % [head, _dest_name, int(d), _fmt(_t), "★".repeat(stars) + "☆".repeat(5 - stars)])
+		var nom := _arret_nom + " (arrêt)" if _arret >= 0 else _dest_name
+		_set_status("%s\n→ %s : %d m  ·  %s" % [head, nom, int(d), "★".repeat(stars) + "☆".repeat(5 - stars)])
 		if d < TAXI_STOP_R and slow:
 			_stop_t += dt
 			if _stop_t > 0.6:
-				_taxi_drop()
+				_stop_t = 0.0
+				if _arret >= 0:
+					_phase = "arret"
+					_bip.play()
+					hud.toast("Le client descend un moment : attendez-le ici, le compteur tourne.", 4.0)
+				else:
+					_taxi_drop()
 		else:
 			_stop_t = 0.0
 
+## Note de conduite : les chocs seulement (#53 : pas de pression de temps, le retard ne compte plus).
 func _stars() -> int:
-	var late := maxf(0.0, _t / _expected - 1.0)
-	return clampi(5 - _shocks - int(late * 4.0), 1, 5)
+	return clampi(5 - _shocks, 1, 5)
 
 func _taxi_pickup() -> void:
 	if _client and is_instance_valid(_client):
@@ -890,6 +952,40 @@ func _taxi_pickup() -> void:
 	var p = places[pool[randi() % pool.size()]]
 	_dest = _nearest(Vector2(p.x, p.z))
 	_dest_name = p.n
+	_arret = -1
+	_sorte = "normale"
+	if _en_rappel:
+		_dest = int(_rappel.retour)
+		_dest_name = str(_rappel.retour_nom)
+		p = {"n": _dest_name, "c": "", "k": "autre"}
+	else:
+		var r := randf()
+		_sorte = "arret" if r < 0.22 else ("retour" if r < 0.38 and _rappel.is_empty() else "normale")
+		for arg in OS.get_cmdline_user_args():
+			if arg.begins_with("--taxi-sorte="):                 # essai : type de course imposé
+				_sorte = arg.trim_prefix("--taxi-sorte=")
+				if _sorte == "retour" and not _rappel.is_empty():
+					_sorte = "normale"
+		if _sorte == "arret":
+			# arrêt en chemin : un lieu à 300-1500 m, plus proche de la destination que la voiture
+			var cands := []
+			for k in places.size():
+				var q := Vector2(places[k].x, places[k].z)
+				var dq := c.distance_to(q)
+				if dq > 300.0 and dq < 1500.0 and q.distance_to(_rp(_dest)) < c.distance_to(_rp(_dest)):
+					cands.append(k)
+			if cands.is_empty():
+				_sorte = "normale"
+			else:
+				var a2 = places[cands[randi() % cands.size()]]
+				_arret = _nearest(Vector2(a2.x, a2.z))
+				_arret_nom = str(a2.n)
+				var paire: Array = ARRETS[randi() % ARRETS.size()]
+				_arret_recit = paire[1]
+				_arret_t = randf_range(35.0, 70.0)
+				get_tree().create_timer(6.0).timeout.connect(func():
+					if mode == "taxi" and _arret >= 0:
+						_talk.dire(str(paire[0]).replace("{lieu}", _arret_nom)))
 	_fare_d = c.distance_to(_rp(_dest)) * 1.3
 	_expected = _fare_d / 11.0 + 20.0
 	_t = 0.0
@@ -902,10 +998,26 @@ func _taxi_pickup() -> void:
 		if is_instance_valid(b):
 			b.queue_free()
 	_beacons.clear()
-	_beacon(_r3(_dest), Color(0.2, 0.95, 0.4), 8.0, 60.0)
-	marks = [{p = _rp(_dest), col = Color(0.2, 0.95, 0.4), txt = "Dépôt", gps = true}]
+	if _arret >= 0:
+		_beacon(_r3(_arret), Color(1.0, 0.75, 0.2), 8.0, 60.0)
+		marks = [{p = _rp(_arret), col = Color(1.0, 0.75, 0.2), txt = "Arrêt", gps = true}]
+	else:
+		_beacon(_r3(_dest), Color(0.2, 0.95, 0.4), 8.0, 60.0)
+		marks = [{p = _rp(_dest), col = Color(0.2, 0.95, 0.4), txt = "Dépôt", gps = true}]
 	_bip.play()
-	_talk.start_ride(hud.names.commune_at(car.global_position), p.n, p.c, str(p.get("k", "autre")))
+	if _en_rappel:
+		_talk.start_ride(hud.names.commune_at(car.global_position), p.n, p.c, "autre", _rappel.client)
+		_talk.dire("Ah, vous voilà ! " + str(_rappel.recit), 2.5)
+		_rappel = {}
+	else:
+		_talk.start_ride(hud.names.commune_at(car.global_position), p.n, p.c, str(p.get("k", "autre")))
+	if _sorte == "retour":
+		var mot: Array = RETOURS[randi() % RETOURS.size()]
+		_rappel = {"idx": _dest, "nom": _dest_name, "retour": _nearest(c), "retour_nom": _cl_nom if _cl_nom != "" else "son point de départ",
+			"recit": mot[1], "courses": 1, "client": {}}
+		get_tree().create_timer(8.0).timeout.connect(func():
+			if mode == "taxi" and _phase == "course":
+				_talk.dire(str(mot[0])))
 
 func _taxi_drop() -> void:
 	# prix au compteur (issue #44) ; à défaut, l'ancien forfait sur la distance
@@ -914,6 +1026,12 @@ func _taxi_drop() -> void:
 		_compteur.arreter()
 	var stars := _stars()
 	var talk: Dictionary = _talk.end_ride(stars)
+	if not _rappel.is_empty():
+		if (_rappel.client as Dictionary).is_empty():
+			_rappel.client = _talk.client.duplicate()          # le même client, plus tard (#53)
+			hud.toast("Pensez à revenir chercher votre client à %s après la prochaine course." % _rappel.nom, 5.0)
+		else:
+			_rappel.courses = int(_rappel.courses) - 1
 	# conversation : jusqu'à +24 % de pourboire si le client a apprécié, jusqu'à -18 % s'il a été agacé
 	var tip: float = maxf(0.0, fare * ([0.0, 0.0, 0.05, 0.1, 0.15, 0.25][stars] + 0.06 * float(talk.sat)))
 	_rides += 1
