@@ -608,12 +608,12 @@ func _physics_process(_dt: float) -> void:
 		# garage (#43) : écran ouvert, plusieurs préparations essayées tour à tour ; captures user://shots/garage_N.png
 		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
 		var essais := [{},
-			{"couleur": 3, "finition": 1, "vinyle": 1, "neons": 1, "taxi": 1, "barre_led": 1, "prise_air": 1, "bas_caisse": 1, "aileron": 1, "echappement": 1, "suspension": 1},
-			{"couleur": 5, "finition": 2, "vinyle": 3, "suspension": 2, "barre_led": 1},
-			{"couleur": 8, "finition": 3, "vinyle": 5, "neons": 2, "aileron": 1},
-			{"couleur": 11, "vinyle": 6, "suspension": 2},
-			{"couleur": 1, "vinyle": 4, "vitres": 2, "neons": 5, "bas_caisse": 1},
-			{"couleur": 9, "vinyle": 2, "finition": 1, "neons": 3}]
+			{"couleur": 3, "finition": 1, "vinyle": 1, "neons": 1, "taxi": 1, "barre_led": 1, "prise_air": 1, "bas_caisse": 1, "aileron": 1, "echappement": 1, "jantes": 1, "suspension": 1},
+			{"couleur": 5, "finition": 2, "vinyle": 3, "suspension": 2, "barre_led": 1, "aileron": 2, "jantes": 2},
+			{"couleur": 8, "finition": 3, "vinyle": 5, "neons": 2, "aileron": 3, "jantes": 3, "echappement": 3},
+			{"couleur": 11, "vinyle": 6, "suspension": 2, "aileron": 4, "jantes": 4},
+			{"couleur": 1, "vinyle": 4, "vitres": 2, "neons": 5, "bas_caisse": 1, "aileron": 5, "jantes": 5},
+			{"couleur": 9, "vinyle": 2, "finition": 1, "neons": 3, "echappement": 2}]
 		if t == 300:
 			garage.argent = 5000.0
 			activities._garage()

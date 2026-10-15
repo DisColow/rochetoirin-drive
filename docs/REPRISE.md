@@ -13,6 +13,27 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## En cours : v6.47 (15/10) — garage, ciel, sauvegarde ; puis v6.48 = zone L'Isle-d'Abeau (#50)
+- Garage (#43, tout d'un coup, payé avec l'argent du jeu) : `garage.gd` (catalogue `CATALOGUE`, argent et pièces dans
+  `user://garage.cfg`, `apercu` = essai non acheté), `tuning.gd` (effets : variables `puissance`, `force_max`, `vmax`,
+  `freinage` de car.gd, roues, `carrosserie.gdshader` = couleur/finition/vinyles dans le repère de la voiture,
+  vitres, néons, pièces), `garage_ui.gd` (menu ★ > Garage, voiture arrêtée ; `camera_rig.vitrine`), primes dans
+  `activities.gd` (taxi = course + pourboire, course = 2 €/100 m + 15 € record, chasse = 25 €). Modèles : tous ceux
+  de la planche (`fetch_garage.py` + `blender_garage.py` -> `assets/garage/aileron_1-5`, `echappement_1-4`,
+  `jantes_1-5`, calés dans le repère de la voiture) ; prise d'air, enseigne TAXI, barre de LED, jupes : formes simples
+  dans `tuning.gd`. Vinyles : `build_vinyles.py` -> `assets/garage/vinyles.png`. Échappement : `audio.echappement`.
+  Essai : `--drive-test --garage-test` (captures `garage_N.png`).
+- Ciel (#46, choix laissé à Claude, sans montgolfière) : `ciel.gd` + `trainee.gdshader`, modèles `fetch_aeronefs.py`
+  + `blender_aeronefs.py` (A3 Cessna 172, B1 avion de ligne, H2 hélicoptère, P1 planeur), sons `avion_passage`,
+  `helico_passage`, `ligne_passage` (build_sons.py). Essai : `--drive-test --ciel-test=<type>`.
+- Sauvegarde (#51) : `sauvegarde.gd` (position et cap, `user://partie.cfg`, toutes les 30 s et en quittant).
+- #48 saisie : la fenêtre de `UI.ouvrir_saisie` doit être `PROCESS_MODE_ALWAYS` (les menus mettent le jeu en pause
+  via `hud._show_drive(false)`) ; « Valider » en haut. #49 : `itineraire.restant()` + flèche dessinée après le tracé.
+- #47 : `vegetation._exit_tree` attend la tâche du fil de travail (plus de plantage à la fermeture).
+- Défilement au doigt commun : `defilement.gd` (réglages et garage).
+- #50 (v6.48) : route Montcarra -> (45.6356, 5.2426) -> impasse des Glycines (45.6265, 5.2181) + commune de
+  L'Isle-d'Abeau entière (~+10 km²) ; BB des fetch à étendre à l'ouest (5,17°) ; procédure par bande comme en v6.45.
+
 ## Livré : v6.46 (15/10 matin), APK 1 477 Mo
 - Issues à tester : #27, #31-#42, #44, #45 ; en attente de l'utilisateur : #43 (tuning), #46 (planche du ciel) ; #47 :
   plantage à la fermeture sur PC (essai « champ »), cause non trouvée (pas le code v6.46 : scripts v6.45 aussi).
