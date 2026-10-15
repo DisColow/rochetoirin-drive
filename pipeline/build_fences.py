@@ -305,6 +305,24 @@ def main():
         b = LineString(w["P"]).buffer(w["w"] / 2 + (1.6 if any(w["sidewalk"]) else 0.0) + 0.5
                                       + {"motorway": 10.0, "motorway_link": 4.0}.get(w["cls"], 0.0))   # emprise autoroutière
         (drive_z if w["tags"].get("service") in DRIVE else main_z).append(b)
+    # carrefours (v6.46, issues #31 et #32) : l'enrobé s'y élargit en arrondi au-delà de la largeur de chaque voie ;
+    # disque de la plus grande demi-largeur + 4 m autour de chaque nœud commun à deux voies (allées privées comprises)
+    from collections import defaultdict
+    from geo import to_local
+    pos = {e["id"]: (e["lon"], e["lat"]) for e in json.load(open("data/osm.json"))["elements"] if e["type"] == "node"}
+    par_noeud = defaultdict(list)
+    for w in ways:
+        if len(w["P"]) < 2 or w["cls"] in ("motorway", "motorway_link"):
+            continue
+        for n in set(w["nodes"]):
+            par_noeud[n].append(w["w"])
+    njonc = 0
+    for n, l in par_noeud.items():
+        if len(l) >= 2 and n in pos:
+            x, z = to_local(*pos[n])
+            main_z.append(Point(float(x), float(z)).buffer(max(l) / 2 + 4.0, 12))
+            njonc += 1
+    print("carrefours exclus :", njonc)
     # parkings revêtus (build_roads.py -> parking.py) : rien ne les traverse
     if os.path.exists("data/parkings.pkl"):
         main_z += [l["geom"].buffer(0.3) for l in pickle.load(open("data/parkings.pkl", "rb"))["lots"]]
