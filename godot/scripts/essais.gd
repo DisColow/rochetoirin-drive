@@ -622,6 +622,12 @@ func _physics_process(_dt: float) -> void:
 			car.linear_velocity = Vector3.ZERO
 			pd.sortir()
 			Input.action_press("accelerer", 1.0)
+		if t == 300 + 480:
+			Input.action_press("frein_main")
+		if t == 300 + 482:
+			Input.action_release("frein_main")
+		if t > 300 + 480 and t < 300 + 560 and t % 10 == 0 and pd.corps:
+			print("  [pied] saut t=%.2f hauteur au-dessus du sol %.2f m" % [(t - 300) / 120.0, pd.corps.global_position.y - Relief.hauteur(pd.corps.global_position)])
 		if t == 300 + 600:
 			Input.action_release("accelerer"); Input.action_press("gauche", 1.0)
 		if t == 300 + 720:
@@ -631,8 +637,14 @@ func _physics_process(_dt: float) -> void:
 			get_viewport().get_texture().get_image().save_png("user://shots/pied_%d.png" % t)
 		if t > 300 and t % 60 == 0 and pd.corps:
 			print("  [pied] t=%.1f pos %s, %.1f m de la voiture, au sol %s, voiture %.1f km/h" % [(t - 300) / 120.0, pd.corps.global_position, pd.corps.global_position.distance_to(car.global_position), pd.corps.is_on_floor(), car.kmh()])
+		if t == 300 + 760:
+			var tp: Vector3 = car.global_position + Vector3(150, 0, 0)
+			tp.y = Relief.hauteur(tp) + 1.0
+			_teleport(tp, 0.0)
+		if t == 300 + 880:
+			print("  [pied] après la téléportation : piéton à %.1f m de la voiture" % pd.corps.global_position.distance_to(car.global_position))
 		if t == 300 + 900:
-			print("  [pied] voiture figée : ", car.freeze, " position ", car.global_position)
+			print("  [pied] voiture figée : ", car.freeze, " position ", car.global_position, " sol ", Relief.hauteur(car.global_position))
 		if t == 300 + 960:
 			pd.basculer()
 			print("  [pied] remonté : ", not pd.actif, " voiture contrôlée ", car.controle)

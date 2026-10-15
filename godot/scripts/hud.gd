@@ -738,7 +738,13 @@ func _process_corps(_dt: float) -> void:
 			# à pied : plus de compteur ni de freins à l'écran
 			speed_panel.visible = _conduite and not a_pied
 			b_parking.visible = _conduite and not a_pied
-			b_frein_main.visible = _conduite and not a_pied
+			# à pied (#80) : plus de ◀ ▶ FREIN GAZ (sticks virtuels), le disque du frein à main devient « SAUT »
+			for i in 4:
+				buttons[i].visible = _conduite and not a_pied
+			b_frein_main.visible = _conduite
+			var lb: Label = b_frein_main.get_child(0)
+			lb.text = "SAUT" if a_pied else "F. À\nMAIN"
+			b_frein_main.position = Vector2(get_viewport().get_visible_rect().size.x - 130, get_viewport().get_visible_rect().size.y * 0.42) if a_pied else Vector2(get_viewport().get_visible_rect().size.x - 470 + 12, get_viewport().get_visible_rect().size.y - 330)
 	var g = get_parent().get("garage")
 	if g and float(g.argent) != _argent:
 		_argent = float(g.argent)

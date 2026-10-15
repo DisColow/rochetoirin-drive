@@ -398,6 +398,8 @@ func _teleport(p: Vector3, heading: float) -> void:
 		relief.charger_autour(p)
 	car.place(p, heading)
 	car.hold(0.6)
+	if pied and pied.actif:              # à pied : la voiture ET le piéton vont au point choisi (#80)
+		pied.rejoindre_voiture()
 	cam_rig.snap()
 	roads.update_now()
 	buildings.update_now()

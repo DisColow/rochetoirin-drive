@@ -16,10 +16,12 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.53 (correctif) :
-- **À pied : bouton « VOITURE »** pour revenir dans la voiture d'où qu'on soit.
-- La voiture ne peut plus partir toute seule quand on descend (immobilisée, même en pente).
-- À pied, la mini-carte et la carte sont centrées sur le piéton.
+Nouveautés de la v6.54 :
+- **À pied, commandes façon FPS** : pouce gauche pour marcher (au bout du stick : on court), pouce droit pour regarder.
+- **Saut** à pied (bouton SAUT, Espace ou A à la manette).
+- La tête bouge au rythme des pas, et on se tasse un peu à la réception d'un saut.
+- À pied, se téléporter depuis la carte emmène la voiture **et** le piéton.
+- Les plants des champs apparaissent de plus loin.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

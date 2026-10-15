@@ -13,6 +13,13 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## Livré : v6.53 (16/10 nuit, correctif) et v6.54 — issue #80 (mode piéton)
+- v6.53 : bouton VOITURE (remonte d'où qu'on soit), voiture figée (freeze) à pied, gps/map suivent le piéton.
+- v6.54 : a_pied.gd sticks virtuels (moitié gauche/droite du bas de l'écran, hors boutons), saut sur l'action
+  « frein_main » (bouton SAUT), balancement de tête + tassement à la réception ; main._teleport -> pied.rejoindre_voiture()
+  (dégèle la voiture 2 s pour qu'elle retombe) ; crops.RANGE [35,60,85,110] et éclaircissement jusqu'à 25 % au bord.
+- Attention : un push sur godot annule le build APK en cours (concurrence apk.yml) : attendre la fin avant de pousser.
+
 ## Livré : v6.52 (16/10) : balises des épreuves (#78), saisie (#79, nav_physique ignore les touches quand un LineEdit/TextEdit a le focus ; UI.saisie_active() bloque les raccourcis)
 
 ## Livré : v6.51 (15/10 nuit), APK 1 574 Mo — tickets #66 à #77

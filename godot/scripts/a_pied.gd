@@ -1,7 +1,8 @@
 ## À pied (issue #66) : on sort de la voiture arrêtée pour voir le monde comme un piéton, en vue à la première personne.
-## Commandes : les mêmes que la voiture (GAZ / ↑ avancer, FREIN / ↓ reculer, ◀ ▶ tourner), glisser le doigt sur l'écran
-## (ou stick droit, souris) pour regarder, stick gauche pour marcher ; touche E / bouton Y : sortir, puis remonter
-## (bouton « Monter » à moins de 3,5 m de la voiture). Pendant ce temps la voiture est au frein de parking et ne lit
+## Commandes (v6.54, #80) : au tactile, deux sticks virtuels comme les FPS sur téléphone (pouce gauche : marcher, à
+## fond pour courir ; pouce droit : regarder), apparus là où l'on pose le pouce ; « SAUT » (disque au-dessus des sticks,
+## Espace, bouton A). Clavier : ↑ ↓ marcher, ◀ ▶ tourner ; manette : sticks. Touche E / bouton Y, bouton « VOITURE » :
+## retour dans la voiture d'où qu'on soit. Tête qui balance en marchant. Pendant ce temps la voiture est au frein de parking et ne lit
 ## plus les commandes, et le monde (routes, bâtiments, relief, collisions…) se charge autour du piéton (main.suivre).
 extends Node
 const Relief := preload("res://scripts/relief.gd")
@@ -18,7 +19,14 @@ var cam: Camera3D
 var _yaw := 0.0
 var _pitch := 0.0
 var _avance_t := 0.0
-var _doigts := {}                 # doigt -> position (glisser pour regarder)
+var _doigts := {}                 # doigt -> position (glisser pour regarder, souris)
+var _sticks := {}                 # doigt -> [côté ("g" / "d"), centre, position]
+var _calque: CanvasLayer
+var _dessin: Control
+var _pas := 0.0                   # phase du pas (balancement de la tête)
+var _choc := 0.0                  # tête qui s'enfonce à la réception d'un saut
+const SAUT := 4.3                 # m/s vers le haut
+const RAYON := 110.0              # rayon des sticks virtuels (px)
 
 func _ready() -> void:
 	if not InputMap.has_action("pied"):
@@ -82,9 +90,16 @@ func sortir() -> void:
 	cam.make_current()
 	corps.add_collision_exception_with(car)          # on peut se tenir contre la voiture sans être éjecté
 	main.suivre(corps)
+	_calque = CanvasLayer.new(); _calque.layer = 1
+	_dessin = Control.new(); _dessin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_dessin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dessin.draw.connect(_dessiner_sticks)
+	_calque.add_child(_dessin)
+	add_child(_calque)
+	_sticks.clear()
 	var hud = main.get_node("HUD")
 	hud.gps.car = corps; hud.map.car = corps            # mini-carte et carte centrées sur le piéton
-	main.get_node("HUD").toast("À pied : GAZ / FREIN pour marcher, ◀ ▶ pour tourner, glissez pour regarder.", 4.0)
+	main.get_node("HUD").toast("À pied : pouce gauche pour marcher, pouce droit pour regarder, SAUT pour sauter.", 4.0)
 
 func monter() -> void:
 	var car = main.car
@@ -101,6 +116,46 @@ func monter() -> void:
 		corps.queue_free()
 	corps = null
 	cam = null
+	if _calque:
+		_calque.queue_free()
+	_calque = null
+	_sticks.clear()
+
+## Après une téléportation par la carte (#80) : la voiture a été déplacée, le piéton la suit (à côté de la portière).
+func rejoindre_voiture() -> void:
+	if not actif or corps == null:
+		return
+	var car = main.car
+	# la voiture, figée à pied, doit retomber sur le sol du point choisi avant d'être figée de nouveau
+	car.freeze = false
+	get_tree().create_timer(2.0).timeout.connect(func():
+		if actif:
+			car.linear_velocity = Vector3.ZERO; car.angular_velocity = Vector3.ZERO; car.freeze = true)
+	var p: Vector3 = car.global_transform * Vector3(1.6, 0.0, 0.4)
+	p.y = Relief.hauteur(p) + 0.1
+	corps.global_position = p
+	corps.velocity = Vector3.ZERO
+	var f: Vector3 = car.global_transform.basis.z
+	_yaw = atan2(f.x, f.z)
+	_appliquer_regard()
+
+## Stick virtuel d'un côté : vecteur (-1…1, -1…1), (0, 0) si aucun pouce.
+func _stick(cote: String) -> Vector2:
+	for k in _sticks:
+		var st: Array = _sticks[k]
+		if st[0] == cote:
+			var d: Vector2 = (st[2] - st[1]) / RAYON
+			return d.limit_length(1.0)
+	return Vector2.ZERO
+
+func _dessiner_sticks() -> void:
+	for k in _sticks:
+		var st: Array = _sticks[k]
+		var c: Vector2 = st[1]
+		var pt: Vector2 = c + ((st[2] - c) as Vector2).limit_length(RAYON)
+		_dessin.draw_circle(c, RAYON, Color(0.05, 0.06, 0.07, 0.28))
+		_dessin.draw_arc(c, RAYON, 0.0, TAU, 48, Color(1, 1, 1, 0.45), 3.0, true)
+		_dessin.draw_circle(pt, 44.0, Color(1, 1, 1, 0.42))
 
 func _appliquer_regard() -> void:
 	corps.rotation.y = _yaw
@@ -121,9 +176,17 @@ func _physics_process(dt: float) -> void:
 		_yaw -= rx * 2.4 * dt
 	if absf(ry) > 0.15:
 		_pitch = clampf(_pitch - ry * 1.8 * dt, -1.3, 1.3)
+	# sticks virtuels (#80) : droit = regard (vitesse selon l'écart), gauche = marche
+	var sd := _stick("d")
+	if sd != Vector2.ZERO:
+		_yaw -= sd.x * absf(sd.x) * 3.0 * dt
+		_pitch = clampf(_pitch - sd.y * absf(sd.y) * 2.0 * dt, -1.3, 1.3)
+	var sg := _stick("g")
 	# marche : GAZ / FREIN (↑ ↓), stick gauche ; ◀ ▶ tournent
 	var av := Input.get_action_strength("accelerer") - Input.get_action_strength("freiner")
 	var lat := 0.0
+	if sg != Vector2.ZERO:
+		av = -sg.y; lat = sg.x
 	var ly := Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
 	var lx := Input.get_joy_axis(0, JOY_AXIS_LEFT_X)
 	if absf(ly) > 0.2:
@@ -134,7 +197,8 @@ func _physics_process(dt: float) -> void:
 		_yaw += (Input.get_action_strength("gauche") - Input.get_action_strength("droite")) * 2.0 * dt
 	_appliquer_regard()
 	_avance_t = _avance_t + dt if av > 0.5 else 0.0
-	var vit := COURSE if _avance_t > 2.0 else MARCHE
+	# course : GAZ tenu 2 s, ou stick gauche poussé à fond
+	var vit := COURSE if (_avance_t > 2.0 or sg.length() > 0.92) else MARCHE
 	var b := corps.global_transform.basis
 	var dir := (b.z * av + b.x * -lat)
 	dir.y = 0.0
@@ -142,30 +206,64 @@ func _physics_process(dt: float) -> void:
 		dir = dir.normalized()
 	var v := corps.velocity
 	v.x = dir.x * vit; v.z = dir.z * vit
-	v.y = 0.0 if corps.is_on_floor() else v.y - 9.81 * dt
+	var au_sol := corps.is_on_floor()
+	if au_sol:
+		v.y = 0.0
+		if Input.is_action_just_pressed("frein_main"):            # saut (#80) : Espace, bouton A, disque SAUT
+			v.y = SAUT
+	else:
+		v.y -= 9.81 * dt
+	var tombait := v.y
 	corps.velocity = v
 	corps.move_and_slide()
+	if not au_sol and corps.is_on_floor() and tombait < -2.0:
+		_choc = clampf(-tombait * 0.02, 0.0, 0.12)                # réception : la tête s'enfonce un peu
+	# tête qui balance en marchant (#80) : monte et descend à chaque pas, roule légèrement d'un côté à l'autre
+	var hv := Vector2(v.x, v.z).length()
+	if corps.is_on_floor() and hv > 0.2:
+		_pas += dt * hv * 3.6
+	_choc = move_toward(_choc, 0.0, dt * 0.5)
+	var amp := clampf(hv / COURSE, 0.0, 1.0)
+	cam.position = Vector3(cos(_pas * 0.5) * 0.035 * amp, YEUX + absf(sin(_pas * 0.5)) * 0.06 * amp - 0.03 * amp - _choc, 0.0)
+	cam.rotation.z = sin(_pas * 0.5) * 0.012 * amp
 	# jamais sous le relief (collisions du relief pas encore prêtes, trou) : remis dessus
 	var h: float = Relief.hauteur(corps.global_position)
 	if not is_nan(h) and corps.global_position.y < h - 0.3:
 		corps.global_position.y = h + 0.05
 		corps.velocity.y = 0.0
 
-## Glisser le doigt (hors des boutons) ou la souris pour regarder autour de soi.
+## Un bouton de l'interface (P, VOITURE, menus du haut…) sous le doigt : pas de stick.
+func _sur_bouton(p: Vector2) -> bool:
+	for c in get_tree().get_nodes_in_group("ui_zone"):
+		if c is Control and (c as Control).is_visible_in_tree() and (c as Control).get_global_rect().has_point(p):
+			return true
+	return false
+
+## Sticks virtuels au tactile ; souris (bouton droit) pour regarder sur PC.
 func _input(e: InputEvent) -> void:
 	if not actif or cam == null:
 		return
 	var vs := get_viewport().get_visible_rect().size
 	if e is InputEventScreenTouch:
-		# zone des commandes (bas de l'écran) exclue
-		if e.pressed and e.position.y < vs.y - 260.0:
-			_doigts[e.index] = e.position
-		elif not e.pressed:
-			_doigts.erase(e.index)
-	elif e is InputEventScreenDrag and _doigts.has(e.index):
-		_yaw -= e.relative.x * 0.005
-		_pitch = clampf(_pitch - e.relative.y * 0.004, -1.3, 1.3)
-		_appliquer_regard()
+		if e.pressed:
+			# sticks : moitié gauche / droite de l'écran, sous la rangée du haut ; pas sur le disque SAUT
+			var hud = main.get_node("HUD")
+			var saut: Node2D = hud.get("b_frein_main")
+			var sur_saut: bool = saut != null and saut.visible and e.position.distance_to(saut.position + Vector2(40, 40)) < 60.0
+			if e.position.y > vs.y * 0.3 and not sur_saut and not _sur_bouton(e.position):
+				var cote := "g" if e.position.x < vs.x * 0.5 else "d"
+				for k in _sticks.keys():
+					if _sticks[k][0] == cote:
+						_sticks.erase(k)
+				_sticks[e.index] = [cote, e.position, e.position]
+		else:
+			_sticks.erase(e.index)
+		if _dessin:
+			_dessin.queue_redraw()
+	elif e is InputEventScreenDrag and _sticks.has(e.index):
+		_sticks[e.index][2] = e.position
+		if _dessin:
+			_dessin.queue_redraw()
 	elif e is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
 		_yaw -= e.relative.x * 0.004
 		_pitch = clampf(_pitch - e.relative.y * 0.004, -1.3, 1.3)
