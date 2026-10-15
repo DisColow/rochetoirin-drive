@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.50.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.50/RochetoirinSimulator-v6.50.apk)**
+**[RochetoirinSimulator-v6.51.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.51/RochetoirinSimulator-v6.51.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,11 +16,13 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.50 :
-- **Champs beaucoup plus fluides** : touffes façon GTA San Andreas, 11 à 16 fois moins de plans à dessiner.
-- **Frein à main** (Espace, A, ou bouton au-dessus de FREIN) et **frein de parking** (petit bouton P, touche P).
-- **Clavier et manette** : menus navigables (flèches, chiffres 1 à 9, Échap / B), guide des touches dans ⚙ ; la
-  marche arrière marche même si la gâchette d'accélérateur reste un peu enfoncée.
+Nouveautés de la v6.51 :
+- **À pied** : à l'arrêt, bouton « À PIED » (E / Y) pour sortir et visiter le monde en vue à la première personne.
+- **Clients du taxi animés** (vraies animations de marche et d'attente) ; ivres caricaturaux, dialogues plus cohérents,
+  pourboire qui tient compte du temps (sans chrono).
+- **Monde** : propriétés entièrement closes, feux tricolores et grillages d'autoroute cassables.
+- **Corrections** : remise sur la route dans le sens de la marche, croix des réglages, radio info plus forte, GPS du
+  cockpit qui ne s'ouvre plus sous un menu.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

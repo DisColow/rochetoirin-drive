@@ -59,14 +59,16 @@ COLORS = {"vert": (38, 68, 48), "anthracite": (52, 56, 60), "gris": (120, 124, 1
           "noir": (28, 28, 30), "beige": (200, 185, 160), "brun": (95, 70, 52), "galva": (150, 154, 150)}
 WALL = {"creme": (225, 210, 182), "gris": (178, 176, 170), "blanc": (236, 233, 226), "rose": (226, 194, 174)}
 # répartition relevée sur Street View dans le bourg (171 façades)
-FRONT_MIX = [("haie_laurier", 45), ("rien", 26), ("haie_thuya", 20), ("occult", 17), ("muret_grille", 14),
+# #73 (demande du 15/10) : toute propriété résidentielle entièrement close (sauf l'entrée : portail ou piliers) ;
+# plus de « rien » dans les tirages, et une façade relevée « rien » reçoit un muret bas
+FRONT_MIX = [("haie_laurier", 45), ("muret", 26), ("haie_thuya", 20), ("occult", 17), ("muret_grille", 14),
              ("rigide", 13), ("muret_rigide", 12), ("mur", 10), ("muret", 5), ("lisses", 5), ("bois", 2),
              ("haie_photinia", 2)]
 SURVEY = {"haieT": "haie_thuya", "haieL": "haie_laurier", "haieP": "haie_photinia", "muret": "muret",
           "muret_grille": "muret_grille", "muret_rigide": "muret_rigide", "mur": "mur", "occult": "occult",
-          "lisses": "lisses", "bois": "bois", "grillage": "rigide", "rien": "rien"}
-SIDE_MIX = [("rigide", 35), ("losange", 20), ("haie_laurier", 15), ("haie_thuya", 15), ("rien", 15)]
-BACK_MIX = [("losange", 35), ("haie_champetre", 25), ("rigide", 15), ("rien", 25)]
+          "lisses": "lisses", "bois": "bois", "grillage": "rigide", "rien": "muret"}
+SIDE_MIX = [("rigide", 40), ("losange", 25), ("haie_laurier", 18), ("haie_thuya", 17)]
+BACK_MIX = [("losange", 45), ("haie_champetre", 33), ("rigide", 22)]
 HEDGE_DIM = {"haie_thuya": (1.8, 2.3, 0.8), "haie_laurier": (1.6, 2.1, 1.0), "haie_photinia": (1.4, 1.8, 0.9),
          "haie_champetre": (1.6, 2.6, 1.5)}
 # demi-épaisseur côté rue (recul dans la parcelle)

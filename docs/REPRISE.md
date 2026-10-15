@@ -13,6 +13,24 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## En cours : v6.51 (15/10 nuit) — tickets #66 à #77
+- #66 à pied : `scripts/a_pied.gd` (CharacterBody3D, caméra 1re personne retournée de 180°, `main.suivre(n)` fait
+  suivre le chargement du monde, `car.controle`) ; action « pied » (E / Y), caméra déplacée sur le clic du stick droit.
+  Essai `--drive-test --pied-test`.
+- #67 radio : journal +9 dB et filtre moins sourd (`radio._en_journal`), titres lus à plein volume.
+- #68 feux tricolores : mâts « metal_dark » relevés par `build_casse.py`, ampoules effacées (`signal_light.gdshader`).
+- #69 croix des réglages : bande du haut réservée (`content_margin_top` 92), `hud._fermer_reglages`.
+- #70 GPS cockpit ignoré quand un menu est ouvert. #74 points de téléportation dans les deux sens (`build_map.py`)
+  + sens de la marche d'après la vitesse (`car.reset_to_road`). #75 part « temps » du pourboire (bonus, sans chrono).
+- #71 : fils filtrés par âge et métier (`taxi_talk.FIL_AGE`, `_fil_possible`), réponses génériques seulement sobres et
+  hors questions / sujets tristes ; accords de genre corrigés dans les sources. #72 : `taxi_talk._bourre`, débit 0,78,
+  caractère tiré à l'apparition (`choisir_caractere`), `pieton.ivre`.
+- #73 : plus de « rien » dans les tirages de `build_fences.py` (façade relevée « rien » -> muret) ; régénérer
+  fences + `boulangerie/abords.py` + props + `build_casse.py`.
+- #76 : grillage d'autoroute cassable (`autoroute.grillages`, genre « grillage » de `casse.gd`).
+- #77 : animations Quaternius (UAL 1 et 2, CC0, opengameart) -> `pipeline/data/anim/`, `blender_animer_clients.py`
+  (transfert par rotations monde, bras réalignés T -> A) ; `pieton.gd` joue marche / titube / attente_0-3.
+
 ## Livré : v6.49 (15/10 soir), APK 1 564 Mo — #53 (suite) et #55
 - #53 : `activities.gd` : sortes de course `normale` / `arret` (on attend le client à un lieu en chemin, compteur au
   tarif d'attente, `ARRETS`) / `retour` (on revient le chercher après la course suivante, même client et même
