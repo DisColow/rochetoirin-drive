@@ -37,6 +37,12 @@ var trunk_shapes := []
 var _t := 0.0
 var _near_t := 0.0
 
+func _exit_tree() -> void:
+	# la tâche en cours écrit dans ce nœud : l'attendre avant qu'il soit libéré (#47)
+	if _tache >= 0:
+		WorkerThreadPool.wait_for_task_completion(_tache)
+		_tache = -1
+
 func _ready() -> void:
 	for f in DirAccess.get_files_at("res://world/veg"):
 		if f.ends_with(".bin"):
