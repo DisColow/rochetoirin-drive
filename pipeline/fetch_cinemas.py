@@ -1,7 +1,7 @@
 """Cinémas (OSM amenity=cinema) de la zone, avec leur contour quand il existe.
 Sortie : data/osm_cinemas.json (le nom est parodié en jeu par build_shops.py)."""
 import json, time, urllib.parse, urllib.request
-BB = "45.51,5.165,45.67,5.19"
+BB = "45.51,5.165,45.67,5.53"
 q = """[out:json][timeout:120];nwr["amenity"="cinema"](%s);out center tags geom;""" % BB
 b = b""
 for k in range(8):

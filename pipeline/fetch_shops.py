@@ -1,7 +1,7 @@
 """Commerces et services (OSM) : magasins, stations-service, pharmacies, banques, poste, cafés, restaurants, garages…
 Sortie : data/osm_shops.json (points et contours, avec nom et marque ; les marques sont parodiées en jeu)."""
 import json, time, urllib.parse, urllib.request, collections
-BB = "45.51,5.165,45.67,5.19"
+BB = "45.51,5.165,45.67,5.53"
 q = """[out:json][timeout:300];(
 nwr["shop"](%(b)s);
 nwr["amenity"~"^(fuel|pharmacy|bank|post_office|restaurant|cafe|bar|pub|fast_food|car_wash|marketplace)$"](%(b)s);
