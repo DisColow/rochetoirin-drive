@@ -89,6 +89,7 @@ Voix du taxi : synthèse vocale de l'appareil ; à défaut, synthèse Piper (rha
 Voiture : « Ford Ranger Raptor 2019 » par David_Holiday (Sketchfab, licence CC BY 4.0), repeint en noir.
 Lampadaires : « Street Lantern » par Samuel Francis Johnson (Oneironauticus) (Sketchfab, licence CC BY 4.0).
 Aéronefs (Sketchfab, licence CC BY 4.0) : « Free Cessna 172 Replica » par quadzii, « Low Poly Airliner » par maurogsw, « Low Poly Helicopter » par antonmoek, « UNDERPOLY: Free Sailplane Glider » par underpolyproject.
+Rochetoirin Info (radio) : « Flash info » de 20 Minutes et journal de RTL (podcasts publics, écoutés en direct, non enregistrés dans le jeu), titres de franceinfo et du Dauphiné Libéré (flux RSS).
 Pièces du garage (Sketchfab, licence CC BY 4.0) : « Universal Spoiler 1 » et « 2 » par the_86_guy, « Ultimate Car Spoiler Pack » par DevPoly3D, « Universal Custom Car Spoiler » par JollyFox, « Car agressive Wing modification » par knitro_vedant, « Dual Exhaust Tip » par wojteX, « Exhaust Tips » par wiktors360, « Basic Low-Poly Exhaust Tip » 1 et 2 par NANOxDucko, « BBS RS16 Tuner Car Wheel », « Mugen M7 Tuner Car Wheel » et « Tuner Car Wheel » par TinoD2, « Volkswagen Rim » par PolyTigr, « Concept car Rim » par LagzDesign.
 Soucoupe du gardien : « UFO » par sebslom (sketchfab.com/3d-models), licence CC BY 4.0.
 Pluie et orage : Sound Effect by Premankur Adhikary from Pixabay.

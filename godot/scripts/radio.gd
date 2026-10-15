@@ -5,6 +5,8 @@
 ## étroite) dans l'habitacle ; en vue extérieure (fenêtre ouverte), plus lointain et plus sourd.
 ## Commandes : bouton ♪ (ou touche N) : station suivante, puis arrêt ; l'écran de l'autoradio du cockpit affiche la
 ## fréquence.
+## Dernière station, « Rochetoirin Info » (#56, radio_infos.gd) : début du journal du jour (podcast) ou flash des
+## derniers titres lu par la voix du téléphone, puis deux chansons prises dans toutes les stations, et ainsi de suite.
 extends Node
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
@@ -28,6 +30,12 @@ var _fm_t := 6.0
 var _fm_len := 0.0
 var _fade := 0.0                   # creux de réception (trajets multiples) : la musique baisse un instant
 var _rng := RandomNumberGenerator.new()
+var infos: Node                    # radio_infos.gd
+const JOURNAL_MAX := 420.0         # coupe un journal trop long (7 min)
+var _etape := 0                    # station d'info : 0 actualité, 1-2 chansons
+var _en_journal := false
+var _dernier_journal := -1e9       # heure (s) du dernier journal diffusé : un par quart d'heure au plus
+var _flash_t := 0.0                # flash lu par la voix du téléphone : temps restant
 
 ## 1 : quelqu'un parle dans la voiture (la radio baisse), 0 : volume normal.
 func set_duck(on: float) -> void:
@@ -39,6 +47,13 @@ func _ready() -> void:
 		set_process(false)
 		return
 	stations = JSON.parse_string(FileAccess.get_file_as_string("res://assets/radio/radio.json")).stations
+	# station d'info (#56) : toutes les chansons, entre les actualités
+	var toutes := []
+	for st in stations:
+		toutes.append_array(st.morceaux)
+	stations.append({"nom": "Rochetoirin Info", "freq": "105.5", "infos": true, "morceaux": toutes})
+	infos = preload("res://scripts/radio_infos.gd").new()
+	add_child(infos)
 	_bus = AudioServer.get_bus_index("Radio")
 	if _bus < 0:
 		AudioServer.add_bus()
@@ -96,6 +111,14 @@ func _process_corps(dt: float) -> void:
 	AudioServer.set_bus_volume_db(_bus, lerpf(-4.0, 2.0, _cockpit) - 9.0 * _duck
 		+ preload("res://scripts/audio.gd").volume_db("musique"))
 	_fm_crackle(dt)
+	if station >= 0 and stations[station].get("infos", false):
+		if _en_journal and _player.playing and _player.get_playback_position() > JOURNAL_MAX:
+			_player.stop()
+			_tune()
+		if _flash_t > 0.0:
+			_flash_t -= dt
+			if _flash_t <= 0.0:
+				_tune()
 
 ## Charme de la FM : de temps en temps un crachotement (grésillement bref, plus ou moins fort) et un petit creux de
 ## réception où la musique faiblit, comme sur un autoradio en roulant dans les collines.
@@ -123,6 +146,10 @@ func _fm_crackle(dt: float) -> void:
 
 ## Station suivante ; après la dernière, arrêt.
 func next() -> void:
+	if station >= 0 and stations[station].get("infos", false):
+		_flash_t = 0.0
+		DisplayServer.tts_stop()                     # le flash s'arrête avec la station
+		_etape = 0
 	station += 1
 	if station >= stations.size():
 		station = -1
@@ -159,6 +186,9 @@ func _order(s: int, lap: int) -> Array:
 func _tune() -> void:
 	if station < 0 or station >= stations.size():
 		return
+	if stations[station].get("infos", false):
+		_tune_infos()
+		return
 	var st = stations[station]
 	var total := 0.0
 	for m in st.morceaux:
@@ -179,6 +209,38 @@ func _tune() -> void:
 			_player.play(clampf(pos, 0.0, d - 0.5))
 			return
 		pos -= d
+
+## Station d'info : actualité (journal du jour au plus une fois par demi-heure, sinon flash), puis deux chansons.
+func _tune_infos() -> void:
+	_en_journal = false
+	_flash_t = 0.0
+	var st = stations[station]
+	if _etape % 3 == 0:
+		_etape += 1
+		var now := Time.get_unix_time_from_system()
+		if infos.journal and now - _dernier_journal > 900.0:
+			_dernier_journal = now
+			_en_journal = true
+			_player.stream = infos.journal
+			_player.play(0.0)
+			title = infos.journal_titre
+			if hud:
+				hud.toast("♪ Rochetoirin Info\n%s" % title, 3.0)
+			return
+		var t: String = infos.flash()
+		var d: float = infos.lire_flash(t, clampf(0.8 + preload("res://scripts/audio.gd").volume_db("musique") / 30.0, 0.2, 1.0))
+		if d > 0.0:
+			_player.stop()
+			title = "Flash info"
+			_flash_t = d + 1.0
+			return
+	_etape += 1
+	var m = st.morceaux[_rng.randi_range(0, st.morceaux.size() - 1)]
+	var path := "res://assets/radio/%s.ogg" % m.fichier
+	if ResourceLoader.exists(path):
+		_player.stream = load(path)
+		title = m.titre
+		_player.play(0.0)
 
 ## Texte de l'écran de l'autoradio (cockpit) : fréquence de la station, vide si éteinte.
 func lcd_text() -> String:

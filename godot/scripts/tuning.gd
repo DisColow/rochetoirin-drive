@@ -32,6 +32,7 @@ const BOITE := [1.0, 1.12, 1.25]
 const FREINS := [1.0, 1.15, 1.3]
 const PNEUS := [2.6, 2.95, 3.3]
 const JANTES_RETOURNEES := [3]
+const DANS_LE_PNEU := 0.74            # diamètre de la nouvelle roue / diamètre extérieur du pneu d'origine
 const VITRES := [Color(0.07, 0.085, 0.10), Color(0.035, 0.045, 0.055), Color(0.008, 0.008, 0.01)]
 
 func _ready() -> void:
@@ -297,7 +298,8 @@ func _jantes(n_choix: int) -> void:
 			neuve = load(f).instantiate()
 			neuve.name = "Jantes"
 			neuve.set_meta("choix", n_choix)
-			neuve.scale = Vector3.ONE * 2.0 * (w.wheel_radius - 0.045)
+			# le pneu à crampons fait partie de la caisse du Raptor : la nouvelle roue se loge dedans (#54)
+			neuve.scale = Vector3.ONE * 2.0 * (w.wheel_radius - 0.045) * DANS_LE_PNEU
 			# face extérieure de la jante vers l'extérieur ; la n° 3 est livrée retournée (étrier côté face)
 			neuve.rotation.y = (0.0 if i % 2 == 0 else PI) + (PI if n_choix in JANTES_RETOURNEES else 0.0)
 			w.add_child(neuve)
