@@ -614,6 +614,8 @@ func _physics_process(_dt: float) -> void:
 			{"couleur": 11, "vinyle": 6, "suspension": 2, "aileron": 4, "jantes": 4},
 			{"couleur": 1, "vinyle": 4, "vitres": 2, "neons": 5, "bas_caisse": 1, "aileron": 5, "jantes": 5},
 			{"couleur": 9, "vinyle": 2, "finition": 1, "neons": 3, "echappement": 2}]
+		if OS.get_cmdline_user_args().has("--jantes"):
+			essais = [{"jantes": 0}, {"jantes": 1}, {"jantes": 2}, {"jantes": 3}, {"jantes": 4}, {"jantes": 5}, {"jantes": 2}]
 		if t == 300:
 			garage.argent = 5000.0
 			activities._garage()
@@ -623,6 +625,16 @@ func _physics_process(_dt: float) -> void:
 			tuning.appliquer()
 		if t >= 360 and (t - 360) % 240 == 200 and k < essais.size():
 			DirAccess.make_dir_recursive_absolute("user://shots")
+			if OS.get_cmdline_user_args().has("--jantes"):
+				var cm: Camera3D = get_viewport().get_camera_3d()
+				for cote in [1.0, -1.0]:
+					cam_rig.set_process(false)
+					var roue: Vector3 = car.global_transform * Vector3(0.89 * cote, 0.3, 1.68)
+					cm.global_position = car.global_transform * Vector3(2.6 * cote, 0.7, 2.6)
+					cm.look_at(roue, Vector3.UP)
+					await RenderingServer.frame_post_draw
+					get_viewport().get_texture().get_image().save_png("user://shots/jantes_%d_%s.png" % [k, "g" if cote > 0 else "d"])
+				cam_rig.set_process(true)
 			get_viewport().get_texture().get_image().save_png("user://shots/garage_%d.png" % k)
 			print("  [garage] capture %d, %d km/h, argent %s" % [k, car.kmh(), garage.argent])
 		if k >= essais.size():

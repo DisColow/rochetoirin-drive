@@ -534,8 +534,20 @@ var _env: Environment
 var _sun: DirectionalLight3D
 var _sun_az := 0.0
 var _sky_day: Material
-var _sky_phys: ProceduralSkyMaterial
-var _sky_night: ProceduralSkyMaterial
+var _sky_peint: ShaderMaterial          # ciel peint avec nuages (#57, ciel_peint.gdshader), heures sans photo
+
+## Ciel peint : dégradé, soleil ou lune, plafond de nuages (couverture : seuil, plus haut = moins de nuages).
+func _ciel_peint(haut: Color, horizon: Color, sol: Color, energie: float, couverture: float, clair: Color, ombre: Color,
+		soleil := 1.0) -> ShaderMaterial:
+	if _sky_peint == null:
+		_sky_peint = ShaderMaterial.new()
+		_sky_peint.shader = preload("res://scripts/ciel_peint.gdshader")
+		_sky_peint.set_shader_parameter("nuages", load("res://assets/fx/nuages.png"))
+		_sky_peint.set_shader_parameter("vent", Vector2(randf(), randf()))
+	for k in [["haut", haut], ["horizon", horizon], ["sol", sol], ["energie", energie], ["couverture", couverture],
+			["clair", clair], ["ombre", ombre], ["taille_soleil", soleil]]:
+		_sky_peint.set_shader_parameter(k[0], k[1])
+	return _sky_peint
 
 ## Lumière selon l'heure : midi (ciel photo à cumulus), fin d'après-midi dorée, coucher de soleil orangé, nuit bleutée
 ## (phares allumés, fenêtres éclairées). Le soleil garde son azimut ; seuls hauteur, couleur et ciel changent.
@@ -543,11 +555,6 @@ func set_time(i: int) -> void:
 	time_of_day = clampi(i, 0, TIMES.size() - 1)
 	if _env == null:
 		return
-	if _sky_phys == null:
-		_sky_phys = ProceduralSkyMaterial.new()
-		_sky_phys.sun_angle_max = 8.0
-		_sky_phys.sun_curve = 0.08
-		_sky_phys.ground_bottom_color = Color(0.12, 0.13, 0.12)
 	# [hauteur du soleil (°), couleur, énergie, énergie du ciel, exposition, couleur du brouillard, densité, nuit]
 	var P: Array = [
 		[48.0, Color(1.0, 0.96, 0.9), 1.45, 1.0, 1.0, Color(0.75, 0.82, 0.92), 0.000014, 0.0],
@@ -562,25 +569,18 @@ func set_time(i: int) -> void:
 		_env.sky.sky_material = _sky_day
 		_env.fog_aerial_perspective = 0.85
 	elif time_of_day < 3:
-		_env.sky.sky_material = _sky_phys
-		# ciel peint : fin d'après-midi (bleu doux, horizon doré) ; coucher (bleu profond, horizon orangé)
-		_sky_phys.sky_top_color = Color(0.26, 0.44, 0.75) if time_of_day == 1 else Color(0.14, 0.2, 0.42)
-		_sky_phys.sky_horizon_color = Color(0.88, 0.80, 0.66) if time_of_day == 1 else Color(1.0, 0.56, 0.30)
-		_sky_phys.ground_horizon_color = _sky_phys.sky_horizon_color.darkened(0.3)
-		_sky_phys.sky_energy_multiplier = P[3]
+		# ciel peint : fin d'après-midi (bleu doux, horizon doré) ; coucher (bleu profond, horizon orangé), avec nuages
+		var hz := Color(0.88, 0.80, 0.66) if time_of_day == 1 else Color(1.0, 0.56, 0.30)
+		_env.sky.sky_material = _ciel_peint(Color(0.26, 0.44, 0.75) if time_of_day == 1 else Color(0.14, 0.2, 0.42), hz,
+			hz.darkened(0.6), P[3], 0.56 if time_of_day == 1 else 0.6,
+			Color(1.0, 0.95, 0.88) if time_of_day == 1 else Color(1.0, 0.68, 0.48),
+			Color(0.5, 0.52, 0.6) if time_of_day == 1 else Color(0.35, 0.28, 0.38))
 		_env.fog_aerial_perspective = 0.0
 		_env.fog_light_color = P[5]
 	else:
 		# nuit : ciel bleu nuit, clair de lune (le « soleil » devient la lune)
-		if _sky_night == null:
-			_sky_night = ProceduralSkyMaterial.new()
-			_sky_night.sky_top_color = Color(0.01, 0.015, 0.04)
-			_sky_night.sky_horizon_color = Color(0.05, 0.07, 0.13)
-			_sky_night.ground_bottom_color = Color(0.01, 0.01, 0.015)
-			_sky_night.ground_horizon_color = Color(0.04, 0.05, 0.08)
-			_sky_night.sun_angle_max = 2.0
-			_sky_night.sun_curve = 0.02
-		_env.sky.sky_material = _sky_night
+		_env.sky.sky_material = _ciel_peint(Color(0.01, 0.015, 0.04), Color(0.05, 0.07, 0.13), Color(0.01, 0.01, 0.015), 1.0,
+			0.6, Color(0.1, 0.11, 0.16), Color(0.025, 0.03, 0.045), 0.6)
 		_env.fog_aerial_perspective = 0.0
 		_env.fog_light_color = P[5]
 	_env.tonemap_exposure = P[4]
@@ -630,7 +630,6 @@ var weather := 0
 var _night := 0.0
 var _wet := 0.0
 var _wet_target := 0.0
-var _sky_grey: ProceduralSkyMaterial
 
 func set_weather(i: int) -> void:
 	weather = clampi(i, 0, WEATHERS.size() - 1)
@@ -646,20 +645,14 @@ func _apply_weather() -> void:
 	wind_strength = [0.55, 0.65, 0.9, 0.12][w]
 	_wet_target = [0.0, 0.0, 1.0, 0.3][w]
 	if w > 0:
-		if _sky_grey == null:
-			_sky_grey = ProceduralSkyMaterial.new()
-			_sky_grey.sun_angle_max = 30.0
-			_sky_grey.sun_curve = 0.5
 		var k: float = [1.0, 0.8, 0.45, 0.06][time_of_day]           # luminosité du ciel selon l'heure
 		var top := Color(0.56, 0.6, 0.65) if w == 1 else (Color(0.4, 0.43, 0.47) if w == 2 else Color(0.72, 0.74, 0.76))
 		var hor := Color(0.74, 0.76, 0.78) if w != 2 else Color(0.55, 0.57, 0.6)
 		if time_of_day == 2:
 			hor = hor.lerp(Color(0.85, 0.6, 0.45), 0.35)
-		_sky_grey.sky_top_color = top * k
-		_sky_grey.sky_horizon_color = hor * k
-		_sky_grey.ground_horizon_color = hor * k * 0.8
-		_sky_grey.ground_bottom_color = Color(0.2, 0.21, 0.2) * k
-		_env.sky.sky_material = _sky_grey
+		# temps couvert : ciel peint presque entièrement couvert de nuages gris (#57)
+		_env.sky.sky_material = _ciel_peint(top * k, hor * k, Color(0.2, 0.21, 0.2) * k, 1.0, [0.6, 0.3, 0.12, 0.2][w],
+			hor * k * 1.04, top * k * 0.72)
 		_sun.light_energy *= [1.0, 0.32, 0.2, 0.28][w]
 		_sun.shadow_opacity = [1.0, 0.45, 0.3, 0.35][w]
 		_env.fog_aerial_perspective = 0.0
