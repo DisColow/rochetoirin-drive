@@ -144,6 +144,10 @@ signal ouvrir_carte
 func _input(e: InputEvent) -> void:
 	if not active or ecran == null:
 		return
+	# un menu (activités, réglages, garage…) recouvre l'écran : le toucher est pour lui, pas pour le GPS (#70)
+	var hud = main.get_node_or_null("HUD") if main else null
+	if get_tree().paused or (hud and not hud.get("_conduite")) or (main and main.get("nav") and main.nav.menu_ouvert() != null):
+		return
 	var tap: bool = (e is InputEventScreenTouch and not e.pressed) or (e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed and not Input.is_emulating_mouse_from_touch())
 	if not tap:
 		return

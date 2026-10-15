@@ -54,10 +54,15 @@ for w in ways:
         k = min(max(k, 0), len(w["P"]) - 2)
         T = w["P"][k + 1] - w["P"][k]; T /= max(np.linalg.norm(T), 1e-9)
         Nr = np.array([-T[1], T[0]])
-        P = w["P"][k] + Nr * (w["w"] / 4 if not w["oneway"] else 0.0)     # voie de droite
-        if not zp.contains(Point(P)):
-            continue
-        pts.append((P[0], P[1], float(np.interp(s, w["s"], w["y"])) + 0.6, math.degrees(math.atan2(T[0], -T[1])) % 360))
+        y = float(np.interp(s, w["s"], w["y"])) + 0.6
+        cap = math.degrees(math.atan2(T[0], -T[1])) % 360
+        # voie de droite dans chaque sens de circulation (#74 : sur une route à double sens, la remise sur la route
+        # doit pouvoir garder le sens de la marche dans les deux sens)
+        sens = [(1.0, cap)] if w["oneway"] else [(1.0, cap), (-1.0, (cap + 180.0) % 360)]
+        for sg, c in sens:
+            P = w["P"][k] + sg * Nr * (w["w"] / 4 if not w["oneway"] else 0.0)
+            if zp.contains(Point(P)):
+                pts.append((P[0], P[1], y, c))
 np.array(pts, "<f4").tofile("../godot/world/teleport.bin")
 towns = {k: v for k, v in plan["towns"].items()}
 json.dump(dict(x0=mnx, z0=mnz, res=RES, w=W, h=H, towns=towns), open("../godot/world/map.json", "w"))

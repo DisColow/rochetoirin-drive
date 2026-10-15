@@ -1042,6 +1042,8 @@ func _taxi_pickup() -> void:
 				_arret_t = randf_range(35.0, 70.0)
 				_arret_annonce = str(paire[0]).replace("{lieu}", _arret_nom)
 	_fare_d = c.distance_to(_rp(_dest)) * 1.3
+	if _arret >= 0:                  # détour par l'arrêt compté dans le temps prévu (#75)
+		_fare_d = (c.distance_to(_rp(_arret)) + _rp(_arret).distance_to(_rp(_dest))) * 1.3
 	_expected = _fare_d / 11.0 + 20.0
 	_t = 0.0
 	_shocks = 0
@@ -1088,7 +1090,11 @@ func _taxi_drop() -> void:
 		else:
 			_rappel.courses = int(_rappel.courses) - 1
 	# conversation : jusqu'à +24 % de pourboire si le client a apprécié, jusqu'à -18 % s'il a été agacé
-	var tip: float = maxf(0.0, fare * ([0.0, 0.0, 0.05, 0.1, 0.15, 0.25][stars] + 0.06 * float(talk.sat)))
+	# temps (#75) : une part du pourboire, sans chrono affiché (pas de pression, #53) : +12 % dans les temps, rien
+	# à 1,8 fois le temps prévu, -5 % au-delà de 2,5 fois
+	var lent := _t / maxf(_expected, 1.0)
+	var part_temps := 0.12 if lent <= 1.0 else (lerpf(0.12, 0.0, (lent - 1.0) / 0.8) if lent <= 1.8 else lerpf(0.0, -0.05, clampf((lent - 1.8) / 0.7, 0.0, 1.0)))
+	var tip: float = maxf(0.0, fare * ([0.0, 0.0, 0.05, 0.1, 0.15, 0.25][stars] + 0.06 * float(talk.sat) + part_temps))
 	_rides += 1
 	_total += fare + tip
 	if main.garage:
@@ -1101,6 +1107,10 @@ func _taxi_drop() -> void:
 		conv = "\nLe client a aimé discuter avec vous."
 	elif float(talk.sat) <= -1.5:
 		conv = "\nLa conversation n'a pas plu au client."
+	if part_temps >= 0.1:
+		conv += "\nTrajet rapide : le client est content."
+	elif part_temps < 0.0:
+		conv += "\nLe trajet a paru long au client."
 	hud.toast("Course : %s + pourboire %s%s" % [_euros(fare), _euros(tip), conv], 5.0)
 	if _client and is_instance_valid(_client):
 		if "cible" in _client:

@@ -106,9 +106,12 @@ func _process_corps(dt: float) -> void:
 		next()
 	var inside := 1.0 if (cam_rig and cam_rig.mode == 1) else 0.0
 	_cockpit = move_toward(_cockpit, inside, dt * 3.0)
+	# journal parlé (#67 : voix trop faibles) : filtre moins sourd en vue extérieure et +9 dB (un podcast est
+	# enregistré bien moins fort qu'une chanson)
+	var parle := 1.0 if _en_journal else 0.0
 	if _lp:
-		_lp.cutoff_hz = lerpf(2600.0, 7000.0, _cockpit)
-	AudioServer.set_bus_volume_db(_bus, lerpf(-4.0, 2.0, _cockpit) - 9.0 * _duck
+		_lp.cutoff_hz = lerpf(lerpf(2600.0, 6000.0, parle), 7000.0, _cockpit)
+	AudioServer.set_bus_volume_db(_bus, lerpf(-4.0, 2.0, _cockpit) - 9.0 * _duck + 9.0 * parle
 		+ preload("res://scripts/audio.gd").volume_db("musique"))
 	_fm_crackle(dt)
 	if station >= 0 and stations[station].get("infos", false):
@@ -132,11 +135,11 @@ func _fm_crackle(dt: float) -> void:
 		_fm_len = _rng.randf_range(0.15, 1.1)
 		_fm.pitch_scale = _rng.randf_range(0.8, 1.3)
 		_fm.play(_rng.randf_range(0.0, maxf(_fm.stream.get_length() - 1.5, 0.0)))
-		if _rng.randf() < 0.5:
+		if _rng.randf() < 0.5 and not _en_journal:
 			_fade = 1.0
 	if _fm_len > 0.0:
 		_fm_len -= dt
-		_fm.volume_db = -22.0 + _rng.randf_range(-6.0, 3.0)
+		_fm.volume_db = -22.0 + _rng.randf_range(-6.0, 3.0) - (10.0 if _en_journal else 0.0)
 	else:
 		_fm.volume_db = move_toward(_fm.volume_db, -80.0, dt * 120.0)
 		if _fm.volume_db <= -79.0 and _fm.playing:
@@ -228,7 +231,7 @@ func _tune_infos() -> void:
 				hud.toast("♪ Rochetoirin Info\n%s" % title, 3.0)
 			return
 		var t: String = infos.flash()
-		var d: float = infos.lire_flash(t, clampf(0.8 + preload("res://scripts/audio.gd").volume_db("musique") / 30.0, 0.2, 1.0))
+		var d: float = infos.lire_flash(t, 1.0)          # voix du téléphone à plein volume (#67)
 		if d > 0.0:
 			_player.stop()
 			title = "Flash info"

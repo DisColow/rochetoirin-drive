@@ -165,7 +165,7 @@ func _shots(path: String) -> void:
 			for i in 4:
 				await get_tree().process_frame
 			get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % s.name)
-			hud.settings.queue_free(); hud.settings = null
+			hud._fermer_reglages()
 			print("capture ", s.name)
 			continue
 		if s.get("map", false):

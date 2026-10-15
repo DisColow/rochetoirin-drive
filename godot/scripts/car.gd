@@ -687,7 +687,14 @@ func reset_to_road() -> void:
 	var p := global_position
 	if not p.is_finite():
 		p = safe[-1].origin if safe.size() > 0 else Vector3.ZERO
+	# sens de la marche (#74) : celui où la voiture allait (vitesse), sinon l'avant de la caisse, sinon le dernier
+	# cap sûr ; marche arrière : l'avant de la caisse
 	var fwd := global_transform.basis.z
+	var vh := Vector3(linear_velocity.x, 0.0, linear_velocity.z)
+	if vh.length() > 3.0 and vh.is_finite() and not reversing:
+		fwd = vh
+	elif not (fwd.is_finite() and Vector2(fwd.x, fwd.z).length() > 0.2) and safe.size() > 0:
+		fwd = safe[-1].basis.z
 	var yaw_ok := fwd.is_finite() and Vector2(fwd.x, fwd.z).length() > 0.2
 	var best := -1
 	var bd := 1e18
@@ -698,10 +705,11 @@ func reset_to_road() -> void:
 		if d > bd:
 			continue
 		if yaw_ok:
-			# cap du point (0 = Nord = -Z, sens horaire) -> direction ; sens opposé pénalisé de 15 m
+			# cap du point (0 = Nord = -Z, sens horaire) -> direction ; sens opposé pénalisé de 60 m (#74 : toujours
+			# dans le sens de la marche, sauf si la route dans ce sens est bien plus loin : pas de raccourci)
 			var h := deg_to_rad(road_pts[i + 3])
-			if Vector2(sin(h), -cos(h)).dot(Vector2(fwd.x, fwd.z).normalized()) < 0.0:
-				d += 225.0
+			if Vector2(sin(h), -cos(h)).dot(Vector2(fwd.x, fwd.z).normalized()) < 0.3:
+				d += 3600.0
 		if d < bd:
 			bd = d; best = i
 	if best >= 0:

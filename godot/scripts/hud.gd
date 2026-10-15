@@ -153,7 +153,16 @@ func _open_settings() -> void:
 	var veg = get_parent().vegetation
 	_show_drive(false)
 	settings = PanelContainer.new()
-	settings.add_theme_stylebox_override("panel", UI.panel(44, 26))
+	# bande du haut réservée à la croix de fermeture (#69) : elle ne cache rien du contenu, qui défile dessous
+	var sbs := UI.panel(44, 26)
+	sbs.content_margin_top = 92
+	settings.add_theme_stylebox_override("panel", sbs)
+	_croix = Button.new()
+	_croix.text = "✕"
+	_croix.custom_minimum_size = Vector2(72, 72)
+	_croix.add_theme_font_size_override("font_size", 38)
+	_croix.focus_mode = Control.FOCUS_NONE
+	_croix.pressed.connect(_fermer_reglages)
 	# contenu défilant (glisser au doigt, molette) : le menu tient sur les petits écrans
 	var sc := ScrollContainer.new()
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -299,8 +308,7 @@ func _open_settings() -> void:
 	var fm := Button.new(); fm.text = "Formule magique…"; fm.custom_minimum_size = Vector2(0, 64)
 	fm.add_theme_font_size_override("font_size", 28)
 	fm.pressed.connect(func():
-		settings.queue_free(); settings = null
-		_show_drive(true)
+		_fermer_reglages()
 		if main_node.get("editeur"):
 			main_node.editeur.open_formula())
 	v.add_child(fm)
@@ -326,8 +334,7 @@ func _open_settings() -> void:
 	mp.pressed.connect(func():
 		if pm and not pm.en_releve():
 			pm.demarrer_releve()
-			settings.queue_free(); settings = null
-			_show_drive(true)
+			_fermer_reglages()
 			toast("Mesure lancée : roule normalement pendant 3 minutes.", 4.0))
 	v.add_child(mp)
 	# signaler un bug : ticket GitHub pré-rempli (version, appareil, position, journal) ouvert dans le navigateur
@@ -376,14 +383,22 @@ func _open_settings() -> void:
 	v.add_child(guide)
 	var close := Button.new(); close.text = "Fermer"; close.custom_minimum_size = Vector2(0, 76)
 	close.add_theme_font_size_override("font_size", 32)
-	close.pressed.connect(func():
-		settings.queue_free(); settings = null
-		_show_drive(true))
+	close.pressed.connect(_fermer_reglages)
 	v.add_child(close)
 	add_child(settings)
 	_fit_settings()
 
 ## Taille du menu des réglages : tout le contenu s'il tient, sinon 90 % de la hauteur de l'écran (le reste défile).
+var _croix: Button
+func _fermer_reglages() -> void:
+	if settings and is_instance_valid(settings):
+		settings.queue_free()
+	settings = null
+	if _croix and is_instance_valid(_croix):
+		_croix.queue_free()
+	_croix = null
+	_show_drive(true)
+
 func _fit_settings() -> void:
 	if not (settings and is_instance_valid(settings)):
 		return
@@ -395,6 +410,10 @@ func _fit_settings() -> void:
 	sc.custom_minimum_size = Vector2(need.x + 24.0, minf(need.y, vs.y * 0.9 - pad.y))
 	settings.reset_size()
 	settings.position = (vs - settings.size) / 2
+	if _croix and is_instance_valid(_croix):
+		if _croix.get_parent() == null:
+			add_child(_croix)
+		_croix.position = settings.position + Vector2(settings.size.x - 72 - 14, 12)
 
 ## Signalement de bug : ouvre un ticket GitHub pré-rempli dans le navigateur (il n'y a plus qu'à appuyer sur
 ## « Create »). Pas de jeton dans le jeu : un jeton d'écriture embarqué dans l'APK serait public.
