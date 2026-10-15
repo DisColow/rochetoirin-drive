@@ -196,6 +196,22 @@ func _draw_activity(f: Font) -> void:
 		if act.join_marks and prev != Vector2.INF:
 			overlay.draw_line(prev, sp, Color(1, 0.85, 0.2, 0.8), 4.0, true)
 		prev = sp
+	# départs des épreuves (#59) : drapeau à damier, cerclé de la couleur de la médaille gagnée
+	for e in act.reperes_epreuves():
+		var sp := world_to_screen(e.p)
+		if not Rect2(Vector2.ZERO, size).grow(40).has_point(sp):
+			continue
+		var anneau: Color = act.COUL_MEDAILLE.get(e.med, Color(0.15, 0.15, 0.17))
+		overlay.draw_circle(sp, 19, anneau)
+		overlay.draw_circle(sp, 15, Color.WHITE)
+		for i in 3:
+			for j in 3:
+				if (i + j) % 2 == 0:
+					overlay.draw_rect(Rect2(sp + Vector2(-9 + i * 6, -9 + j * 6), Vector2(6, 6)), Color.BLACK)
+		if zoom > 1.2:
+			var we: float = f.get_string_size(e.nom, HORIZONTAL_ALIGNMENT_LEFT, -1, 20).x
+			overlay.draw_string_outline(f, sp + Vector2(-we * 0.5, 38), e.nom, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, 6, Color.BLACK)
+			overlay.draw_string(f, sp + Vector2(-we * 0.5, 38), e.nom, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(1.0, 0.9, 0.6))
 	for m in act.marks:
 		var sp := world_to_screen(m.p)
 		overlay.draw_circle(sp, 17, Color.BLACK)

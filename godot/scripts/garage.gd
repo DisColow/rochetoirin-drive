@@ -38,6 +38,7 @@ const NEONS := [Color(0, 0, 0), Color(0.1, 0.4, 1.0), Color(0.6, 0.15, 1.0), Col
 var argent := DEPART
 var possede := {}                   # rubrique -> [indices achetés]
 var monte := {}                     # rubrique -> indice monté
+var medailles := {}                 # épreuves (#59) : identifiant -> "or" | "argent" | "bronze"
 var apercu := {}                    # rubrique -> choix essayé dans l'écran du garage (non acheté, non gardé)
 
 func _ready() -> void:
@@ -49,12 +50,14 @@ func charger() -> void:
 		argent = float(c.get_value("garage", "argent", DEPART))
 		possede = c.get_value("garage", "possede", {})
 		monte = c.get_value("garage", "monte", {})
+		medailles = c.get_value("garage", "medailles", {})
 
 func sauver() -> void:
 	var c := ConfigFile.new()
 	c.set_value("garage", "argent", argent)
 	c.set_value("garage", "possede", possede)
 	c.set_value("garage", "monte", monte)
+	c.set_value("garage", "medailles", medailles)
 	c.save(FICHIER)
 
 ## Choix affiché sur la voiture dans une rubrique : l'aperçu du garage, sinon la pièce montée (0 : d'origine).

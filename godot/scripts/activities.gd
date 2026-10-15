@@ -28,6 +28,13 @@ var mode := ""                    # "", "course", "chasse", "taxi"
 var marks: Array = []             # [{p: Vector2, col: Color, txt: String, gps: bool}]
 var circle := {}                  # {c: Vector2, r: float}
 var join_marks := false           # relier les repères (tracé de la course)
+var epreuves: Array = []          # épreuves chronométrées (#59, world/epreuves.json de build_epreuves.py)
+var _epreuve := -1                # épreuve en cours (-1 : course libre)
+var _offre: Control               # proposition de départ quand on s'arrête sur un départ d'épreuve
+var _offre_vue := -1              # épreuve déjà proposée (pas de nouvelle proposition avant de s'éloigner)
+const MEDAILLES := ["or", "argent", "bronze"]
+const PRIMES := {"or": 150.0, "argent": 90.0, "bronze": 50.0}
+const COUL_MEDAILLE := {"or": Color(1.0, 0.8, 0.15), "argent": Color(0.8, 0.82, 0.86), "bronze": Color(0.8, 0.5, 0.25)}
 
 var _menu: Control
 var _status: PanelContainer
@@ -84,6 +91,8 @@ func _ready() -> void:
 	pts = FileAccess.get_file_as_bytes("res://world/teleport.bin").to_float32_array()
 	if FileAccess.file_exists("res://world/places.json"):
 		places = JSON.parse_string(FileAccess.get_file_as_string("res://world/places.json"))
+	if FileAccess.file_exists("res://world/epreuves.json"):
+		epreuves = JSON.parse_string(FileAccess.get_file_as_string("res://world/epreuves.json"))
 	_status = PanelContainer.new()
 	_status.add_theme_stylebox_override("panel", preload("res://scripts/ui.gd").panel(30, 14))
 	_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -248,6 +257,7 @@ func _clear_world() -> void:
 	join_marks = false
 
 func _stop() -> void:
+	_epreuve = -1
 	if _compteur:
 		_compteur.visible = false
 		_compteur.arreter()
@@ -536,9 +546,17 @@ func _course_process(dt: float) -> void:
 			for i in range(1, _route.size()):
 				long += _rp(_route[i - 1]).distance_to(_rp(_route[i]))
 			var prime := maxf(10.0, roundf(long * 0.02)) + (15.0 if rec else 0.0)
+			var med := ""
+			if _epreuve >= 0:
+				var r := _epreuve_fin(_t)
+				med = r[0]; prime = r[1]
 			if main.garage:
 				main.garage.gagner(prime)
-			hud.toast("Arrivée ! %s%s\nPrime : %s" % [_fmt(_t), "  — record !" if rec else "  (record %s)" % _fmt(_best), _euros(prime)], 6.0)
+			if _epreuve >= 0:
+				hud.toast("Arrivée ! %s — %s\nPrime : %s" % [_fmt(_t), {"or": "médaille d'or", "argent": "médaille d'argent", "bronze": "médaille de bronze"}.get(med, "pas de médaille"), _euros(prime)], 7.0)
+			else:
+				hud.toast("Arrivée ! %s%s\nPrime : %s" % [_fmt(_t), "  — record !" if rec else "  (record %s)" % _fmt(_best), _euros(prime)], 6.0)
+			_epreuve = -1
 			if main.net:
 				main.net.arrivee_course(_t)
 			_set_status("Arrivée en %s\n★ pour recommencer ou créer un autre tracé" % _fmt(_t))
@@ -550,6 +568,76 @@ func _course_process(dt: float) -> void:
 		hud.toast("Étape %d : %s" % [_next, _fmt(_t)], 2.0)
 		_next += 1
 		_course_beacons()
+
+# ================================================================ épreuves (#59)
+## Repères des départs d'épreuves pour la carte et le GPS (hors activité) : [{p, nom, med}].
+func reperes_epreuves() -> Array:
+	if mode != "" or map.pick_mode:
+		return []
+	var out := []
+	for e in epreuves:
+		out.append({p = Vector2(e.a[0], e.a[1]), nom = e.nom, med = _medaille(int(e.id))})
+	return out
+
+func _medaille(id: int) -> String:
+	return str(main.garage.medailles.get(str(id), "")) if main.garage else ""
+
+func _epreuve_proche() -> void:
+	var c := _car2()
+	var ici := -1
+	for e in epreuves:
+		if c.distance_to(Vector2(e.a[0], e.a[1])) < 18.0:
+			ici = int(e.id)
+	if ici < 0:
+		_offre_vue = -1
+		if _offre and is_instance_valid(_offre):
+			_offre.queue_free()
+		return
+	if ici == _offre_vue or car.kmh() > 25.0 or _menu != null:
+		return
+	_offre_vue = ici
+	var e: Dictionary = epreuves[ici]
+	_offre = PanelContainer.new()
+	_offre.add_theme_stylebox_override("panel", preload("res://scripts/ui.gd").panel(28, 16))
+	_offre.add_to_group("ui_zone")
+	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 8); _offre.add_child(v)
+	var med := _medaille(ici)
+	_text(v, "Épreuve : %s (%.1f km)" % [e.nom, float(e.km)], 26, true)
+	_text(v, "Or %s · Argent %s · Bronze %s%s" % [_fmt(float(e["or"])), _fmt(float(e.argent)), _fmt(float(e.bronze)),
+		("   ·   votre médaille : " + med) if med != "" else ""], 22, true)
+	var h := HBoxContainer.new(); h.add_theme_constant_override("separation", 12); v.add_child(h)
+	_btn(h, "Départ !", func(): _offre.queue_free(); _epreuve_depart(ici), 260)
+	_btn(h, "Plus tard", func(): _offre.queue_free(), 220)
+	add_child(_offre)
+	_offre.reset_size()
+	_offre.position = Vector2((_vs().x - _offre.size.x) / 2, _vs().y - _offre.size.y - 260)
+
+func _epreuve_depart(id: int) -> void:
+	var e: Dictionary = epreuves[id]
+	_route = [_nearest(Vector2(e.a[0], e.a[1]))]
+	for q in e.etapes:
+		_route.append(_nearest(Vector2(q[0], q[1])))
+	_route.append(_nearest(Vector2(e.b[0], e.b[1])))
+	_course_start()
+	_epreuve = id
+	hud.toast("%s\nOr %s · Argent %s · Bronze %s" % [e.nom, _fmt(float(e["or"])), _fmt(float(e.argent)), _fmt(float(e.bronze))], 6.0)
+
+## Fin d'une épreuve : médaille d'après le temps ; la prime ne paie que le progrès (de bronze à or : la différence).
+func _epreuve_fin(t: float) -> Array:
+	var e: Dictionary = epreuves[_epreuve]
+	var med := ""
+	for m in MEDAILLES:
+		if t <= float(e[m]):
+			med = m
+			break
+	var avant := _medaille(_epreuve)
+	var prime := 10.0
+	if med != "" and (avant == "" or MEDAILLES.find(med) < MEDAILLES.find(avant)):
+		prime = PRIMES[med] - (PRIMES[avant] if avant != "" else 0.0)
+		if main.garage:
+			main.garage.medailles[str(_epreuve)] = med
+			main.garage.sauver()
+	return [med, prime]
 
 # ================================================================ chasse au lieu
 func _hunt_menu() -> void:
@@ -864,6 +952,8 @@ func _process_corps(dt: float) -> void:
 		_status_t -= dt
 		if _status_t <= 0.0 and mode == "":
 			_set_status("")
+	if mode == "" and not map.pick_mode:
+		_epreuve_proche()
 	match mode:
 		"course":
 			_course_process(dt)

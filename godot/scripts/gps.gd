@@ -92,6 +92,13 @@ func _draw_activity(anchor: Vector2) -> void:
 		overlay.draw_polyline(sc, Color(0, 0, 0, 0.8), maxf(9.0 * k, 2.0), not mini)
 		overlay.draw_polyline(sc, Color(0.25, 0.65, 1.0), maxf(6.0 * k, 1.0), not mini)
 	var inner := Rect2(Vector2(16, 16) * k, size - Vector2(32, 32) * k)
+	for e in act.reperes_epreuves():                    # départs des épreuves (#59), seulement dans le cadre
+		var ep: Vector2 = _xf * e.p
+		if inner.has_point(ep):
+			overlay.draw_circle(ep, 10 * k + 0.5, act.COUL_MEDAILLE.get(e.med, Color(0.15, 0.15, 0.17)))
+			overlay.draw_circle(ep, 7 * k + 0.5, Color.WHITE)
+			overlay.draw_rect(Rect2(ep - Vector2(4, 4) * k, Vector2(4, 4) * k), Color.BLACK)
+			overlay.draw_rect(Rect2(ep, Vector2(4, 4) * k), Color.BLACK)
 	for m in act.marks:
 		if not m.get("gps", true):
 			continue
