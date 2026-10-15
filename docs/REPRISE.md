@@ -13,6 +13,27 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## Livré : v6.48 (15/10 après-midi)
+- Zone #50 : commune de L'Isle-d'Abeau entière + route Montcarra > L'Isle-d'Abeau (par 45,6356 N 5,2426 E) ;
+  228 régions, 189 km². BB des fetch_*.py : 45,51-45,67 / 5,165-5,53 (bande ouest téléchargée seule puis fusionnée).
+  Après régénération : `.import` publiés remis depuis `donnees` (`git ls-tree -r` DEPUIS LA RACINE du dépôt, puis
+  `git cat-file blob` en parallèle), import par paquets, `import_terrain.gd`, `bake_relief`, import.
+- Épreuves (#59) : `build_epreuves.py` -> `world/epreuves.json` (14 épreuves entre lieux publics, médailles d'après le
+  temps de l'itinéraire le plus rapide) ; `activities.gd` (`reperes_epreuves`, `_epreuve_proche`, `_epreuve_fin`),
+  médailles dans `garage.medailles` ; drapeaux sur la carte et le GPS. Argent sous le compteur (`hud.argent_panel`).
+- Radio #56 : station « Rochetoirin Info » ajoutée par `radio.gd`, contenus de `radio_infos.gd` (flash 20 Minutes ou
+  RTL en MP3 — Radio France est en AAC, illisible par Godot —, titres franceinfo + Dauphiné lus par la voix du téléphone).
+- Nuages #57 : `ciel_peint.gdshader` (heures 1-3 et temps couvert ; midi = HDRI), texture `assets/fx/nuages.png`
+  (`build_nuages_tex.py`) ; pas de TIME (le ciel se recalcule entièrement quand il change).
+- Interface : rangée du haut repliable (`hud.replier`, repliée en activité), plus de bouton carte (#58 ; carte
+  bornée `map._borner`), icône activités = drapeau + clé (`build_ui.py`), GPS cockpit -> carte (`cockpit.ouvrir_carte`,
+  mini-carte cachée en cockpit, #60), compteur taxi 150 px de haut à (24, 136) (#52).
+- #54 : 6 vinyles de plus (10 bandes dans `vinyles.png`) ; jantes : le pneu à crampons fait partie de la CAISSE du
+  Raptor, la nouvelle roue est réduite (`DANS_LE_PNEU` 0,74) ; J3 retournée (`JANTES_RETOURNEES`).
+- #53 (partie) : réponses du taxi au 2e doigt (`taxi_talk._input`). Reste : courses avec attente / retour plus tard,
+  réponses qui varient. #55 (personnages MakeHuman qui marchent) : à faire.
+- Essais : `--garage-test [--jantes]`, captures `{"haut": degrés}` (caméra relevée, ciel).
+
 ## Livré : v6.47 (15/10 midi), APK 1 486 Mo — garage, ciel, sauvegarde ; en cours : v6.48 = zone L'Isle-d'Abeau (#50)
 - Garage (#43, tout d'un coup, payé avec l'argent du jeu) : `garage.gd` (catalogue `CATALOGUE`, argent et pièces dans
   `user://garage.cfg`, `apercu` = essai non acheté), `tuning.gd` (effets : variables `puissance`, `force_max`, `vmax`,
