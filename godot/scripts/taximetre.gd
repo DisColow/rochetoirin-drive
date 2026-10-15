@@ -22,7 +22,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# largeur mesurée sur les chiffres (#52 : le « € » chevauchait le montant)
 	_l_chiffres = _lcd.get_string_size("888.88", HORIZONTAL_ALIGNMENT_LEFT, -1, 58).x
-	custom_minimum_size = Vector2(maxf(330.0, 22.0 + _l_chiffres + 56.0), 128)
+	custom_minimum_size = Vector2(maxf(330.0, 22.0 + _l_chiffres + 56.0), 150)
 	size = custom_minimum_size
 
 func demarrer() -> void:
@@ -58,12 +58,12 @@ func _draw() -> void:
 	var eteint := Color(0.25, 0.04, 0.03)
 	# afficheur principal : fond des segments éteints puis montant
 	var txt := ("%6.2f" % minf(montant, 999.99)) if en_course else "  0.00"
-	draw_string(_lcd, Vector2(22, 72), "888.88", HORIZONTAL_ALIGNMENT_LEFT, -1, 58, eteint)
-	draw_string(_lcd, Vector2(22, 72), txt.replace(" ", "!"), HORIZONTAL_ALIGNMENT_LEFT, -1, 58, rouge)
-	draw_string(f, Vector2(22.0 + _l_chiffres + 10.0, 70), "€", HORIZONTAL_ALIGNMENT_LEFT, -1, 40, rouge)
+	draw_string(_lcd, Vector2(22, 96), "888.88", HORIZONTAL_ALIGNMENT_LEFT, -1, 58, eteint)
+	draw_string(_lcd, Vector2(22, 96), txt.replace(" ", "!"), HORIZONTAL_ALIGNMENT_LEFT, -1, 58, rouge)
+	draw_string(f, Vector2(22.0 + _l_chiffres + 10.0, 94), "€", HORIZONTAL_ALIGNMENT_LEFT, -1, 40, rouge)
 	draw_string(f, Vector2(14, 22), "TAXI  ·  TARIF 1", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.75, 0.75, 0.78))
 	if en_course:
 		var att := int(attente)
-		draw_string(f, Vector2(14, 112), "%.1f km   attente %d:%02d" % [distance / 1000.0, att / 60, att % 60], HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1.0, 0.55, 0.2))
+		draw_string(f, Vector2(14, 136), "%.1f km   attente %d:%02d" % [distance / 1000.0, att / 60, att % 60], HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1.0, 0.55, 0.2))
 	elif fmod(_clign, 1.2) < 0.8:
-		draw_string(f, Vector2(14, 112), "LIBRE", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color(0.25, 0.95, 0.35))
+		draw_string(f, Vector2(14, 136), "LIBRE", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color(0.25, 0.95, 0.35))

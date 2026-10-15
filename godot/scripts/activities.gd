@@ -759,7 +759,7 @@ func _taxi_start() -> void:
 	if _compteur == null:
 		_compteur = preload("res://scripts/taximetre.gd").new()
 		hud.add_child(_compteur)
-	_compteur.position = Vector2(24, 112)
+	_compteur.position = Vector2(24, 136)            # sous le bouton ‹ / › de la rangée du haut (#52)
 	_compteur.visible = true
 	_compteur.arreter()
 	_taxi_new_client()
