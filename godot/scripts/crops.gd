@@ -30,7 +30,7 @@ var pending := 0         # cases encore à construire (essais : attendre que tou
 # que le relief (81 points par case) puis pose les maillages déjà calculés
 var _tache := -1          # tâche WorkerThreadPool en cours (-1 : aucune)
 var _tache_k := Vector2i.ZERO
-var _res: Array = []      # résultat de la tâche : [buffer des plants, nombre, [[sommets du sol, custom]]]
+var _res := {}            # résultat de la tâche, rempli par le fil : {r: [buffer des plants, nombre, [[sommets du sol, custom]]]}
 var _lod_t := 0.0
 
 func _ready() -> void:
@@ -140,8 +140,8 @@ func _process_corps(dt: float) -> void:
 		WorkerThreadPool.wait_for_task_completion(_tache)
 		_tache = -1
 		if keep.has(_tache_k) and not cells.has(_tache_k):
-			_poser(_tache_k, _res)
-		_res = []
+			_poser(_tache_k, _res.get("r", []))
+		_res = {}
 	if _tache < 0 and not todo.is_empty():
 		_lancer(todo[0][1])
 	# densité selon la distance (instances mélangées à la construction : en afficher une partie = éclaircir
@@ -186,10 +186,12 @@ func _lancer(k: Vector2i) -> void:
 			var y: float = Relief.hauteur(Vector3(x0 + gx * 4.0, 0, z0 + gz * 4.0))
 			hg.append(NAN if is_nan(y) else y)
 	_tache_k = k
-	_tache = WorkerThreadPool.add_task(_calcul.bind(k, fs, hg), false, "cultures")
+	_res = {}
+	_tache = WorkerThreadPool.add_task(_calcul.bind(k, fs, hg, _res), false, "cultures")
 
-## Fil de calcul : plants (mélangés pour le niveau de détail) et sol de terre de la case ; aucun accès à la scène.
-func _calcul(k: Vector2i, fs: Array, hg: PackedFloat32Array) -> void:
+## Fil de calcul : plants (mélangés pour le niveau de détail) et sol de terre de la case. Fonction statique : aucun
+## accès au nœud ni à la scène depuis le fil ; le résultat va dans le dictionnaire « sortie » (lu après la fin).
+static func _calcul(k: Vector2i, fs: Array, hg: PackedFloat32Array, sortie: Dictionary) -> void:
 	var x0 := k.x * CELL; var z0 := k.y * CELL
 	var cellpoly := PackedVector2Array([Vector2(x0, z0), Vector2(x0 + CELL, z0), Vector2(x0 + CELL, z0 + CELL), Vector2(x0, z0 + CELL)])
 	var rng := RandomNumberGenerator.new()
@@ -211,7 +213,7 @@ func _calcul(k: Vector2i, fs: Array, hg: PackedFloat32Array) -> void:
 				var tmp := buf[i * 16 + q]
 				buf[i * 16 + q] = buf[j * 16 + q]
 				buf[j * 16 + q] = tmp
-	_res = [buf, n, sols]
+	sortie["r"] = [buf, n, sols]
 
 ## Fil principal : maillages de la case (plants : MultiMesh ; sol : un maillage par parcelle).
 func _poser(k: Vector2i, res: Array) -> void:
@@ -262,7 +264,7 @@ func _poser(k: Vector2i, res: Array) -> void:
 	add_child(root)
 	cells[k] = root
 
-func _h(hg: PackedFloat32Array, x0: float, z0: float, p: Vector2) -> float:
+static func _h(hg: PackedFloat32Array, x0: float, z0: float, p: Vector2) -> float:
 	var u := clampf((p.x - x0) / 4.0, 0.0, 7.999); var v := clampf((p.y - z0) / 4.0, 0.0, 7.999)
 	var i := int(u); var j := int(v); var fu := u - i; var fv := v - j
 	var a := hg[j * 9 + i]; var b := hg[j * 9 + i + 1]; var c := hg[j * 9 + 9 + i]; var d := hg[j * 9 + 9 + i + 1]
@@ -270,7 +272,7 @@ func _h(hg: PackedFloat32Array, x0: float, z0: float, p: Vector2) -> float:
 
 ## Plants d'une parcelle dans une case : rangs parallèles à d (grille commune à tout le champ), un pied tous les
 ## STEP[t] m, un peu décalés ; données d'instance : culture, variante, teinte, hauteur de la case.
-func _plants(f: Array, t: int, cellpoly: PackedVector2Array, hg: PackedFloat32Array, x0: float, z0: float, rg: RandomNumberGenerator) -> PackedFloat32Array:
+static func _plants(f: Array, t: int, cellpoly: PackedVector2Array, hg: PackedFloat32Array, x0: float, z0: float, rg: RandomNumberGenerator) -> PackedFloat32Array:
 	var buf := PackedFloat32Array()
 	var d: Vector2 = f[1]
 	var nrm := Vector2(-d.y, d.x)
@@ -305,7 +307,7 @@ func _plants(f: Array, t: int, cellpoly: PackedVector2Array, hg: PackedFloat32Ar
 
 ## Sol de terre d'une parcelle dans une case : découpé au contour, posé sur le relief par carrés de 4 m (+3 cm ; hauteurs
 ## interpolées dans la grille de la case, sans relire le relief). Rend les sommets (triangles vus du dessus).
-func _sol(f: Array, cellpoly: PackedVector2Array, hg: PackedFloat32Array, x0: float, z0: float) -> PackedVector3Array:
+static func _sol(f: Array, cellpoly: PackedVector2Array, hg: PackedFloat32Array, x0: float, z0: float) -> PackedVector3Array:
 	var out := PackedVector3Array()
 	var Q := 4.0
 	for poly in Geometry2D.intersect_polygons(f[2], cellpoly):
