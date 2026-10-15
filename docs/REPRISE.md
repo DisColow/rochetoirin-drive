@@ -13,7 +13,7 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
-## En cours : v6.49 (15/10 soir) — #53 (suite) et #55
+## Livré : v6.49 (15/10 soir), APK 1 564 Mo — #53 (suite) et #55
 - #53 : `activities.gd` : sortes de course `normale` / `arret` (on attend le client à un lieu en chemin, compteur au
   tarif d'attente, `ARRETS`) / `retour` (on revient le chercher après la course suivante, même client et même
   modèle, il raconte : `RETOURS`, `_rappel`) ; plus de retard dans la note (`_stars` = chocs) ; réponses génériques
