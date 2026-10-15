@@ -18,6 +18,7 @@ done
 if [ "$1" = "--complet" ]; then
   essai() {   # nom, arguments du jeu
     local n=$1; shift
+    pkill -9 -x speech-dispatch 2>/dev/null   # speech-dispatcher planté : il bloque Godot au démarrage (étape « Interface »)
     NIVEAU=1 timeout 1500 xvfb-run -a -s "-screen 0 960x540x24" godot --path . --resolution 960x540 -- "$@" > "$J/$n.log" 2>&1
     local c=$?
     local e
