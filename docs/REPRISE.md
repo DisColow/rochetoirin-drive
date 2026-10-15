@@ -13,7 +13,11 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
-## v6.46 (en cours de livraison)
+## Livré : v6.46 (15/10 matin), APK 1 477 Mo
+- Issues à tester : #27, #31-#42, #44, #45 ; en attente de l'utilisateur : #43 (tuning), #46 (planche du ciel) ; #47 :
+  plantage à la fermeture sur PC (essai « champ »), cause non trouvée (pas le code v6.46 : scripts v6.45 aussi).
+- Essais en jeu : tuer `speech-dispatcher` planté (`pkill -9 -x speech-dispatch`, jamais `pkill -f`), sinon Godot
+  se bloque à l'étape « Interface ».
 - Zone sans trous (`routes_plan.py` : `Polygon(Z.exterior)`) : 215 régions, ~178 km² (issue #33 : routes sans relief).
 - Ponts OSM de moins de 10 m = chaussée ordinaire (`build_roads.py`, issues #31/#32 : tablier en béton et parapets
   au milieu des carrefours). Clôtures : rien dans un disque autour de chaque carrefour (`build_fences.py`).
