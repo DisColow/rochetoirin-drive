@@ -1,6 +1,7 @@
-"""Vinyles du garage (issue #43) -> ../godot/assets/garage/vinyles.png : 4 bandes de 1024 × 256 (RGBA), vues de côté
-de la voiture (u : arrière -> avant, v : haut -> bas), lues par scripts/carrosserie.gdshader. Dessin à 4 × puis réduit
-(bords lissés, coupés au seuil dans le jeu). Bandes : 0 flammes, 1 éclairs, 2 damier, 3 camouflage."""
+"""Vinyles du garage (issues #43, #54) -> ../godot/assets/garage/vinyles.png : 10 bandes de 1024 × 256 (RGBA), vues de
+côté de la voiture (u : arrière -> avant, v : haut -> bas), lues par scripts/carrosserie.gdshader (BANDES). Dessin à
+4 × puis réduit (bords lissés, coupés au seuil dans le jeu). Bandes : 0 flammes, 1 éclairs, 2 damier, 3 camouflage,
+4 tribal, 5 étoiles, 6 éclaboussures, 7 rayures obliques, 8 dents de requin, 9 filets rétro."""
 import math, os, random
 from PIL import Image, ImageDraw, ImageFilter
 
@@ -76,8 +77,84 @@ def camouflage():
     return im
 
 
-atlas = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0))
-for k, f in enumerate([flammes, eclairs, damier, camouflage]):
+def tribal():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    # pointes courbes qui partent de l'avant, noires cernées de blanc
+    for col, ep in [((240, 240, 240, 255), 1.0), ((15, 15, 18, 255), 0.7)]:
+        for i, (y0, l, sens) in enumerate([(0.35, 0.55, -1), (0.55, 0.75, 1), (0.72, 0.45, -1)]):
+            haut, bas = [], []
+            n = 30
+            for k in range(n + 1):
+                t = k / n
+                x = W * (0.98 - t * l)
+                y = H * (y0 + sens * 0.18 * math.sin(t * math.pi * 0.9) * t)
+                e = H * 0.13 * ep * (1 - t) ** 1.1
+                haut.append((x, y - e)); bas.append((x, y + e))
+            d.polygon(haut + bas[::-1], fill=col)
+    return im
+
+
+def etoiles():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    for _ in range(26):
+        x, y = random.random() * W, H * (0.3 + 0.5 * random.random())
+        r = H * (0.05 + 0.08 * random.random()) * (0.5 + x / W)
+        pts = [(x + (r if k % 2 == 0 else r * 0.42) * math.sin(k * math.pi / 5), y - (r if k % 2 == 0 else r * 0.42) * math.cos(k * math.pi / 5)) for k in range(10)]
+        d.polygon(pts, fill=(250, 250, 250, 255))
+    return im
+
+
+def eclaboussures():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    for col in [(240, 40, 120, 255), (40, 200, 240, 255), (250, 220, 40, 255)]:
+        cx, cy = W * (0.25 + 0.5 * random.random()), H * (0.45 + 0.2 * random.random())
+        for _ in range(40):
+            a = random.random() * math.tau; r = H * 0.35 * random.random() ** 0.6
+            x, y = cx + math.cos(a) * r * 2.2, cy + math.sin(a) * r
+            e = H * (0.015 + 0.06 * random.random()) * (1 - r / (H * 0.4))
+            d.ellipse([x - e * 1.5, y - e, x + e * 1.5, y + e], fill=col)
+        d.ellipse([cx - H * 0.2, cy - H * 0.12, cx + H * 0.2, cy + H * 0.12], fill=col)
+    return im
+
+
+def rayures():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    for i in range(5):
+        x = W * (0.55 + 0.07 * i)
+        e = W * 0.022
+        d.polygon([(x, H * 0.25), (x + e, H * 0.25), (x - H * 0.45 + e, H * 0.85), (x - H * 0.45, H * 0.85)], fill=(245, 245, 245, 255))
+    return im
+
+
+def dents():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    x0, x1, y0, y1 = W * 0.84, W * 0.995, H * 0.42, H * 0.78
+    d.rectangle([x0, y0, x1, y1], fill=(15, 15, 18, 255))
+    for k in range(6):                                # dents blanches en haut et en bas de la gueule
+        a = y0 + (y1 - y0) * (k / 6)
+        d.polygon([(x0, a), (x0, a + (y1 - y0) / 6), (x0 + W * 0.05, a + (y1 - y0) / 12)], fill=(245, 245, 245, 255))
+    d.ellipse([W * 0.80, H * 0.36, W * 0.83, H * 0.42], fill=(15, 15, 18, 255))      # œil
+    d.ellipse([W * 0.81, H * 0.375, W * 0.82, H * 0.395], fill=(245, 245, 245, 255))
+    return im
+
+
+def retro():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    for k, col in enumerate([(240, 120, 20, 255), (240, 200, 40, 255), (200, 40, 30, 255)]):
+        y = H * (0.5 + 0.055 * k)
+        d.rectangle([0, y, W * (0.9 - 0.04 * k), y + H * 0.035], fill=col)
+    return im
+
+
+BANDES = [flammes, eclairs, damier, camouflage, tribal, etoiles, eclaboussures, rayures, dents, retro]
+atlas = Image.new("RGBA", (1024, 256 * len(BANDES)), (0, 0, 0, 0))
+for k, f in enumerate(BANDES):
     b = f().filter(ImageFilter.GaussianBlur(K * 0.6)).resize((1024, 256), Image.LANCZOS)
     atlas.paste(b, (0, 256 * k))
 os.makedirs(os.path.dirname(OUT), exist_ok=True)

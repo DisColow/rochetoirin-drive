@@ -1,7 +1,8 @@
 // Peinture de la voiture du joueur (garage, issue #43 ; tuning.gd) : couleur, finition (vernie, nacrée, mate, chromée)
 // et vinyles posés dans le repère de la voiture (x à gauche, y en haut, z vers l'avant) :
-//   1 bandes de course (dessus, avant, arrière), 2 bande latérale, 3-6 motifs de vinyles.png vus de côté
-//   (3 flammes, 4 éclairs, 5 damier, 6 camouflage, ce dernier aussi sur le dessus).
+//   1 bandes de course (dessus, avant, arrière), 2 bande latérale, 3-12 motifs de vinyles.png vus de côté
+//   (3 flammes, 4 éclairs, 5 damier, 6 camouflage, aussi sur le dessus, 7 tribal, 8 étoiles, 9 éclaboussures,
+//   10 rayures obliques, 11 dents de requin, 12 filets rétro : build_vinyles.py, BANDES).
 // Vinyles coupés au seuil : pas de transparence mélangée (docs/kb/performances.md).
 shader_type spatial;
 
@@ -12,6 +13,7 @@ uniform float vernis = 0.8;
 uniform float vernis_rug = 0.1;
 uniform float nacre = 0.0;          // reflet coloré en bord de pièce
 uniform int vinyle = 0;
+const float BANDES = 10.0;         // bandes de vinyles.png
 uniform sampler2D vin_tex : source_color, filter_linear_mipmap;
 uniform vec3 vin_col : source_color = vec3(0.95);
 uniform mat4 vers_voiture;          // repère du maillage -> repère de la voiture
@@ -45,13 +47,13 @@ void fragment() {
 		vin = vec4(vin_col, bande(lp.y, y0, y0 + 0.07, 0.004) * step(0.4, abs(ln.x)) * step(u, 0.97) * step(0.03, u));
 	} else if (vinyle >= 3) {
 		float rang = float(vinyle - 3);
-		vec2 uv = vec2(u, (v + rang) / 4.0);
+		vec2 uv = vec2(u, (v + rang) / BANDES);
 		float cote = step(0.35, abs(ln.x));
 		if (vinyle == 6 && cote < 0.5) {
-			uv = vec2(u, (clamp(lp.x * 0.25 + 0.5, 0.0, 1.0) + rang) / 4.0);   // camouflage : aussi le dessus
+			uv = vec2(u, (clamp(lp.x * 0.25 + 0.5, 0.0, 1.0) + rang) / BANDES);   // camouflage : aussi le dessus
 			cote = 1.0;
 		}
-		vin = texture(vin_tex, clamp(uv, vec2(0.002, rang / 4.0 + 0.002), vec2(0.998, (rang + 1.0) / 4.0 - 0.002)));
+		vin = texture(vin_tex, clamp(uv, vec2(0.002, rang / BANDES + 0.001), vec2(0.998, (rang + 1.0) / BANDES - 0.001)));
 		vin.a *= cote;
 	}
 	if (vin.a > 0.5) {

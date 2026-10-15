@@ -77,7 +77,8 @@ func open() -> void:
 
 func _recenter() -> void:
 	center = Vector2(car.global_position.x, car.global_position.z)
-	zoom = 0.6
+	zoom = maxf(0.6, _zoom_min())
+	_borner()
 	queue_redraw()
 
 func _close() -> void:
@@ -96,10 +97,22 @@ func screen_to_world(s: Vector2) -> Vector2:
 
 func _zoom_at(f: float, at: Vector2) -> void:
 	var w := screen_to_world(at)
-	var zmin := size.x * 0.9 / float(meta.w)            # toute la carte tient à l'écran
-	zoom = clampf(zoom * f, zmin, 8.0)
+	zoom = clampf(zoom * f, _zoom_min(), 8.0)
 	center = w - (at - size / 2) * _mpp()
+	_borner()
 	queue_redraw()
+
+## Zoom le plus large : la carte remplit encore tout l'écran (#58 : pas de fond noir autour).
+func _zoom_min() -> float:
+	return maxf(size.x / float(meta.w), size.y / float(meta.h))
+
+## Vue gardée dans l'emprise de la carte (#58 : on ne regarde pas en dehors).
+func _borner() -> void:
+	var demi := size / 2 * _mpp()
+	var x0 := float(meta.x0); var z0 := float(meta.z0)
+	var x1 := x0 + float(meta.w) * float(meta.res); var z1 := z0 + float(meta.h) * float(meta.res)
+	center.x = clampf(center.x, x0 + demi.x, maxf(x0 + demi.x, x1 - demi.x))
+	center.y = clampf(center.y, z0 + demi.y, maxf(z0 + demi.y, z1 - demi.y))
 
 func _draw() -> void:
 	# fond, routes et bâtiments : calques (maillages) ; ici seulement la mise à jour de leur transformation
@@ -142,6 +155,7 @@ func _gui_input(e: InputEvent) -> void:
 		touches[e.index] = e.position
 		if touches.size() == 1:
 			center -= e.relative * _mpp()
+			_borner()
 			moved += e.relative.length()
 		elif touches.size() == 2:
 			var v := touches.values()

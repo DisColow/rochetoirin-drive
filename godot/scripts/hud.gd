@@ -37,6 +37,10 @@ func _ready() -> void:
 	speed_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	speed_panel.draw.connect(_draw_speed)
 	add_child(speed_panel)
+	argent_panel = Control.new()                       # argent du garage, toujours visible (#59)
+	argent_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	argent_panel.draw.connect(_draw_argent)
+	add_child(argent_panel)
 	get_viewport().size_changed.connect(_layout)
 	_add_button("gauche", "◀", 0)
 	_add_button("droite", "▶", 1)
@@ -44,10 +48,11 @@ func _ready() -> void:
 	_add_button("accelerer", "GAZ", 3)
 	_add_button("camera", "CAM", 4)
 	_add_button("replacer", "↺", 5)
-	_add_button("carte", "CARTE", 6)
-	_add_button("reglages", "⚙", 7)
-	_add_button("activites", "★", 8)
-	_add_button("radio", "♪", 9)
+	# plus de bouton « carte » (#58) : toucher la mini-carte l'ouvre (touche M au clavier)
+	_add_button("reglages", "⚙", 6)
+	_add_button("activites", "★", 7)
+	_add_button("radio", "♪", 8)
+	_faire_pli()
 	map = preload("res://scripts/map.gd").new()
 	map.car = car
 	map.visible = false
@@ -57,6 +62,27 @@ func _ready() -> void:
 	_layout()
 
 var settings: Control
+
+## Rangée de boutons du haut repliable (#52) : bouton ‹ / › à gauche ; repliée, il ne reste que lui.
+var replie := false
+var _pli: Button
+var _conduite := true
+var _en_activite := false
+func _faire_pli() -> void:
+	_pli = Button.new()
+	_pli.add_to_group("ui_zone")
+	_pli.custom_minimum_size = Vector2(64, 92)
+	_pli.add_theme_font_size_override("font_size", 40)
+	_pli.focus_mode = Control.FOCUS_NONE
+	_pli.pressed.connect(func(): replier(not replie))
+	add_child(_pli)
+	replier(false)
+
+func replier(oui: bool) -> void:
+	replie = oui
+	_pli.text = "›" if oui else "‹"
+	for i in range(4, buttons.size()):
+		buttons[i].visible = _conduite and not oui
 
 const CREDITS := """Enseigne de la boulangerie : polices Kaushan Script et Caveat (Pablo Impallari, SIL Open Font License).
 Voix du taxi : synthèse vocale de l'appareil ; à défaut, synthèse Piper (rhasspy) ; voix « Siwis » (Université d'Édimbourg, CC BY 4.0) et « Gilles » (CC0), effet talkie-walkie ffmpeg.
@@ -403,6 +429,17 @@ func _draw_pill() -> void:
 ## Compteur : panneau de limitation, puis afficheur à cristaux liquides (vitesse en 7 segments, segments éteints en
 ## filigrane comme sur les tableaux de bord numériques des années 80).
 var _lcd: Font
+var argent_panel: Control
+var _argent := -1.0
+## Argent du garage (#59) : sous le compteur de vitesse, chiffres verts.
+func _draw_argent() -> void:
+	var r := Rect2(Vector2.ZERO, argent_panel.size)
+	_panel(argent_panel, r)
+	var f := argent_panel.get_theme_default_font()
+	var t := preload("res://scripts/garage.gd").euros(maxf(_argent, 0.0))
+	argent_panel.draw_string(f, Vector2(18, r.size.y / 2 + 11), "Argent", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color(0.8, 0.8, 0.82))
+	argent_panel.draw_string(f, Vector2(0, r.size.y / 2 + 13), t, HORIZONTAL_ALIGNMENT_RIGHT, r.size.x - 20, 34, Color8(120, 255, 150))
+
 func _draw_speed() -> void:
 	var r := Rect2(Vector2.ZERO, speed_panel.size)
 	_panel(speed_panel, r)
@@ -507,11 +544,14 @@ func _layout() -> void:
 	var gw := minf(s.x * 0.28, 540.0); var gh := minf(s.y * 0.36, 310.0)
 	gps.position = Vector2(s.x - gw - 24, 24); gps.size = Vector2(gw, gh)
 	speed_panel.position = Vector2(s.x - gw - 24, 24 + gh + 14); speed_panel.size = Vector2(gw, 96)
+	argent_panel.position = Vector2(s.x - gw - 24, 24 + gh + 14 + 96 + 10); argent_panel.size = Vector2(gw, 58)
 	pill.position = Vector2(0, 20); pill.size = Vector2(s.x, 90)
 	var pos := [Vector2(60, s.y - 230), Vector2(290, s.y - 230), Vector2(s.x - 470, s.y - 230), Vector2(s.x - 240, s.y - 260),
-		Vector2(146, 22), Vector2(270, 22), Vector2(22, 22), Vector2(394, 22), Vector2(518, 22), Vector2(642, 22)]
+		Vector2(214, 22), Vector2(90, 22), Vector2(338, 22), Vector2(462, 22), Vector2(586, 22)]
 	for i in buttons.size():
 		buttons[i].position = pos[i]
+	if _pli:
+		_pli.position = Vector2(14, 30)
 
 ## Niveau de performances (0 Économie … 3 Maximale) : végétation, herbe, cultures, puis ombres, anticrénelage,
 ## distances, résolution (main.gd, set_post) ; mémorisé dans user://reglages.cfg.
@@ -555,11 +595,15 @@ func releve_perf_fini(texte: String) -> void:
 	get_tree().create_timer(60.0).timeout.connect(func(): if is_instance_valid(box): box.queue_free())
 
 func _show_drive(on: bool) -> void:
-	for b in buttons:
-		b.visible = on
+	_conduite = on
+	for i in buttons.size():
+		buttons[i].visible = on and (i < 4 or not replie)
+	if _pli:
+		_pli.visible = on
 	gps.visible = on
 	pill.visible = on
 	speed_panel.visible = on
+	argent_panel.visible = on
 	get_tree().paused = not on
 
 func _process(_dt: float) -> void:
@@ -569,6 +613,21 @@ func _process(_dt: float) -> void:
 
 func _process_corps(_dt: float) -> void:
 	_update_leds()
+	# vue cockpit : la mini-carte disparaît, le GPS de la planche de bord la remplace (#60)
+	var ck = get_parent().get("cockpit")
+	var gps_vu: bool = _conduite and not (ck != null and ck.active)
+	if gps.visible != gps_vu:
+		gps.visible = gps_vu
+	var g = get_parent().get("garage")
+	if g and float(g.argent) != _argent:
+		_argent = float(g.argent)
+		argent_panel.queue_redraw()
+	# rangée du haut repliée d'elle-même au début d'une activité, dépliée à la fin (#52)
+	var acts := get_tree().get_nodes_in_group("activites")
+	var en_act := not acts.is_empty() and str(acts[0].mode) != ""
+	if en_act != _en_activite:
+		_en_activite = en_act
+		replier(en_act)
 	if _toast and _toast.visible:
 		_toast_t -= _dt
 		_toast.modulate.a = clampf(_toast_t / 0.6, 0.0, 1.0)

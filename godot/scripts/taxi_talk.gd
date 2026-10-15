@@ -482,6 +482,17 @@ func _ask(q: Dictionary, text: String) -> void:
 	_next = maxf(_next, 12.0)
 
 # ---------------------------------------------------------------- bulle et choix
+## Réponse touchée avec un deuxième doigt pendant que le premier tient GAZ (#53) : l'interface de Godot ne suit que le
+## premier doigt, les boutons de réponse sont donc aussi testés ici pour les autres doigts.
+func _input(e: InputEvent) -> void:
+	if not (e is InputEventScreenTouch) or e.pressed or e.index == 0 or _choices == null:
+		return
+	for b in _choices.get_children():
+		if b is Button and b.is_visible_in_tree() and b.get_global_rect().has_point(e.position):
+			b.pressed.emit()
+			get_viewport().set_input_as_handled()
+			return
+
 func _show_choices(opts: Array) -> void:
 	_clear_choices()
 	var k := 0

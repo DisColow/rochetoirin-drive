@@ -18,7 +18,7 @@ const CATALOGUE := {
 	"pneus": ["Pneus", "Technique", [["D'origine (tout-terrain)", 0], ["Route sport", 350], ["Semi-slicks", 800]]],
 	"couleur": ["Couleur", "Peinture", [["Noir", 0], ["Blanc", 150], ["Gris acier", 150], ["Rouge", 150], ["Orange", 150], ["Jaune taxi", 150], ["Vert", 150], ["Bleu nuit", 150], ["Bleu électrique", 150], ["Violet", 150], ["Rose", 150], ["Kaki", 150]]],
 	"finition": ["Finition", "Peinture", [["Vernie", 0], ["Nacrée", 250], ["Mate", 250], ["Chromée", 900]]],
-	"vinyle": ["Vinyles", "Peinture", [["Aucun", 0], ["Bandes de course", 250], ["Bande latérale", 200], ["Flammes", 400], ["Éclairs", 350], ["Damier", 350], ["Camouflage", 300]]],
+	"vinyle": ["Vinyles", "Peinture", [["Aucun", 0], ["Bandes de course", 250], ["Bande latérale", 200], ["Flammes", 400], ["Éclairs", 350], ["Damier", 350], ["Camouflage", 300], ["Tribal", 350], ["Étoiles", 300], ["Éclaboussures", 350], ["Rayures obliques", 250], ["Dents de requin", 400], ["Filets rétro", 250]]],
 	"vitres": ["Vitres", "Carrosserie", [["D'origine", 0], ["Fumées", 120], ["Limousine (noires)", 200]]],
 	"neons": ["Néons sous la caisse", "Carrosserie", [["Aucun", 0], ["Bleus", 300], ["Violets", 300], ["Verts", 300], ["Rouges", 300], ["Roses", 300], ["Blancs", 300]]],
 	"jantes": ["Jantes", "Carrosserie", [["D'origine", 0], ["Tuner à rayons", 700], ["Sept branches", 650], ["Étoile", 600], ["Sport fines", 550], ["Concept", 750]]],

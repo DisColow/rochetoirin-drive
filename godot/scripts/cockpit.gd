@@ -138,6 +138,21 @@ func look_offset(yaw: float, pitch: float) -> void:
 		r.position = Vector2(-w + px + 2.0 if i == 0 else s.x + px - 2.0, s.y * 0.52 + py)
 		r.visible = r.visible and ((i == 0 and px > 0) or (i == 1 and px < 0))
 
+## Toucher l'écran du GPS de la planche de bord ouvre la carte (#60) : l'habitacle est dessiné dans un SubViewport
+## affiché agrandi (view), donc l'écran est repéré en coordonnées de l'écran.
+signal ouvrir_carte
+func _input(e: InputEvent) -> void:
+	if not active or ecran == null:
+		return
+	var tap: bool = (e is InputEventScreenTouch and not e.pressed) or (e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed and not Input.is_emulating_mouse_from_touch())
+	if not tap:
+		return
+	var k := view.size / Vector2(vp.size)
+	var r := Rect2(view.position + ecran.position * k, ecran.size * k).grow(12.0)
+	if r.has_point(e.position):
+		ouvrir_carte.emit()
+		get_viewport().set_input_as_handled()
+
 func _resize() -> void:
 	var s := get_viewport().get_visible_rect().size
 	vh = clampi(int(round(VW * s.y / maxf(s.x, 1.0))), 160, 400)

@@ -322,6 +322,8 @@ func _ready() -> void:
 		autoroute.hud = hud
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS          # la carte reste utilisable jeu en pause
 	add_child(hud)
+	if cockpit:
+		cockpit.ouvrir_carte.connect(hud._open_map)       # écran GPS de la planche de bord (#60)
 	activities = preload("res://scripts/activities.gd").new()
 	activities.main = self; activities.car = car; activities.hud = hud; activities.map = hud.map
 	if radio:
