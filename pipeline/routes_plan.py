@@ -39,6 +39,11 @@ for k, p in T.items():
 for k in ("Montcarra", "Chamont", "Saint-Chef"):
     path = nx.shortest_path(G, nearest(*T[k]), nearest(*T["Bourgoin-Jallieu"]), weight="w")
     out[k + " > Bourgoin-Jallieu"] = [pts[n] for n in path]
+# L'Isle-d'Abeau depuis Montcarra (#50) : itinéraire de l'utilisateur, par le point 45,6356 N 5,2426 E puis
+# l'impasse des Glycines
+via = nearest(-13505, -5565); glycines = nearest(-15421, -4557)
+out["Montcarra > L'Isle-d'Abeau"] = ([pts[n] for n in nx.shortest_path(G, nearest(*T["Montcarra"]), via, weight="w")]
+                                    + [pts[n] for n in nx.shortest_path(G, via, glycines, weight="w")])
 # Saint-Clair : par La Tour-du-Pin (itinéraire naturel)
 a = nearest(*T["La Tour-du-Pin"]); b = nearest(*T["Saint-Clair-de-la-Tour"])
 out["Saint-Clair-de-la-Tour"] = out["La Tour-du-Pin"] + [pts[n] for n in nx.shortest_path(G, a, b, weight="w")]
@@ -46,7 +51,8 @@ out["Saint-Clair-de-la-Tour"] = out["La Tour-du-Pin"] + [pts[n] for n in nx.shor
 # fetch_communes.py, marge 150 m) ; régions Terrain3D de 1024 m
 from shapely.geometry import LineString, Point, Polygon, box, shape
 from shapely.ops import unary_union
-WHOLE = ("Rochetoirin", "Saint-Chef", "Bourgoin-Jallieu", "Montcarra", "Saint-Didier-de-la-Tour", "La Chapelle-de-la-Tour")
+WHOLE = ("Rochetoirin", "Saint-Chef", "Bourgoin-Jallieu", "Montcarra", "Saint-Didier-de-la-Tour", "La Chapelle-de-la-Tour",
+         "L'Isle-d'Abeau")
 C = json.load(open("data/communes.json"))
 parts = [box(-2300, -3100, 2300, 3100)] + [shape(C[k]).buffer(150) for k in WHOLE if k in C]
 for k, p in out.items():

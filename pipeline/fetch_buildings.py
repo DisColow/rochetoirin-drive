@@ -2,7 +2,7 @@
 Sorties : data/batiments.json (GeoJSON lon/lat, pagination), data/osm_calming.json"""
 import json, os, time, urllib.parse, urllib.request
 WFS = "https://data.geopf.fr/wfs/ows"
-BB = (45.51, 5.19, 45.67, 5.53)
+BB = (45.51, 5.165, 45.67, 5.19)
 def get(u, tries=6):
     for k in range(tries):
         try:

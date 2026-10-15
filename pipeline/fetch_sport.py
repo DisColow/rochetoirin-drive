@@ -1,7 +1,7 @@
 """Équipements sportifs (OSM) : terrains (leisure=pitch, sport=*), stades, pistes d'athlétisme, complexes sportifs.
 Sortie : data/osm_sport.json (contours inclus)."""
 import json, time, urllib.parse, urllib.request, collections
-BB = "45.51,5.19,45.67,5.53"
+BB = "45.51,5.165,45.67,5.19"
 q = """[out:json][timeout:300];(
 way["leisure"~"^(pitch|stadium|track|sports_centre)$"](%(b)s);
 relation["leisure"~"^(pitch|stadium|sports_centre)$"](%(b)s);

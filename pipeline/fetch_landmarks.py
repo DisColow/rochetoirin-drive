@@ -1,7 +1,7 @@
 """Bâtiments emblématiques (OSM) de la zone : mairies, églises, chapelles, châteaux, tours, monuments, musées,
 châteaux d'eau. Sortie : data/osm_landmarks.json (avec géométries des chemins / relations)."""
 import json, time, urllib.parse, urllib.request
-BB = "45.51,5.19,45.67,5.53"
+BB = "45.51,5.165,45.67,5.19"
 q = """[out:json][timeout:300];(
 nwr["amenity"="townhall"](%(b)s);
 nwr["amenity"="place_of_worship"](%(b)s);

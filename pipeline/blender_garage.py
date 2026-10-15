@@ -72,6 +72,8 @@ for code, (sortie, garder, _, axe) in PIECES.items():
     # axe principal ramené sur x (envergure, longueur de la sortie, axe de la roue)
     if axe == "y":
         transformer(o, mathutils.Matrix.Rotation(math.pi / 2, 4, "Z"))
+    if code == "E1":                     # tuyau coudé : le coude à plat (sinon la sortie pend sous le pare-chocs)
+        transformer(o, mathutils.Matrix.Rotation(math.pi / 2, 4, "X"))
     mn, mx = bornes([o]); c = (mn + mx) / 2
     transformer(o, mathutils.Matrix.Translation(-c))
     mn, mx = bornes([o]); d = mx - mn

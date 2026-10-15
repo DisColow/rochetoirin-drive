@@ -13,7 +13,7 @@ const DEPART := 300.0               # argent de départ (de quoi s'offrir une pr
 const CATALOGUE := {
 	"moteur": ["Moteur", "Technique", [["D'origine (300 kW)", 0], ["Stage 1 : +15 %", 400], ["Stage 2 : +30 %", 900], ["Stage 3 : +50 %", 1800]]],
 	"boite": ["Boîte de vitesses", "Technique", [["D'origine", 0], ["Rapports courts", 350], ["Boîte course", 800]]],
-	"suspension": ["Suspension", "Technique", [["D'origine", 0], ["Rabaissée sport (-7 cm, ferme)", 450], ["Rehaussée tout-terrain (+10 cm)", 450]]],
+	"suspension": ["Suspension", "Technique", [["D'origine", 0], ["Rabaissée (-7 cm)", 450], ["Rehaussée (+10 cm)", 450]]],
 	"freins": ["Freins", "Technique", [["D'origine", 0], ["Freins sport", 300], ["Freins course", 700]]],
 	"pneus": ["Pneus", "Technique", [["D'origine (tout-terrain)", 0], ["Route sport", 350], ["Semi-slicks", 800]]],
 	"couleur": ["Couleur", "Peinture", [["Noir", 0], ["Blanc", 150], ["Gris acier", 150], ["Rouge", 150], ["Orange", 150], ["Jaune taxi", 150], ["Vert", 150], ["Bleu nuit", 150], ["Bleu électrique", 150], ["Violet", 150], ["Rose", 150], ["Kaki", 150]]],
