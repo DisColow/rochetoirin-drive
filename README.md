@@ -7,7 +7,7 @@ Chapelle-de-la-Tour (communes entières), L'Isle-d'Abeau et les routes qui y mè
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.45.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.45/RochetoirinSimulator-v6.45.apk)**
+**[RochetoirinSimulator-v6.46.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.46/RochetoirinSimulator-v6.46.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,16 +16,14 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.45 :
-- **Carte agrandie** : Saint-Didier-de-la-Tour, La Chapelle-de-la-Tour et Montcarra en entier, et les routes de
-  Montcarra, de Chamont et de Saint-Chef vers Bourgoin-Jallieu (environ 150 km² jouables).
-- **Plantations plus fluides** : les champs se construisent sur un fil de calcul à part (plus d'à-coups en roulant
-  dedans) et les plants s'éclaircissent au loin.
-- **Plants écrasés** : de vrais morceaux de plants (découpés dans leurs sprites) volent, tournoient et retombent ; bruit
-  de feuillage froissé (et de tiges cassées pour le maïs et le tournesol).
-- **Chocs plus réalistes** : sons en couches selon ce qu'on percute (tôle, poteau, mur, bois, haie, poubelle) et la
-  violence du choc (verre brisé et débris sur les gros chocs), raclement le long des murs et des glissières.
-- **GPS dans le cockpit** : l'écran central du Raptor montre la vraie carte, la position et l'itinéraire.
+Nouveautés de la v6.46 :
+- **Taxi** : vrai compteur à l'américaine (le client paie ce qu'il affiche) et nouveaux clients : éméchés, furieux,
+  personnalités, avec des anecdotes et de la culture locale.
+- **Bords de carte** : catapulte façon Motocross Madness, très haut et en tournoyant.
+- **Destruction** : clôtures des prés arrachées et poubelles qui volent, sans ralentir ; chocs contre les murs plus
+  réalistes.
+- **Corrections** : relief manquant entre Saint-Chef et Bourgoin, petits ponts qui débordaient sur la route, GPS du
+  cockpit, noms de communes sur la carte, réglages qui défilent au doigt, saisie de texte au-dessus du clavier.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

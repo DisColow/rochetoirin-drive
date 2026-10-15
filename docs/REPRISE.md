@@ -13,6 +13,20 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## v6.46 (en cours de livraison)
+- Zone sans trous (`routes_plan.py` : `Polygon(Z.exterior)`) : 215 régions, ~178 km² (issue #33 : routes sans relief).
+- Ponts OSM de moins de 10 m = chaussée ordinaire (`build_roads.py`, issues #31/#32 : tablier en béton et parapets
+  au milieu des carrefours). Clôtures : rien dans un disque autour de chaque carrefour (`build_fences.py`).
+- Clôtures des prés défonçables (`animaux.gd`, issue #27/#41) ; poubelles physiques de 15 kg (`props.gd`).
+- Sons des chocs contre les murs (#40) : `coup_sourd` (Mixkit 1704), `froisse_0/1` (Mixkit 1616), `eboulis` (1703),
+  tôle plus grave ; troncs = bois, bêtes = sol ; journal `--choc-debug`.
+- Taximètre (`taximetre.gd`, #44), catapulte du bord (`bord.gd`, #45), saisie tactile `UI.saisie_tactile` (#39),
+  défilement des réglages (`hud._input`, #38), interrupteur de l'aide à la voie (#37), noms de la carte (#36), zoom
+  du GPS du cockpit (#34).
+- Taxi (#42) : caractères `ivre`, `colere`, `vip` (champ `sujets` : fils propres, abordés d'abord, réservés) ;
+  fils `pipeline/sources/taxi_fils_v646_source.py` -> `taxi_fils_v646.json`, fusionnés par `taxi_dialogues.py`.
+- En attente du choix de l'utilisateur : #46 (planche des objets volants), #43 (plan du tuning).
+
 ## Livré : v6.45 (14/10 au soir), APK 1 466 Mo
 - Issues à tester : #15, #16 (zone), #25, #8 (plantations), #28 (chocs), #29 (GPS du cockpit) ; #30 fermée.
 - Actions GitHub : import par paquets (`.github/scripts/import_paquets.sh`) + 12 Go d'échange : obligatoire depuis

@@ -294,6 +294,11 @@ def profiles(N, ways, dem):
     AG.propagate(ways, moved, N)
     for w in ways:
         _frame(w, dem)
+        # « ponts » OSM de quelques mètres sur un fossé (buses) : chaussée ordinaire, sans tablier ni parapets qui
+        # débordaient au milieu des carrefours (v6.46, issues #31 et #32)
+        if w["bridge"] and not w.get("fixed_profile") and len(w["P"]) > 1 and \
+                float(np.hypot(*np.diff(np.asarray(w["P"]), axis=0).T).sum()) < 10.0:
+            w["bridge"] = False
         if w.get("fixed_profile"):
             continue
         sig = CLS[w["cls"]][1] / 3.0                           # échantillons de 3 m
