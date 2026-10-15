@@ -16,6 +16,12 @@ const BRAKE_AIDE := 7.0          # v6.22 (« le frein n'est pas assez puissant �
 const STEER_LOW := 0.55         # braquage max à l'arrêt (rad)
 const STEER_HIGH := 0.08        # à 130 km/h
 
+# performances réglées par le garage (#43, tuning.gd) : valeurs d'origine = constantes ci-dessus
+var puissance := POWER
+var force_max := ENGINE
+var vmax := MAX_KMH
+var freinage := 1.0              # multiplie BRAKE et BRAKE_AIDE
+var tuning: Node                 # tuning.gd (peinture du garage)
 var touch_throttle := 0.0
 var touch_brake := 0.0
 var touch_steer := 0.0
@@ -464,6 +470,8 @@ func set_wet(w: float) -> void:
 	if _paint_mat:
 		_paint_mat.roughness = lerpf(0.32, 0.08, w)
 		_paint_mat.clearcoat_roughness = lerpf(0.1, 0.02, w)
+	if tuning:
+		tuning.mouille(w)
 var _tail_mat: StandardMaterial3D
 var _beams := []
 var _meta := {}
@@ -556,24 +564,24 @@ func _physics_process(dt: float) -> void:
 		if thr > 0.1:
 			# en reculant, GAZ freine (puis repart en avant, voir plus haut)
 			engine_force = 0.0
-			brake = BRAKE * thr
+			brake = BRAKE * freinage * thr
 		else:
-			engine_force = -ENGINE * 0.5 / 4.0 * brk if spd < 25.0 else 0.0
+			engine_force = -force_max * 0.5 / 4.0 * brk if spd < 25.0 else 0.0
 			brake = 0.0
 	else:
 		# boîte auto : force limitée par la puissance (F = P / v), coupée à la vitesse max
 		# (engine_force s'applique à chacune des 4 roues motrices)
-		var f := thr * minf(ENGINE, POWER / maxf(absf(v), 1.0)) / 4.0
-		if spd > MAX_KMH:
+		var f := thr * minf(force_max, puissance / maxf(absf(v), 1.0)) / 4.0
+		if spd > vmax:
 			f = 0.0
 		engine_force = f if brk < 0.1 or thr > brk else 0.0
-		brake = BRAKE * brk + (2.0 if thr < 0.05 and spd < 3.0 and brk < 0.1 else 0.0)
+		brake = BRAKE * freinage * brk + (2.0 if thr < 0.05 and spd < 3.0 and brk < 0.1 else 0.0)
 	# aide au freinage (pédale opposée au sens de marche), seulement roues au sol
 	var pedale := thr if reversing else brk
 	if pedale > 0.1 and linear_velocity.length() > 0.5 and wheels.any(func(w): return w.is_in_contact()):
 		var vh := linear_velocity - Vector3.UP * linear_velocity.y
 		if (not reversing and v > 0.3) or (reversing and v < -0.3):
-			apply_central_force(-vh.normalized() * mass * BRAKE_AIDE * pedale)
+			apply_central_force(-vh.normalized() * mass * BRAKE_AIDE * freinage * pedale)
 	# frein moteur léger et aide à la stabilité en virage (anti-dérive latérale)
 	if thr < 0.05 and not reversing:
 		apply_central_force(-linear_velocity * 25.0)

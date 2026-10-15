@@ -302,10 +302,28 @@ func open_menu() -> void:
 		_btn(v, "Recommencer le dernier tracé" + ("" if _best == INF else "  (record " + _fmt(_best) + ")"), _course_again)
 	_btn(v, "Chasse au lieu (un joueur cache, l'autre cherche)", _hunt_menu)
 	_btn(v, "Taxi" + ("" if _rides == 0 else "  (%d courses, %s)" % [_rides, _euros(_total)]), _taxi_start)
+	if main.garage:
+		_btn(v, "Garage : améliorer la voiture  (%s)" % main.garage.euros(main.garage.argent), _garage)
 	_btn(v, "Multijoueur (jusqu'à 4)" + ("  — %d joueur(s)" % main.net.joueurs.size() if main.net and main.net.en_ligne() else ""), _net_menu)
 	if mode != "":
 		_btn(v, "Arrêter l'activité en cours", _stop_and_close)
 	_btn(v, "Fermer", _resume)
+
+# ================================================================ garage (#43, garage_ui.gd)
+func _garage() -> void:
+	if mode != "":
+		hud.toast("Arrêtez d'abord l'activité en cours.", 3.0)
+		return
+	if car.kmh() > 3.0:
+		hud.toast("Arrêtez-vous pour entrer au garage.", 3.0)
+		return
+	_close_menu()
+	hud._show_drive(false)
+	var g = preload("res://scripts/garage_ui.gd").new()
+	g.garage = main.garage; g.tuning = main.tuning; g.cam_rig = main.cam_rig
+	g.ferme.connect(func(): _menu = null; hud._show_drive(true))
+	add_child(g)
+	_menu = g
 
 # ================================================================ multijoueur (v6.44, net.gd)
 func _net_menu() -> void:
@@ -512,7 +530,14 @@ func _course_process(dt: float) -> void:
 			_phase = "fini"
 			var rec := _t < _best
 			_best = minf(_best, _t)
-			hud.toast("Arrivée ! %s%s" % [_fmt(_t), "  — record !" if rec else "  (record %s)" % _fmt(_best)], 6.0)
+			# prime du garage (#43) : 2 € par 100 m de tracé (au moins 10 €), 15 € de plus pour un record
+			var long := 0.0
+			for i in range(1, _route.size()):
+				long += _rp(_route[i - 1]).distance_to(_rp(_route[i]))
+			var prime := maxf(10.0, roundf(long * 0.02)) + (15.0 if rec else 0.0)
+			if main.garage:
+				main.garage.gagner(prime)
+			hud.toast("Arrivée ! %s%s\nPrime : %s" % [_fmt(_t), "  — record !" if rec else "  (record %s)" % _fmt(_best), _euros(prime)], 6.0)
 			if main.net:
 				main.net.arrivee_course(_t)
 			_set_status("Arrivée en %s\n★ pour recommencer ou créer un autre tracé" % _fmt(_t))
@@ -626,7 +651,9 @@ func _hunt_process(dt: float) -> void:
 		circle = {}
 		marks = [{p = _target, col = Color(0.2, 0.85, 0.3), txt = "Trouvé", gps = true}]
 		_beacon(Vector3(_target.x, _ground(_target.x, _target.y, car.global_position.y), _target.y), Color(0.3, 1.0, 0.4), 10.0)
-		hud.toast("Trouvé en %s !" % _fmt(_t), 7.0)
+		if main.garage:
+			main.garage.gagner(25.0)                       # prime du garage (#43)
+		hud.toast("Trouvé en %s !\nPrime : 25 €" % _fmt(_t), 7.0)
 		_set_status("Trouvé en %s\n★ pour rejouer" % _fmt(_t))
 		_status_t = 12.0
 		mode = ""
@@ -802,6 +829,8 @@ func _taxi_drop() -> void:
 	var tip: float = maxf(0.0, fare * ([0.0, 0.0, 0.05, 0.1, 0.15, 0.25][stars] + 0.06 * float(talk.sat)))
 	_rides += 1
 	_total += fare + tip
+	if main.garage:
+		main.garage.gagner(fare + tip)
 	if main.net:
 		main.net.gains_taxi(_total, _rides)
 	_bip.play()

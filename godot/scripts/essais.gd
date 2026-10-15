@@ -604,6 +604,56 @@ func _physics_process(_dt: float) -> void:
 		if t > 240 + 120 * 20:
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--garage-test"):
+		# garage (#43) : écran ouvert, plusieurs préparations essayées tour à tour ; captures user://shots/garage_N.png
+		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
+		var essais := [{},
+			{"couleur": 3, "finition": 1, "vinyle": 1, "neons": 1, "taxi": 1, "barre_led": 1, "prise_air": 1, "bas_caisse": 1, "aileron": 1, "echappement": 1, "suspension": 1},
+			{"couleur": 5, "finition": 2, "vinyle": 3, "suspension": 2, "barre_led": 1},
+			{"couleur": 8, "finition": 3, "vinyle": 5, "neons": 2, "aileron": 1},
+			{"couleur": 11, "vinyle": 6, "suspension": 2},
+			{"couleur": 1, "vinyle": 4, "vitres": 2, "neons": 5, "bas_caisse": 1},
+			{"couleur": 9, "vinyle": 2, "finition": 1, "neons": 3}]
+		if t == 300:
+			garage.argent = 5000.0
+			activities._garage()
+		var k := (t - 360) / 240
+		if t >= 360 and (t - 360) % 240 == 0 and k < essais.size():
+			garage.apercu = essais[k].duplicate()
+			tuning.appliquer()
+		if t >= 360 and (t - 360) % 240 == 200 and k < essais.size():
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/garage_%d.png" % k)
+			print("  [garage] capture %d, %d km/h, argent %s" % [k, car.kmh(), garage.argent])
+		if k >= essais.size():
+			get_tree().quit()
+		return
+	if ciel and ciel.force != "":
+		# aéronefs (#46, --ciel-test=<type>) : caméra posée près de la voiture, tournée vers l'appareil ;
+		# captures user://shots/ciel_<type>_N.png toutes les 4 s, fin après 40 s
+		car.touch_throttle = 0.0; car.touch_brake = 1.0
+		if ciel._avion and not ciel.has_meta("rapproche"):
+			# rapproché : l'appareil part tout près de son point de passage (l'essai sans écran est lent)
+			ciel.set_meta("rapproche", true)
+			if ciel._type != "planeur":
+				ciel._p = ciel._proche - ciel._v.normalized() * (2500.0 if ciel._type == "ligne" else 150.0)
+		if t > 360 and t % 240 == 0 and ciel._avion:
+			var cam: Camera3D = get_node_or_null("CamCiel")
+			if cam == null:
+				cam = Camera3D.new(); cam.name = "CamCiel"; cam.far = 160000.0; add_child(cam)
+			var o := car.global_position + Vector3(0, 45, 0)
+			var a: Vector3 = ciel._avion.global_position
+			var d := o.distance_to(a)
+			cam.fov = clamp(rad_to_deg(2.0 * atan(40.0 / d)) * (6.0 if ciel._type == "ligne" else 1.0), 2.0, 70.0)
+			cam.global_transform = Transform3D(Basis.looking_at(a - o, Vector3.UP), o)
+			cam.current = true
+			await RenderingServer.frame_post_draw
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/ciel_%s_%d.png" % [ciel._type, (t - 360) / 240])
+			print("  [ciel] capture à %.0f m, champ %.1f°" % [d, cam.fov])
+		if t > 360 + 240 * 4:
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--void-test"):
 		# essai du gardien : voiture posée sur le relief juste avant le bord de la carte, en roulant vers le vide
 		# (la soucoupe doit attendre qu'elle tombe, puis la ramener sur une route)

@@ -24,6 +24,7 @@ const REDLINE := 6500.0
 const SFX := "res://assets/sfx/%s.ogg"
 
 var rpm := IDLE
+var echappement := false        # échappement sport du garage (#43) : moteur plus grave et plus présent
 var gear := 0
 var surface := ""                # surface dominante sous les roues (pour les essais)
 var _shift_t := 0.0
@@ -240,10 +241,10 @@ func _physics_process(dt: float) -> void:
 					gains[i] = cos(w * PI / 2); gains[i + 1] = sin(w * PI / 2)
 	var start := clampf(1.0 - _start_t / 1.1, 0.0, 1.0)
 	_start_t -= dt
-	var master := (0.55 + 0.45 * clampf((rpm - IDLE) / (REDLINE - IDLE), 0.0, 1.0)) * start * (1.0 if on else 0.0)
+	var master := (0.55 + 0.45 * clampf((rpm - IDLE) / (REDLINE - IDLE), 0.0, 1.0)) * start * (1.0 if on else 0.0) * (1.3 if echappement else 1.0)
 	for i in n:
 		var L = _loops[i]
-		var ps := clampf(f / L.f0, 0.35, 2.6)
+		var ps := clampf(f / L.f0 * (0.88 if echappement else 1.0), 0.35, 2.6)
 		L.on.pitch_scale = ps; L.off.pitch_scale = ps
 		_vol(L.on, gains[i] * master * (0.3 + 0.7 * _load))
 		_vol(L.off, gains[i] * master * (1.0 - _load) * 0.9)

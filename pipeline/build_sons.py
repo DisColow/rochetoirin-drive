@@ -17,6 +17,10 @@ K = "data/sons/kenney_impact/Audio/%s.ogg"
 MK = "data/sons/mixkit_%d.wav"                      # Mixkit (fetch_sons.mixkit)          # Kenney « Impact Sounds » (CC0)
 SONS = {
     # soucoupe du gardien : vrombissement tournant (boucle), passage en piqué, rayon tracteur
+    # aéronefs du ciel (issue #46) : passages entiers, joués pour que le maximum tombe au plus près (PIC de ciel.gd)
+    "avion_passage": dict(bsb=2478, t0=1.0, t1=14.5, hp=70, db=-15, fi=0.8, fo=2.0),
+    "helico_passage": dict(bsb=113, t0=0.0, t1=17.0, hp=40, db=-14, fi=1.5, fo=2.5),
+    "ligne_passage": dict(bsb=3006, t0=0.0, t1=10.0, lp=900, speed=0.55, db=-19, fi=2.0, fo=4.0),
     "soucoupe": dict(bsb=2121, t0=0.5, t1=9.4, loop=True, xf=0.8, db=-16),
     "soucoupe_arrivee": dict(bsb=2122, t0=0.0, t1=6.0, db=-14, fo=0.6),
     "soucoupe_depart": dict(bsb=1972, t0=1.5, t1=10.5, db=-16, fi=0.3, fo=2.0, speed=1.15),

@@ -17,6 +17,8 @@ var pitch_off := 0.0
 var _drag := {}
 var _idle := 0.0
 var _carry := 0.0                 # 0 à 1 : plan large quand la soucoupe porte la voiture
+var vitrine := false              # garage (#43) : la caméra tourne lentement autour de la voiture arrêtée
+var _vitrine_a := 0.0
 
 func _input(e: InputEvent) -> void:
 	if e is InputEventScreenTouch:
@@ -27,7 +29,7 @@ func _input(e: InputEvent) -> void:
 	elif e is InputEventScreenDrag and _drag.has(e.index):
 		if mode == 1:
 			return                       # vue conducteur : regard fixe (le cockpit pixel art est une image plate)
-		var lim := 0.55 if mode != 0 else PI
+		var lim := 0.55 if mode != 0 and not vitrine else PI
 		yaw_off = clampf(yaw_off - e.relative.x * 0.006, -lim, lim)
 		pitch_off = clampf(pitch_off - e.relative.y * 0.004, -0.35 if mode != 0 else -0.25, 0.6 if mode == 0 else 0.35)
 		_idle = 0.0
@@ -82,6 +84,17 @@ func _process_corps(dt: float) -> void:
 		cockpit.look_offset(yaw_off, pitch_off)
 	var t := target.global_transform
 	var fwd := t.basis.z
+	if vitrine:
+		# vue du garage : tour lent (et au doigt), voiture décalée à droite de l'écran (menu à gauche)
+		_vitrine_a += dt * 0.22
+		var dir := Vector3(fwd.x, 0, fwd.z).normalized().rotated(Vector3.UP, _vitrine_a + yaw_off + 2.4)
+		var p := t.origin + dir * 6.4 + Vector3(0, 1.9 + 3.0 * maxf(pitch_off, 0.0), 0)
+		var gauche := dir.cross(Vector3.UP).normalized()          # à gauche vu de la caméra
+		cam.global_position = p
+		cam.look_at(t.origin + Vector3(0, 0.8, 0) + gauche * 1.6, Vector3.UP)
+		cam.fov = 55.0
+		_pos = p
+		return
 	if mode == 0:
 		var flat := Vector3(fwd.x, 0, fwd.z).normalized().rotated(Vector3.UP, yaw_off)
 		# caméra proche de la voiture (souhait du joueur), à toutes les vitesses

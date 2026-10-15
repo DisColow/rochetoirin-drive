@@ -20,9 +20,12 @@ var fences: Node3D
 var water: Node3D
 var cam_rig: Node3D
 var birds: Node3D
+var ciel: Node3D            # aéronefs de passage (#46)
 var props: Node3D
 var pools: Node3D
 var activities: CanvasLayer
+var garage: Node            # argent et pièces achetées (#43, garage.gd)
+var tuning: Node            # pièces montées sur la voiture (tuning.gd)
 var net: Node
 var shops: Node3D
 var sport: Node3D
@@ -246,6 +249,9 @@ func _ready() -> void:
 	birds.target = car
 	birds.terrain = terrain
 	add_child(birds)
+	ciel = preload("res://scripts/ciel.gd").new()
+	ciel.target = car
+	add_child(ciel)
 	dust = preload("res://scripts/dust.gd").new()
 	dust.car = car
 	dust.roads = roads
@@ -317,6 +323,13 @@ func _ready() -> void:
 		radio.hud = hud
 	activities.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(activities)
+	# garage (#43) : argent gagné aux activités, améliorations de la voiture
+	garage = preload("res://scripts/garage.gd").new()
+	garage.name = "Garage"
+	add_child(garage)
+	tuning = preload("res://scripts/tuning.gd").new()
+	tuning.car = car; tuning.garage = garage; tuning.main = self; tuning.activities = activities
+	add_child(tuning)
 	# multijoueur sur le réseau local (v6.44)
 	net = preload("res://scripts/net.gd").new()
 	net.name = "Net"
@@ -597,6 +610,8 @@ func _apply_ambience() -> void:
 	preload("res://scripts/env.gd").set_value("clouds", cl)
 	if birds:
 		birds.day = time_of_day < 3
+	if ciel:
+		ciel.day = time_of_day < 3
 
 # ---------------------------------------------------------------- météo (Réglages)
 const WEATHERS := ["Beau temps", "Couvert", "Pluie", "Brouillard"]
@@ -659,6 +674,8 @@ func _apply_weather() -> void:
 	_apply_ambience()
 	if birds:
 		birds.day = time_of_day < 3 and w < 2
+	if ciel:
+		ciel.day = time_of_day < 3 and w < 2
 	if w > 0:
 		preload("res://scripts/env.gd").set_value("clouds", Vector4.ZERO)
 	if car and car.has_method("set_lights"):
