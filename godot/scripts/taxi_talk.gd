@@ -156,7 +156,7 @@ func _build_ui() -> void:
 
 # ---------------------------------------------------------------- client et course
 ## Nouveau client : caractère tiré au sort (goûts un peu variés d'un client à l'autre), identité, voix.
-func start_ride(home: String, dest: String, dest_commune: String, dest_kind: String, ancien := {}) -> String:
+func start_ride(home: String, dest: String, dest_commune: String, dest_kind: String, ancien := {}, profil := {}) -> String:
 	if data.is_empty():
 		return "« Bonjour ! %s, %s, s'il vous plaît. »" % [dest, dest_commune]
 	if not ancien.is_empty():
@@ -178,12 +178,16 @@ func start_ride(home: String, dest: String, dest_commune: String, dest_kind: Str
 	for k in car_.gouts:
 		g[k] = float(car_.gouts[k]) + _rng.randf_range(-0.4, 0.4)
 	var fem := _rng.randf() < 0.5
+	if profil.has("sexe"):
+		fem = str(profil.sexe) == "f"                 # le personnage qu'on voit (client MakeHuman, #55)
 	var met: Dictionary = data.metiers[_rng.randi() % data.metiers.size()]
 	var age := _rng.randi_range(19, 84)
 	if met.m == "retraité":
 		age = _rng.randi_range(63, 88)
 	elif met.m == "étudiant":
 		age = _rng.randi_range(18, 25)
+	if profil.has("age"):
+		age = clampi(int(profil.age) + _rng.randi_range(-3, 3), 18, 90)
 	client = {
 		"car": car_, "gouts": g, "bavard": clampf(float(car_.bavard) + _rng.randf_range(-0.15, 0.15), 0.05, 1.0),
 		"prenom": _pick(data.prenoms.f if fem else data.prenoms.m), "fem": fem, "age": age,

@@ -3,13 +3,28 @@
 ## modèles sont en pose A). Le modèle regarde vers +Z.
 ## Rotations données dans le repère du personnage (x : côté, y : haut, z : avant) puis ramenées au repère de chaque os.
 extends Node3D
+const Relief := preload("res://scripts/relief.gd")
 
 var vitesse := 0.0                 # m/s (0 : immobile)
+var cible := Vector3.INF           # marche vers ce point (repère monde), puis s'arrête ; signal arrive
+signal arrive
 var _sk: Skeleton3D
 var _os := {}                      # nom -> indice
 var _phase := 0.0
 
 func _ready() -> void:
+	# cheveux, cils, sourcils : transparence coupée au seuil, deux faces (pas de transparence mélangée, et les mèches
+	# vues de l'intérieur ne disparaissent pas)
+	for mi in find_children("*", "MeshInstance3D", true, false):
+		var m3 := mi as MeshInstance3D
+		for k in m3.mesh.get_surface_count():
+			var m := m3.mesh.surface_get_material(k) as BaseMaterial3D
+			if m and m.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
+				var c := m.duplicate() as BaseMaterial3D
+				c.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+				c.alpha_scissor_threshold = 0.35
+				c.cull_mode = BaseMaterial3D.CULL_DISABLED
+				m3.set_surface_override_material(k, c)
 	var l := find_children("*", "Skeleton3D", true, false)
 	if l.is_empty():
 		return
@@ -22,6 +37,19 @@ func _ready() -> void:
 	_poser(0.0)
 
 func _process(dt: float) -> void:
+	if cible.is_finite():
+		var d := cible - global_position
+		d.y = 0.0
+		if d.length() < 0.5:
+			cible = Vector3.INF
+			vitesse = 0.0
+			arrive.emit()
+		else:
+			vitesse = 1.4
+			var dir := d.normalized()
+			global_position += dir * vitesse * dt
+			global_position.y = Relief.hauteur(global_position)
+			rotation.y = lerp_angle(rotation.y, atan2(dir.x, dir.z), 1.0 - exp(-dt * 8.0))
 	if _sk == null:
 		return
 	if vitesse > 0.05:

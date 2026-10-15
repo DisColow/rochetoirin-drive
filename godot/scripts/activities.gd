@@ -75,8 +75,10 @@ var _arret_nom := ""
 var _arret_t := 0.0                # temps d'attente restant à l'arrêt
 var _arret_recit := ""
 var _arret_annonce := ""
+var _embarque_t := 0.0
 var _rappel := {}                  # client à reprendre : {idx, nom, retour, retour_nom, recit, courses, client}
 var _en_rappel := false
+var _profil := {}                  # client MakeHuman : {fichier, sexe, age, modele}
 const ARRETS := [
 	["Vous pouvez vous arrêter à {lieu} ? J'ai un colis à récupérer, j'en ai pour deux minutes.", "Voilà, c'est fait ! Le colis était plus gros que prévu, mais il rentre."],
 	["Arrêtez-moi deux minutes à {lieu}, je dépose un papier et je reviens.", "C'est bon, ils avaient même le tampon. On peut repartir."],
@@ -843,11 +845,19 @@ func _taxi_new_client() -> void:
 	var y := _ground(p.x, p.y, pts[pick + 2])
 	if _client and is_instance_valid(_client):
 		_client.queue_free()
-	var path := "res://assets/clients/client%d.glb" % (randi() % 4)
-	if ResourceLoader.exists(path):
-		_client = (load(path) as PackedScene).instantiate()
+	# clients faits avec MakeHuman (#55) : assets/clients/mh_<n>.glb (blender_makehuman.py), sexe et âge dans mh.json ;
+	# le même client quand on revient le chercher (#53)
+	_profil = {}
+	var mh: Array = JSON.parse_string(FileAccess.get_file_as_string("res://assets/clients/mh.json")) if FileAccess.file_exists("res://assets/clients/mh.json") else []
+	if not mh.is_empty():
+		var k := int(_rappel.get("modele", randi() % mh.size())) if _en_rappel else randi() % mh.size()
+		_profil = mh[k].duplicate()
+		_profil["modele"] = k
+		_client = (load("res://assets/clients/" + str(mh[k].fichier)) as PackedScene).instantiate()
+		_client.set_script(preload("res://scripts/pieton.gd"))
 	else:
-		_client = Node3D.new()
+		var path := "res://assets/clients/client%d.glb" % (randi() % 4)
+		_client = (load(path) as PackedScene).instantiate() if ResourceLoader.exists(path) else Node3D.new()
 	_client.position = Vector3(p.x, y, p.y)
 	_client.rotation.y = atan2(-side.x, -side.y)          # face à la route (+Z du modèle vers la chaussée)
 	main.add_child(_client)
@@ -891,9 +901,20 @@ func _taxi_process(dt: float) -> void:
 		if d < TAXI_STOP_R and slow:
 			_stop_t += dt
 			if _stop_t > 0.6:
-				_taxi_pickup()
+				_embarquer()
 		else:
 			_stop_t = 0.0
+	elif _phase == "embarque":
+		# le client marche jusqu'à la portière arrière droite ; s'il traîne (voiture repartie, obstacle) : 8 s au plus
+		_embarque_t += dt
+		var porte := car.global_transform * Vector3(-1.4, 0.0, -0.4)
+		if _client and is_instance_valid(_client) and "cible" in _client:
+			_client.cible = porte
+			if Vector2(_client.global_position.x, _client.global_position.z).distance_to(Vector2(porte.x, porte.z)) < 0.7 or _embarque_t > 8.0:
+				_teleport_fx(_client.global_position)
+				_taxi_pickup()
+		else:
+			_taxi_pickup()
 	elif _phase == "arret":
 		# le client fait sa course (#53) : le compteur tourne au tarif d'attente, rien ne presse
 		if _compteur:
@@ -938,6 +959,41 @@ func _taxi_process(dt: float) -> void:
 ## Note de conduite : les chocs seulement (#53 : pas de pression de temps, le retard ne compte plus).
 func _stars() -> int:
 	return clampi(5 - _shocks, 1, 5)
+
+## Arrêt près du client : il vient à la voiture à pied (#55), puis monte façon téléportation de Dragon Ball Z.
+func _embarquer() -> void:
+	_phase = "embarque"
+	_embarque_t = 0.0
+	_set_status("Le client arrive…")
+
+## Éclair de téléportation (#55) : colonne de lumière qui se resserre, flash, souffle bref.
+func _teleport_fx(p: Vector3) -> void:
+	var n := Node3D.new()
+	main.add_child(n)
+	n.global_position = p
+	var col := MeshInstance3D.new()
+	var cy := CylinderMesh.new(); cy.top_radius = 0.5; cy.bottom_radius = 0.5; cy.height = 2.6; cy.radial_segments = 12
+	col.mesh = cy
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(1.0, 0.98, 0.8)
+	col.material_override = m
+	col.position.y = 1.3
+	col.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	n.add_child(col)
+	var l := OmniLight3D.new(); l.light_color = Color(1.0, 0.95, 0.7); l.light_energy = 4.0; l.omni_range = 6.0
+	l.position.y = 1.2
+	n.add_child(l)
+	var son := AudioStreamPlayer3D.new()
+	son.stream = load("res://assets/sfx/teleport.ogg") if ResourceLoader.exists("res://assets/sfx/teleport.ogg") else null
+	son.bus = "Voiture"
+	n.add_child(son)
+	if son.stream:
+		son.play()
+	var tw := n.create_tween()
+	tw.tween_property(col, "scale", Vector3(0.05, 1.4, 0.05), 0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(l, "light_energy", 0.0, 0.35)
+	tw.tween_callback(n.queue_free).set_delay(0.5)
 
 func _taxi_pickup() -> void:
 	if _client and is_instance_valid(_client):
@@ -1009,13 +1065,13 @@ func _taxi_pickup() -> void:
 		_talk.dire("Ah, vous voilà ! " + str(_rappel.recit), 2.5)
 		_rappel = {}
 	else:
-		_talk.start_ride(hud.names.commune_at(car.global_position), p.n, p.c, str(p.get("k", "autre")))
+		_talk.start_ride(hud.names.commune_at(car.global_position), p.n, p.c, str(p.get("k", "autre")), {}, _profil)
 	if _arret >= 0:
 		_talk.dire(_arret_annonce)                     # juste après le bonjour (file des répliques)
 	if _sorte == "retour":
 		var mot: Array = RETOURS[randi() % RETOURS.size()]
 		_rappel = {"idx": _dest, "nom": _dest_name, "retour": _nearest(c), "retour_nom": _cl_nom if _cl_nom != "" else "son point de départ",
-			"recit": mot[1], "courses": 1, "client": {}}
+			"recit": mot[1], "courses": 1, "client": {}, "modele": _profil.get("modele", 0)}
 		_talk.dire(str(mot[0]))
 
 func _taxi_drop() -> void:
@@ -1047,7 +1103,20 @@ func _taxi_drop() -> void:
 		conv = "\nLa conversation n'a pas plu au client."
 	hud.toast("Course : %s + pourboire %s%s" % [_euros(fare), _euros(tip), conv], 5.0)
 	if _client and is_instance_valid(_client):
-		_client.queue_free()
+		if "cible" in _client:
+			# il réapparaît près de la portière et s'en va à pied vers sa destination (#55), puis disparaît
+			var cl := _client
+			var porte := car.global_transform * Vector3(-1.4, 0.0, -0.4)
+			cl.global_position = Vector3(porte.x, Relief.hauteur(porte), porte.z)
+			cl.visible = true
+			_teleport_fx(cl.global_position)
+			var loin := car.global_transform * Vector3(-12.0, 0.0, -4.0)
+			cl.cible = loin
+			get_tree().create_timer(9.0).timeout.connect(func():
+				if is_instance_valid(cl):
+					cl.queue_free())
+		else:
+			_client.queue_free()
 	_client = null
 	_phase = "pause"
 	get_tree().create_timer(3.0).timeout.connect(func():
