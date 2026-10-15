@@ -631,8 +631,8 @@ func _physics_process(_dt: float) -> void:
 			get_viewport().get_texture().get_image().save_png("user://shots/pied_%d.png" % t)
 		if t > 300 and t % 60 == 0 and pd.corps:
 			print("  [pied] t=%.1f pos %s, %.1f m de la voiture, au sol %s, voiture %.1f km/h" % [(t - 300) / 120.0, pd.corps.global_position, pd.corps.global_position.distance_to(car.global_position), pd.corps.is_on_floor(), car.kmh()])
-		if t == 300 + 900 and pd.corps:
-			pd.corps.global_position = car.global_transform * Vector3(1.6, 0.3, 0.4)
+		if t == 300 + 900:
+			print("  [pied] voiture figée : ", car.freeze, " position ", car.global_position)
 		if t == 300 + 960:
 			pd.basculer()
 			print("  [pied] remonté : ", not pd.actif, " voiture contrôlée ", car.controle)

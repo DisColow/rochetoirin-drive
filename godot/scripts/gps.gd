@@ -6,7 +6,7 @@ const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 signal open_map
 
-var car: VehicleBody3D
+var car: Node3D                    # la voiture, ou le piéton quand on marche (#66)
 var data
 var layers := []
 var overlay: Control
@@ -50,7 +50,8 @@ func _process_corps(_dt: float) -> void:
 	if f.length() < 0.01:
 		f = Vector2(0, -1)
 	# zoom selon la vitesse : 260 m de champ à l'arrêt, ~900 m à 130 km/h ; transition douce
-	var want: float = size.y / ((150.0 + car.kmh() * 2.5) if mini else (260.0 + car.kmh() * 5.0))
+	var kmh: float = car.kmh() if car.has_method("kmh") else 0.0          # piéton (#66) : pas de compteur
+	var want: float = size.y / ((150.0 + kmh * 2.5) if mini else (260.0 + kmh * 5.0))
 	# premier affichage (ouverture de la vue cockpit) : zoom juste d'emblée, sans glissement (issue #34)
 	_ppm = lerpf(_ppm, want, 0.05) if _vu else want
 	_vu = true

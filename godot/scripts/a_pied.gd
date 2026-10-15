@@ -39,10 +39,7 @@ func pres_de_la_voiture() -> bool:
 
 func basculer() -> void:
 	if actif:
-		if pres_de_la_voiture():
-			monter()
-		else:
-			main.get_node("HUD").toast("Approchez-vous de la voiture pour monter.", 2.5)
+		monter()                                       # d'où qu'on soit : retour direct dans la voiture
 	elif peut_sortir():
 		sortir()
 	else:
@@ -56,6 +53,10 @@ func sortir() -> void:
 	actif = true
 	car.controle = false
 	car.frein_parking = true
+	# voiture immobilisée tout à fait (en pente, les freins de VehicleBody3D la laissaient glisser : v6.53)
+	car.linear_velocity = Vector3.ZERO
+	car.angular_velocity = Vector3.ZERO
+	car.freeze = true
 	corps = CharacterBody3D.new()
 	corps.name = "Pieton"
 	var cs := CollisionShape3D.new()
@@ -81,13 +82,18 @@ func sortir() -> void:
 	cam.make_current()
 	corps.add_collision_exception_with(car)          # on peut se tenir contre la voiture sans être éjecté
 	main.suivre(corps)
+	var hud = main.get_node("HUD")
+	hud.gps.car = corps; hud.map.car = corps            # mini-carte et carte centrées sur le piéton
 	main.get_node("HUD").toast("À pied : GAZ / FREIN pour marcher, ◀ ▶ pour tourner, glissez pour regarder.", 4.0)
 
 func monter() -> void:
 	var car = main.car
 	actif = false
+	car.freeze = false
 	car.controle = true
 	car.frein_parking = false
+	var hud = main.get_node("HUD")
+	hud.gps.car = car; hud.map.car = car
 	main.suivre(car)
 	main.cam_rig.set_process(true)
 	main.cam_rig.cam.make_current()

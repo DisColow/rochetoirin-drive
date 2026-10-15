@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.52.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.52/RochetoirinSimulator-v6.52.apk)**
+**[RochetoirinSimulator-v6.53.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.53/RochetoirinSimulator-v6.53.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.52 :
-- **Départs des épreuves bien visibles** : colonne de lumière dorée et grand drapeau à damier.
-- **Saisie de texte réparée** : le clavier du téléphone ne disparaît plus à la première touche, et taper du texte ne
-  déclenche plus les raccourcis du jeu.
+Nouveautés de la v6.53 (correctif) :
+- **À pied : bouton « VOITURE »** pour revenir dans la voiture d'où qu'on soit.
+- La voiture ne peut plus partir toute seule quand on descend (immobilisée, même en pente).
+- À pied, la mini-carte et la carte sont centrées sur le piéton.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

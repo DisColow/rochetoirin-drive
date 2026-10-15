@@ -733,8 +733,8 @@ func _process_corps(_dt: float) -> void:
 		var pd = get_parent().get("pied")
 		if pd:
 			var a_pied: bool = pd.actif
-			b_pied.visible = _conduite and (pd.pres_de_la_voiture() if a_pied else pd.peut_sortir())
-			b_pied.text = "MONTER" if a_pied else "À PIED"
+			b_pied.visible = _conduite and (a_pied or pd.peut_sortir())
+			b_pied.text = ("MONTER" if pd.pres_de_la_voiture() else "VOITURE") if a_pied else "À PIED"
 			# à pied : plus de compteur ni de freins à l'écran
 			speed_panel.visible = _conduite and not a_pied
 			b_parking.visible = _conduite and not a_pied
