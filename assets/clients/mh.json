@@ -1,0 +1,52 @@
+[
+ {
+  "fichier": "mh_0.glb",
+  "sexe": "m",
+  "age": 30
+ },
+ {
+  "fichier": "mh_1.glb",
+  "sexe": "f",
+  "age": 28
+ },
+ {
+  "fichier": "mh_2.glb",
+  "sexe": "m",
+  "age": 70
+ },
+ {
+  "fichier": "mh_3.glb",
+  "sexe": "f",
+  "age": 66
+ },
+ {
+  "fichier": "mh_4.glb",
+  "sexe": "m",
+  "age": 45
+ },
+ {
+  "fichier": "mh_5.glb",
+  "sexe": "f",
+  "age": 22
+ },
+ {
+  "fichier": "mh_6.glb",
+  "sexe": "m",
+  "age": 20
+ },
+ {
+  "fichier": "mh_7.glb",
+  "sexe": "f",
+  "age": 41
+ },
+ {
+  "fichier": "mh_8.glb",
+  "sexe": "m",
+  "age": 55
+ },
+ {
+  "fichier": "mh_9.glb",
+  "sexe": "f",
+  "age": 35
+ }
+]
