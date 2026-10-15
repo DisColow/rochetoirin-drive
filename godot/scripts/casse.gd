@@ -24,10 +24,11 @@ const KINDS := {
 	"cloture": [0.1, "choc_bois_%d", 0.1, 0.0],
 	"haie": [0.2, "choc_bois_%d", 0.45, 3.0],
 	"muret": [0.38, "choc_dur_%d", 0.22, 7.0],
+	"grillage": [0.08, "choc_leger_%d", 0.1, 0.0],       # clôture d'emprise de l'autoroute (#76)
 }
 const LIGNES := ["cloture", "haie", "muret"]      # fences.genres
 # matière de chaque genre pour les sons de choc (audio.impact, issue #28)
-const MATIERE := {"panneau": "metal", "lampadaire": "metal", "arbre": "bois", "cloture": "bois", "haie": "haie", "muret": "dur"}
+const MATIERE := {"panneau": "metal", "lampadaire": "metal", "arbre": "bois", "cloture": "bois", "haie": "haie", "muret": "dur", "grillage": "metal"}
 
 var main: Node
 var car: VehicleBody3D
@@ -87,7 +88,7 @@ func _pas_corps(dt: float) -> void:
 	var inv := car.global_transform.affine_inverse()
 	for it in _proches:
 		match it[0]:
-			"cloture", "haie", "muret":
+			"cloture", "haie", "muret", "grillage":
 				if v.length() < float(KINDS[it[0]][3]):
 					continue
 				var a: Vector3 = it[1]; var b: Vector3 = it[2]
@@ -149,6 +150,13 @@ func _relever() -> void:
 							continue
 						vus[i] = true
 						_proches.append([LIGNES[G[i / 2]] if i / 2 < G.size() else "cloture", L[i], L[i + 1]])
+		# grillage d'emprise de l'autoroute (#76 : on passait au travers) : travées de 4 m, autoroute.gd
+		var au = main.get("autoroute") if main else null
+		if au and au.grillages.has(k):
+			var GA: PackedVector3Array = au.grillages[k]
+			for i in range(0, GA.size() - 1, 2):
+				if Vector2(GA[i].x - c.x, GA[i].z - c.z).length_squared() < R2:
+					_proches.append(["grillage", GA[i], GA[i + 1]])
 		if vegetation and vegetation.data.has(k):
 			var g: Dictionary = _grille_arbres(k)
 			var a: PackedFloat32Array = vegetation.data[k]
@@ -243,6 +251,10 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 			fences.breche(p, 1.9)
 			corps = _corps_cloture()
 			corps.global_position = p + Vector3(0, 0.7, 0)
+		"grillage":
+			_effacer(Vector4(p.x, p.z, 2.4, p.y - 0.3))
+			corps = _corps_cloture()
+			corps.global_position = p + Vector3(0, 0.9, 0)
 		"haie":
 			_effacer(Vector4(p.x, p.z, 2.1, p.y - 0.3))
 			fences.breche(p, 2.3)

@@ -20,7 +20,8 @@ def positions(path):
         if m.get("name") != "detail":
             continue
         for p in m["primitives"]:
-            if mats[p["material"]] != "metal":
+            # mâts des panneaux (« metal ») et des feux tricolores (« metal_dark », #68 : on passait au travers)
+            if mats[p["material"]] not in ("metal", "metal_dark"):
                 continue
             a = g["accessors"][p["attributes"]["POSITION"]]
             v = g["bufferViews"][a["bufferView"]]
@@ -31,7 +32,7 @@ def positions(path):
                 grp = pts[i:i + 18]
                 xs = [q[0] for q in grp]; zs = [q[2] for q in grp]; ys = [q[1] for q in grp]
                 r = (max(xs) - min(xs)) / 2
-                if r > 0.1 or max(zs) - min(zs) > 0.25:      # pas un mât (ou groupes décalés)
+                if r > 0.1 or max(zs) - min(zs) > 0.25 or max(ys) - min(ys) < 1.5:   # pas un mât (caisson, groupes décalés)
                     continue
                 out.append((sum(xs) / 18, min(ys), sum(zs) / 18, max(ys) - min(ys)))
     return out

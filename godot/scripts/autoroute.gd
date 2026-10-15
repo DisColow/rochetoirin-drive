@@ -37,6 +37,8 @@ var _last_t := -100.0
 var _bip: AudioStreamPlayer
 var tiles := {}
 var loaded := {}
+var grillages := {}                # tuile -> PackedVector3Array (travées du grillage d'emprise : a, b ; casse.gd, #76)
+const SPAN := 4.0                  # longueur d'une travée de modèle (build_autoroute.py SPAN)
 var meshes := []
 var _t := 0.0
 
@@ -124,6 +126,7 @@ func _process_corps(dt: float) -> void:
 			loaded[k].queue_free()
 			loaded.erase(k)
 			arms.erase(k)
+			grillages.erase(k)
 
 func _add(k: Vector2i) -> void:
 	if loaded.has(k):
@@ -157,7 +160,14 @@ func _add(k: Vector2i) -> void:
 				arms[k] = []
 			arms[k].append({"node": arm, "xf": xf, "site": int(f[o + 13]), "pay": f[o + 14] > 0.5, "a": 0.0, "hold": 0.0})
 			continue
-		if nm in ["peage", "grillage", "panneau_haut"]:
+		if nm == "grillage":
+			# travée de 4 m le long de l'axe x du modèle : segment cassable (#76, casse.gd), pas de collision dure
+			if not grillages.has(k):
+				grillages[k] = PackedVector3Array()
+			grillages[k].append(xf.origin)
+			grillages[k].append(xf * Vector3(SPAN, 0.0, 0.0))
+			continue
+		if nm in ["peage", "panneau_haut"]:
 			continue
 		var cs := CollisionShape3D.new()
 		var bs := BoxShape3D.new()
