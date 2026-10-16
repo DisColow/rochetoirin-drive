@@ -827,6 +827,69 @@ func _physics_process(_dt: float) -> void:
 			print("  [épreuves] activité « %s », épreuve %s, voiture déplacée de %.0f m, à %.0f m du départ" % [act.mode, e.get("nom", "?"), car.global_position.distance_to(get_meta("p0")), d])
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--armes-test"):
+		# #99 sans réseau : caisses posées devant, ramassage en roulant ; puis boule, onde, tornade tirées sur une cible
+		# d'essai (id -1) ; puis coups subis (vitesse avant/après) et bouclier (coup sans effet)
+		var A = net.armes
+		car.aide_voie = false
+		car.touch_steer = 0.0
+		var fwd := car.global_transform.basis.z
+		if t == 300:
+			var mc := MeshInstance3D.new()
+			var bm := BoxMesh.new(); bm.size = Vector3(1.8, 1.4, 4.2); mc.mesh = bm
+			var m := StandardMaterial3D.new(); m.albedo_color = Color(0.2, 0.4, 1.0); mc.material_override = m
+			add_child(mc)
+			mc.global_position = car.global_position + fwd * 200.0
+			A.set_meta("cibles", {-1: mc})
+			set_meta("cible", mc)
+			set_meta("p0", car.global_position)
+			A.demarrer([car.global_position + fwd * 10.0, car.global_position + fwd * 60.0])
+			print("  [armes] %d caisses posées (rangées de 3 à 35 m et 60 m devant)" % A._caisses.size())
+		if t >= 300 and t < 300 + 600:
+			car.touch_throttle = 0.5; car.touch_brake = 0.0
+			if A.arme != "" and not has_meta("ramasse"):
+				set_meta("ramasse", true)
+				print("  [armes] caisse ramassée à %.0f m du départ, %.0f km/h : arme « %s », bouton ARME visible %s" % [car.global_position.distance_to(get_meta("p0")), car.kmh(), A.arme, A._bouton.visible])
+		if t == 300 + 90:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/armes_caisses.png")
+		var cible: Node3D = get_meta("cible") if has_meta("cible") else null
+		var tirs := {600: ["boule", 30.0], 720: ["onde", 10.0], 840: ["tornade", 50.0]}
+		for dt0 in tirs:
+			if t == 300 + dt0:
+				car.touch_throttle = 0.0; car.touch_brake = 1.0
+				car.linear_velocity = Vector3.ZERO; car.freeze = true
+				cible.global_position = car.global_position + fwd * tirs[dt0][1]
+				A.arme = tirs[dt0][0]
+				A.tirer()
+			if t == 300 + dt0 + 25 and tirs[dt0][0] == "boule":
+				DirAccess.make_dir_recursive_absolute("user://shots")
+				get_viewport().get_texture().get_image().save_png("user://shots/armes_boule.png")
+			if t == 300 + dt0 + 100:
+				print("  [armes] %s tirée sur une cible à %.0f m : touchée %s" % [tirs[dt0][0], tirs[dt0][1], A.has_meta("touche_" + tirs[dt0][0])])
+		if t == 300 + 960:
+			car.freeze = false
+			A._effet_t = 0.0
+			set_meta("v1", car.linear_velocity)
+			A.subir("boule", fwd)
+			print("  [armes] boule subie : vitesse %s -> %s, rotation %.1f rad/s" % [get_meta("v1").snapped(Vector3.ONE * 0.1), car.linear_velocity.snapped(Vector3.ONE * 0.1), car.angular_velocity.length()])
+			set_meta("y1", car.global_position.y)
+		if t == 300 + 1020:
+			print("  [armes] 0,5 s après : %.1f m plus haut" % (car.global_position.y - get_meta("y1")))
+		if t == 300 + 1080:
+			car.linear_velocity = Vector3.ZERO; car.angular_velocity = Vector3.ZERO
+			A.arme = "bouclier"; A.tirer()
+			var v0 := car.linear_velocity
+			A.subir("boule", fwd)
+			print("  [armes] bouclier %.1f s : boule subie, vitesse %s -> %s (inchangée attendue)" % [A.bouclier_t, v0.snapped(Vector3.ONE * 0.1), car.linear_velocity.snapped(Vector3.ONE * 0.1)])
+		if t == 300 + 1110:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/armes_bouclier.png")
+		if t == 300 + 1140:
+			A.arreter()
+			print("  [armes] fin de course : %d caisses restantes, bouton visible %s" % [A._caisses.size(), A._bouton.visible])
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--nitro-test"):
 		# #98 : nitro 2 monté ; 4 s pleins gaz, puis 4 s pleins gaz + nitro : vitesse gagnée, jauge, recharge
 		car.aide_voie = false

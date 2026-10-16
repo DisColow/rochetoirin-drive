@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.53.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.53/RochetoirinSimulator-v6.53.apk)**
+**[RochetoirinSimulator-v6.59.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.59/RochetoirinSimulator-v6.59.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.58 :
-- **Garage** : allègement (jusqu'à -300 kg), barres anti-roulis, différentiel autobloquant, couleur des phares
-  (xénon, jaunes, violets), pare-buffle et galerie de toit.
-- **Correctif** : les pneus achetés au garage n'avaient aucun effet sur l'adhérence ; c'est réparé.
+Nouveautés de la v6.59 :
+- **Courses à armes en multijoueur** : l'hôte les active dans le menu Multijoueur ; des caisses « ? » sur le
+  parcours donnent une arme au hasard (boule de feu, onde de choc, bouclier, tornade), tirée avec le bouton ARME
+  (F au clavier, croix ↑ à la manette).
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

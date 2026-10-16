@@ -25,6 +25,8 @@ var _ecoute: PacketPeerUDP
 var _t := 0.0
 var _ta := 0.0
 var _course_res := []                 # [nom, temps]
+var armes_actives := false            # #99 : l'hôte a choisi les courses à armes
+var armes: Node                       # armes.gd
 
 func _ready() -> void:
 	var cfg := ConfigFile.new()
@@ -282,12 +284,43 @@ func _process(dt: float) -> void:
 func lancer_course(route: Array) -> void:
 	if hote():
 		_course_res = []
-		_course.rpc(route)
+		_course.rpc(route, armes_actives)
 
 @rpc("authority", "reliable")
-func _course(route: Array) -> void:
+func _course(route: Array, avec_armes := false) -> void:
+	armes_actives = avec_armes
 	if act:
 		act.course_reseau(route, rang())
+
+# ================================================================ courses à armes (#99, armes.gd)
+func subir_chez(id: int, type: String, dir: Vector3) -> void:
+	_subir.rpc_id(id, type, dir)
+
+@rpc("any_peer", "reliable")
+func _subir(type: String, dir: Vector3) -> void:
+	if armes:
+		armes.subir(type, dir)
+
+@rpc("any_peer", "unreliable")
+func tir_vu(p: Vector3, v: Vector3) -> void:
+	if armes:
+		armes._boule(p, v, false)
+
+@rpc("any_peer", "unreliable")
+func bouclier_vu(duree: float) -> void:
+	var id := multiplayer.get_remote_sender_id()
+	if autos.has(id):
+		var a: Node3D = autos[id]
+		var b: MeshInstance3D = a.get_meta("bulle") if a.has_meta("bulle") else null
+		if b == null:
+			b = MeshInstance3D.new()
+			var sm := SphereMesh.new(); sm.radius = 3.2; sm.height = 4.0
+			var m := StandardMaterial3D.new(); m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			m.albedo_color = Color(0.4, 0.8, 1.0, 0.35); m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_HASH
+			sm.material = m; b.mesh = sm; b.position = Vector3(0, 1.0, 0)
+			a.add_child(b); a.set_meta("bulle", b)
+		b.visible = true
+		get_tree().create_timer(duree).timeout.connect(func(): if is_instance_valid(b): b.visible = false)
 
 func rang() -> int:
 	var id := multiplayer.get_unique_id()

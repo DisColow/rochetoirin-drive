@@ -13,6 +13,14 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## v6.59 (16/10)
+- #99 : `scripts/armes.gd` (caisses « ? » sur le tracé, une arme à la fois, bouton ARME / F / croix ↑ ; boule, onde,
+  bouclier, tornade) ; net.gd : `armes_actives` envoyé avec la course, RPC `_subir`, `tir_vu`, `bouclier_vu` ;
+  bouton de l'hôte « Courses à armes » (menu Multijoueur). Ids : réseau > 0, cibles d'essai < 0, 0 = personne.
+  Essai sans réseau `--armes-test` (sur la ligne droite --drive-from=-8410.95,221,-7187.25,45.2). NON VÉRIFIÉ :
+  vraie partie à deux appareils.
+- À faire : #95 voitures (choix attendu) ; #84 sons (choix attendu) ; #96 logo/splash (images pas reçues).
+
 ## v6.58 (16/10)
 - #94 : catalogue garage + allegement, anti_roulis, differentiel, phares, pare_buffle, galerie (tuning.gd) ; car.gd
   `adherence` (bug : wheel_friction_slip réécrit à 2,6 à chaque pas, pneus sans effet), `anti_roulis`, `set_phares`.

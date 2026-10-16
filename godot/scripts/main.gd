@@ -363,6 +363,9 @@ func _ready() -> void:
 	net = preload("res://scripts/net.gd").new()
 	net.name = "Net"
 	net.main = self; net.car = car; net.act = activities
+	net.armes = preload("res://scripts/armes.gd").new()          # courses à armes (#99)
+	net.armes.main = self; net.armes.net = net; net.armes.car = car
+	add_child(net.armes)
 	add_child(net)
 	hud.teleport.connect(_teleport)
 	cam_rig.hud = hud

@@ -285,6 +285,8 @@ func _clear_world() -> void:
 	join_marks = false
 
 func _stop() -> void:
+	if main.net and main.net.armes:
+		main.net.armes.arreter()
 	_epreuve = -1
 	_rappel = {}
 	_arret = -1
@@ -380,6 +382,7 @@ func _net_menu() -> void:
 		_text(v, ("Vous hébergez la partie" if net.hote() else "Vous êtes dans une partie") + " : " + ", ".join(l) + ".")
 		if net.hote():
 			_text(v, "Adresse pour rejoindre : " + net.adresse() + ". Lancez une course (Activités > Course) : elle démarre pour tout le monde.", 24)
+			_btn(v, "Courses à armes : " + ("OUI (caisses « ? » sur le tracé)" if net.armes_actives else "non"), func(): net.armes_actives = not net.armes_actives; _net_menu())
 		else:
 			_text(v, "L'hôte lance les courses ; au taxi, chacun ses clients et un classement commun des gains.", 24)
 		_btn(v, "Quitter la partie", func(): net.quitter(); _net_menu())
@@ -534,6 +537,11 @@ func _course_start(rang := -1) -> void:
 	_phase = "depart"
 	_course_marks()
 	_course_beacons()
+	if main.net and main.net.armes and main.net.en_ligne() and main.net.armes_actives:
+		var pts3 := []
+		for i in _route:
+			pts3.append(_r3(i))
+		main.net.armes.demarrer(pts3)
 
 func _course_beacons() -> void:
 	for b in _beacons:
