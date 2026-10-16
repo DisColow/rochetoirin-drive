@@ -11,13 +11,13 @@ const DEPART := 300.0               # argent de départ (de quoi s'offrir une pr
 
 # rubrique : [nom affiché, famille, [[choix, prix en €], …]] ; le choix 0 est celui d'origine (gratuit)
 const CATALOGUE := {
-	"moteur": ["Moteur", "Technique", [["D'origine (300 kW)", 0], ["Stage 1 : +15 %", 400], ["Stage 2 : +30 %", 900], ["Stage 3 : +50 %", 1800]]],
+	"moteur": ["Moteur", "Technique", [["D'origine", 0], ["Stage 1 : +15 %", 400], ["Stage 2 : +30 %", 900], ["Stage 3 : +50 %", 1800]]],
 	"boite": ["Boîte de vitesses", "Technique", [["D'origine", 0], ["Rapports courts", 350], ["Boîte course", 800]]],
 	"suspension": ["Suspension", "Technique", [["D'origine", 0], ["Rabaissée (-7 cm)", 450], ["Rehaussée (+10 cm)", 450]]],
 	"freins": ["Freins", "Technique", [["D'origine", 0], ["Freins sport", 300], ["Freins course", 700]]],
-	"pneus": ["Pneus", "Technique", [["D'origine (tout-terrain)", 0], ["Route sport", 350], ["Semi-slicks", 800]]],
+	"pneus": ["Pneus", "Technique", [["D'origine", 0], ["Route sport", 350], ["Semi-slicks", 800]]],
 	# v6.58 (#94)
-	"allegement": ["Allègement", "Technique", [["D'origine (2 400 kg)", 0], ["Allègement 1 (-150 kg)", 500], ["Allègement 2 (-300 kg)", 1100]]],
+	"allegement": ["Allègement", "Technique", [["D'origine", 0], ["Allègement 1 (-6 %)", 500], ["Allègement 2 (-12 %)", 1100]]],
 	"anti_roulis": ["Barres anti-roulis", "Technique", [["D'origine", 0], ["Barres sport", 400], ["Barres course", 800]]],
 	"differentiel": ["Différentiel", "Technique", [["Ouvert", 0], ["Autobloquant (+8 % d'adhérence)", 650]]],
 	# nitro (#98) : jauge qui se vide en boostant, se recharge en roulant et en dérapant
@@ -57,16 +57,25 @@ func charger() -> void:
 	var c := ConfigFile.new()
 	if c.load(FICHIER) == OK:
 		argent = float(c.get_value("garage", "argent", DEPART))
-		possede = c.get_value("garage", "possede", {})
-		monte = c.get_value("garage", "monte", {})
 		medailles = c.get_value("garage", "medailles", {})
+		voitures = c.get_value("garage", "voitures", [Voitures.DEPART])
+		pieces = c.get_value("garage", "pieces", {})
+		# avant la v6.62 : une seule voiture, ses pièces directement dans « possede » et « monte »
+		if pieces.is_empty():
+			pieces[Voitures.DEPART] = {"possede": c.get_value("garage", "possede", {}), "monte": c.get_value("garage", "monte", {})}
+	if not voitures.has(Voitures.DEPART):
+		voitures.append(Voitures.DEPART)
+	voiture = Voitures.actuelle()
+	vue = voiture
+	_prendre_pieces()
 
 func sauver() -> void:
 	var c := ConfigFile.new()
 	c.set_value("garage", "argent", argent)
-	c.set_value("garage", "possede", possede)
-	c.set_value("garage", "monte", monte)
 	c.set_value("garage", "medailles", medailles)
+	c.set_value("garage", "voitures", voitures)
+	c.set_value("garage", "voiture", voiture)
+	c.set_value("garage", "pieces", pieces)
 	c.save(FICHIER)
 
 ## Choix affiché sur la voiture dans une rubrique : l'aperçu du garage, sinon la pièce montée (0 : d'origine).
@@ -103,3 +112,67 @@ func gagner(somme: float) -> void:
 
 static func euros(v: float) -> String:
 	return ("%.0f €" % v) if absf(v - roundf(v)) < 0.005 else ("%.2f €" % v).replace(".", ",")
+
+# ---------------------------------------------------------------- voitures (#95)
+const Voitures := preload("res://scripts/voitures.gd")
+var voitures: Array = [Voitures.DEPART]   # voitures achetées
+var voiture := Voitures.DEPART             # voiture conduite
+var pieces := {}                           # voiture -> {"possede": …, "monte": …} : chaque voiture a ses améliorations
+
+## « possede » et « monte » désignent les pièces de la voiture affichée (le reste du jeu n'a pas changé).
+func _prendre_pieces(id := "") -> void:
+	if id == "":
+		id = voiture
+	if not pieces.has(id):
+		if not a_voiture(id):
+			possede = {}; monte = {}        # voiture essayée au garage, pas achetée : rien n'est gardé
+			return
+		pieces[id] = {"possede": {}, "monte": {}}
+	possede = pieces[id].possede
+	monte = pieces[id].monte
+
+func a_voiture(id: String) -> bool:
+	return voitures.has(id)
+
+## Achète la voiture id (false si l'argent manque).
+func acheter_voiture(id: String) -> bool:
+	if a_voiture(id):
+		return true
+	var p := float(Voitures.CATALOGUE[id].prix)
+	if argent < p:
+		return false
+	argent -= p
+	voitures.append(id)
+	sauver()
+	change.emit()
+	return true
+
+## Voiture affichée : celle qu'on conduit, ou celle qu'on essaie au garage (car.gd la construit, tuning.gd remonte
+## ses pièces). conduire() prend le volant d'une voiture achetée (annoncée aux autres joueurs : voiture_changee).
+signal vue_changee(id: String)
+signal voiture_changee(id: String)
+var vue := Voitures.DEPART
+
+func voir(id: String) -> void:
+	if id == vue:
+		return
+	vue = id
+	apercu.clear()
+	_prendre_pieces(id)
+	vue_changee.emit(id)
+	change.emit()
+
+func conduire(id: String) -> void:
+	if not a_voiture(id):
+		return
+	var autre := id != voiture
+	voiture = id
+	voir(id)
+	sauver()
+	if autre:
+		voiture_changee.emit(id)
+	change.emit()
+
+## En quittant le garage : retour à la voiture conduite si on en essayait une autre.
+func fin_essai() -> void:
+	voir(voiture)

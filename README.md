@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.61.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.61/RochetoirinSimulator-v6.61.apk)**
+**[RochetoirinSimulator-v6.62.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.62/RochetoirinSimulator-v6.62.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,12 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.61 :
-- **Nouveau logo et nouvel écran de démarrage** : icône de l'application, illustration « Rochetoirin Drive » pendant
-  le chargement, avec les astuces par-dessus.
-- **Sons des chocs** : bois qui casse et verre brisé plus percutants, façon jeu vidéo.
+Nouveautés de la v6.62 :
+- **10 voitures à acheter au garage** (onglet « Voitures ») : Citrouille Deuche, Renaud Cinq, Tango, Clia, Espèce,
+  Lagune Break, Pijo 106, 206, 306 Maxi et Porc'Che 119 GT3 RS. On les essaie sur place, on les achète, puis on passe
+  de l'une à l'autre ; chacune a ses propres améliorations.
+- **Un habitacle en pixel art pour chaque voiture**. Celles qui n'ont pas de GPS gardent la mini-carte en vue
+  conducteur.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

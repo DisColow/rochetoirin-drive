@@ -50,11 +50,31 @@ const FONT := {
 	"R": "110101110101101", "N": "101111111111101", "D": "110101101101110", " ": "000000000000000",
 }
 
+## Habitacle de la voiture conduite (#95) : assets/cockpit/ pour le pick-up, assets/cockpit/<id>/ pour les autres
+## (build_cockpits.py). Rechargé quand on change de voiture au garage.
+var voiture := ""
+func charger(id: String) -> void:
+	voiture = id
+	var d := DIR if id == "ranger" or not FileAccess.file_exists(DIR + id + "/meta.json") else DIR + id + "/"
+	meta = JSON.parse_string(FileAccess.get_file_as_string(d + "meta.json"))
+	for n in ["dash", "glow", "glass", "top", "wheel", "pillar", "pine"]:
+		tex[n] = load(d + n + ".png")
+	if ecran:
+		var sc: Array = meta.get("screen_map", [314, 31, 48, 47])
+		ecran.size = Vector2(float(sc[2]), float(sc[3]))
+		ecran.visible = a_gps()
+		gps_ecran.visible = a_gps() and active
+	if mirror_vp:
+		var m: Array = meta.mirror
+		mirror_vp.size = Vector2i(int(m[2]), int(m[3]))
+
+## Écran GPS dans la planche (sinon la mini-carte du HUD reste affichée en vue conducteur, hud.gd).
+func a_gps() -> bool:
+	return meta.has("screen_map") or voiture == "ranger"
+
 func _ready() -> void:
 	layer = 0
-	meta = JSON.parse_string(FileAccess.get_file_as_string(DIR + "meta.json"))
-	for n in ["dash", "glow", "glass", "top", "wheel", "pillar", "pine"]:
-		tex[n] = load(DIR + n + ".png")
+	charger(car.voiture if car and car.get("voiture") else "ranger")
 	vp = SubViewport.new()
 	vp.disable_3d = true
 	vp.transparent_bg = true
@@ -108,6 +128,7 @@ func _ready() -> void:
 	mirror_cam.current = true
 	get_viewport().size_changed.connect(_resize)
 	_resize()
+	charger(voiture)
 	set_active(false)
 
 ## Regard au doigt : l'habitacle glisse avec la tête ; sur les côtés découverts, bas de portière.
@@ -142,7 +163,7 @@ func look_offset(yaw: float, pitch: float) -> void:
 ## affiché agrandi (view), donc l'écran est repéré en coordonnées de l'écran.
 signal ouvrir_carte
 func _input(e: InputEvent) -> void:
-	if not active or ecran == null:
+	if not active or ecran == null or not a_gps():
 		return
 	# un menu (activités, réglages, garage…) recouvre l'écran : le toucher est pour lui, pas pour le GPS (#70)
 	var hud = main.get_node_or_null("HUD") if main else null
@@ -171,7 +192,8 @@ func set_active(on: bool) -> void:
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
 	if gps_ecran:
 		gps_ecran.car = car
-		gps_ecran.visible = on
+		gps_ecran.visible = on and a_gps()
+		ecran.visible = a_gps()
 	mirror_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	if car and car.has_method("set_cockpit"):
 		car.set_cockpit(on)
@@ -184,6 +206,8 @@ func _process(dt: float) -> void:
 	PerfMon.note("cockpit", Time.get_ticks_usec() - t0_perf)
 
 func _process_corps(dt: float) -> void:
+	if car and String(car.get("voiture")) != voiture:
+		charger(String(car.get("voiture")))
 	if not active or car == null:
 		return
 	view.visible = not car.blown
@@ -345,6 +369,21 @@ func _px_text(ci: CanvasItem, p: Vector2, s: String, col: Color) -> void:
 				ci.draw_rect(Rect2(p.x + k % 3, p.y + k / 3, 1, 1), col)
 		p.x += 4
 
+func _px_big(ci: CanvasItem, p: Vector2, s: String, col: Color, k: int) -> void:
+	for ch in s:
+		var gl: String = FONT.get(ch, FONT[" "])
+		for i in 15:
+			if gl[i] == "1":
+				ci.draw_rect(Rect2(p.x + (i % 3) * k, p.y + (i / 3) * k, k, k), col)
+		p.x += 4 * k
+
+## Rapport affiché : la boîte simulée par le moteur sonore en a 10 ; une boîte manuelle en montre 5.
+func _rapport() -> int:
+	if main and main.get("sound") and main.sound.get("gear") != null:
+		var g := int(main.sound.gear) + 1
+		return clampi(ceili(g / 2.0), 1, 5) if String(meta.get("boite", "auto")) == "manuelle" else g
+	return 1
+
 func _needle(c: Vector2, r: float, a_deg: float, col: Color) -> void:
 	var a := deg_to_rad(a_deg)
 	var d := Vector2(sin(a), -cos(a))
@@ -359,13 +398,41 @@ func _draw_glow() -> void:
 	if night > 0.0:
 		glow.draw_texture(tex.glow, Vector2(0, dy), Color(1, 1, 1, night))
 	var G: Dictionary = meta.gauges
+	var mx: Dictionary = meta.get("maxi", {})
 	var nd := (Color(1.0, 0.42, 0.08) * amb).lerp(Color(1.0, 0.5, 0.15), night)
 	nd.a = 1.0
-	var s: Array = G.speed; var r: Array = G.rpm; var f: Array = G.fuel; var tp: Array = G.temp
-	_needle(Vector2(s[0], float(s[1]) + dy) + Vector2(0.5, 0.5), float(s[2]) - 2.5, -125.0 + 250.0 * clampf(_speed / 200.0, 0.0, 1.0), nd)
-	_needle(Vector2(r[0], float(r[1]) + dy) + Vector2(0.5, 0.5), float(r[2]) - 2.5, -125.0 + 250.0 * clampf(_rpm / 7000.0, 0.0, 1.0), nd)
-	_needle(Vector2(f[0], float(f[1]) + dy) + Vector2(0.5, 0.5), float(f[2]) - 2.0, 32.0, nd)
-	_needle(Vector2(tp[0], float(tp[1]) + dy) + Vector2(0.5, 0.5), float(tp[2]) - 2.0, -6.0 + sin(_clock * 0.05) * 3.0, nd)
+	var vmax := float(mx.get("speed", 200))
+	var rmax := float(mx.get("rpm", 7000))
+	for k in G:
+		var a: Array = G[k]
+		var c := Vector2(a[0], float(a[1]) + dy) + Vector2(0.5, 0.5)
+		match String(k):
+			"speed":
+				_needle(c, float(a[2]) - 2.5, -125.0 + 250.0 * clampf(_speed / vmax, 0.0, 1.0), nd)
+			"rpm":
+				_needle(c, float(a[2]) - 2.5, -125.0 + 250.0 * clampf(_rpm / rmax, 0.0, 1.0), nd)
+			"fuel":
+				_needle(c, float(a[2]) - 2.0, 32.0, nd)
+			_:
+				_needle(c, float(a[2]) - 2.0, -6.0 + sin(_clock * 0.05) * 3.0, nd)
+	# afficheur numérique de vitesse (Tango, Espèce, Clia, GT3) ; afficheur de course (306) : rapport et vitesse
+	if meta.has("digital"):
+		var dg: Array = meta.digital
+		var dc := Color(0.45, 1.0, 0.55) if not meta.has("course") else Color(1.0, 0.85, 0.3)
+		dc = dc.lerp(dc * amb, 1.0 - night); dc.a = 1.0
+		var txt := "%d" % roundi(absf(_speed))
+		var k := 2 if float(dg[3]) >= 12.0 else 1
+		var w := txt.length() * 4 * k - k
+		var p := Vector2(float(dg[0]) + (float(dg[2]) - w) / 2.0, float(dg[1]) + (float(dg[3]) - 5 * k) / 2.0 + dy)
+		if meta.has("course"):
+			p.y += 4.0
+			_px_text(glow, Vector2(float(dg[0]) + 4, float(dg[1]) + dy + 8), str(_rapport()), dc)
+		_px_big(glow, p, txt, dc, k)
+		if meta.has("course"):
+			var n := int(clampf(_rpm / 7000.0, 0.0, 1.0) * 12.0)
+			for i in n:
+				var col := Color(0.2, 1.0, 0.3) if i < 7 else (Color(1.0, 0.85, 0.1) if i < 10 else Color(1.0, 0.2, 0.1))
+				glow.draw_rect(Rect2(float(dg[0]) + 3 + i * 5, float(dg[1]) + 2 + dy, 3, 2), col)
 	glow.draw_texture(tex.glass, Vector2(0, dy))
 	# voyant vert des feux
 	var L: Array = meta.lamps
@@ -373,7 +440,7 @@ func _draw_glow() -> void:
 		var p: Array = L[0]
 		glow.draw_rect(Rect2(float(p[0]) - 2, float(p[1]) - 2 + dy, 5, 4), Color(0.2, 0.95, 0.3))
 	# heure sur l'autoradio
-	var lcd: Array = meta.lcd
+	var lcd: Array = meta.get("lcd", [-100, -100, 0, 0])
 	var hm: Array = [[12, 0], [17, 30], [20, 45], [23, 10]][_tod()]
 	var mins := int(hm[0]) * 60 + int(hm[1]) + int(_clock / 60.0)
 	var txt := "%2d:%02d" % [(mins / 60) % 24, mins % 60]
@@ -384,6 +451,13 @@ func _draw_glow() -> void:
 		lc = lc * amb * 0.8
 	lc.a = 1.0
 	_px_text(glow, Vector2(float(lcd[0]) + 6, float(lcd[1]) + 1 + dy), txt, lc)
+	# boîte manuelle : rapport engagé (moteur sonore)
+	if String(meta.get("boite", "auto")) == "manuelle":
+		var gp: Array = meta.gear
+		var gcm := Color(1.0, 0.75, 0.3) * (amb if night == 0.0 else Color.WHITE)
+		gcm.a = 1.0
+		_px_text(glow, Vector2(float(gp[0]) + 26, float(gp[1]) + dy - 1), "R" if car.reversing else str(_rapport()), gcm)
+		return
 	# lettre de la boîte automatique
 	var gpos: Array = meta.gear
 	var gi := 1 if car.reversing else (0 if absf(car.kmh()) < 0.5 and car.touch_throttle == 0.0 and Input.get_action_strength("accelerer") == 0.0 else 3)

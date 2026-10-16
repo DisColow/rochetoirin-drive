@@ -60,7 +60,6 @@ var _hold_t := 0.0
 var _hold_xf := Transform3D()   # points de route (x, z, y, cap) pour la remise sur la route
 
 func _ready() -> void:
-	mass = 2400.0
 	center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 	center_of_mass = Vector3(0, 0.22, 0)        # bas (moteur, plancher) : pas de basculement en virage
 	# pas d'amortissement générique (0,1 par défaut dans le projet = 7 kN à 130 km/h) : traînée aérodynamique réelle
@@ -68,54 +67,6 @@ func _ready() -> void:
 	linear_damp = 0.0
 	angular_damp = 0.6
 	continuous_cd = true
-	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/car/meta.json"))
-	_meta = meta
-	var body: Node3D = load("res://assets/car/body.glb").instantiate()
-	_body = body
-	body.rotation.y = PI          # modèle : avant vers -Z ; véhicule Godot : avant vers +Z
-	add_child(body)
-	_materials(body)
-	var cs := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	var bx: Array = meta.get("box", [1.76, 1.15, 4.24])
-	box.size = Vector3(bx[0], bx[1], bx[2])
-	cs.shape = box
-	cs.position = Vector3(0, float(meta.get("box_y", 0.95)), 0)
-	add_child(cs)
-	var wb: float = meta.wheelbase; var tr: float = meta.track
-	# v6.22 (« roues à moitié enfoncées ») : la roue du modèle ne fait que 0,53 m de diamètre (vrai Raptor : ~0,83 m)
-	# et la physique des roues de Godot la fait descendre de 4 à 8 cm sous le point de contact. Rayon physique
-	# 0,40 m, axe abaissé d'autant (caisse à la même hauteur), roue affichée agrandie un peu moins que le rayon
-	# physique : le bas du pneu touche juste le sol, le pneu remplit le passage de roue.
-	var r_mod: float = meta.radius
-	var r := 0.40
-	var ech_roue := (r - 0.045) / r_mod
-	var wheel_scene: PackedScene = load("res://assets/car/wheel.glb")
-	for i in 4:
-		var front := i < 2
-		var right := i % 2 == 0
-		var w := VehicleWheel3D.new()
-		w.position = Vector3((-1.0 if right else 1.0) * tr / 2, r_mod + 0.12 - (r - r_mod), (1.0 if front else -1.0) * wb / 2)
-		w.wheel_radius = r
-		w.suspension_travel = 0.24                   # suspensions Fox à grand débattement
-		w.suspension_stiffness = 38.0
-		w.suspension_max_force = 30000.0
-		w.damping_compression = 0.9
-		w.damping_relaxation = 1.4
-		w.wheel_friction_slip = 2.6
-		w.wheel_roll_influence = 0.03
-		w.use_as_steering = front
-		w.use_as_traction = true                     # 4 roues motrices
-		var v: Node3D = wheel_scene.instantiate()
-		_materials(v)
-		v.rotation.y = 0.0 if right else PI
-		v.scale = Vector3(1.1, ech_roue, ech_roue)
-		w.add_child(v)
-		add_child(w)
-		wheels.append(w)
-	for n in body.find_children("*", "MeshInstance3D", true, false):
-		n.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	_steering_wheel(meta)
 	# ombre douce de contact sous la caisse (le soleil seul laisse la voiture « flotter » quand il est haut)
 	var gr := Gradient.new()
 	gr.set_color(0, Color(0, 0, 0, 0.62)); gr.set_color(1, Color(0, 0, 0, 0.0))
@@ -128,13 +79,121 @@ func _ready() -> void:
 	sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR    # v6.19 : sans mélange (ALPHA_HASH absent en Compatibility)
 	sm.albedo_texture = gt
 	sm.render_priority = -1
-	var pm := PlaneMesh.new(); pm.size = Vector2(2.3, 4.9)
 	var blob := MeshInstance3D.new()
-	blob.mesh = pm; blob.material_override = sm
+	blob.mesh = PlaneMesh.new(); blob.material_override = sm
 	blob.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	blob.position = Vector3(0, 0.05, 0)
 	add_child(blob)
 	_blob = blob
+	construire(preload("res://scripts/voitures.gd").actuelle())
+
+## Voiture du joueur (#95) : caisse, roues, boîte de collision, volant et réglages de la voiture « id » du catalogue
+## (voitures.gd) ; appelée au démarrage et quand on change de voiture au garage (l'ancienne est retirée).
+var voiture := ""
+var fiche := {}                          # entrée du catalogue
+var gabarit := Vector3(2.0, 1.75, 5.4)   # largeur, hauteur, longueur : pièces du garage mises à l'échelle (tuning.gd)
+var base_puissance := POWER              # d'origine, avant les améliorations du garage
+var base_force := ENGINE
+var base_vmax := MAX_KMH
+var base_masse := 2400.0
+var cx := DRAG
+var n_motrices := 4.0                    # roues motrices (engine_force s'applique à chacune)
+var k_frein := 1.0                       # freins des roues à l'échelle de la masse (réglés pour les 2 400 kg du pick-up)
+var _cs: CollisionShape3D
+
+func construire(id: String) -> void:
+	var V := preload("res://scripts/voitures.gd")
+	if not V.CATALOGUE.has(id):
+		id = V.DEPART
+	voiture = id
+	fiche = V.CATALOGUE[id]
+	var dossier := String(fiche.dossier)
+	var ranger := id == "ranger"
+	# l'ancienne voiture
+	if _body:
+		remove_child(_body); _body.queue_free(); _body = null
+	for w in wheels:
+		remove_child(w); w.queue_free()
+	wheels.clear()
+	if _cs:
+		remove_child(_cs); _cs.queue_free()
+	if _wheel_node:
+		remove_child(_wheel_node); _wheel_node.queue_free(); _wheel_node = null
+	for b in _beams:
+		b.queue_free()
+	_beams.clear()
+	_paint_mat = null; _lamp_mat = null; _tail_mat = null
+	# fiche technique
+	base_masse = float(fiche.masse)
+	mass = base_masse
+	base_puissance = float(fiche.kw) * 1000.0
+	# force au démarrage (limite d'adhérence) d'après le rapport poids/puissance : 2 CV ≈ 2,5 m/s², GT3 ≈ 10 m/s²
+	base_force = ENGINE if ranger else base_masse * (1.2 + 0.035 * base_puissance / base_masse)
+	n_motrices = 4.0 if String(fiche.traction) == "4x4" else 2.0
+	k_frein = base_masse / 2400.0
+	base_vmax = float(fiche.vmax)
+	cx = float(fiche.cx)
+	puissance = base_puissance; force_max = base_force; vmax = base_vmax
+	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dossier + "/meta.json"))
+	_meta = meta
+	if meta.has("dims"):
+		gabarit = Vector3(float(meta.dims[1]), float(meta.dims[2]), float(meta.dims[0]))
+	else:
+		gabarit = Vector3(2.0, 1.75, 5.4)
+	var body: Node3D = load(dossier + "/body.glb").instantiate()
+	_body = body
+	body.rotation.y = PI          # modèle : avant vers -Z ; véhicule Godot : avant vers +Z
+	add_child(body)
+	_materials(body)
+	if meta.get("couleur") is Array and _paint_mat:
+		_paint_mat.albedo_color = Color(float(meta.couleur[0]), float(meta.couleur[1]), float(meta.couleur[2]))
+	_cs = CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	var bx: Array = meta.get("box", [1.76, 1.15, 4.24])
+	box.size = Vector3(bx[0], bx[1], bx[2])
+	_cs.shape = box
+	_cs.position = Vector3(0, float(meta.get("box_y", 0.95)), 0)
+	add_child(_cs)
+	var wb: float = meta.wheelbase; var tr: float = meta.track
+	# v6.22 (« roues à moitié enfoncées ») : la roue du modèle du pick-up ne fait que 0,53 m de diamètre (vrai Raptor :
+	# ~0,83 m) et la physique des roues de Godot la fait descendre de 4 à 8 cm sous le point de contact. Rayon physique
+	# 0,40 m, axe abaissé d'autant (caisse à la même hauteur), roue affichée agrandie un peu moins que le rayon
+	# physique : le bas du pneu touche juste le sol, le pneu remplit le passage de roue. Autres voitures (#95) : roue
+	# du modèle à la bonne taille, rayon physique = rayon du modèle + 4,5 cm d'enfoncement.
+	var r_mod: float = meta.radius
+	var r := 0.40 if ranger else r_mod + 0.045
+	var ech_roue := (r - 0.045) / r_mod
+	var leger := base_masse / 2400.0
+	var wheel_scene: PackedScene = load(dossier + "/wheel.glb")
+	var trac := String(fiche.traction)
+	for i in 4:
+		var front := i < 2
+		var right := i % 2 == 0
+		var w := VehicleWheel3D.new()
+		w.position = Vector3((-1.0 if right else 1.0) * tr / 2, r_mod + (0.12 if ranger else 0.08) - (r - r_mod), (1.0 if front else -1.0) * wb / 2)
+		w.wheel_radius = r
+		w.suspension_travel = 0.24 if ranger else 0.16     # pick-up : suspensions Fox à grand débattement
+		w.suspension_stiffness = 38.0 if ranger else 48.0
+		w.suspension_max_force = 30000.0 * maxf(leger, 0.35)
+		w.damping_compression = 0.9
+		w.damping_relaxation = 1.4
+		w.wheel_friction_slip = adherence
+		w.wheel_roll_influence = 0.03
+		w.use_as_steering = front
+		w.use_as_traction = trac == "4x4" or (trac == "avant") == front
+		var v: Node3D = wheel_scene.instantiate()
+		_materials(v)
+		v.rotation.y = 0.0 if right else PI
+		v.scale = Vector3(1.1 if ranger else 1.0, ech_roue, ech_roue)
+		w.add_child(v)
+		add_child(w)
+		wheels.append(w)
+	for n in body.find_children("*", "MeshInstance3D", true, false):
+		n.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	_steering_wheel(meta)
+	(_blob.mesh as PlaneMesh).size = Vector2(gabarit.x * 1.15, gabarit.z * 0.91)
+	if tuning:
+		tuning.lier()
 	# le sprite pixel art (option masquée depuis la v6.0) n'est construit qu'à la demande : ses 4 planches non
 	# compressées occupaient ~170 Mo de mémoire vidéo pour rien (cause probable de l'image figée, v6.5)
 
@@ -593,19 +652,19 @@ func _physics_process(dt: float) -> void:
 		if thr > 0.1 and thr > brk:
 			# en reculant, GAZ freine (puis repart en avant, voir plus haut)
 			engine_force = 0.0
-			brake = BRAKE * freinage * thr
+			brake = BRAKE * k_frein * freinage * thr
 		else:
 			# (v6.56, #91 : 25 km/h et demi-force avant, on reculait trop lentement)
-			engine_force = -force_max * 0.75 / 4.0 * brk if spd < 45.0 else 0.0
+			engine_force = -force_max * 0.75 / n_motrices * brk if spd < 45.0 else 0.0
 			brake = 0.0
 	else:
 		# boîte auto : force limitée par la puissance (F = P / v), coupée à la vitesse max
-		# (engine_force s'applique à chacune des 4 roues motrices)
-		var f := thr * minf(force_max, puissance / maxf(absf(v), 1.0)) / 4.0
+		# (engine_force s'applique à chacune des roues motrices : 4 sur le pick-up, 2 sur les tractions et propulsions)
+		var f := thr * minf(force_max, puissance / maxf(absf(v), 1.0)) / n_motrices
 		if spd > vmax:
 			f = 0.0
 		engine_force = f if brk < 0.1 or thr > brk else 0.0
-		brake = BRAKE * freinage * brk + (2.0 if thr < 0.05 and spd < 3.0 and brk < 0.1 else 0.0)
+		brake = BRAKE * k_frein * freinage * brk + (2.0 if thr < 0.05 and spd < 3.0 and brk < 0.1 else 0.0)
 	_nitro(dt, thr, v, spd)
 	# frein à main (#64) : roues arrière bloquées et moins d'adhérence derrière (dérapage), moteur débrayé ; frein de
 	# parking : toutes les roues bloquées, moteur coupé
@@ -615,10 +674,10 @@ func _physics_process(dt: float) -> void:
 	if fm > 0.3 or frein_parking:
 		engine_force = 0.0
 		if frein_parking:
-			brake = BRAKE * 2.0
+			brake = BRAKE * k_frein * 2.0
 		else:
 			for w in wheels:
-				w.brake = BRAKE * 1.6 * fm if not w.use_as_steering else w.brake
+				w.brake = BRAKE * k_frein * 1.6 * fm if not w.use_as_steering else w.brake
 	# aide au freinage (pédale opposée au sens de marche), seulement roues au sol
 	var pedale := thr if reversing else brk
 	if pedale > 0.1 and linear_velocity.length() > 0.5 and wheels.any(func(w): return w.is_in_contact()):
@@ -629,7 +688,7 @@ func _physics_process(dt: float) -> void:
 	if thr < 0.05 and not reversing:
 		apply_central_force(-linear_velocity * 25.0)
 	# traînée aérodynamique et résistance au roulement (pneus tout-terrain BFGoodrich KO2)
-	apply_central_force(-linear_velocity * linear_velocity.length() * DRAG)
+	apply_central_force(-linear_velocity * linear_velocity.length() * cx)
 	if linear_velocity.length() > 0.5:
 		apply_central_force(-linear_velocity.normalized() * mass * 9.81 * 0.015)
 	var side := global_transform.basis.x

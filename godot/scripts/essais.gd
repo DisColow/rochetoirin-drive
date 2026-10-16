@@ -827,6 +827,100 @@ func _physics_process(_dt: float) -> void:
 			print("  [épreuves] activité « %s », épreuve %s, voiture déplacée de %.0f m, à %.0f m du départ" % [act.mode, e.get("nom", "?"), car.global_position.distance_to(get_meta("p0")), d])
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--garage-voitures-test"):
+		# #95 : garage, onglet Voitures : essai de la GT3 (pas achetée), retour au pick-up en sortant ; puis achat de la
+		# Twingo et volant pris ; captures garage_voitures_*.png
+		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0
+		var act = activities
+		if t >= 300:
+			car.linear_velocity = Vector3.ZERO; car.freeze = true      # l'essai de conduite ne doit pas la faire rouler
+		if t == 300:
+			garage.voitures = ["ranger"]               # profil d'essai : seul le pick-up est à nous
+			garage.conduire("ranger")
+			garage.argent = 3000.0
+			act._garage()
+		var g = act._menu
+		if t == 360:
+			g.famille = "Voitures"; g._remplir()
+			garage.voir("gt3"); g._maj()
+			print("  [garage] essai : voiture affichée %s, conduite %s, bouton « %s »" % [car.voiture, garage.voiture, g._action.text])
+		if t == 480:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/garage_voitures_essai.png")
+		if t == 540:
+			g.fermer()
+			print("  [garage] sortie sans acheter : voiture %s, argent %.0f €" % [car.voiture, garage.argent])
+		if t == 600:
+			act._garage()
+		if t == 660:
+			g.famille = "Voitures"; g._remplir()
+			garage.voir("twingo"); g._maj()
+			g._acheter()
+			print("  [garage] Tango achetée : voiture %s, conduite %s, argent %.0f €, voitures %s" % [car.voiture, garage.voiture, garage.argent, garage.voitures])
+		if t == 780:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/garage_voitures_achat.png")
+		if t == 840:
+			g.fermer()
+			print("  [garage] sortie : voiture %s (gardée dans user://garage.cfg : %s)" % [car.voiture, preload("res://scripts/voitures.gd").actuelle()])
+			garage.voitures = ["ranger"]; garage.conduire("ranger")
+			get_tree().quit()
+		return
+	if OS.get_cmdline_user_args().has("--voitures-test"):
+		# #95 : chaque voiture du garage (achetée d'office), sur la longue ligne droite : 2,5 s pleins gaz (vitesse,
+		# 4 roues au sol, garde au sol), puis capture de côté ; on revient au pick-up à la fin
+		var V := preload("res://scripts/voitures.gd")
+		var ids: Array = V.ordre().filter(func(i): return ResourceLoader.exists(String(V.CATALOGUE[i].dossier) + "/body.glb"))
+		var k := (t - 300) / 560
+		var u := (t - 300) % 560
+		car.aide_voie = false
+		car.touch_steer = 0.0
+		if t < 300:
+			return
+		if k >= ids.size():
+			garage.conduire("ranger")
+			get_tree().quit()
+			return
+		var id: String = ids[k]
+		if u == 0:
+			if not has_meta("depart"):
+				set_meta("depart", car.global_transform)
+			if not garage.a_voiture(id):
+				garage.voitures.append(id)
+			garage.conduire(id)
+			car.freeze = false
+			car.global_transform = get_meta("depart")
+			car.linear_velocity = Vector3.ZERO; car.angular_velocity = Vector3.ZERO
+			cam_rig.set_process(true)
+			cam_rig.set_mode(0)
+		car.touch_throttle = 1.0 if u > 60 and u < 360 else 0.0
+		car.touch_brake = 0.0 if u < 360 else 1.0
+		if u == 360:
+			var sol := 0
+			for w in car.wheels:
+				sol += 1 if (w as VehicleWheel3D).is_in_contact() else 0
+			var q := PhysicsRayQueryParameters3D.create(car.global_position + Vector3(0, 3, 0), car.global_position - Vector3(0, 3, 0))
+			q.exclude = [car.get_rid()]
+			var hit := get_world_3d().direct_space_state.intersect_ray(q)
+			var garde: float = car.global_position.y - (float(hit.position.y) if not hit.is_empty() else 0.0)
+			print("  [voitures] %-24s 2,5 s pleins gaz : %3.0f km/h · roues au sol %d/4 · origine à %.2f m du sol · masse %.0f kg · %d ch" % [
+				V.CATALOGUE[id].nom, car.kmh(), sol, garde, car.mass, roundi(car.puissance / 735.5)])
+		if u == 380:
+			car.linear_velocity = Vector3.ZERO; car.freeze = true
+			var xf := car.global_transform
+			cam_rig.set_process(false)
+			cam_rig.cam.global_position = xf.origin + xf.basis.x * 6.5 + xf.basis.z * 1.5 + Vector3(0, 1.4, 0)
+			cam_rig.cam.look_at(xf.origin + Vector3(0, 0.7, 0), Vector3.UP)
+		if u == 460:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/voiture_%s.png" % id)
+		if u == 470:
+			cam_rig.set_process(true)
+			cam_rig.set_mode(1)                          # vue conducteur : habitacle en pixel art de la voiture (#95)
+		if u == 540:
+			print("  [voitures] %-24s vue conducteur : écran GPS %s, mini-carte %s" % [V.CATALOGUE[id].nom, cockpit.a_gps(), get_node("HUD").gps.visible])
+			get_viewport().get_texture().get_image().save_png("user://shots/cockpit_%s.png" % id)
+		return
 	if OS.get_cmdline_user_args().has("--sons-test"):
 		# #84 : choc contre du dur à 12,5 m/s (seuil du verre : 11) et bois cassé, appelés directement ; avec --sons-log
 		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0

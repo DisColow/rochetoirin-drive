@@ -224,7 +224,9 @@ func _physics_process(dt: float) -> void:
 	var pedal := brk if car.reversing else thr            # en marche arrière, c'est FREIN qui fait reculer
 	_load = move_toward(_load, 0.0 if shifting else pedal, dt * (6.0 if pedal > _load else 3.0))
 	# boucles : les deux qui encadrent la fréquence d'allumage voulue, fondu à puissance constante (en log)
-	var f := rpm / 30.0
+	# voiture du garage (#95) : moteur plus aigu ou plus grave (2 CV bicylindre, GT3 flat-six…)
+	var fiche = car.get("fiche")
+	var f := rpm / 30.0 * (float(fiche.get("moteur", 1.0)) if fiche is Dictionary else 1.0)
 	var n := _loops.size()
 	var gains := []
 	gains.resize(n)

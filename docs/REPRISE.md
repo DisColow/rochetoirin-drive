@@ -13,6 +13,13 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## v6.62 (16/10)
+- #95 livré (voir la section « Voitures du garage » de CLAUDE.md) : 10 voitures, faux logos, Laguna peinte, cockpits,
+  mini-carte sans GPS, voiture des autres joueurs. Essais `--voitures-test`, `--garage-voitures-test`.
+- Idées de suite : cockpits encore plus détaillés (celui du pick-up reste le plus fin), son de moteur propre à
+  chaque voiture (aujourd'hui : même enregistrement, plus aigu ou plus grave), Espace : quelques taches sombres
+  de la simplification du modèle.
+
 ## v6.61 (16/10)
 - #84 : sons 4B (bois) et 5B (verre) de la 2e série : `pipeline/compo_chocs.py` (composites, sources du scratchpad)
   -> `data/sons/compo_4_B.wav`, `compo_5_B.wav` -> `build_sons.py` (`bois_casse_0-2`, `verre_0-1`). Essai

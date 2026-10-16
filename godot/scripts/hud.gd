@@ -320,7 +320,12 @@ func _open_settings() -> void:
 	var cb := Button.new(); cb.text = "Crédits"; cb.custom_minimum_size = Vector2(0, 64)
 	cb.add_theme_font_size_override("font_size", 28)
 	var cr := Label.new()
-	cr.text = CREDITS
+	# voitures du garage (#95) : modèles Sketchfab sous licence CC BY 4.0
+	var vc := []
+	var V := preload("res://scripts/voitures.gd")
+	for id in V.ordre():
+		vc.append("%s : %s" % [V.CATALOGUE[id].nom, V.CATALOGUE[id].credit])
+	cr.text = CREDITS + "\nVoitures du garage (Sketchfab, noms et logos parodiés) : " + " ; ".join(vc) + "."
 	cr.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	cr.custom_minimum_size = Vector2(900, 0)
 	cr.add_theme_font_size_override("font_size", 20)
@@ -749,7 +754,7 @@ func _process_corps(_dt: float) -> void:
 	_update_leds()
 	# vue cockpit : la mini-carte disparaît, le GPS de la planche de bord la remplace (#60)
 	var ck = get_parent().get("cockpit")
-	var gps_vu: bool = _conduite and not (ck != null and ck.active)
+	var gps_vu: bool = _conduite and not (ck != null and ck.active and ck.a_gps())     # voiture sans GPS : mini-carte (#95)
 	if gps.visible != gps_vu:
 		gps.visible = gps_vu
 	if b_parking and car:

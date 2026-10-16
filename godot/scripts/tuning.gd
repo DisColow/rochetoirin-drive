@@ -40,13 +40,26 @@ func _ready() -> void:
 	_peinture = ShaderMaterial.new()
 	_peinture.shader = preload("res://scripts/carrosserie.gdshader")
 	_peinture.set_shader_parameter("vin_tex", load("res://assets/garage/vinyles.png"))
+	_verre = StandardMaterial3D.new()
+	_verre.metallic = 0.6; _verre.roughness = 0.04
+	lier()
+	garage.vue_changee.connect(func(id: String) -> void:
+		car.construire(id)              # appelle lier()
+		appliquer())
+	garage.change.connect(appliquer)
+	appliquer()
+
+## Peinture du garage et vitres posées sur la caisse de la voiture conduite, roues d'origine retenues (jantes,
+## suspension) ; refait quand on change de voiture (#95). Les pièces posées sont refaites à l'échelle de la voiture.
+func lier() -> void:
+	if _peinture == null:
+		return                          # car.construire() au démarrage, avant le _ready de tuning
 	var origine: Material = car.get("_paint_mat")
 	if origine:
 		_peinture.next_pass = origine.next_pass                # faces intérieures sombres (vue conducteur)
-	_verre = StandardMaterial3D.new()
-	_verre.metallic = 0.6; _verre.roughness = 0.04
 	var corps: Node3D = car.get("_body")
 	var inv := car.global_transform.affine_inverse()
+	_peint = false
 	for mi in corps.find_children("*", "MeshInstance3D", true, false):
 		var m3 := mi as MeshInstance3D
 		var vers := inv * m3.global_transform
@@ -55,13 +68,25 @@ func _ready() -> void:
 			if m3.get_surface_override_material(s) == origine or nm == "paint":
 				_peinture.set_shader_parameter("vers_voiture", Projection(vers))
 				m3.set_surface_override_material(s, _peinture)
+				_peint = true
 			elif nm == "glass":
 				m3.set_surface_override_material(s, _verre)
+	_roues_origine.clear(); _roues_y.clear()
 	for w in car.wheels:
 		_roues_origine.append(w.get_child(0))
 		_roues_y.append(w.position.y)
-	garage.change.connect(appliquer)
-	appliquer()
+	for r in _pieces.keys():
+		_pieces[r].queue_free()
+	_pieces.clear()
+	if _neon:
+		_neon.queue_free(); _neon = null
+
+## Pièces du garage dessinées pour le pick-up (repère du Raptor) : ramenées au gabarit des autres voitures.
+func _echelle() -> Vector3:
+	var g: Vector3 = car.get("gabarit")
+	return Vector3(g.x / 2.0, g.y / 1.75, g.z / 5.4)
+
+var _peint := false                 # la voiture a une carrosserie « paint » (sinon, peinture d'origine texturée)
 
 func _process(dt: float) -> void:
 	_t -= dt
@@ -83,9 +108,9 @@ func mouille(w: float) -> void:
 func appliquer() -> void:
 	# technique
 	var mo: Array = MOTEUR[garage.choix("moteur")]
-	car.puissance = car.POWER * float(mo[0])
-	car.vmax = float(mo[1])
-	car.force_max = car.ENGINE * BOITE[garage.choix("boite")]
+	car.puissance = car.base_puissance * float(mo[0])
+	car.vmax = car.base_vmax * float(mo[1]) / 230.0
+	car.force_max = car.base_force * BOITE[garage.choix("boite")]
 	car.freinage = FREINS[garage.choix("freins")]
 	car.nitro_niveau = garage.choix("nitro")
 	var su: Array = SUSP[garage.choix("suspension")]
@@ -97,14 +122,14 @@ func appliquer() -> void:
 		w.damping_relaxation = su[3]
 		w.wheel_friction_slip = PNEUS[garage.choix("pneus")]
 	car.adherence = PNEUS[garage.choix("pneus")] * (1.08 if garage.choix("differentiel") > 0 else 1.0)
-	car.mass = 2400.0 - [0.0, 150.0, 300.0][garage.choix("allegement")]
+	car.mass = car.base_masse * [1.0, 0.9375, 0.875][garage.choix("allegement")]
 	car.anti_roulis = [1.0, 1.35, 1.7][garage.choix("anti_roulis")]
 	car.set_phares([Color(1.0, 0.93, 0.78), Color(0.75, 0.88, 1.0), Color(1.0, 0.82, 0.35), Color(0.75, 0.5, 1.0)][garage.choix("phares")])
 	# peinture et vitres
-	_peinture.set_shader_parameter("couleur", Garage.COULEURS[garage.choix("couleur")])
+	_peinture.set_shader_parameter("couleur", couleur())
 	var vi: int = garage.choix("vinyle")
 	_peinture.set_shader_parameter("vinyle", vi)
-	var clair: bool = Garage.COULEURS[garage.choix("couleur")].get_luminance() > 0.45
+	var clair: bool = couleur().get_luminance() > 0.45
 	_peinture.set_shader_parameter("vin_col", Color(0.05, 0.05, 0.06) if clair else Color(0.95, 0.95, 0.95))
 	_finition()
 	_verre.albedo_color = VITRES[garage.choix("vitres")]
@@ -124,6 +149,14 @@ func appliquer() -> void:
 	if audio and "echappement" in audio:
 		audio.echappement = garage.choix("echappement") > 0
 
+## Couleur de la carrosserie : choix du garage ; « d'origine » (choix 0) = teinte du modèle (#95), noir pour le pick-up.
+func couleur() -> Color:
+	var i: int = garage.choix("couleur")
+	var m: Dictionary = car.get("_meta")
+	if i == 0 and m.get("couleur") is Array:
+		return Color(float(m.couleur[0]), float(m.couleur[1]), float(m.couleur[2]))
+	return Garage.COULEURS[i]
+
 func _finition() -> void:
 	var f: int = garage.choix("finition")
 	# [métal, rugosité, vernis, rugosité du vernis, nacre]
@@ -134,7 +167,7 @@ func _finition() -> void:
 	_peinture.set_shader_parameter("vernis_rug", lerpf(p[3], 0.02, _mouille))
 	_peinture.set_shader_parameter("nacre", p[4])
 	if f == 3:   # chromé : la couleur teinte le reflet
-		_peinture.set_shader_parameter("couleur", Garage.COULEURS[garage.choix("couleur")].lerp(Color(0.85, 0.86, 0.88), 0.55))
+		_peinture.set_shader_parameter("couleur", couleur().lerp(Color(0.85, 0.86, 0.88), 0.55))
 
 # ---------------------------------------------------------------- néons
 func _neons(i: int) -> void:
@@ -162,6 +195,7 @@ func _neons(i: int) -> void:
 			mi.rotation.x = PI / 2; mi.position = Vector3(sx, 0.12, -0.1)
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			n.add_child(mi)
+		n.scale = _echelle()
 		car.add_child(n)
 		_pieces["neons"] = n
 	_neon.light_color = col
@@ -181,12 +215,13 @@ func _poser(r: String, n_choix: int, faire: Callable) -> void:
 		else:
 			n = faire.call()
 		n.set_meta("choix", n_choix)
+		n.scale = _echelle()
 		for g in n.find_children("*", "GeometryInstance3D", true, false):
 			(g as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		car.add_child(n)
 		_pieces[r] = n
 	if _pieces.has(r) and r in ["prise_air", "bas_caisse", "aileron"]:
-		var col: Color = Garage.COULEURS[garage.choix("couleur")]
+		var col: Color = couleur()
 		for mi in _pieces[r].find_children("*", "MeshInstance3D", true, false):
 			if mi.has_meta("peinte"):
 				(mi.material_override as StandardMaterial3D).albedo_color = col
@@ -204,7 +239,7 @@ func _mat(c: Color, rug := 0.35, metal := 0.0) -> StandardMaterial3D:
 	return m
 
 func _peinte(p: Node3D, taille: Vector3, pos: Vector3, rot := Vector3.ZERO) -> MeshInstance3D:
-	var m := _mat(Garage.COULEURS[garage.choix("couleur")], 0.3)
+	var m := _mat(couleur(), 0.3)
 	m.clearcoat_enabled = true; m.clearcoat = 0.8
 	var mi := _boite(p, taille, pos, m, rot)
 	mi.set_meta("peinte", true)

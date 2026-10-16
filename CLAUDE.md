@@ -156,6 +156,24 @@
   session. Lien : `https://github.com/DisColow/rochetoirin-drive/raw/godot/releases/<apk>`.
 - Rendu Mobile (Vulkan) essayé en v2.8 : moins joli que Compatibility sur le téléphone de l'utilisateur, abandonné.
 - Captures de contrôle : `xvfb-run godot --path godot -- --shots=<json>` ; essai de conduite : `-- --drive-test`.
+- **Voitures du garage** (v6.62, #95, demande de l'utilisateur : modèles choisis sur planche, **noms et faux logos
+  parodiés**, Laguna peinte par Claude, cockpit pixel art par voiture, mini-carte quand la voiture n'a pas de GPS) :
+  - catalogue `scripts/voitures.gd` (nom parodié, prix, masse, puissance, vitesse, transmission, GPS, son du moteur,
+    crédit) ; `garage.gd` : voitures achetées, voiture conduite, **améliorations propres à chaque voiture**
+    (`pieces[id]`), onglet « Voitures » de `garage_ui.gd` (essai sur place, achat, prendre le volant) ;
+  - `car.gd` `construire(id)` (caisse, roues, boîte, volant, physique ; force au démarrage d'après le rapport
+    poids/puissance, roues motrices, freins à l'échelle de la masse) ; `tuning.gd` `lier()` et pièces du garage
+    mises au gabarit de la voiture ; `net.gd` : chaque joueur voit la voiture des autres (`_ma_voiture`) ;
+  - modèles : `fetch_voitures_joueur.py` (Sketchfab -> `godot/import/voitures/<id>`, `.gdignore`),
+    `faux_logos.py` (emblèmes Renaud, Pijo, Citrouille, Porc'Che ; textures photo retouchées, originaux `*.orig.png`),
+    `blender_voitures_joueur.py` (orientation, échelle réelle, roues par coins, matériaux du jeu, habitacle vidé,
+    badges et lettrages en volume retirés, faux logos posés en décalcomanie) -> `assets/voitures/<id>/` ;
+  - cockpits : `build_cockpits.py` (même procédé que `build_cockpit.py`) -> `assets/cockpit/<id>/`, chargés par
+    `cockpit.gd` `charger(id)` ; `a_gps()` faux -> la mini-carte reste affichée (`hud.gd`) ;
+  - essai : `-- --drive-test --voitures-test --drive-from=-8410.95,221,-7187.25,45.2` (vitesse après 2 s, roues au
+    sol, captures `voiture_<id>.png` et `cockpit_<id>.png`).
+  - **Import Godot** : `godot --headless --import` réimporte toutes les tuiles `t_*.glb` et sature la mémoire (14 Go,
+    tué) ; pour importer seulement les nouveaux fichiers : `.gdignore` temporaire dans `world/` et `terrain/`.
 - **Bords de la carte façon Motocross Madness** (v6.23, demande de l'utilisateur, `pipeline/build_bord.py` +
   `scripts/bord.gd`) :
   - Talus tout autour de la zone (`world/bord/`, tuiles de 256 m). Grille de 5 m dont la hauteur ne dépend que de

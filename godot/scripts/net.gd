@@ -34,7 +34,7 @@ func _ready() -> void:
 		nom = str(cfg.get_value("reseau", "nom", nom))
 	multiplayer.peer_connected.connect(_arrivee)
 	multiplayer.peer_disconnected.connect(_depart)
-	multiplayer.connected_to_server.connect(func(): _toast("Connecté à la partie."); _presenter.rpc(nom))
+	multiplayer.connected_to_server.connect(func(): _toast("Connecté à la partie."); _presenter.rpc(nom); _ma_voiture.rpc(car.voiture))
 	multiplayer.connection_failed.connect(func(): _toast("Impossible de rejoindre la partie."); quitter())
 	multiplayer.server_disconnected.connect(func(): _toast("L'hôte a quitté la partie."); quitter())
 	# essais : -- --net-host (héberge) / --net-join=IP (rejoint) ; état imprimé toutes les 2 s
@@ -79,7 +79,7 @@ func heberger() -> bool:
 		_toast("Impossible d'héberger (port %d occupé ?)" % PORT)
 		return false
 	multiplayer.multiplayer_peer = p
-	joueurs = {1: {"nom": nom, "idx": 0, "taxi": 0.0, "courses": 0}}
+	joueurs = {1: {"nom": nom, "idx": 0, "taxi": 0.0, "courses": 0, "voiture": car.voiture}}
 	_udp = PacketPeerUDP.new()
 	_udp.set_broadcast_enabled(true)
 	_udp.set_dest_address("255.255.255.255", ANNONCE)
@@ -156,6 +156,21 @@ func _liste(l: Dictionary) -> void:
 	for id in autos.keys():
 		if autos[id].has_meta("lbl") and joueurs.has(id):
 			autos[id].get_meta("lbl").text = joueurs[id].nom
+		# voiture changée au garage (#95) : refaite au prochain état reçu
+		if joueurs.has(id) and String(joueurs[id].get("voiture", "ranger")) != String(autos[id].get_meta("voiture", "ranger")):
+			autos[id].queue_free(); autos.erase(id)
+
+## Voiture conduite par chaque joueur (#95) : annoncée en arrivant et à chaque changement au garage.
+@rpc("any_peer", "call_local", "reliable")
+func _ma_voiture(v: String) -> void:
+	var id := multiplayer.get_remote_sender_id()
+	if multiplayer.is_server() and joueurs.has(id):
+		joueurs[id]["voiture"] = v
+		_liste.rpc(joueurs)
+
+func voiture_changee(v: String) -> void:
+	if en_ligne():
+		_ma_voiture.rpc(v)
 
 # ================================================================ état des voitures
 @rpc("any_peer", "unreliable_ordered")
@@ -172,8 +187,15 @@ func _etat(t: float, p: Vector3, q: Quaternion, v: float, st: float) -> void:
 
 func _auto(id: int) -> Node3D:
 	var root := Node3D.new()
-	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/car/meta.json"))
-	var body: Node3D = load("res://assets/car/body.glb").instantiate()
+	var V := preload("res://scripts/voitures.gd")
+	var vid := String(joueurs[id].get("voiture", "ranger")) if joueurs.has(id) else "ranger"
+	if not V.CATALOGUE.has(vid) or not ResourceLoader.exists(String(V.CATALOGUE[vid].dossier) + "/body.glb"):
+		vid = "ranger"
+	root.set_meta("voiture", vid)
+	var dossier := String(V.CATALOGUE[vid].dossier)
+	var ranger := vid == "ranger"
+	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dossier + "/meta.json"))
+	var body: Node3D = load(dossier + "/body.glb").instantiate()
 	body.rotation.y = PI
 	root.add_child(body)
 	car._materials(body)
@@ -186,18 +208,19 @@ func _auto(id: int) -> Node3D:
 				var m2: StandardMaterial3D = m.duplicate()
 				m2.albedo_color = col
 				mi.set_surface_override_material(s, m2)
-	# roues (tournent avec la vitesse, braquent à l'avant)
+	# roues (tournent avec la vitesse, braquent à l'avant) ; tailles comme dans car.construire()
 	var roues := []
-	var wscene: PackedScene = load("res://assets/car/wheel.glb")
+	var wscene: PackedScene = load(dossier + "/wheel.glb")
 	var wb: float = meta.wheelbase; var tr: float = meta.track; var rm: float = meta.radius
+	var r := 0.40 if ranger else rm + 0.045
 	for i in 4:
 		var front := i < 2; var right := i % 2 == 0
 		var piv := Node3D.new()
-		piv.position = Vector3((-1.0 if right else 1.0) * tr / 2, rm + 0.12 - (0.40 - rm), (1.0 if front else -1.0) * wb / 2)
+		piv.position = Vector3((-1.0 if right else 1.0) * tr / 2, rm + (0.12 if ranger else 0.08) - (r - rm), (1.0 if front else -1.0) * wb / 2)
 		var w: Node3D = wscene.instantiate()
 		car._materials(w)
 		w.rotation.y = 0.0 if right else PI
-		w.scale = Vector3(1.1, (0.40 - 0.045) / rm, (0.40 - 0.045) / rm)
+		w.scale = Vector3(1.1 if ranger else 1.0, (r - 0.045) / rm, (r - 0.045) / rm)
 		piv.add_child(w)
 		root.add_child(piv)
 		roues.append([piv, w, front])

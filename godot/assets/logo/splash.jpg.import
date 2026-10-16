@@ -3,15 +3,17 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://do83yyk2kq7dl"
-path="res://.godot/imported/splash.jpg-758fd953b7a4a37e74d227f8fb589ce9.ctex"
+path.s3tc="res://.godot/imported/splash.jpg-758fd953b7a4a37e74d227f8fb589ce9.s3tc.ctex"
+path.etc2="res://.godot/imported/splash.jpg-758fd953b7a4a37e74d227f8fb589ce9.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/logo/splash.jpg"
-dest_files=["res://.godot/imported/splash.jpg-758fd953b7a4a37e74d227f8fb589ce9.ctex"]
+dest_files=["res://.godot/imported/splash.jpg-758fd953b7a4a37e74d227f8fb589ce9.s3tc.ctex", "res://.godot/imported/splash.jpg-758fd953b7a4a37e74d227f8fb589ce9.etc2.ctex"]
 
 [params]
 

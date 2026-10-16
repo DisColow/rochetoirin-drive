@@ -81,7 +81,16 @@ func _process(dt: float) -> void:
 	_process_corps(dt)
 	PerfMon.note("camera_rig", Time.get_ticks_usec() - t0_perf)
 
+var _voiture := ""
 func _process_corps(dt: float) -> void:
+	# œil du conducteur de la voiture conduite (#95)
+	if target and String(target.get("voiture")) != _voiture:
+		_voiture = String(target.get("voiture"))
+		var m: Dictionary = target.get("_meta")
+		if m.has("eye"):
+			eye = Vector3(-float(m.eye[0]), float(m.eye[1]), -float(m.eye[2]))
+			if cockpit:
+				cockpit.eye = eye
 	if Input.is_action_just_pressed("camera") and not preload("res://scripts/ui.gd").saisie_active():
 		cycle()
 	shake = move_toward(shake, 0.0, dt * 1.2)

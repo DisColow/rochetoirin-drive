@@ -5,6 +5,7 @@
 extends PanelContainer
 const UI := preload("res://scripts/ui.gd")
 const Garage := preload("res://scripts/garage.gd")
+const Voitures := preload("res://scripts/voitures.gd")
 
 signal ferme
 
@@ -35,7 +36,7 @@ func _ready() -> void:
 	_argent = Label.new(); _argent.add_theme_font_size_override("font_size", 38)
 	_argent.add_theme_color_override("font_color", Color(0.55, 1.0, 0.45)); h.add_child(_argent)
 	var onglets := HBoxContainer.new(); onglets.add_theme_constant_override("separation", 8); v.add_child(onglets)
-	for f in ["Technique", "Peinture", "Carrosserie"]:
+	for f in ["Voitures", "Technique", "Peinture", "Carrosserie"]:
 		var b := Button.new(); b.text = f; b.toggle_mode = true; b.button_pressed = f == famille
 		b.custom_minimum_size = Vector2(0, 66); b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.add_theme_font_size_override("font_size", 28)
@@ -67,6 +68,7 @@ func _ready() -> void:
 
 func fermer() -> void:
 	garage.apercu.clear()
+	garage.fin_essai()                  # voiture essayée et pas achetée : on retrouve la sienne
 	tuning.appliquer()
 	if cam_rig:
 		cam_rig.vitrine = false
@@ -77,6 +79,9 @@ func fermer() -> void:
 func _remplir() -> void:
 	for c in _liste.get_children():
 		c.queue_free()
+	if famille == "Voitures":
+		_remplir_voitures()
+		return
 	for r in Garage.CATALOGUE:
 		var e: Array = Garage.CATALOGUE[r]
 		if e[1] != famille:
@@ -100,6 +105,9 @@ func _remplir() -> void:
 ## Texte et état de chaque bouton : choix monté (✓), acheté, ou son prix ; le choix essayé est enfoncé.
 func _maj() -> void:
 	_argent.text = Garage.euros(garage.argent)
+	if famille == "Voitures":
+		_maj_voitures()
+		return
 	for g in _liste.get_children():
 		if not g is GridContainer:
 			continue
@@ -119,6 +127,11 @@ func _essayer(r: String, i: int) -> void:
 	_maj()
 
 func _maj_action() -> void:
+	if not garage.a_voiture(garage.vue):
+		_action.text = "Achetez d'abord cette voiture (onglet Voitures)"
+		_action.disabled = true
+		_info.text = "Vous essayez la %s." % Voitures.CATALOGUE[garage.vue].nom
+		return
 	if _r_sel == "":
 		_action.text = "Touchez une pièce pour l'essayer"
 		_action.disabled = true
@@ -141,6 +154,11 @@ func _maj_action() -> void:
 		_action.disabled = true
 
 func _acheter() -> void:
+	if famille == "Voitures":
+		if garage.acheter_voiture(garage.vue):
+			garage.conduire(garage.vue)
+		_maj()
+		return
 	if _r_sel == "":
 		return
 	var i: int = garage.choix(_r_sel)
@@ -148,3 +166,49 @@ func _acheter() -> void:
 		garage.apercu.erase(_r_sel)
 		tuning.appliquer()
 		_maj()
+
+# ---------------------------------------------------------------- voitures (#95)
+## Une ligne par voiture : nom, année, puissance, vitesse, transmission ; toucher l'essaie aussitôt (elle remplace la
+## voiture dans le garage) ; « Acheter » puis « Prendre le volant ».
+func _remplir_voitures() -> void:
+	for id in Voitures.ordre():
+		if not ResourceLoader.exists(String(Voitures.CATALOGUE[id].dossier) + "/body.glb"):
+			continue
+		var b := Button.new()
+		b.set_meta("v", id)
+		b.custom_minimum_size = Vector2(0, 92); b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.add_theme_font_size_override("font_size", 24)
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.clip_text = true
+		b.toggle_mode = true
+		b.pressed.connect(func():
+			garage.voir(id)
+			_maj())
+		_liste.add_child(b)
+	_maj()
+
+func _maj_voitures() -> void:
+	for b in _liste.get_children():
+		if not b is Button:
+			continue
+		var id: String = b.get_meta("v")
+		var f: Dictionary = Voitures.CATALOGUE[id]
+		var etat: String = "✓ au volant" if id == garage.voiture else ("achetée" if garage.a_voiture(id) else Garage.euros(float(f.prix)))
+		var tr: String = {"4x4": "4 roues motrices", "avant": "traction", "arriere": "propulsion"}[f.traction]
+		b.text = "%s (%d) — %s\n%d ch · %d km/h · %s%s" % [f.nom, int(f.annee), etat, roundi(float(f.kw) * 1.36),
+			int(f.vmax), tr, " · GPS" if f.gps else ""]
+		b.button_pressed = id == garage.vue
+	var v: Dictionary = Voitures.CATALOGUE[garage.vue]
+	_info.text = String(v.texte)
+	if garage.vue == garage.voiture:
+		_action.text = "Vous conduisez cette voiture"
+		_action.disabled = true
+	elif garage.a_voiture(garage.vue):
+		_action.text = "Prendre le volant"
+		_action.disabled = false
+	elif garage.argent >= float(v.prix):
+		_action.text = "Acheter et prendre le volant : " + Garage.euros(float(v.prix))
+		_action.disabled = false
+	else:
+		_action.text = "Il manque " + Garage.euros(float(v.prix) - garage.argent)
+		_action.disabled = true
