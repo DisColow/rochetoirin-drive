@@ -13,6 +13,14 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## v6.58 (16/10)
+- #94 : catalogue garage + allegement, anti_roulis, differentiel, phares, pare_buffle, galerie (tuning.gd) ; car.gd
+  `adherence` (bug : wheel_friction_slip réécrit à 2,6 à chaque pas, pneus sans effet), `anti_roulis`, `set_phares`.
+  Essai `--garage-test` (adhérence 3,56 en roulant, masse 2 100 kg). v6.57 : nitro (#98), 11 vinyles.
+- À faire : #99 courses à armes (multijoueur, caisses « ? », boule de feu, onde de choc, bouclier, tornade/aimant) ;
+  #95 voitures (planche envoyée, choix attendu ; Laguna : aucun modèle libre texturé) ; #84 sons (2e série en attente) ;
+  #96 logo/splash (images pas reçues).
+
 ## v6.57 (16/10)
 - #92 camera_rig : lissage dans le repère de la voiture (`_org`), hauteur 2,6 m, visée 4,5 m devant, champ +4° max ;
   essai `--camera-test` (avant 5,7 -> 11,6 m à 100 km/h ; après 5,3-6,4 m).

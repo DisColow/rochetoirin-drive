@@ -25,6 +25,11 @@ var freinage := 1.0              # multiplie BRAKE et BRAKE_AIDE
 # roulant (lentement) et en dérapant (vite) ; poussée NITRO_ACC en plus du moteur, jusqu'à vmax + 50 km/h
 const NITRO_DUREE := [0.0, 4.0, 5.0, 6.0]
 const NITRO_ACC := [0.0, 6.0, 8.5, 11.0]
+# réglés par le garage (tuning.gd, v6.58) : adhérence des pneus (avant, elle était réécrite à 2,6 à chaque pas : les
+# pneus achetés n'avaient aucun effet), raideur des barres anti-roulis, couleur des phares
+var adherence := 2.6
+var anti_roulis := 1.0
+var phare_couleur := Color(1.0, 0.93, 0.78)
 var nitro_niveau := 0
 var nitro_jauge := 1.0
 var nitro_actif := false
@@ -500,7 +505,7 @@ func set_lights(on: bool) -> void:
 			s.spot_angle = 28.0
 			s.spot_attenuation = 0.8
 			s.light_energy = 6.0
-			s.light_color = Color(1.0, 0.93, 0.78)
+			s.light_color = phare_couleur
 			s.shadow_enabled = false
 			add_child(s)
 			_beams.append(s)
@@ -606,7 +611,7 @@ func _physics_process(dt: float) -> void:
 	# parking : toutes les roues bloquées, moteur coupé
 	for w in wheels:
 		var arriere: bool = not w.use_as_steering
-		w.wheel_friction_slip = 2.6 * (0.42 if arriere and fm > 0.3 else 1.0)
+		w.wheel_friction_slip = adherence * (0.42 if arriere and fm > 0.3 else 1.0)
 	if fm > 0.3 or frein_parking:
 		engine_force = 0.0
 		if frein_parking:
@@ -654,7 +659,7 @@ func _anti_roll() -> void:
 	# angle de roulis : inclinaison de l'axe vertical de la caisse dans le plan perpendiculaire à l'avant
 	var ref := (Vector3.UP - fwd * Vector3.UP.dot(fwd)).normalized()
 	var roll := up.signed_angle_to(ref, fwd)
-	var k := 9000.0 if on_ground else 14000.0
+	var k := (9000.0 if on_ground else 14000.0) * anti_roulis
 	var d := 2500.0
 	apply_torque(fwd * (roll * k - angular_velocity.dot(fwd) * d))
 	if not on_ground:
@@ -783,3 +788,10 @@ func _flamme_nitro() -> void:
 	if nitro_actif:
 		var k := randf_range(0.8, 1.3)
 		_flamme.scale = Vector3(1.0, k, 1.0)
+
+## Couleur des phares (garage, v6.58) : appliquée aussi aux faisceaux déjà allumés.
+func set_phares(c: Color) -> void:
+	phare_couleur = c
+	for b in _beams:
+		if is_instance_valid(b):
+			b.light_color = c

@@ -16,18 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.57 :
-- **Caméra** : elle ne recule plus quand on accélère (la voiture garde sa taille à l'écran) et elle est un peu plus
-  haute pour mieux voir la route devant.
-- **Mini-carte** : un toucher ne téléporte plus par erreur ; il faut bien toucher la carte une seconde fois.
-- **Écran de chargement** : astuces et anecdotes sur le jeu.
-- **Nitro** à acheter au garage (3 niveaux) : bouton NITRO au-dessus de GAZ (B à la manette, Maj au clavier) ;
-  la jauge se recharge en roulant et surtout en dérapant.
-- **11 nouveaux vinyles** : chevrons, vagues, pois, tigre, nid d'abeille, pixels, numéro de course, circuit imprimé,
-  griffures, tricolore, coucher de soleil rétro.
-- **Menu des épreuves** (★ > Épreuves) : partez directement de la ligne de départ, sans y rouler.
-- Manette : la touche de chaque bouton s'affiche à côté du bouton à l'écran ; le bouton rouge de remise sur la
-  route reste disponible pendant les courses.
+Nouveautés de la v6.58 :
+- **Garage** : allègement (jusqu'à -300 kg), barres anti-roulis, différentiel autobloquant, couleur des phares
+  (xénon, jaunes, violets), pare-buffle et galerie de toit.
+- **Correctif** : les pneus achetés au garage n'avaient aucun effet sur l'adhérence ; c'est réparé.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

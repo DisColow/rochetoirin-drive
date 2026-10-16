@@ -96,6 +96,10 @@ func appliquer() -> void:
 		w.suspension_travel = su[2]
 		w.damping_relaxation = su[3]
 		w.wheel_friction_slip = PNEUS[garage.choix("pneus")]
+	car.adherence = PNEUS[garage.choix("pneus")] * (1.08 if garage.choix("differentiel") > 0 else 1.0)
+	car.mass = 2400.0 - [0.0, 150.0, 300.0][garage.choix("allegement")]
+	car.anti_roulis = [1.0, 1.35, 1.7][garage.choix("anti_roulis")]
+	car.set_phares([Color(1.0, 0.93, 0.78), Color(0.75, 0.88, 1.0), Color(1.0, 0.82, 0.35), Color(0.75, 0.5, 1.0)][garage.choix("phares")])
 	# peinture et vitres
 	_peinture.set_shader_parameter("couleur", Garage.COULEURS[garage.choix("couleur")])
 	var vi: int = garage.choix("vinyle")
@@ -113,6 +117,8 @@ func appliquer() -> void:
 	_poser("bas_caisse", garage.choix("bas_caisse"), _faire_jupes)
 	_poser("aileron", garage.choix("aileron"), _faire_aileron)
 	_poser("echappement", garage.choix("echappement"), _faire_echappement)
+	_poser("pare_buffle", garage.choix("pare_buffle"), _faire_pare_buffle)
+	_poser("galerie", garage.choix("galerie"), _faire_galerie)
 	_jantes(garage.choix("jantes"))
 	var audio = main.get("sound") if main else null
 	if audio and "echappement" in audio:
@@ -277,6 +283,30 @@ func _faire_echappement() -> Node3D:
 		var fi := MeshInstance3D.new(); fi.mesh = f; fi.material_override = _mat(Color(0.01, 0.01, 0.01), 0.9)
 		fi.rotation.x = PI / 2; fi.position = Vector3(sx, 0.2, -2.895)
 		n.add_child(fi)
+	return n
+
+## Pare-buffle tubulaire noir devant la calandre (v6.58).
+func _faire_pare_buffle() -> Node3D:
+	var n := Node3D.new()
+	var noir := _mat(Color(0.03, 0.03, 0.035), 0.4, 0.6)
+	for sx in [-0.42, 0.42]:
+		_boite(n, Vector3(0.07, 0.75, 0.07), Vector3(sx, 0.75, 2.66), noir)
+	_boite(n, Vector3(1.0, 0.07, 0.07), Vector3(0, 1.12, 2.68), noir)
+	_boite(n, Vector3(1.6, 0.08, 0.08), Vector3(0, 0.55, 2.7), noir)
+	for sx in [-0.78, 0.78]:
+		_boite(n, Vector3(0.07, 0.3, 0.07), Vector3(sx, 0.62, 2.62), noir, Vector3(0, 0, sx * 0.4))
+	return n
+
+## Galerie de toit : cadre et barreaux en aluminium noir sur le pavillon (v6.58).
+func _faire_galerie() -> Node3D:
+	var n := Node3D.new()
+	var noir := _mat(Color(0.05, 0.05, 0.055), 0.45, 0.5)
+	for sx in [-0.66, 0.66]:
+		_boite(n, Vector3(0.05, 0.05, 1.45), Vector3(sx, 1.8, -0.15), noir)
+		for sz in [-0.8, 0.5]:
+			_boite(n, Vector3(0.05, 0.1, 0.05), Vector3(sx, 1.76, sz), noir)
+	for k in 5:
+		_boite(n, Vector3(1.32, 0.035, 0.04), Vector3(0, 1.82, -0.8 + k * 0.32), noir)
 	return n
 
 ## Jantes : modèle de roue remplacé (assets/garage/jantes_<n>.glb : roue complète, axe x, diamètre 1 m).

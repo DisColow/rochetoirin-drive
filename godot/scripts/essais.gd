@@ -868,6 +868,28 @@ func _physics_process(_dt: float) -> void:
 		if t > 300 + 400:
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--garage-test"):
+		# #94 : semi-slicks + autobloquant + allègement 2 + barres course + pare-buffle + galerie ; en roulant, l'adhérence
+		# réelle des roues doit rester celle des pneus achetés (avant v6.58 : réécrite à 2,6 à chaque pas)
+		car.aide_voie = false
+		car.touch_steer = 0.0; car.touch_brake = 0.0; car.touch_throttle = 1.0 if t > 300 and t < 300 + 360 else 0.0
+		if t == 300:
+			for r in ["pneus", "differentiel", "allegement", "anti_roulis", "pare_buffle", "galerie", "phares"]:
+				garage.monte[r] = {"pneus": 2, "differentiel": 1, "allegement": 2, "anti_roulis": 2, "pare_buffle": 1, "galerie": 1, "phares": 1}[r]
+			tuning.appliquer()
+		if t == 300 + 240:
+			print("  [garage] en roulant à %.0f km/h : adhérence des roues %.2f (pneus semi-slicks 3,30 × autobloquant 1,08 = 3,56), masse %.0f kg, anti-roulis ×%.2f" % [car.kmh(), car.wheels[0].wheel_friction_slip, car.mass, car.anti_roulis])
+		if t == 300 + 480:
+			car.linear_velocity = Vector3.ZERO; car.freeze = true
+			var xf := car.global_transform
+			cam_rig.set_process(false)
+			cam_rig.cam.global_position = xf.origin + xf.basis.z * 6.0 + xf.basis.x * 3.5 + Vector3(0, 1.8, 0)
+			cam_rig.cam.look_at(xf.origin + Vector3(0, 1.0, 0), Vector3.UP)
+		if t == 300 + 540:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/garage_options.png")
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--pedales-test"):
 		# #64 et #65 : gâchette d'accélérateur restée à 18 % + frein (marche arrière attendue), puis frein à main lancé,
 		# puis frein de parking (voiture immobile malgré les gaz à 40 %) ; journal [pédales]

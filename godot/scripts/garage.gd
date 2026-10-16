@@ -16,6 +16,10 @@ const CATALOGUE := {
 	"suspension": ["Suspension", "Technique", [["D'origine", 0], ["Rabaissée (-7 cm)", 450], ["Rehaussée (+10 cm)", 450]]],
 	"freins": ["Freins", "Technique", [["D'origine", 0], ["Freins sport", 300], ["Freins course", 700]]],
 	"pneus": ["Pneus", "Technique", [["D'origine (tout-terrain)", 0], ["Route sport", 350], ["Semi-slicks", 800]]],
+	# v6.58 (#94)
+	"allegement": ["Allègement", "Technique", [["D'origine (2 400 kg)", 0], ["Allègement 1 (-150 kg)", 500], ["Allègement 2 (-300 kg)", 1100]]],
+	"anti_roulis": ["Barres anti-roulis", "Technique", [["D'origine", 0], ["Barres sport", 400], ["Barres course", 800]]],
+	"differentiel": ["Différentiel", "Technique", [["Ouvert", 0], ["Autobloquant (+8 % d'adhérence)", 650]]],
 	# nitro (#98) : jauge qui se vide en boostant, se recharge en roulant et en dérapant
 	"nitro": ["Nitro", "Technique", [["Aucun", 0], ["Nitro 1 (4 s, +6 m/s²)", 900], ["Nitro 2 (5 s, +8,5 m/s²)", 1700], ["Nitro 3 (6 s, +11 m/s²)", 2800]]],
 	"couleur": ["Couleur", "Peinture", [["Noir", 0], ["Blanc", 150], ["Gris acier", 150], ["Rouge", 150], ["Orange", 150], ["Jaune taxi", 150], ["Vert", 150], ["Bleu nuit", 150], ["Bleu électrique", 150], ["Violet", 150], ["Rose", 150], ["Kaki", 150]]],
@@ -30,6 +34,9 @@ const CATALOGUE := {
 	"prise_air": ["Prise d'air de capot", "Carrosserie", [["Aucune", 0], ["Prise d'air", 300]]],
 	"barre_led": ["Barre de LED sur le toit", "Carrosserie", [["Aucune", 0], ["Barre de LED", 350]]],
 	"taxi": ["Enseigne TAXI", "Carrosserie", [["Aucune", 0], ["Enseigne lumineuse", 150]]],
+	"phares": ["Phares", "Carrosserie", [["D'origine", 0], ["Xénon bleutés", 200], ["Jaunes rétro", 200], ["Violets", 250]]],
+	"pare_buffle": ["Pare-buffle", "Carrosserie", [["Aucun", 0], ["Pare-buffle tubulaire", 350]]],
+	"galerie": ["Galerie de toit", "Carrosserie", [["Aucune", 0], ["Galerie de toit", 300]]],
 }
 const COULEURS := [Color(0.015, 0.015, 0.018), Color(0.82, 0.83, 0.84), Color(0.32, 0.34, 0.36), Color(0.55, 0.03, 0.03),
 	Color(0.85, 0.30, 0.02), Color(0.95, 0.70, 0.05), Color(0.06, 0.35, 0.10), Color(0.02, 0.05, 0.18), Color(0.03, 0.25, 0.80),
