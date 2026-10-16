@@ -21,6 +21,9 @@ Nouveautés de la v6.57 :
   haute pour mieux voir la route devant.
 - **Mini-carte** : un toucher ne téléporte plus par erreur ; il faut bien toucher la carte une seconde fois.
 - **Écran de chargement** : astuces et anecdotes sur le jeu.
+- **Menu des épreuves** (★ > Épreuves) : partez directement de la ligne de départ, sans y rouler.
+- Manette : la touche de chaque bouton s'affiche à côté du bouton à l'écran ; le bouton rouge de remise sur la
+  route reste disponible pendant les courses.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

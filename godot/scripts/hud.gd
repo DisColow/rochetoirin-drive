@@ -54,6 +54,7 @@ func _ready() -> void:
 	_add_button("radio", "♪", 8)
 	_faire_pli()
 	_freins_tactiles()
+	_pastilles_manette.call_deferred()
 	map = preload("res://scripts/map.gd").new()
 	map.car = car
 	map.visible = false
@@ -103,7 +104,8 @@ func replier(oui: bool) -> void:
 	replie = oui
 	_pli.text = "›" if oui else "‹"
 	for i in range(4, buttons.size()):
-		buttons[i].visible = _conduite and not oui
+		# le bouton rouge de remise sur la route reste toujours là, même replié en course (#100)
+		buttons[i].visible = _conduite and (not oui or buttons[i].action == "replacer")
 
 const CREDITS := """Enseigne de la boulangerie : polices Kaushan Script et Caveat (Pablo Impallari, SIL Open Font License).
 Voix du taxi : synthèse vocale de l'appareil ; à défaut, synthèse Piper (rhasspy) ; voix « Siwis » (Université d'Édimbourg, CC BY 4.0) et « Gilles » (CC0), effet talkie-walkie ffmpeg.
@@ -722,6 +724,7 @@ func _process(_dt: float) -> void:
 	PerfMon.note("hud", Time.get_ticks_usec() - t0_perf)
 
 func _process_corps(_dt: float) -> void:
+	_maj_pastilles()
 	_update_leds()
 	# vue cockpit : la mini-carte disparaît, le GPS de la planche de bord la remplace (#60)
 	var ck = get_parent().get("cockpit")
@@ -790,3 +793,61 @@ func _pastille(c: Color) -> ImageTexture:
 					col = col.lightened(0.45)
 				img.set_pixel(x, y, col)
 	return ImageTexture.create_from_image(img)
+
+# ================================================================ touches de manette (#97)
+## Pastille sur chaque bouton tactile avec la touche de manette qui fait la même chose ; visible seulement quand une
+## manette est branchée et que le joueur s'en sert (nav_physique.physique).
+const NOMS_BOUTONS := {JOY_BUTTON_A: "A", JOY_BUTTON_B: "B", JOY_BUTTON_X: "X", JOY_BUTTON_Y: "Y",
+	JOY_BUTTON_BACK: "SELECT", JOY_BUTTON_START: "START", JOY_BUTTON_LEFT_STICK: "L3", JOY_BUTTON_RIGHT_STICK: "R3",
+	JOY_BUTTON_LEFT_SHOULDER: "LB", JOY_BUTTON_RIGHT_SHOULDER: "RB", JOY_BUTTON_DPAD_UP: "↑", JOY_BUTTON_DPAD_DOWN: "↓",
+	JOY_BUTTON_DPAD_LEFT: "←", JOY_BUTTON_DPAD_RIGHT: "→"}
+const NOMS_AXES := {JOY_AXIS_LEFT_X: "STICK G", JOY_AXIS_LEFT_Y: "STICK G", JOY_AXIS_RIGHT_X: "STICK D",
+	JOY_AXIS_RIGHT_Y: "STICK D", JOY_AXIS_TRIGGER_LEFT: "LT", JOY_AXIS_TRIGGER_RIGHT: "RT"}
+var _pastilles: Array = []          # [Label]
+
+static func touche_manette(action: String) -> String:
+	if not InputMap.has_action(action):
+		return ""
+	for e in InputMap.action_get_events(action):
+		if e is InputEventJoypadButton:
+			return NOMS_BOUTONS.get(e.button_index, "")
+		if e is InputEventJoypadMotion:
+			var n: String = NOMS_AXES.get(e.axis, "")
+			if n == "STICK G" and e.axis == JOY_AXIS_LEFT_X:
+				n += " ←" if e.axis_value < 0 else " →"
+			return n
+	return ""
+
+func _pastilles_manette() -> void:
+	var cibles := []
+	for b in buttons:
+		cibles.append([b, b.action])
+	cibles.append([b_frein_main, "frein_main"])
+	cibles.append([b_parking, "frein_parking"])
+	cibles.append([b_pied, "pied"])
+	for c in cibles:
+		var n := touche_manette(c[1])
+		if n == "":
+			continue
+		var l := Label.new()
+		l.text = n
+		l.add_theme_font_size_override("font_size", 20)
+		l.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+		l.add_theme_color_override("font_outline_color", Color.BLACK)
+		l.add_theme_constant_override("outline_size", 6)
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		l.position = Vector2(-6, -24)
+		var ib := buttons.find(c[0])
+		if ib >= 4 and c[0].texture_normal:              # rangée du haut : pastille sous le bouton (coupée au-dessus)
+			l.position = Vector2(c[0].texture_normal.get_width() * 0.5 - 8, c[0].texture_normal.get_height() - 4)
+		l.visible = false
+		c[0].add_child(l)
+		_pastilles.append(l)
+	set_meta("pastilles", _pastilles.size())
+
+func _maj_pastilles() -> void:
+	var nav = get_parent().get("nav")
+	var oui: bool = (not Input.get_connected_joypads().is_empty() and nav != null and nav.physique) or OS.get_cmdline_user_args().has("--manette-test")
+	for l in _pastilles:
+		if is_instance_valid(l):
+			l.visible = oui

@@ -342,6 +342,8 @@ func open_menu() -> void:
 		_btn(v, "Recommencer le dernier tracé" + ("" if _best == INF else "  (record " + _fmt(_best) + ")"), _course_again)
 	_btn(v, "Chasse au lieu (un joueur cache, l'autre cherche)", _hunt_menu)
 	_btn(v, "Taxi" + ("" if _rides == 0 else "  (%d courses, %s)" % [_rides, _euros(_total)]), _taxi_start)
+	if not epreuves.is_empty():
+		_btn(v, "Épreuves chronométrées (%d) : partir d'ici" % epreuves.size(), _epreuves_menu)
 	if main.garage:
 		_btn(v, "Garage : améliorer la voiture  (%s)" % main.garage.euros(main.garage.argent), _garage)
 	_btn(v, "Multijoueur (jusqu'à 4)" + ("  — %d joueur(s)" % main.net.joueurs.size() if main.net and main.net.en_ligne() else ""), _net_menu)
@@ -661,6 +663,31 @@ void fragment() {
 	dr.mesh = pm; dr.material_override = mat_d; dr.position = Vector3(3.5 + 2.15, 7.5, 0)
 	n.add_child(dr)
 	return n
+
+## Menu des épreuves (#101) : on choisit une épreuve et la voiture est posée sur sa ligne de départ, sans y rouler.
+func _epreuves_menu() -> void:
+	if mode != "":
+		hud.toast("Arrêtez d'abord l'activité en cours.", 3.0)
+		return
+	var v := _panel("Épreuves chronométrées")
+	var sc := ScrollContainer.new()
+	sc.custom_minimum_size = Vector2(900, minf(_vs().y * 0.62, 640.0))
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	v.add_child(sc)
+	var l := VBoxContainer.new(); l.add_theme_constant_override("separation", 10)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(l)
+	var c := _car2()
+	var tri := epreuves.duplicate()
+	tri.sort_custom(func(a, b): return c.distance_to(Vector2(a.a[0], a.a[1])) < c.distance_to(Vector2(b.a[0], b.a[1])))
+	for e in tri:
+		var id := int(e.id)
+		var med := _medaille(id)
+		var b := _btn(l, "%s — %.1f km%s   (à %.1f km)" % [e.nom, float(e.km), ("  · " + med) if med != "" else "",
+			c.distance_to(Vector2(e.a[0], e.a[1])) / 1000.0], func(): _close_menu(true); _epreuve_depart(id))
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_btn(v, "Retour", open_menu)
 
 func _epreuve_proche() -> void:
 	var c := _car2()

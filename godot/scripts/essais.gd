@@ -804,6 +804,29 @@ func _physics_process(_dt: float) -> void:
 			print("  [carte] cas 2 (second toucher, dans la carte) : voiture déplacée de %.0f m" % car.global_position.distance_to(get_meta("p0")))
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--epreuves-menu-test"):
+		# #101 : menu des épreuves -> la dernière de la liste (la plus loin) ; la voiture doit être sur sa ligne de départ
+		var act = activities
+		if t == 300:
+			set_meta("p0", car.global_position)
+			act.open_menu()
+			act._epreuves_menu()
+			var bs: Array = act._menu.find_children("*", "Button", true, false)
+			var cible: Button = null
+			for b in bs:
+				if " km" in b.text and "(à " in b.text:
+					cible = b
+			print("  [épreuves] menu : %d boutons, choix « %s »" % [bs.size(), cible.text])
+			cible.pressed.emit()
+		if t == 300 + 300:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/epreuve_hud.png")
+		if t == 300 + 360:
+			var e: Dictionary = act.epreuves[act._epreuve] if act._epreuve >= 0 else {}
+			var d := Vector2(car.global_position.x, car.global_position.z).distance_to(Vector2(e.a[0], e.a[1])) if not e.is_empty() else -1.0
+			print("  [épreuves] activité « %s », épreuve %s, voiture déplacée de %.0f m, à %.0f m du départ" % [act.mode, e.get("nom", "?"), car.global_position.distance_to(get_meta("p0")), d])
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--pedales-test"):
 		# #64 et #65 : gâchette d'accélérateur restée à 18 % + frein (marche arrière attendue), puis frein à main lancé,
 		# puis frein de parking (voiture immobile malgré les gaz à 40 %) ; journal [pédales]
