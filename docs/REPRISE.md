@@ -20,6 +20,8 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   essai `--carte-test` (cas 1 : 3 536 m -> pas de téléportation).
 - #96 astuces : `godot/data/astuces.json` (astuces + anecdotes), voile_demarrage.gd (7 s, fondu). Logo et splash
   screen de l'utilisateur : images jamais reçues (deux envois sans pièce jointe).
+- Clé Sketchfab : `~/.config/rochetoirin/sketchfab_token` (hors dépôt, chargée par ~/.bashrc dans SKETCHFAB_TOKEN) ;
+  conteneur seulement : pour les sessions neuves, elle doit être dans les réglages de l'environnement.
 - En cours : #95 voitures à acheter (planche de modèles Sketchfab à proposer), #94 vinyles et améliorations.
 
 ## v6.56 (16/10) — preuves jointes aux tickets (nouvelle règle CLAUDE.md)
