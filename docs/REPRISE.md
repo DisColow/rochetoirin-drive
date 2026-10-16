@@ -13,7 +13,13 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
-## v6.56 (16/10)
+## v6.56 (16/10) — preuves jointes aux tickets (nouvelle règle CLAUDE.md)
+- Vérifs de la v6.55 : #81 essai champ ignorait NIVEAU (corrigé) ; plants : 3 constructions parallèles (TACHES),
+  cases vides réglées par lots ; #88 RESSORT 40 m jamais atteint (39,3 m à 100 km/h) -> 32 m, essai `--ressort-test` ;
+  #89 garde-corps coupés aussi sur les chemins de terre (chaussees_u) : 37 -> 0 positions sur une chaussée ;
+  #85 essai `--casse-test --casse-genres=grillage_sport --drive-from=505,434,540,0` ; #82 essai `--regard-test`.
+- Piège : `pgrep -f motif` dans une boucle d'attente se trouve lui-même (le motif est dans sa propre ligne de
+  commande) : attendre par PID (`kill -0`).
 - #91 car.gd `pedale()` : valeur brute de l'action, course pleine calée sur le plus grand enfoncement vu (≥ 0,8),
   zone morte 15 % ; marche arrière 0,75 × force jusqu'à 45 km/h. Essai `--drive-test --gachettes-test`
   (gâchette plafonnée à 0,82 -> pédale 1,00).

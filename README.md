@@ -17,10 +17,11 @@ fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.ta
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
 Nouveautés de la v6.56 :
-- **Manette sur téléphone** : les gâchettes enfoncées à fond donnent enfin toute la puissance (gaz et frein), même
-  quand la manette ne va pas jusqu'au bout de sa course.
-- Marche arrière plus vive (jusqu'à 45 km/h).
-- Clôtures forcées seulement autour des maisons : granges, remises et garages ne sont plus clos d'office.
+- **Manette sur téléphone** : gâchettes enfoncées à fond = toute la puissance (gaz et frein), même si la manette
+  ne va pas au bout de sa course ; marche arrière plus vive (45 km/h).
+- **Ressort du bord de la carte réparé** (en v6.55 il ne se déclenchait plus) ; plants des champs qui apparaissent
+  sans retard en qualité élevée.
+- Clôtures forcées seulement autour des maisons ; garde-corps des ponts coupés aussi là où un chemin arrive.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
