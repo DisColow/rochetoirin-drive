@@ -21,6 +21,14 @@ var puissance := POWER
 var force_max := ENGINE
 var vmax := MAX_KMH
 var freinage := 1.0              # multiplie BRAKE et BRAKE_AIDE
+# nitro (#98) : niveau acheté au garage (0 : aucun) ; jauge 0 à 1, vidée en NITRO_DUREE s de boost, rechargée en
+# roulant (lentement) et en dérapant (vite) ; poussée NITRO_ACC en plus du moteur, jusqu'à vmax + 50 km/h
+const NITRO_DUREE := [0.0, 4.0, 5.0, 6.0]
+const NITRO_ACC := [0.0, 6.0, 8.5, 11.0]
+var nitro_niveau := 0
+var nitro_jauge := 1.0
+var nitro_actif := false
+var touch_nitro := 0.0
 var tuning: Node                 # tuning.gd (peinture du garage)
 var touch_throttle := 0.0
 var touch_brake := 0.0
@@ -593,6 +601,7 @@ func _physics_process(dt: float) -> void:
 			f = 0.0
 		engine_force = f if brk < 0.1 or thr > brk else 0.0
 		brake = BRAKE * freinage * brk + (2.0 if thr < 0.05 and spd < 3.0 and brk < 0.1 else 0.0)
+	_nitro(dt, thr, v, spd)
 	# frein à main (#64) : roues arrière bloquées et moins d'adhérence derrière (dérapage), moteur débrayé ; frein de
 	# parking : toutes les roues bloquées, moteur coupé
 	for w in wheels:
@@ -734,3 +743,43 @@ func reset_to_road() -> void:
 		linear_velocity = Vector3.ZERO
 		angular_velocity = Vector3.ZERO
 	_flip_t = 0.0; _stuck_t = 0.0; _jam_t = 0.0; _jam_ref = global_position
+
+## Nitro (#98) : poussée vers l'avant tant qu'on tient le bouton et qu'il reste de la jauge.
+func _nitro(dt: float, thr: float, v: float, spd: float) -> void:
+	if nitro_niveau <= 0 or not controle:
+		nitro_actif = false
+		return
+	var veut := (Input.is_action_pressed("nitro") and not preload("res://scripts/ui.gd").saisie_active()) or touch_nitro > 0.5
+	nitro_actif = veut and nitro_jauge > 0.0 and not reversing and v > -0.5 and spd < vmax + 50.0 \
+		and wheels.any(func(w): return w.is_in_contact())
+	_flamme_nitro()
+	if nitro_actif:
+		nitro_jauge = maxf(0.0, nitro_jauge - dt / NITRO_DUREE[nitro_niveau])
+		apply_central_force(global_transform.basis.z * mass * NITRO_ACC[nitro_niveau])
+	elif not veut:
+		var lat := absf(linear_velocity.dot(global_transform.basis.x))
+		var rech := 0.03 if spd > 30.0 else 0.0           # en roulant : ~33 s pour une jauge pleine
+		if lat > 3.0 and spd > 25.0:
+			rech += 0.18                                    # en dérapant : ~5 s
+		nitro_jauge = minf(1.0, nitro_jauge + rech * dt)
+
+## Flamme bleue à l'arrière pendant le nitro (cône émissif qui vacille).
+var _flamme: MeshInstance3D
+func _flamme_nitro() -> void:
+	if _flamme == null:
+		_flamme = MeshInstance3D.new()
+		var cm := CylinderMesh.new(); cm.top_radius = 0.0; cm.bottom_radius = 0.16; cm.height = 0.9
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.albedo_color = Color(0.45, 0.75, 1.0)
+		m.emission_enabled = true; m.emission = Color(0.4, 0.7, 1.0); m.emission_energy_multiplier = 3.0
+		cm.material = m
+		_flamme.mesh = cm
+		_flamme.rotation = Vector3(-PI / 2, 0, 0)            # pointe vers l'arrière (-Z)
+		_flamme.position = Vector3(0.55, 0.42, -2.95)
+		_flamme.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(_flamme)
+	_flamme.visible = nitro_actif
+	if nitro_actif:
+		var k := randf_range(0.8, 1.3)
+		_flamme.scale = Vector3(1.0, k, 1.0)

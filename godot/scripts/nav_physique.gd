@@ -22,6 +22,7 @@ const TOUCHES := {
 	"radio": [KEY_N, JOY_BUTTON_LEFT_SHOULDER],
 	"frein_main": [KEY_SPACE, JOY_BUTTON_A],
 	"frein_parking": [KEY_P, JOY_BUTTON_DPAD_DOWN],
+	"nitro": [KEY_SHIFT, JOY_BUTTON_B],                 # #98
 }
 
 func _ready() -> void:

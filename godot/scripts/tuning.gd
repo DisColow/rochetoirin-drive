@@ -87,6 +87,7 @@ func appliquer() -> void:
 	car.vmax = float(mo[1])
 	car.force_max = car.ENGINE * BOITE[garage.choix("boite")]
 	car.freinage = FREINS[garage.choix("freins")]
+	car.nitro_niveau = garage.choix("nitro")
 	var su: Array = SUSP[garage.choix("suspension")]
 	for i in car.wheels.size():
 		var w: VehicleWheel3D = car.wheels[i]

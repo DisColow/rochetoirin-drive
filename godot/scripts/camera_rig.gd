@@ -129,7 +129,8 @@ func _process_corps(dt: float) -> void:
 		_org_l = t.origin
 		cam.global_position = _pos
 		cam.look_at(_look, Vector3.UP)
-		cam.fov = lerpf(cam.fov, 62.0 + clampf(target.kmh() / 30.0, 0.0, 4.0), 1.0 - exp(-dt * 2.0))
+		var boost := 9.0 if target.get("nitro_actif") else 0.0      # nitro (#98) : le champ s'ouvre
+		cam.fov = lerpf(cam.fov, 62.0 + clampf(target.kmh() / 30.0, 0.0, 4.0) + boost, 1.0 - exp(-dt * (4.0 if boost > 0.0 else 2.0)))
 	else:
 		var p := t * (eye if mode == 1 else Vector3(0, 1.45, 1.2))
 		cam.global_position = p

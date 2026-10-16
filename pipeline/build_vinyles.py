@@ -1,4 +1,4 @@
-"""Vinyles du garage (issues #43, #54) -> ../godot/assets/garage/vinyles.png : 10 bandes de 1024 × 256 (RGBA), vues de
+"""Vinyles du garage (issues #43, #54, #94) -> ../godot/assets/garage/vinyles.png : 21 bandes de 1024 × 256 (RGBA), vues de
 côté de la voiture (u : arrière -> avant, v : haut -> bas), lues par scripts/carrosserie.gdshader (BANDES). Dessin à
 4 × puis réduit (bords lissés, coupés au seuil dans le jeu). Bandes : 0 flammes, 1 éclairs, 2 damier, 3 camouflage,
 4 tribal, 5 étoiles, 6 éclaboussures, 7 rayures obliques, 8 dents de requin, 9 filets rétro."""
@@ -152,7 +152,137 @@ def retro():
     return im
 
 
-BANDES = [flammes, eclairs, damier, camouflage, tribal, etoiles, eclaboussures, rayures, dents, retro]
+# ---- v6.58 (#94) : onze vinyles de plus
+def chevrons():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    for k in range(6):
+        x = W * (0.30 + 0.11 * k); e = W * 0.035; m = H * 0.55
+        d.polygon([(x, H * 0.30), (x + e, H * 0.30), (x + e + H * 0.22, m), (x + e, H * 0.80), (x, H * 0.80), (x + H * 0.22, m)],
+                  fill=(250, 200, 30, 255) if k % 2 == 0 else (20, 20, 22, 255))
+    return im
+
+
+def vagues():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    for j, col in enumerate([(20, 90, 200, 255), (40, 160, 230, 255), (230, 245, 255, 255)]):
+        pts = []
+        for i in range(201):
+            x = W * i / 200
+            pts.append((x, H * (0.62 + 0.06 * j) + math.sin(i / 200 * math.tau * 3 + j) * H * 0.07))
+        d.polygon(pts + [(W, H), (0, H)], fill=col)
+    return im
+
+
+def pois():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    r = H * 0.045
+    for j in range(4):
+        for i in range(18):
+            x = W * (i + 0.5 * (j % 2) + 0.5) / 18; y = H * (0.30 + 0.15 * j)
+            d.ellipse([x - r, y - r, x + r, y + r], fill=(245, 245, 245, 255))
+    return im
+
+
+def tigre():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    for k in range(18):
+        x = W * (0.05 + 0.9 * k / 17) + random.uniform(-W * 0.01, W * 0.01)
+        h = H * random.uniform(0.35, 0.6); e = W * random.uniform(0.012, 0.022); y0 = H * random.uniform(0.2, 0.35)
+        d.polygon([(x, y0), (x + e, y0 + h * 0.15), (x + e * 0.4, y0 + h * 0.5), (x + e * 1.2, y0 + h), (x - e * 0.3, y0 + h * 0.55),
+                   (x - e * 0.6, y0 + h * 0.2)], fill=(15, 12, 10, 255))
+    return im
+
+
+def hexagones():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    r = H * 0.075
+    for j in range(7):
+        for i in range(40):
+            x = i * r * 1.75 + (r * 0.87 if j % 2 else 0); y = H * 0.2 + j * r * 1.5
+            if x < W * 0.35 or random.random() < 0.15:
+                continue
+            pts = [(x + r * math.cos(a), y + r * math.sin(a)) for a in [math.pi / 6 + k * math.pi / 3 for k in range(6)]]
+            d.polygon(pts, outline=(240, 240, 240, 255), width=int(K * 4))
+    return im
+
+
+def pixels():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    c = H // 10
+    cols = [(255, 60, 140, 255), (60, 220, 255, 255), (255, 230, 50, 255), (120, 255, 90, 255)]
+    for j in range(3, 9):
+        for i in range(W // c):
+            p = (i * c / W)
+            if random.random() < p * 1.1 - 0.15:
+                d.rectangle([i * c, j * c, i * c + c - K * 2, j * c + c - K * 2], fill=random.choice(cols))
+    return im
+
+
+def numero():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    cx, cy, r = W * 0.5, H * 0.52, H * 0.27
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(250, 250, 250, 255))
+    # « 77 » dessiné en segments épais (pas de police nécessaire)
+    e = r * 0.16
+    for dx in (-r * 0.42, r * 0.10):
+        x0 = cx + dx; y0 = cy - r * 0.55
+        d.rectangle([x0, y0, x0 + r * 0.42, y0 + e], fill=(20, 20, 22, 255))
+        d.polygon([(x0 + r * 0.42 - e, y0), (x0 + r * 0.42, y0), (x0 + r * 0.12, cy + r * 0.55), (x0 + r * 0.12 - e, cy + r * 0.55)], fill=(20, 20, 22, 255))
+    d.rectangle([0, cy - H * 0.03, cx - r, cy + H * 0.03], fill=(250, 250, 250, 255))
+    return im
+
+
+def circuit():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    for k in range(14):
+        x, y = W * random.uniform(0.25, 1.0), H * random.uniform(0.3, 0.8)
+        pts = [(x, y)]
+        for _ in range(4):
+            if random.random() < 0.5:
+                x -= W * random.uniform(0.03, 0.12)
+            else:
+                dy = H * random.uniform(0.05, 0.15) * random.choice([-1, 1]); x -= abs(dy); y = min(max(y + dy, H * 0.25), H * 0.85)
+            pts.append((x, y))
+        d.line(pts, fill=(60, 255, 160, 255), width=int(K * 4))
+        d.ellipse([pts[-1][0] - K * 7, pts[-1][1] - K * 7, pts[-1][0] + K * 7, pts[-1][1] + K * 7], fill=(60, 255, 160, 255))
+    return im
+
+
+def griffures():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    for k in range(3):
+        x = W * (0.55 + 0.05 * k); y = H * (0.28 + 0.04 * k)
+        pts_h, pts_b = [], []
+        for i in range(21):
+            t = i / 20; px = x - t * W * 0.35; py = y + t * H * 0.45; e = H * 0.05 * math.sin(math.pi * t)
+            pts_h.append((px, py - e)); pts_b.append((px, py + e))
+        d.polygon(pts_h + pts_b[::-1], fill=(20, 20, 22, 255))
+    return im
+
+
+def tricolore():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    for k, col in enumerate([(0, 45, 145, 255), (245, 245, 245, 255), (210, 20, 40, 255)]):
+        y = H * (0.48 + 0.07 * k)
+        d.rectangle([0, y, W, y + H * 0.07], fill=col)
+    return im
+
+
+def coucher():
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    cx, cy, r = W * 0.62, H * 0.78, H * 0.48
+    for yy in range(int(cy - r), int(cy)):
+        t = (yy - (cy - r)) / r                       # 0 haut -> 1 horizon
+        if t > 0.45 and int((t - 0.45) * 22) % 2 == 1:
+            continue                                  # bandes vides de plus en plus serrées vers l'horizon
+        dx = math.sqrt(max(0.0, r * r - (yy - cy) ** 2))
+        d.line([(cx - dx, yy), (cx + dx, yy)], fill=(255, int(215 - 160 * t), int(60 + 140 * t), 255))
+    d.rectangle([0, cy, W, cy + H * 0.035], fill=(255, 60, 160, 255))
+    return im
+
+
+BANDES = [flammes, eclairs, damier, camouflage, tribal, etoiles, eclaboussures, rayures, dents, retro,
+          chevrons, vagues, pois, tigre, hexagones, pixels, numero, circuit, griffures, tricolore, coucher]
 atlas = Image.new("RGBA", (1024, 256 * len(BANDES)), (0, 0, 0, 0))
 for k, f in enumerate(BANDES):
     b = f().filter(ImageFilter.GaussianBlur(K * 0.6)).resize((1024, 256), Image.LANCZOS)

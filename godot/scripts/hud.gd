@@ -505,6 +505,11 @@ func _draw_argent() -> void:
 func _draw_speed() -> void:
 	var r := Rect2(Vector2.ZERO, speed_panel.size)
 	_panel(speed_panel, r)
+	if car and car.nitro_niveau > 0:                 # jauge de nitro (#98) en bas du compteur
+		var jr := Rect2(r.size.x * 0.25, r.size.y - 11, r.size.x * 0.7, 6)
+		speed_panel.draw_rect(jr, Color(0, 0, 0, 0.6))
+		speed_panel.draw_rect(Rect2(jr.position, Vector2(jr.size.x * car.nitro_jauge, jr.size.y)),
+			Color(0.35, 0.8, 1.0) if not car.nitro_actif else Color(1.0, 1.0, 1.0))
 	var f := speed_panel.get_theme_default_font()
 	var cy := r.size.y / 2
 	if _limit > 0:
@@ -606,7 +611,21 @@ func _update_leds() -> void:
 var b_frein_main: TouchScreenButton
 var b_parking: Button
 var b_pied: Button
+var b_nitro: TouchScreenButton      # #98 : au-dessus de GAZ, seulement si le nitro est monté
 func _freins_tactiles() -> void:
+	b_nitro = TouchScreenButton.new()
+	b_nitro.action = "nitro"
+	b_nitro.passby_press = true
+	b_nitro.texture_normal = _disc(44, Color(0.05, 0.18, 0.45, 0.5), Color(0.6, 0.85, 1.0))
+	b_nitro.texture_pressed = _disc(44, Color(0.3, 0.6, 1.0, 0.6), Color.WHITE)
+	var shn := CircleShape2D.new(); shn.radius = 44
+	b_nitro.shape = shn; b_nitro.shape_centered = true
+	var ln := Label.new(); ln.text = "NITRO"; ln.add_theme_font_size_override("font_size", 19)
+	ln.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; ln.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ln.size = Vector2(88, 88)
+	b_nitro.add_child(ln)
+	b_nitro.visible = false
+	add_child(b_nitro)
 	b_frein_main = TouchScreenButton.new()
 	b_frein_main.action = "frein_main"
 	b_frein_main.passby_press = true
@@ -654,6 +673,7 @@ func _layout() -> void:
 		b_parking.position = Vector2(s.x - 24 - 46, 24 + gh + 14 + 96 + 10 + 58 + 10)
 		b_pied.position = b_parking.position - Vector2(110 + 10, 0)
 		b_frein_main.position = Vector2(s.x - 470 + 12, s.y - 230 - 100)
+		b_nitro.position = Vector2(s.x - 240 + 48, s.y - 260 - 112)
 	pill.position = Vector2(0, 20); pill.size = Vector2(s.x, 90)
 	var pos := [Vector2(60, s.y - 230), Vector2(290, s.y - 230), Vector2(s.x - 470, s.y - 230), Vector2(s.x - 240, s.y - 260),
 		Vector2(214, 22), Vector2(90, 22), Vector2(338, 22), Vector2(462, 22), Vector2(586, 22)]
@@ -716,6 +736,7 @@ func _show_drive(on: bool) -> void:
 	if b_parking:
 		b_parking.visible = on
 		b_frein_main.visible = on
+		b_nitro.visible = on and car != null and car.nitro_niveau > 0
 	get_tree().paused = not on
 
 func _process(_dt: float) -> void:
@@ -745,6 +766,7 @@ func _process_corps(_dt: float) -> void:
 			for i in 4:
 				buttons[i].visible = _conduite and not a_pied
 			b_frein_main.visible = _conduite
+			b_nitro.visible = _conduite and not a_pied and car != null and car.nitro_niveau > 0
 			var lb: Label = b_frein_main.get_child(0)
 			lb.text = "SAUT" if a_pied else "F. À\nMAIN"
 			b_frein_main.position = Vector2(get_viewport().get_visible_rect().size.x - 130, get_viewport().get_visible_rect().size.y * 0.42) if a_pied else Vector2(get_viewport().get_visible_rect().size.x - 470 + 12, get_viewport().get_visible_rect().size.y - 330)
@@ -825,6 +847,7 @@ func _pastilles_manette() -> void:
 	cibles.append([b_frein_main, "frein_main"])
 	cibles.append([b_parking, "frein_parking"])
 	cibles.append([b_pied, "pied"])
+	cibles.append([b_nitro, "nitro"])
 	for c in cibles:
 		var n := touche_manette(c[1])
 		if n == "":

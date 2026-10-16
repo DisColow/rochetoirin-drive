@@ -13,7 +13,7 @@ uniform float vernis = 0.8;
 uniform float vernis_rug = 0.1;
 uniform float nacre = 0.0;          // reflet coloré en bord de pièce
 uniform int vinyle = 0;
-const float BANDES = 10.0;         // bandes de vinyles.png
+const float BANDES = 21.0;         // bandes de vinyles.png (v6.58, #94 : 13-23 chevrons… coucher de soleil)
 uniform sampler2D vin_tex : source_color, filter_linear_mipmap;
 uniform vec3 vin_col : source_color = vec3(0.95);
 uniform mat4 vers_voiture;          // repère du maillage -> repère de la voiture

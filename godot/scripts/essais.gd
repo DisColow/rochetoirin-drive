@@ -827,6 +827,28 @@ func _physics_process(_dt: float) -> void:
 			print("  [épreuves] activité « %s », épreuve %s, voiture déplacée de %.0f m, à %.0f m du départ" % [act.mode, e.get("nom", "?"), car.global_position.distance_to(get_meta("p0")), d])
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--nitro-test"):
+		# #98 : nitro 2 monté ; 4 s pleins gaz, puis 4 s pleins gaz + nitro : vitesse gagnée, jauge, recharge
+		car.aide_voie = false
+		car.touch_steer = 0.0; car.touch_brake = 0.0; car.touch_throttle = 1.0 if t > 300 else 0.0
+		if t == 300:
+			car.nitro_niveau = 2; car.nitro_jauge = 1.0
+		if t == 300 + 480:
+			set_meta("v0", car.kmh())
+			Input.action_press("nitro")
+		if t == 300 + 600:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/nitro.png")
+		if t == 300 + 960:
+			Input.action_release("nitro")
+			print("  [nitro] 4 s de nitro : %.0f -> %.0f km/h, jauge %.2f (vide en 5 s)" % [get_meta("v0"), car.kmh(), car.nitro_jauge])
+			set_meta("j0", car.nitro_jauge)
+		if t % 120 == 0 and t > 300 and t < 300 + 960:
+			print("  [nitro] t=%.0f s %3.0f km/h jauge %.2f actif %s" % [(t - 300) / 120.0, car.kmh(), car.nitro_jauge, car.nitro_actif])
+		if t == 300 + 1560:
+			print("  [nitro] recharge en 5 s de route : %.2f -> %.2f" % [get_meta("j0"), car.nitro_jauge])
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--pedales-test"):
 		# #64 et #65 : gâchette d'accélérateur restée à 18 % + frein (marche arrière attendue), puis frein à main lancé,
 		# puis frein de parking (voiture immobile malgré les gaz à 40 %) ; journal [pédales]
