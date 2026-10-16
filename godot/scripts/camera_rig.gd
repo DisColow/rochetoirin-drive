@@ -5,6 +5,10 @@ const PerfMon := preload("res://scripts/perf_monitor.gd")
 var target: VehicleBody3D
 var cam: Camera3D
 var mode := 0                      # 0 poursuite, 1 conducteur, 2 capot
+# crans de la vue poursuite (#103) : [distance derrière, hauteur, regard devant] ; le bouton caméra passe de l'un à
+# l'autre (proche, moyen, loin), puis vue conducteur, vue capot, et revient au plus proche
+const CRANS := [[5.3, 2.6, 4.5], [7.6, 3.2, 6.0], [10.5, 4.0, 8.0]]
+var cran := 0
 var _pos := Vector3.ZERO
 var _look := Vector3.ZERO
 var _org := Vector3.INF            # position de la voiture à l'image précédente (lissage relatif, #92)
@@ -55,6 +59,10 @@ func snap() -> void:
 	_org = t.origin; _org_l = t.origin
 
 func cycle() -> void:
+	if mode == 0 and cran < CRANS.size() - 1:
+		cran += 1
+		return
+	cran = 0
 	set_mode((mode + 1) % 3)
 
 func set_mode(m: int) -> void:
@@ -103,7 +111,8 @@ func _process_corps(dt: float) -> void:
 		var flat := Vector3(fwd.x, 0, fwd.z).normalized().rotated(Vector3.UP, yaw_off)
 		# caméra proche de la voiture (souhait du joueur), à toutes les vitesses
 		# (v6.57, #92 : un peu plus haute, 2,05 m avant, pour mieux voir devant la voiture)
-		var want := t.origin - flat * 5.3 * cos(pitch_off) + Vector3(0, 2.6 + 5.3 * sin(pitch_off), 0)
+		var cd: float = CRANS[cran][0]; var ch: float = CRANS[cran][1]; var cv: float = CRANS[cran][2]
+		var want := t.origin - flat * cd * cos(pitch_off) + Vector3(0, ch + cd * sin(pitch_off), 0)
 		# voiture portée par la soucoupe : plan large, un peu en contrebas, voiture et soucoupe dans le cadre
 		_carry = move_toward(_carry, 1.0 if target.carried else 0.0, dt * 0.8)
 		var c := _carry * _carry * (3.0 - 2.0 * _carry)
@@ -124,7 +133,7 @@ func _process_corps(dt: float) -> void:
 		if not hit.is_empty():
 			var hp: Vector3 = hit.position
 			_pos = head + (hp - head) * maxf(0.0, 1.0 - 0.45 / maxf((hp - head).length(), 0.01))
-		var look_at := (t.origin + Vector3(0, 1.3, 0) + flat * 4.5).lerp(t.origin + Vector3(0, 5.0, 0), c)
+		var look_at := (t.origin + Vector3(0, 1.3, 0) + flat * cv).lerp(t.origin + Vector3(0, 5.0, 0), c)
 		_look = t.origin + ((_look - _org_l) if _look != Vector3.ZERO else (look_at - t.origin)).lerp(look_at - t.origin, 1.0 - exp(-dt * 10.0))
 		_org_l = t.origin
 		cam.global_position = _pos

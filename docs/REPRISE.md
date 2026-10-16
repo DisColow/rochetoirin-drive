@@ -13,6 +13,10 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## v6.60 (16/10)
+- #103 : `camera_rig.gd` `CRANS` (5,3 / 7,6 / 10,5 m), `cran` ; cycle proche > moyen > loin > conducteur > capot.
+  Essai `--crans-test`. #102 : images non reçues (échec d'envoi GitHub), redemandées, `pending`.
+
 ## v6.59 (16/10)
 - #99 : `scripts/armes.gd` (caisses « ? » sur le tracé, une arme à la fois, bouton ARME / F / croix ↑ ; boule, onde,
   bouclier, tornade) ; net.gd : `armes_actives` envoyé avec la course, RPC `_subir`, `tir_vu`, `bouclier_vu` ;

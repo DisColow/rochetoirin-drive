@@ -827,6 +827,27 @@ func _physics_process(_dt: float) -> void:
 			print("  [épreuves] activité « %s », épreuve %s, voiture déplacée de %.0f m, à %.0f m du départ" % [act.mode, e.get("nom", "?"), car.global_position.distance_to(get_meta("p0")), d])
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--crans-test"):
+		# #103 : bouton caméra pressé 6 fois (ordre des vues), puis captures et distance caméra-voiture de chaque cran
+		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0
+		if t == 300:
+			car.linear_velocity = Vector3.ZERO; car.freeze = true
+			var l := []
+			for i in 6:
+				cam_rig.cycle()
+				l.append("mode %d cran %d" % [cam_rig.mode, cam_rig.cran])
+			print("  [crans] bouton caméra ×6 : " + ", ".join(l))
+			cam_rig.set_mode(0); cam_rig.cran = 0
+		for k in 3:
+			if t == 300 + 120 * (k + 1):
+				DirAccess.make_dir_recursive_absolute("user://shots")
+				get_viewport().get_texture().get_image().save_png("user://shots/cran_%d.png" % k)
+				var d: Vector3 = cam_rig.cam.global_position - car.global_position
+				print("  [crans] cran %d : caméra à %.1f m derrière, %.1f m au-dessus" % [k, Vector2(d.x, d.z).length(), d.y])
+				cam_rig.cran = k + 1 if k < 2 else 0
+		if t == 300 + 480:
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--armes-test"):
 		# #99 sans réseau : caisses posées devant, ramassage en roulant ; puis boule, onde, tornade tirées sur une cible
 		# d'essai (id -1) ; puis coups subis (vitesse avant/après) et bouclier (coup sans effet)
