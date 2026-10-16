@@ -344,7 +344,9 @@ def main():
         if props.get("construction_legere"):
             continue
         u = props.get("usage_1"); u2 = props.get("usage_2")
-        if not (u in ("Résidentiel", "Indifférencié") or u2 == "Résidentiel"):
+        # v6.56 (#90) : clôture complète forcée pour les maisons seulement ; un usage « Indifférencié » (grange,
+        # remise, garage, petit local…) n'est clos que si la façade a été relevée sur Street View
+        if not (u == "Résidentiel" or u2 == "Résidentiel" or (u == "Indifférencié" and props.get("cleabs") in survey)):
             continue
         if not (30 <= g.area <= 600):
             continue
