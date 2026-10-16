@@ -200,7 +200,7 @@ func _process_corps(dt: float) -> void:
 	var g := 0
 	while g < 3 and kmh > tops[g] * 0.86:
 		g += 1
-	var thr: float = maxf(Input.get_action_strength("accelerer"), car.touch_throttle)
+	var thr: float = maxf(car.thr_in, car.touch_throttle)
 	var want := 850.0 + clampf(kmh / tops[g], 0.0, 1.0) * 5000.0 + thr * 700.0
 	if kmh < 3.0:
 		want = 850.0 + thr * 1800.0

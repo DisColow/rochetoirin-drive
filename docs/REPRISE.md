@@ -13,6 +13,13 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## v6.56 (16/10)
+- #91 car.gd `pedale()` : valeur brute de l'action, course pleine calée sur le plus grand enfoncement vu (≥ 0,8),
+  zone morte 15 % ; marche arrière 0,75 × force jusqu'à 45 km/h. Essai `--drive-test --gachettes-test`
+  (gâchette plafonnée à 0,82 -> pédale 1,00).
+- #90 build_fences : propriétaires = usage « Résidentiel » seulement (ou « Indifférencié » relevé sur Street View) ;
+  2700 tuiles, 0 point sur la route ; abords.py et build_props relancés.
+
 ## v6.55 (16/10) — retours vocaux du 16/10, issues #81 à #89
 - #81 crops.RANGE [80,105,130,160], densité pleine jusqu'à 25 m puis 15 % au bord ; #82 a_pied : axe Y inversé.
 - #83 build_fences : plus de morceau laissé ouvert le long d'une allée privée (place() retire l'emprise) ; abords.py

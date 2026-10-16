@@ -183,7 +183,7 @@ func _physics_process(dt: float) -> void:
 		_pitch = clampf(_pitch + sd.y * absf(sd.y) * 2.0 * dt, -1.3, 1.3)
 	var sg := _stick("g")
 	# marche : GAZ / FREIN (↑ ↓), stick gauche ; ◀ ▶ tournent
-	var av := Input.get_action_strength("accelerer") - Input.get_action_strength("freiner")
+	var av: float = main.car.pedale("accelerer") - main.car.pedale("freiner")
 	var lat := 0.0
 	if sg != Vector2.ZERO:
 		av = -sg.y; lat = sg.x

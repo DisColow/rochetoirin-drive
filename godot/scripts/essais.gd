@@ -682,6 +682,26 @@ func _physics_process(_dt: float) -> void:
 		if t > 300 + 1000:
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--gachettes-test"):
+		# #91 : gâchette d'une manette Android qui plafonne à 0,82 : gaz puis marche arrière doivent être à fond
+		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 0.0
+		var etapes := [[300, 5, 0.82], [300 + 600, 5, 0.0], [300 + 600, 4, 0.82], [300 + 1500, 4, 0.0]]
+		for e in etapes:
+			if t == e[0]:
+				var j := InputEventJoypadMotion.new(); j.device = 0; j.axis = e[1]; j.axis_value = e[2]
+				Input.parse_input_event(j)
+		if t == 300 + 300:
+			var j := InputEventJoypadMotion.new(); j.device = 0; j.axis = 5; j.axis_value = 0.5
+			Input.parse_input_event(j)
+		if t == 300 + 360:
+			print("  [gâchettes] gaz à mi-course (0,5 brut) : pédale %.2f" % car.thr_in)
+			var j := InputEventJoypadMotion.new(); j.device = 0; j.axis = 5; j.axis_value = 0.82
+			Input.parse_input_event(j)
+		if t > 300 and t % 60 == 0:
+			print("  [gâchettes] t=%.1f gaz %.2f frein %.2f, %.0f km/h%s" % [(t - 300) / 120.0, car.thr_in, car.brk_in, car.forward_speed() * 3.6, " (marche arrière)" if car.reversing else ""])
+		if t > 300 + 1560:
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--pedales-test"):
 		# #64 et #65 : gâchette d'accélérateur restée à 18 % + frein (marche arrière attendue), puis frein à main lancé,
 		# puis frein de parking (voiture immobile malgré les gaz à 40 %) ; journal [pédales]

@@ -541,8 +541,8 @@ func _physics_process(dt: float) -> void:
 		return
 	# gâchettes de manette : zone morte de 15 % (#65 : une gâchette d'accélérateur qui ne revient pas tout à fait à
 	# zéro empêchait la marche arrière)
-	var thr := clampf(_zone(Input.get_action_strength("accelerer")) + touch_throttle, 0.0, 1.0)
-	var brk := clampf(_zone(Input.get_action_strength("freiner")) + touch_brake, 0.0, 1.0)
+	var thr := clampf(pedale("accelerer") + touch_throttle, 0.0, 1.0)
+	var brk := clampf(pedale("freiner") + touch_brake, 0.0, 1.0)
 	if Input.is_action_just_pressed("frein_parking") and not preload("res://scripts/ui.gd").saisie_active():
 		frein_parking = not frein_parking
 	if frein_parking and thr > 0.5 and absf(forward_speed()) < 0.3:
@@ -582,7 +582,8 @@ func _physics_process(dt: float) -> void:
 			engine_force = 0.0
 			brake = BRAKE * freinage * thr
 		else:
-			engine_force = -force_max * 0.5 / 4.0 * brk if spd < 25.0 else 0.0
+			# (v6.56, #91 : 25 km/h et demi-force avant, on reculait trop lentement)
+			engine_force = -force_max * 0.75 / 4.0 * brk if spd < 45.0 else 0.0
 			brake = 0.0
 	else:
 		# boîte auto : force limitée par la puissance (F = P / v), coupée à la vitesse max
@@ -623,8 +624,17 @@ func _physics_process(dt: float) -> void:
 	_anti_roll()
 	_recovery(dt)
 
-static func _zone(x: float) -> float:
-	return clampf((x - 0.15) / 0.85, 0.0, 1.0) if x < 0.999 else 1.0
+## Pédale d'une gâchette ou d'une touche, 0 à 1 (v6.56, #91) : beaucoup de manettes sur Android plafonnent leurs
+## gâchettes vers 0,8 à 0,95 ; la course pleine est donc calée sur le plus grand enfoncement déjà vu (au moins
+## 0,8), après une zone morte de 15 %. Valeur brute de l'action (sans la zone morte de Godot, qui s'ajoutait à la
+## nôtre).
+static var _course := {"accelerer": 0.8, "freiner": 0.8}
+static func pedale(action: String) -> float:
+	var x := Input.get_action_raw_strength(action)
+	if x > _course[action]:
+		_course[action] = minf(x, 1.0)
+	var plein: float = _course[action]
+	return clampf((x - 0.15) / maxf(plein - 0.15 - 0.03, 0.1), 0.0, 1.0)
 
 ## Aide à la stabilité : ramène doucement la caisse à plat autour de son axe longitudinal (roulis), sans toucher au
 ## tangage (montées, descentes) ; plus ferme en l'air pour retomber sur les roues après un saut.
