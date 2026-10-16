@@ -849,6 +849,25 @@ func _physics_process(_dt: float) -> void:
 			print("  [nitro] recharge en 5 s de route : %.2f -> %.2f" % [get_meta("j0"), car.nitro_jauge])
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--vinyles-test"):
+		# #94 : trois des nouveaux vinyles vus de côté (couleur rouge)
+		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0
+		var vs := [13, 19, 23]
+		for k in vs.size():
+			if t == 300 + k * 120:
+				car.linear_velocity = Vector3.ZERO; car.freeze = true
+				garage.monte["vinyle"] = vs[k]; garage.monte["couleur"] = 3
+				tuning.appliquer()
+				var xf := car.global_transform
+				cam_rig.set_process(false)
+				cam_rig.cam.global_position = xf.origin + xf.basis.x * 6.5 + Vector3(0, 1.3, 0)
+				cam_rig.cam.look_at(xf.origin + Vector3(0, 0.9, 0), Vector3.UP)
+			if t == 300 + k * 120 + 60:
+				DirAccess.make_dir_recursive_absolute("user://shots")
+				get_viewport().get_texture().get_image().save_png("user://shots/vinyle_%d.png" % vs[k])
+		if t > 300 + 400:
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--pedales-test"):
 		# #64 et #65 : gâchette d'accélérateur restée à 18 % + frein (marche arrière attendue), puis frein à main lancé,
 		# puis frein de parking (voiture immobile malgré les gaz à 40 %) ; journal [pédales]
