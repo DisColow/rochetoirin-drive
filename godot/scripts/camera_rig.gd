@@ -7,6 +7,8 @@ var cam: Camera3D
 var mode := 0                      # 0 poursuite, 1 conducteur, 2 capot
 var _pos := Vector3.ZERO
 var _look := Vector3.ZERO
+var _org := Vector3.INF            # position de la voiture à l'image précédente (lissage relatif, #92)
+var _org_l := Vector3.ZERO
 var eye := Vector3(-0.39, 1.33, 0.10)
 var cockpit: CanvasLayer          # habitacle en pixel art (vue conducteur)
 var hud: CanvasLayer
@@ -48,8 +50,9 @@ func _ready() -> void:
 func snap() -> void:
 	var t := target.global_transform
 	var flat := Vector3(t.basis.z.x, 0, t.basis.z.z).normalized()
-	_pos = t.origin - flat * 7.2 + Vector3(0, 2.6, 0)
-	_look = t.origin + Vector3(0, 1.2, 0)
+	_pos = t.origin - flat * 5.3 + Vector3(0, 2.6, 0)
+	_look = t.origin + Vector3(0, 1.3, 0)
+	_org = t.origin; _org_l = t.origin
 
 func cycle() -> void:
 	set_mode((mode + 1) % 3)
@@ -94,18 +97,25 @@ func _process_corps(dt: float) -> void:
 		cam.look_at(t.origin + Vector3(0, 0.8, 0) + gauche * 1.6, Vector3.UP)
 		cam.fov = 55.0
 		_pos = p
+		_org = t.origin; _org_l = t.origin
 		return
 	if mode == 0:
 		var flat := Vector3(fwd.x, 0, fwd.z).normalized().rotated(Vector3.UP, yaw_off)
 		# caméra proche de la voiture (souhait du joueur), à toutes les vitesses
-		var want := t.origin - flat * 5.3 * cos(pitch_off) + Vector3(0, 2.05 + 5.3 * sin(pitch_off), 0)
+		# (v6.57, #92 : un peu plus haute, 2,05 m avant, pour mieux voir devant la voiture)
+		var want := t.origin - flat * 5.3 * cos(pitch_off) + Vector3(0, 2.6 + 5.3 * sin(pitch_off), 0)
 		# voiture portée par la soucoupe : plan large, un peu en contrebas, voiture et soucoupe dans le cadre
 		_carry = move_toward(_carry, 1.0 if target.carried else 0.0, dt * 0.8)
 		var c := _carry * _carry * (3.0 - 2.0 * _carry)
 		if c > 0.0:
 			want = want.lerp(t.origin - flat * 19.0 + Vector3(0, 1.0, 0), c)
 		var k := 1.0 - exp(-dt * lerpf(5.0, 14.0, c))
-		_pos = _pos.lerp(want, k)
+		# lissage dans le repère de la voiture (#92) : lissée en position absolue, la caméra traînait d'autant plus
+		# que la voiture allait vite (5,7 m derrière à l'arrêt, 11,6 m à 100 km/h : la voiture rapetissait)
+		var rel := (_pos - _org) if _org != Vector3.INF else (want - t.origin)
+		rel = rel.lerp(want - t.origin, k)
+		_org = t.origin
+		_pos = t.origin + rel
 		# bras à ressort : la caméra ne traverse ni murs, ni haies, ni relief (rayon depuis le toit de la voiture)
 		var head := t.origin + Vector3(0, 1.5, 0)
 		var q := PhysicsRayQueryParameters3D.create(head, _pos + (_pos - head).normalized() * 0.4)
@@ -114,11 +124,12 @@ func _process_corps(dt: float) -> void:
 		if not hit.is_empty():
 			var hp: Vector3 = hit.position
 			_pos = head + (hp - head) * maxf(0.0, 1.0 - 0.45 / maxf((hp - head).length(), 0.01))
-		var look_at := (t.origin + Vector3(0, 1.2, 0) + flat * 3.0).lerp(t.origin + Vector3(0, 5.0, 0), c)
-		_look = _look.lerp(look_at, 1.0 - exp(-dt * 10.0)) if _look != Vector3.ZERO else t.origin
+		var look_at := (t.origin + Vector3(0, 1.3, 0) + flat * 4.5).lerp(t.origin + Vector3(0, 5.0, 0), c)
+		_look = t.origin + ((_look - _org_l) if _look != Vector3.ZERO else (look_at - t.origin)).lerp(look_at - t.origin, 1.0 - exp(-dt * 10.0))
+		_org_l = t.origin
 		cam.global_position = _pos
 		cam.look_at(_look, Vector3.UP)
-		cam.fov = lerpf(cam.fov, 62.0 + clampf(target.kmh() / 20.0, 0.0, 7.0), 1.0 - exp(-dt * 2.0))
+		cam.fov = lerpf(cam.fov, 62.0 + clampf(target.kmh() / 30.0, 0.0, 4.0), 1.0 - exp(-dt * 2.0))
 	else:
 		var p := t * (eye if mode == 1 else Vector3(0, 1.45, 1.2))
 		cam.global_position = p

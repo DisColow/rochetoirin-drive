@@ -16,12 +16,11 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.56 :
-- **Manette sur téléphone** : gâchettes enfoncées à fond = toute la puissance (gaz et frein), même si la manette
-  ne va pas au bout de sa course ; marche arrière plus vive (45 km/h).
-- **Ressort du bord de la carte réparé** (en v6.55 il ne se déclenchait plus) ; plants des champs qui apparaissent
-  sans retard en qualité élevée.
-- Clôtures forcées seulement autour des maisons ; garde-corps des ponts coupés aussi là où un chemin arrive.
+Nouveautés de la v6.57 :
+- **Caméra** : elle ne recule plus quand on accélère (la voiture garde sa taille à l'écran) et elle est un peu plus
+  haute pour mieux voir la route devant.
+- **Mini-carte** : un toucher ne téléporte plus par erreur ; il faut bien toucher la carte une seconde fois.
+- **Écran de chargement** : astuces et anecdotes sur le jeu.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

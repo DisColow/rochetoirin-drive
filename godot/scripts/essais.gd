@@ -761,6 +761,49 @@ func _physics_process(_dt: float) -> void:
 		if t > 440:
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--camera-test"):
+		# #92 : pleins gaz en ligne droite ; distance caméra-voiture et hauteur de la caméra au-dessus de la voiture
+		car.aide_voie = false
+		car.touch_steer = 0.0; car.touch_brake = 0.0; car.touch_throttle = 1.0 if t > 300 else 0.0
+		if t > 300 and t % 60 == 0:
+			var cp: Vector3 = cam_rig.cam.global_position
+			var d := Vector2(cp.x - car.global_position.x, cp.z - car.global_position.z).length()
+			print("  [caméra] %3d km/h : caméra à %.1f m derrière, %.1f m au-dessus, champ %.0f°" % [car.kmh(), d, cp.y - car.global_position.y, cam_rig.cam.fov])
+		if t == 300 + 480:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/camera_vite.png")
+		if t > 300 + 600:
+			get_tree().quit()
+		return
+	if OS.get_cmdline_user_args().has("--carte-test"):
+		# #93 : la carte ne doit téléporter qu'au second toucher. Cas 1 : doigt resté « posé » dans la carte (zoom à
+		# deux doigts interrompu), puis toucher de la mini-carte -> le doigt levé ne doit pas téléporter.
+		# Cas 2 : toucher normal dans la carte ouverte -> téléportation.
+		var mp = get_node("HUD").map
+		if t == 300:
+			set_meta("p0", car.global_position)
+			mp.open()
+			var a := InputEventScreenTouch.new(); a.index = 1; a.pressed = true; a.position = Vector2(500, 400)
+			mp._gui_input(a)                                   # doigt posé...
+			mp.visible = false                                 # ...et carte fermée sans qu'il soit levé
+		if t == 330:
+			mp.open()                                          # toucher de la mini-carte (appui)
+			var r := InputEventScreenTouch.new(); r.index = 0; r.pressed = false; r.position = Vector2(700, 500)
+			mp._gui_input(r)                                   # le même doigt se lève, sur la carte
+		if t == 420:
+			print("  [carte] cas 1 (doigt levé du toucher qui ouvre) : voiture déplacée de %.0f m, carte %s" % [car.global_position.distance_to(get_meta("p0")), "ouverte" if mp.visible else "fermée"])
+			set_meta("p0", car.global_position)
+			if not mp.visible:
+				mp.open()
+		if t == 460:
+			var a := InputEventScreenTouch.new(); a.index = 0; a.pressed = true; a.position = Vector2(150, 120)
+			mp._gui_input(a)
+			var r := InputEventScreenTouch.new(); r.index = 0; r.pressed = false; r.position = Vector2(150, 120)
+			mp._gui_input(r)
+		if t == 560:
+			print("  [carte] cas 2 (second toucher, dans la carte) : voiture déplacée de %.0f m" % car.global_position.distance_to(get_meta("p0")))
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--pedales-test"):
 		# #64 et #65 : gâchette d'accélérateur restée à 18 % + frein (marche arrière attendue), puis frein à main lancé,
 		# puis frein de parking (voiture immobile malgré les gaz à 40 %) ; journal [pédales]

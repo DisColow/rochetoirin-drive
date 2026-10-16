@@ -8,6 +8,14 @@ var _present := 0.0
 var _boite: Control
 var _info: Label
 var _barre: ProgressBar
+# astuces et anecdotes (#96, façon Fallout 4) : une toutes les 7 s, en fondu, sous la barre
+const ASTUCES := "res://data/astuces.json"
+const DUREE_ASTUCE := 7.0
+var _astuce_titre: Label
+var _astuce: Label
+var _liste: Array = []
+var _t_astuce := 0.0
+var _i_astuce := -1
 const Chargement := preload("res://scripts/chargement.gd")
 
 func _ready() -> void:
@@ -48,11 +56,45 @@ func _ready() -> void:
 	_info.add_theme_font_size_override("font_size", 28)
 	_info.modulate = Color(1, 1, 1, 0.8)
 	v.add_child(_info)
+	var sep := Control.new(); sep.custom_minimum_size = Vector2(0, 40)
+	v.add_child(sep)
+	_astuce_titre = Label.new()
+	_astuce_titre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_astuce_titre.add_theme_font_size_override("font_size", 26)
+	_astuce_titre.add_theme_color_override("font_color", Color(1.0, 0.78, 0.3))
+	v.add_child(_astuce_titre)
+	_astuce = Label.new()
+	_astuce.custom_minimum_size = Vector2(900, 120)
+	_astuce.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_astuce.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_astuce.add_theme_font_size_override("font_size", 30)
+	v.add_child(_astuce)
+	var d = JSON.parse_string(FileAccess.get_file_as_string(ASTUCES)) if FileAccess.file_exists(ASTUCES) else null
+	if d is Dictionary:
+		for tx in d.get("astuces", []):
+			_liste.append(["ASTUCE", tx])
+		for tx in d.get("anecdotes", []):
+			_liste.append(["LE SAVIEZ-VOUS ?", tx])
+	_liste.shuffle()
+	_suivante()
+
+func _suivante() -> void:
+	if _liste.is_empty():
+		return
+	_i_astuce = (_i_astuce + 1) % _liste.size()
+	_astuce_titre.text = _liste[_i_astuce][0]
+	_astuce.text = _liste[_i_astuce][1]
+	_t_astuce = 0.0
 
 func _process(dt: float) -> void:
 	if OS.get_cmdline_user_args().has("--capture-chargement"):
 		_capture()
 	# la barre suit la progression (sans jamais reculer) ; texte : étape en cours et pourcentage
+	_t_astuce += minf(dt, 0.5)
+	if _t_astuce > DUREE_ASTUCE:
+		_suivante()
+	var fa := clampf(minf(_t_astuce / 0.4, (DUREE_ASTUCE - _t_astuce) / 0.4), 0.0, 1.0)
+	_astuce.modulate.a = fa; _astuce_titre.modulate.a = fa
 	var p := Chargement.progres()
 	_barre.value = maxf(_barre.value, p)
 	if Chargement.fini:

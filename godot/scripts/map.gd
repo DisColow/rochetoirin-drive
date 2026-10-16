@@ -71,6 +71,10 @@ func open() -> void:
 		hint.text = "Téléportation désactivée pendant l'activité (★ pour l'arrêter)" if locked else HINT
 	position = Vector2.ZERO
 	size = get_viewport_rect().size
+	# (#93) doigts oubliés d'une ouverture précédente (zoom à deux doigts interrompu, carte fermée doigt posé) :
+	# sans ce ménage, le doigt qui se lève après avoir touché la mini-carte téléportait tout de suite
+	touches.clear()
+	moved = 99.0
 	visible = true
 	_layout()
 	_recenter()
@@ -147,7 +151,8 @@ func _gui_input(e: InputEvent) -> void:
 				var v := touches.values()
 				pinch_d = (v[0] - v[1]).length()
 		else:
-			if touches.size() == 1 and moved < 18.0:
+			# seulement un doigt posé DANS la carte ouverte (#93 : jamais le doigt qui a touché la mini-carte)
+			if touches.has(e.index) and touches.size() == 1 and moved < 18.0:
 				_pick(e.position)
 			touches.erase(e.index)
 			moved = 99.0 if touches.size() > 0 else moved

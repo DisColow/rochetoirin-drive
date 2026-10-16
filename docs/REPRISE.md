@@ -13,6 +13,15 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## v6.57 (16/10)
+- #92 camera_rig : lissage dans le repère de la voiture (`_org`), hauteur 2,6 m, visée 4,5 m devant, champ +4° max ;
+  essai `--camera-test` (avant 5,7 -> 11,6 m à 100 km/h ; après 5,3-6,4 m).
+- #93 map.gd : `touches` vidé à l'ouverture, téléportation seulement pour un doigt posé dans la carte ouverte ;
+  essai `--carte-test` (cas 1 : 3 536 m -> pas de téléportation).
+- #96 astuces : `godot/data/astuces.json` (astuces + anecdotes), voile_demarrage.gd (7 s, fondu). Logo et splash
+  screen de l'utilisateur : images jamais reçues (deux envois sans pièce jointe).
+- En cours : #95 voitures à acheter (planche de modèles Sketchfab à proposer), #94 vinyles et améliorations.
+
 ## v6.56 (16/10) — preuves jointes aux tickets (nouvelle règle CLAUDE.md)
 - Vérifs de la v6.55 : #81 essai champ ignorait NIVEAU (corrigé) ; plants : 3 constructions parallèles (TACHES),
   cases vides réglées par lots ; #88 RESSORT 40 m jamais atteint (39,3 m à 100 km/h) -> 32 m, essai `--ressort-test` ;
