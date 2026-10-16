@@ -490,6 +490,34 @@ def surface(mb, poly, hfun, lift, maxlen=2.5):
         mb.add(P, smooth_normals(P, T), V2, T)
 
 
+def _hors_chaussee(E, y, chaussee, pas=1.0, marge=0.6, bout=15.0):
+    """Morceaux d'une ligne de parapet (points E, hauteurs y) qui restent hors de la chaussée `chaussee` (géométrie
+    shapely des routes ordinaires) : ligne redécoupée tous les `pas` m, points à moins de `marge` m d'une chaussée
+    retirés dans les `bout` premiers et derniers mètres seulement (au milieu, la route est sous le pont), morceaux de
+    moins de 2 m oubliés."""
+    E = np.asarray(E, float); y = np.asarray(y, float)
+    if len(E) < 2 or chaussee is None or chaussee.is_empty:
+        return [(E, y)]
+    d = np.concatenate([[0.0], np.cumsum(np.hypot(*np.diff(E, axis=0).T))])
+    if d[-1] < 1e-6:
+        return []
+    t = np.unique(np.concatenate([np.arange(0.0, d[-1], pas), [d[-1]], d]))
+    P = np.stack([np.interp(t, d, E[:, 0]), np.interp(t, d, E[:, 1])], axis=1)
+    Y = np.interp(t, d, y)
+    dedans = shapely.dwithin(chaussee, shapely.points(P), marge) & ((t < bout) | (t > d[-1] - bout))
+    out, k = [], 0
+    while k < len(P):
+        if dedans[k]:
+            k += 1; continue
+        j = k
+        while j + 1 < len(P) and not dedans[j + 1]:
+            j += 1
+        if t[j] - t[k] >= 2.0:
+            out.append((P[k:j + 1], Y[k:j + 1]))
+        k = j + 1
+    return out
+
+
 def walls(mb, ring_pts, y_top, y_bot, uvs=1.0):
     """Faces verticales le long d'une polyligne (bordures, rives de pont)."""
     R = np.asarray(ring_pts)
@@ -633,9 +661,11 @@ def main():
             surface(mbdm if w["cls"] in ("motorway", "motorway_link") else mbd, g, yb, 0.0, maxlen=3.0)
             for sg in (1, -1):
                 E = w["P"] + w["N"] * sg * (w["hw_arr"][:, None] if "hw_arr" in w else w["w"] / 2)
-                y = w["y"]
-                walls(mbp, E, y + 1.0, y - 0.9)                     # parapets et rive du tablier
-                walls(mbp, E[::-1], (y + 1.0)[::-1], (y - 0.9)[::-1])
+                # parapets et rive du tablier, coupés là où ils entreraient sur une autre chaussée (v6.55, #89 : aux
+                # carrefours collés aux petits ponts, on se prenait le garde-corps en tournant)
+                for Er, yr in _hors_chaussee(E, w["y"], paved_u):
+                    walls(mbp, Er, yr + 1.0, yr - 0.9)
+                    walls(mbp, Er[::-1], (yr + 1.0)[::-1], (yr - 0.9)[::-1])
             # piles tous les 25 m si le tablier est haut
             for k in range(0, len(w["P"]), 8):
                 gnd = float(dem.h(*w["P"][k])[0])

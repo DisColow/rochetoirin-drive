@@ -28,6 +28,8 @@ var target: Node3D
 var terrain: Node
 var tiles := {}
 var loaded := {}
+var grillages := {}         # tuile -> PackedVector3Array (travées de grillage a, b ; casse.gd, v6.55 #85)
+var _g_cs := {}            # tuile -> Array des CollisionShape3D de ces travées (même ordre)
 var meshes := []
 var pitch_mat: ShaderMaterial
 var _t := 0.0
@@ -111,6 +113,8 @@ func _process_corps(dt: float) -> void:
 		if not ws.has(k):
 			loaded[k].queue_free()
 			loaded.erase(k)
+			grillages.erase(k)
+			_g_cs.erase(k)
 
 func _h(x: float, z: float, fb: float) -> float:
 	if terrain and terrain.data:
@@ -220,6 +224,12 @@ func _add(k: Vector2i) -> void:
 				cs.shape = bs
 				cs.transform = Transform3D(b.orthonormalized(), xf.origin) * Transform3D(Basis.IDENTITY, c[0])
 				body.add_child(cs)
+				if nm == "grillage":            # travée défonçable (#85)
+					if not grillages.has(k):
+						grillages[k] = PackedVector3Array(); _g_cs[k] = []
+					grillages[k].append(xf * Vector3(-c[1].x * 0.5, 0.0, 0.0))
+					grillages[k].append(xf * Vector3(c[1].x * 0.5, 0.0, 0.0))
+					_g_cs[k].append(cs)
 	for m in by:
 		var l := []
 		for xf in by[m]:
@@ -227,3 +237,19 @@ func _add(k: Vector2i) -> void:
 		Cells.add(root, meshes[m], l, 600.0 if MODELS[m] == "mat_eclairage" else 320.0, MODELS[m] == "mat_eclairage")
 	add_child(root)
 	loaded[k] = root
+
+## Grillage enfoncé (casse.gd, #85) : plus de collision pour les travées à moins de r m de p.
+func breche(p: Vector3, r: float) -> void:
+	var k := Vector2i(floori(p.x / TILE), floori(p.z / TILE))
+	if not grillages.has(k):
+		return
+	var G: PackedVector3Array = grillages[k]
+	for i in range(0, G.size() - 1, 2):
+		var a := G[i]; var b := G[i + 1]
+		var ab := Vector2(b.x - a.x, b.z - a.z)
+		var t := clampf(Vector2(p.x - a.x, p.z - a.z).dot(ab) / maxf(ab.length_squared(), 1e-6), 0.0, 1.0)
+		var q := a.lerp(b, t)
+		if Vector2(q.x - p.x, q.z - p.z).length() < r:
+			var cs: CollisionShape3D = _g_cs[k][i / 2]
+			if is_instance_valid(cs):
+				cs.set_deferred("disabled", true)

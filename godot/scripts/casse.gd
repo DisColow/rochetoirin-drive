@@ -23,12 +23,13 @@ const KINDS := {
 	"arbre": [0.14, "choc_bois_%d", 0.2, 0.0],
 	"cloture": [0.1, "choc_bois_%d", 0.1, 0.0],
 	"haie": [0.2, "choc_bois_%d", 0.45, 3.0],
-	"muret": [0.38, "choc_dur_%d", 0.22, 7.0],
-	"grillage": [0.08, "choc_leger_%d", 0.1, 0.0],       # clôture d'emprise de l'autoroute (#76)
+	"muret": [0.38, "choc_dur_%d", 0.22, 2.5],          # v6.55 (#85) : 7 m/s avant, on ne les cassait presque jamais
+	"pilier": [0.3, "choc_dur_%d", 0.25, 2.5],          # piliers de portail (#85)
+	"grillage": [0.08, "choc_leger_%d", 0.1, 0.0],       # clôture d'emprise de l'autoroute (#76), grillages des terrains de sport (#85)
 }
-const LIGNES := ["cloture", "haie", "muret"]      # fences.genres
+const LIGNES := ["cloture", "haie", "muret", "pilier"]      # fences.genres
 # matière de chaque genre pour les sons de choc (audio.impact, issue #28)
-const MATIERE := {"panneau": "metal", "lampadaire": "metal", "arbre": "bois", "cloture": "bois", "haie": "haie", "muret": "dur", "grillage": "metal"}
+const MATIERE := {"panneau": "metal", "lampadaire": "metal", "arbre": "bois", "cloture": "bois", "haie": "haie", "muret": "dur", "pilier": "dur", "grillage": "metal"}
 
 var main: Node
 var car: VehicleBody3D
@@ -88,7 +89,7 @@ func _pas_corps(dt: float) -> void:
 	var inv := car.global_transform.affine_inverse()
 	for it in _proches:
 		match it[0]:
-			"cloture", "haie", "muret", "grillage":
+			"cloture", "haie", "muret", "pilier", "grillage":
 				if v.length() < float(KINDS[it[0]][3]):
 					continue
 				var a: Vector3 = it[1]; var b: Vector3 = it[2]
@@ -157,6 +158,13 @@ func _relever() -> void:
 			for i in range(0, GA.size() - 1, 2):
 				if Vector2(GA[i].x - c.x, GA[i].z - c.z).length_squared() < R2:
 					_proches.append(["grillage", GA[i], GA[i + 1]])
+		# grillages des terrains de sport (#85) : travées avec collision, ouvertes par sport.breche
+		var sp = main.get("sport") if main else null
+		if sp and sp.grillages.has(k):
+			var GS: PackedVector3Array = sp.grillages[k]
+			for i in range(0, GS.size() - 1, 2):
+				if Vector2(GS[i].x - c.x, GS[i].z - c.z).length_squared() < R2:
+					_proches.append(["grillage", GS[i], GS[i + 1]])
 		if vegetation and vegetation.data.has(k):
 			var g: Dictionary = _grille_arbres(k)
 			var a: PackedFloat32Array = vegetation.data[k]
@@ -253,6 +261,9 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 			corps.global_position = p + Vector3(0, 0.7, 0)
 		"grillage":
 			_effacer(Vector4(p.x, p.z, 2.4, p.y - 0.3))
+			var sp = main.get("sport") if main else null
+			if sp:
+				sp.breche(p, 2.2)
 			corps = _corps_cloture()
 			corps.global_position = p + Vector3(0, 0.9, 0)
 		"haie":
@@ -260,6 +271,11 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 			fences.breche(p, 2.3)
 			corps = _corps_bloc("buisson", Vector3(1.2, 1.0, 0.9), 25.0)
 			corps.global_position = p + Vector3(0, 0.9, 0)
+		"pilier":
+			_effacer(Vector4(p.x, p.z, 0.8, p.y - 0.5))
+			fences.breche(p, 1.0)
+			corps = _corps_bloc("bloc", Vector3(0.4, 0.9, 0.4), 160.0)
+			corps.global_position = p + Vector3(0, 0.8, 0)
 		"muret":
 			_effacer(Vector4(p.x, p.z, 1.9, p.y - 0.3))
 			fences.breche(p, 2.1)
@@ -285,9 +301,9 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 		var col := Color(0.35, 0.27, 0.18) if genre == "arbre" or genre == "cloture" else Color(0.55, 0.56, 0.58)
 		if genre == "haie":
 			col = Color(0.2, 0.36, 0.14)
-		elif genre == "muret":
+		elif genre == "muret" or genre == "pilier":
 			col = Color(0.62, 0.58, 0.5)
-		for i in (16 if genre == "haie" or genre == "muret" else 8):
+		for i in (16 if genre == "haie" or genre == "muret" or genre == "pilier" else 8):
 			D._debris(p + Vector3(randf_range(-0.4, 0.4), randf_range(0.3, 1.5), randf_range(-0.4, 0.4)),
 				dir * spd * randf_range(0.3, 0.8) + Vector3(randf_range(-2, 2), randf_range(2, 5), randf_range(-2, 2)),
 				p.y, Vector3(randf_range(0.04, 0.15), randf_range(0.02, 0.06), randf_range(0.04, 0.2)), col)
@@ -481,7 +497,7 @@ func essai() -> void:
 							var d := Vector2(a[o] - c.x, a[o + 2] - c.z).length()
 							if d < bd and d > 3.0:
 								bd = d; best = Vector3(a[o], a[o + 1], a[o + 2])
-			"cloture", "haie", "muret":
+			"cloture", "haie", "muret", "pilier":
 				for k in fences.lignes:
 					var L: PackedVector3Array = fences.lignes[k]
 					var G: PackedByteArray = fences.genres.get(k, PackedByteArray())
@@ -490,7 +506,7 @@ func essai() -> void:
 							continue
 						var m := (L[i] + L[i + 1]) * 0.5
 						var d := Vector2(m.x - c.x, m.z - c.z).length()
-						if d < bd and d > 3.0 and L[i].distance_to(L[i + 1]) > (3.0 if genre == "cloture" else 1.5):
+						if d < bd and d > 3.0 and L[i].distance_to(L[i + 1]) > (3.0 if genre == "cloture" else (0.3 if genre == "pilier" else 1.5)):
 							bd = d; best = m
 		if best == Vector3.INF:
 			print("[casse] essai ", genre, " : aucun objet chargé")
@@ -504,8 +520,12 @@ func essai() -> void:
 		for i in 40:
 			await get_tree().physics_frame
 		var n0 := _casses.size()
+		var vit := 12.5
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--casse-vitesse="):
+				vit = float(a.trim_prefix("--casse-vitesse="))
 		for i in 60:
-			car.linear_velocity = f * 12.5 + Vector3(0, car.linear_velocity.y, 0)
+			car.linear_velocity = f * vit + Vector3(0, car.linear_velocity.y, 0)
 			await get_tree().physics_frame
 		for i in 30:
 			await get_tree().physics_frame

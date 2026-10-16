@@ -13,6 +13,20 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## v6.55 (16/10) — retours vocaux du 16/10, issues #81 à #89
+- #81 crops.RANGE [80,105,130,160], densité pleine jusqu'à 25 m puis 15 % au bord ; #82 a_pied : axe Y inversé.
+- #83 build_fences : plus de morceau laissé ouvert le long d'une allée privée (place() retire l'emprise) ; abords.py
+  relancé ; build_props relancé (aucune tuile changée). 446 tuiles de clôtures changées.
+- #84 sons de chocs : page d'écoute https://claude.ai/artifact/2MaSpmQYWKaLWHu16f9Z1h ; choix « 2C » : tole_0-4 =
+  metal_slam_01 (OpenGameArt CC0, data/sons/oga_metal_slam_01.ogg), le reste inchangé.
+- #85 casse.gd : muret 2,5 m/s, piliers de portail (BOX, genre 3 « pilier ») ; grillages de sport (sport.grillages,
+  sport.breche). Essai `--casse-test --casse-genres=muret,pilier --casse-vitesse=4.5`.
+- #86 water.gd : plans d'eau (UV2 nul) rangés par cases de 8 m, niveau_plan(p) ; voiture sous niveau + 0,25 m ->
+  plouf (Mixkit 1180), gerbe, figée, s'enfonce 3,2 s, reset_to_road. Essai `--drive-test --eau-test --eau-debug`.
+- #87 boulangerie : poubelles déplacées à côté de l'escalier (a -1,2..-0,6). #88 bord.gd : RESSORT 40 m, son
+  « ressort » (Mixkit 2894). #89 build_roads : _hors_chaussee() coupe les parapets des ponts dans leurs 15 premiers
+  et derniers mètres là où ils entrent sur une chaussée (92 tuiles changées).
+
 ## Livré : v6.53 (16/10 nuit, correctif) et v6.54 — issue #80 (mode piéton)
 - v6.53 : bouton VOITURE (remonte d'où qu'on soit), voiture figée (freeze) à pied, gps/map suivent le piéton.
 - v6.54 : a_pied.gd sticks virtuels (moitié gauche/droite du bas de l'écran, hors boutons), saut sur l'action

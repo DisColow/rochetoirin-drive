@@ -9,7 +9,7 @@ const PerfMon := preload("res://scripts/perf_monitor.gd")
 const TILE := 256.0
 const VIEW := 1500.0
 const COLL := 200.0
-const RESSORT := 26.0          # m hors de la carte : début du ressort
+const RESSORT := 40.0          # m hors de la carte : début du ressort (v6.55, #88 : 26 m avant, on monte plus haut sur le talus)
 const RAIDEUR := 7.0           # m/s² par mètre au-delà de RESSORT
 const GRILLE := 64.0
 
@@ -159,7 +159,8 @@ func _physics_process(dt: float) -> void:
 		_rebond_t = 2.5
 		var m := get_parent()
 		if m and m.get("sound") and m.sound.has_method("_one_shot"):
-			m.sound._one_shot("soucoupe_depart", car.global_position, 0.8, 1.6, 20.0, 600.0)     # sifflement d'envol
+			m.sound._one_shot("ressort", car.global_position, 1.6, randf_range(0.92, 1.08), 40.0, 800.0)   # « boing » (#88)
+			m.sound._one_shot("soucoupe_depart", car.global_position, 0.5, 1.6, 20.0, 600.0)     # sifflement d'envol
 		if OS.get_cmdline_user_args().has("--bord-debug"):
 			print("[bord] catapulte à %.1f m hors de la carte, %.1f m/s vers l'extérieur" % [d, sortie])
 	if d > 120.0:                                        # filet de sécurité (ne devrait pas arriver)

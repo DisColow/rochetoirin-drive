@@ -31,7 +31,7 @@ var results := {}         # Vector2i -> [opaque, découpe, collisions] (écrit p
 var bodies := {}
 var colfaces := {}        # Vector2i -> PackedVector3Array
 var lignes := {}          # Vector2i -> PackedVector3Array (segments a, b des clôtures cassables : casse.gd)
-var genres := {}          # Vector2i -> PackedByteArray (un par segment : 0 clôture, 1 haie, 2 muret ; v6.24)
+var genres := {}          # Vector2i -> PackedByteArray (un par segment : 0 clôture, 1 haie, 2 muret, 3 pilier ; v6.24, v6.55)
 var lscale := PackedFloat32Array()
 var mat: ShaderMaterial
 var mat_cut: ShaderMaterial
@@ -339,6 +339,10 @@ func _build(k: Vector2i, a: PackedFloat32Array) -> void:
 			var g := 1 if typ == HEDGE else (2 if typ == WALL else 0)
 			for i in n - 1:
 				lig.append(P[i]); lig.append(P[i + 1]); gen.append(g)
+		elif typ == BOX and h1 > 0.5 and n > 0:        # piliers de portail (v6.55, #85)
+			var dx := Vector3(t2.x, 0, t2.y)
+			dx = (dx.normalized() if dx.length() > 1e-4 else Vector3(1, 0, 0)) * w * 0.5
+			lig.append(P[0] - dx); lig.append(P[0] + dx); gen.append(3)
 	mutex.lock()
 	results[k] = [op, cut, col, cl, lig, gen]
 	mutex.unlock()

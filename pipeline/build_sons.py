@@ -26,6 +26,8 @@ SONS = {
     "soucoupe": dict(bsb=2121, t0=0.5, t1=9.4, loop=True, xf=0.8, db=-16),
     "soucoupe_arrivee": dict(bsb=2122, t0=0.0, t1=6.0, db=-14, fo=0.6),
     "soucoupe_depart": dict(bsb=1972, t0=1.5, t1=10.5, db=-16, fi=0.3, fo=2.0, speed=1.15),
+    "ressort": dict(file=MK % 2894, t0=0.0, t1=1.24, speed=0.8, db=-5, fo=0.2),     # #88 : « boing » comique du bord de la carte
+    "plouf": dict(file=MK % 1180, t0=0.0, t1=2.3, speed=0.8, lp=5000, db=-7, fo=0.6),      # #86 : voiture qui tombe à l'eau
     "rayon": dict(bsb=2118, t0=0.3, t1=9.6, loop=True, xf=0.6, hp=180, lp=5000, db=-22, speed=0.75),
     # voiture : démarreur, roulement selon la surface, vent, crissement des pneus
     "demarreur": dict(bsb=966, t0=0.3, t1=5.0, db=-17, fo=1.2),
@@ -71,7 +73,10 @@ SONS = {
     # collisions façon jeux de voiture modernes (issue #28) : couches selon la violence du choc et la matière heurtée
     # (enregistrements réels : BigSoundBank CC0 et Mixkit, licence libre)
     # tôle : barres d'acier qui tombent, rendues plus graves et étouffées (issue #40 : « casserole » trop aiguë)
-    **{"tole_%d" % i: dict(bsb=n, trim=True, lp=2200, speed=0.8, db=-15, fo=0.2) for i, n in enumerate((1771, 1772, 1773, 1774, 1775))},
+    # tôle de la caisse : « metal_slam_01 » du pack « 100 CC0 metal and wood SFX » (OpenGameArt, CC0), choisi par
+    # l'utilisateur à l'écoute (v6.55, #84) ; cinq variantes de hauteur
+    **{"tole_%d" % i: dict(file="data/sons/oga_metal_slam_01.ogg", trim=True, speed=sp, db=-14, fo=0.2)
+       for i, sp in enumerate((0.82, 0.9, 0.97, 1.05, 1.13))},
     # choc contre un mur / une maison (issue #40) : coup sourd (« Explosion hit », grave), carrosserie qui se froisse
     # (« Truck crash », sans l'explosion), éboulis de pierres sur les gros chocs
     "coup_sourd": dict(file=MK % 1704, t0=1.0, t1=2.0, lp=900, db=-12, fi=0.005, fo=0.6),

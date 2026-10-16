@@ -169,18 +169,18 @@ func _process(_dt: float) -> void:
 func _physics_process(dt: float) -> void:
 	if not actif or corps == null or get_tree().paused:
 		return
-	# regard : stick droit (manette)
+	# regard : stick droit (manette) ; axe vertical inversé (#82 : pousser vers le haut baisse le regard)
 	var rx := Input.get_joy_axis(0, JOY_AXIS_RIGHT_X)
 	var ry := Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y)
 	if absf(rx) > 0.15:
 		_yaw -= rx * 2.4 * dt
 	if absf(ry) > 0.15:
-		_pitch = clampf(_pitch - ry * 1.8 * dt, -1.3, 1.3)
+		_pitch = clampf(_pitch + ry * 1.8 * dt, -1.3, 1.3)
 	# sticks virtuels (#80) : droit = regard (vitesse selon l'écart), gauche = marche
 	var sd := _stick("d")
 	if sd != Vector2.ZERO:
 		_yaw -= sd.x * absf(sd.x) * 3.0 * dt
-		_pitch = clampf(_pitch - sd.y * absf(sd.y) * 2.0 * dt, -1.3, 1.3)
+		_pitch = clampf(_pitch + sd.y * absf(sd.y) * 2.0 * dt, -1.3, 1.3)
 	var sg := _stick("g")
 	# marche : GAZ / FREIN (↑ ↓), stick gauche ; ◀ ▶ tournent
 	var av := Input.get_action_strength("accelerer") - Input.get_action_strength("freiner")
@@ -266,5 +266,5 @@ func _input(e: InputEvent) -> void:
 			_dessin.queue_redraw()
 	elif e is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
 		_yaw -= e.relative.x * 0.004
-		_pitch = clampf(_pitch - e.relative.y * 0.004, -1.3, 1.3)
+		_pitch = clampf(_pitch + e.relative.y * 0.004, -1.3, 1.3)
 		_appliquer_regard()

@@ -404,11 +404,11 @@ def main():
         L = side_of(Point(m + n * 0.3)); R = side_of(Point(m - n * 0.3))
         if L is None and R is None:
             continue
-        dmain = MAIN.dist(mid); ddrive = DRV.dist(mid)
+        # (v6.55, #83 : un morceau dont le milieu touchait une allée privée était laissé ouvert en entier ; place()
+        # retire déjà la seule emprise de l'allée, l'entrée reste ouverte et le reste de la limite est clos)
+        dmain = MAIN.dist(mid)
         if L is not None and R is not None and L != R:
             groups[("side", min(L, R), max(L, R))].append(ln)
-        elif ddrive < 0.6 and ddrive <= dmain:
-            continue                                   # le long d'une allée privée : rien
         elif dmain < 3.0:
             groups[("front", L if L is not None else R)].append(ln)
         else:

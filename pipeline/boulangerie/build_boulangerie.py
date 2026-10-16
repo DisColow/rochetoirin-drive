@@ -606,10 +606,11 @@ def construire(Z):
     boite(M, Z, "sombre", 0.31, 0.39, -1.0, -0.2, 3.48, 3.5)
     # climatiseur, poubelles (devant l'annexe)
     boite(M, Z, "blanc", -0.32, 0.0, 6.66, 7.58, 0.05, 0.72)
+    # (v6.55, #87 : elles étaient sous le pied de l'escalier ; posées à côté de la volée, côté rue)
     for k, (bb, cv) in enumerate(((11.35, "couvercle_g"), (11.95, "couvercle_g"), (12.55, "couvercle_j"))):
-        boite(M, Z, "poubelle", -0.35, 0.25, bb - 0.28, bb + 0.28, 0.0, 1.0)
-        boite(M, Z, cv, -0.4, 0.28, bb - 0.3, bb + 0.3, 1.0, 1.06)
-    C.append(("poubelles", -0.4, 0.28, 11.0, 12.9, 0.0, 1.06))
+        boite(M, Z, "poubelle", -1.2, -0.6, bb - 0.28, bb + 0.28, 0.0, 1.0)
+        boite(M, Z, cv, -1.25, -0.57, bb - 0.3, bb + 0.3, 1.0, 1.06)
+    C.append(("poubelles", -1.25, -0.57, 11.0, 12.9, 0.0, 1.06))
     return M, C
 
 

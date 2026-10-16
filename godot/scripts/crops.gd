@@ -16,7 +16,7 @@ const CELL := 32.0
 const ROWS := [0.75, 0.32, 0.42, 0.75]
 const STEP := [0.22, 0.30, 0.38, 0.34]
 const HCASE := [3.0, 1.2, 1.4, 2.4]
-const RANGE := [35.0, 60.0, 85.0, 110.0]       # portée (v6.54 : plus loin, #80) des plants selon le réglage (Économie … Ultra)
+const RANGE := [80.0, 105.0, 130.0, 160.0]     # portée (v6.55 : bien plus loin, #81) des plants selon le réglage (Économie … Ultra)
 # touffes (#61) : largeur d'une touffe (m, build_touffes.py), touffes sur un rang sur RANG_K, une tous les PAS m
 const LARGEUR := 2.4
 const RANG_K := [2, 4, 3, 2]
@@ -151,7 +151,7 @@ func _process_corps(dt: float) -> void:
 	if _tache < 0 and not todo.is_empty():
 		_lancer(todo[0][1])
 	# densité selon la distance (instances mélangées à la construction : en afficher une partie = éclaircir
-	# uniformément) ; pleine densité de près, 25 % au bord de la portée, où le fondu tramé prend le relais
+	# uniformément) ; pleine densité jusqu’à 25 m, 15 % au bord de la portée, où le fondu tramé prend le relais
 	_lod_t -= dt
 	if _lod_t <= 0.0:
 		_lod_t = 0.2
@@ -164,7 +164,7 @@ func _process_corps(dt: float) -> void:
 				continue
 			var mm: MultiMesh = nd.get_meta("mm")
 			var dd := Vector2((k.x + 0.5) * CELL - o.x, (k.y + 0.5) * CELL - o.z).length() - CELL * 0.5
-			var f := 1.0 - 0.75 * clampf((dd - rg * 0.3) / (rg * 0.7), 0.0, 1.0)
+			var f := 1.0 - 0.85 * clampf((dd - 25.0) / (rg - 25.0), 0.0, 1.0)
 			mm.visible_instance_count = maxi(1, int(mm.instance_count * f))
 	if _t <= 0.0:
 		_t = 0.5

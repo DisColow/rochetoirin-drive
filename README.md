@@ -16,12 +16,12 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.54 :
-- **À pied, commandes façon FPS** : pouce gauche pour marcher (au bout du stick : on court), pouce droit pour regarder.
-- **Saut** à pied (bouton SAUT, Espace ou A à la manette).
-- La tête bouge au rythme des pas, et on se tasse un peu à la réception d'un saut.
-- À pied, se téléporter depuis la carte emmène la voiture **et** le piéton.
-- Les plants des champs apparaissent de plus loin.
+Nouveautés de la v6.55 :
+- **La voiture coule** dans les étangs et les bassins, puis réapparaît sur la route.
+- Plants des champs visibles de bien plus loin, même en Économie ; caméra à pied inversée en hauteur.
+- Grillages des terrains de sport, murets et piliers de portail défonçables ; maisons mieux clôturées.
+- Ressort du bord de la carte : se déclenche plus loin, avec un grand « boing ».
+- Nouveau son de tôle dans les chocs (ton choix) ; garde-corps des petits ponts raccourcis aux carrefours.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

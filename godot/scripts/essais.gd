@@ -651,6 +651,37 @@ func _physics_process(_dt: float) -> void:
 		if t > 300 + 1020:
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--eau-test"):
+		# #86 : la voiture posée à 18 m d'un plan d'eau fonce dedans ; elle doit couler puis revenir sur la route
+		var wa = water
+		car.touch_steer = 0.0; car.touch_brake = 0.0
+		car.touch_throttle = 0.0
+		if t == 300:
+			var best := []
+			for k in wa.plans:
+				for kc in wa.plans[k]:
+					var T: PackedVector3Array = wa.plans[k][kc]
+					if best.is_empty() or T.size() > best[0].size():
+						best = [T]
+			if best.is_empty():
+				print("  [eau] aucun plan d'eau chargé"); get_tree().quit(); return
+			var T: PackedVector3Array = best[0]
+			var c := (T[0] + T[1] + T[2]) / 3.0
+			var ok := true
+			var s0 := c + Vector3(0, 1.6, 0)
+			car.place(s0, 0.0)
+			print("  [eau] plan d'eau en %s (niveau %.2f), voiture lâchée au-dessus" % [c, wa.niveau_plan(c)])
+			if not ok:
+				print("  [eau] pas de départ trouvé"); get_tree().quit()
+		if t > 300 and t % 30 == 0:
+			var h: float = wa.niveau_plan(car.global_position)
+			print("  [eau] t=%.2f pos %s eau %s noyade %.2f figée %s contrôle %s" % [(t - 300) / 120.0, car.global_position, "-" if is_nan(h) else "%.2f" % h, wa._noyade, car.freeze, car.controle])
+		if t == 300 + 240:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/eau_%d.png" % t)
+		if t > 300 + 1000:
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--pedales-test"):
 		# #64 et #65 : gâchette d'accélérateur restée à 18 % + frein (marche arrière attendue), puis frein à main lancé,
 		# puis frein de parking (voiture immobile malgré les gaz à 40 %) ; journal [pédales]
