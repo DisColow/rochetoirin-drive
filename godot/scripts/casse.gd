@@ -497,6 +497,16 @@ func essai() -> void:
 							var d := Vector2(a[o] - c.x, a[o + 2] - c.z).length()
 							if d < bd and d > 3.0:
 								bd = d; best = Vector3(a[o], a[o + 1], a[o + 2])
+			"grillage_sport":                       # #85 : grillages des terrains de sport
+				var sp = main.get("sport")
+				if sp:
+					for k in sp.grillages:
+						var GS: PackedVector3Array = sp.grillages[k]
+						for i in range(0, GS.size() - 1, 2):
+							var m := (GS[i] + GS[i + 1]) * 0.5
+							var d := Vector2(m.x - c.x, m.z - c.z).length()
+							if d < bd and d > 3.0:
+								bd = d; best = m
 			"cloture", "haie", "muret", "pilier":
 				for k in fences.lignes:
 					var L: PackedVector3Array = fences.lignes[k]

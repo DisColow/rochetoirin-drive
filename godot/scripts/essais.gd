@@ -554,6 +554,10 @@ func _physics_process(_dt: float) -> void:
 		car.touch_steer = 0.0; car.touch_brake = 0.0
 		car.touch_throttle = 1.0 if t > 360 else 0.0
 		if t == 240:
+			if OS.get_environment("NIVEAU") != "":         # niveau de qualité imposé (#81 : il ne l'était pas ici)
+				perf_auto = false
+				get_node("HUD").appliquer_niveau(int(OS.get_environment("NIVEAU")))
+				print("  [champ] niveau %d, portée des plants %.0f m" % [crops.level, crops.RANGE[crops.level]])
 			var ty := -1
 			for a in OS.get_cmdline_user_args():
 				if a.begins_with("--champ-type="):
@@ -584,7 +588,11 @@ func _physics_process(_dt: float) -> void:
 			if not trouve:
 				print("  [champ] aucun champ trouvé"); get_tree().quit()
 		if t > 360 and t % 60 == 0:
-			print("  [champ] t=%.1f %d km/h morceaux %d, %d img/s, cases à construire %d, plans de plantes %d, primitives %d" % [(t - 360) / 120.0, car.kmh(), dust._fp.size(), Engine.get_frames_per_second(), crops.pending, crops.instances_visibles(), Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)])
+			var loin := 0.0
+			for k in crops.cells:
+				if crops.cells[k]:
+					loin = maxf(loin, Vector2((k.x + 0.5) * crops.CELL - car.global_position.x, (k.y + 0.5) * crops.CELL - car.global_position.z).length())
+			print("  [champ] t=%.1f %d km/h morceaux %d, %d img/s, cases à construire %d, plans de plantes %d, case de plants la plus loin %.0f m, primitives %d" % [(t - 360) / 120.0, car.kmh(), dust._fp.size(), Engine.get_frames_per_second(), crops.pending, crops.instances_visibles(), loin, Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)])
 		if t in [360 + 150, 360 + 200, 360 + 300, 360 + 420, 360 + 560]:
 			DirAccess.make_dir_recursive_absolute("user://shots")
 			get_viewport().get_texture().get_image().save_png("user://shots/champ_%d.png" % ((t - 360) / 60))
@@ -593,6 +601,8 @@ func _physics_process(_dt: float) -> void:
 		return
 	if OS.get_cmdline_user_args().has("--bord-test"):
 		# bords façon Motocross Madness : posée à 50 m de la limite, pleins gaz vers l'extérieur pendant 20 s
+		# (aide au maintien dans la voie coupée : elle ramenait la voiture sur la route, le bord n'était jamais atteint)
+		car.aide_voie = false
 		car.touch_steer = 0.0; car.touch_brake = 0.0
 		car.touch_throttle = 1.0 if t > 240 else 0.0
 		var bd: Node = get_node("Bord")
@@ -700,6 +710,55 @@ func _physics_process(_dt: float) -> void:
 		if t > 300 and t % 60 == 0:
 			print("  [gâchettes] t=%.1f gaz %.2f frein %.2f, %.0f km/h%s" % [(t - 300) / 120.0, car.thr_in, car.brk_in, car.forward_speed() * 3.6, " (marche arrière)" if car.reversing else ""])
 		if t > 300 + 1560:
+			get_tree().quit()
+		return
+	if OS.get_cmdline_user_args().has("--ressort-test"):
+		# #88 : voiture posée sur le talus à 30 m hors de la carte, lancée vers l'extérieur à 60 km/h ; le ressort doit
+		# la catapulter au-delà de 40 m (journal [bord] catapulte + son « ressort »)
+		car.aide_voie = false
+		car.touch_steer = 0.0; car.touch_brake = 0.0; car.touch_throttle = 0.0
+		var bd: Node = get_node("Bord")
+		if t == 240:
+			# un côté du contour de la carte proche de la voiture : milieu, normale vers l'extérieur
+			var Z: PackedVector2Array = bd._zone
+			var cp := Vector2(car.global_position.x, car.global_position.z)
+			var bi := 0; var bdist := INF
+			for k in Z.size():
+				var a: Vector2 = Z[k]; var b: Vector2 = Z[(k + 1) % Z.size()]
+				if a.distance_to(b) > 40.0 and cp.distance_to((a + b) * 0.5) < bdist:
+					bdist = cp.distance_to((a + b) * 0.5); bi = k
+			var a: Vector2 = Z[bi]; var b: Vector2 = Z[(bi + 1) % Z.size()]
+			var m := (a + b) * 0.5
+			var out := Vector2(b.y - a.y, a.x - b.x).normalized()
+			if Geometry2D.is_point_in_polygon(m + out * 2.0, Z):
+				out = -out
+			var p := m - out * 60.0                                  # 60 m à l'intérieur, pleins gaz vers l'extérieur
+			print("  [ressort] départ à 60 m dans la carte, côté %d (%.0f m de long) : %s" % [bi, a.distance_to(b), bd.hors_carte(Vector3(p.x, 0, p.y))[0]])
+			var y := Relief.hauteur(Vector3(p.x, 0, p.y))
+			car.place(Vector3(p.x, y + 1.0, p.y), rad_to_deg(atan2(out.x, -out.y)))
+			car.hold(0.3)
+		car.touch_throttle = 1.0 if t > 240 + 40 else 0.0
+		if t > 240 + 480 and t % 15 == 0 and t < 240 + 1500:
+			var h: Array = bd.hors_carte(car.global_position)
+			print("  [ressort] t=%.2f hors carte %.1f m, %.0f km/h, haut %.1f m" % [(t - 240) / 120.0, h[0], car.kmh(), car.global_position.y])
+		if t > 240 + 1500:
+			get_tree().quit()
+		return
+	if OS.get_cmdline_user_args().has("--regard-test"):
+		# #82 : à pied, stick droit poussé vers le haut pendant 0,5 s : de combien la caméra lève-t-elle (> 0) ?
+		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0
+		if t == 300:
+			car.linear_velocity = Vector3.ZERO
+			pied.sortir()
+		if t == 360:
+			set_meta("x0", pied.cam.rotation.x)
+			var j := InputEventJoypadMotion.new(); j.device = 0; j.axis = JOY_AXIS_RIGHT_Y; j.axis_value = -1.0
+			Input.parse_input_event(j)
+		if t == 420:
+			var j := InputEventJoypadMotion.new(); j.device = 0; j.axis = JOY_AXIS_RIGHT_Y; j.axis_value = 0.0
+			Input.parse_input_event(j)
+			print("  [regard] stick droit vers le haut : caméra %+.2f rad (positif = regarde vers le haut)" % (pied.cam.rotation.x - float(get_meta("x0"))))
+		if t > 440:
 			get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--pedales-test"):

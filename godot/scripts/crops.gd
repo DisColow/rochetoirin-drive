@@ -34,9 +34,11 @@ var _t := 0.0
 var pending := 0         # cases encore à construire (essais : attendre que tout soit planté)
 # construction des cases sur un fil de calcul (issue #25 : « ça rame dans une plantation ») : le fil principal ne lit
 # que le relief (81 points par case) puis pose les maillages déjà calculés
-var _tache := -1          # tâche WorkerThreadPool en cours (-1 : aucune)
-var _tache_k := Vector2i.ZERO
-var _res := {}            # résultat de la tâche, rempli par le fil : {r: [buffer des plants, nombre, [[sommets du sol, custom]]]}
+# tâches WorkerThreadPool en cours (v6.56, #81 : trois en parallèle, une seule avant : avec la portée allongée, les
+# cases lointaines n'avaient pas le temps d'apparaître) : [id, case, résultat rempli par le fil :
+# {r: [buffer des plants, nombre, [[sommets du sol, custom]]]}]
+const TACHES := 3
+var _taches: Array = []
 var _lod_t := 0.0
 
 func _ready() -> void:
@@ -63,9 +65,9 @@ func _ready() -> void:
 	cross = st.commit()
 
 func _exit_tree() -> void:
-	if _tache >= 0:
-		WorkerThreadPool.wait_for_task_completion(_tache)
-		_tache = -1
+	for tc in _taches:
+		WorkerThreadPool.wait_for_task_completion(tc[0])
+	_taches.clear()
 
 func set_level(l: int) -> void:
 	level = l
@@ -141,15 +143,27 @@ func _process_corps(dt: float) -> void:
 			if not cells.has(k):
 				todo.append([cc.length(), k])
 	todo.sort_custom(func(a, b): return a[0] < b[0])
-	pending = todo.size() + (1 if _tache >= 0 else 0)
-	if _tache >= 0 and WorkerThreadPool.is_task_completed(_tache):
-		WorkerThreadPool.wait_for_task_completion(_tache)
-		_tache = -1
-		if keep.has(_tache_k) and not cells.has(_tache_k):
-			_poser(_tache_k, _res.get("r", []))
-		_res = {}
-	if _tache < 0 and not todo.is_empty():
-		_lancer(todo[0][1])
+	pending = todo.size()
+	var poses := 0
+	for tc in _taches.duplicate():
+		if poses < 2 and WorkerThreadPool.is_task_completed(tc[0]):
+			WorkerThreadPool.wait_for_task_completion(tc[0])
+			_taches.erase(tc)
+			if keep.has(tc[1]) and not cells.has(tc[1]):
+				_poser(tc[1], tc[2].get("r", []))
+				poses += 1
+	# cases suivantes : les vides (sans champ) sont réglées tout de suite, jusqu'à 24 par image
+	var en_cours := {}
+	for tc in _taches:
+		en_cours[tc[1]] = true
+	var vues := 0
+	for it in todo:
+		if _taches.size() >= TACHES or vues >= 24:
+			break
+		if en_cours.has(it[1]):
+			continue
+		vues += 1
+		_lancer(it[1])
 	# densité selon la distance (instances mélangées à la construction : en afficher une partie = éclaircir
 	# uniformément) ; pleine densité jusqu’à 25 m, 15 % au bord de la portée, où le fondu tramé prend le relais
 	_lod_t -= dt
@@ -199,9 +213,8 @@ func _lancer(k: Vector2i) -> void:
 		for gx in 9:
 			var y: float = Relief.hauteur(Vector3(x0 + gx * 4.0, 0, z0 + gz * 4.0))
 			hg.append(NAN if is_nan(y) else y)
-	_tache_k = k
-	_res = {}
-	_tache = WorkerThreadPool.add_task(_calcul.bind(k, fs, hg, _res), false, "cultures")
+	var res := {}
+	_taches.append([WorkerThreadPool.add_task(_calcul.bind(k, fs, hg, res), false, "cultures"), k, res])
 
 ## Fil de calcul : plants (mélangés pour le niveau de détail) et sol de terre de la case. Fonction statique : aucun
 ## accès au nœud ni à la scène depuis le fil ; le résultat va dans le dictionnaire « sortie » (lu après la fin).

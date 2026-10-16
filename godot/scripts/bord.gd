@@ -9,7 +9,7 @@ const PerfMon := preload("res://scripts/perf_monitor.gd")
 const TILE := 256.0
 const VIEW := 1500.0
 const COLL := 200.0
-const RESSORT := 40.0          # m hors de la carte : début du ressort (v6.55, #88 : 26 m avant, on monte plus haut sur le talus)
+const RESSORT := 32.0          # m hors de la carte : début du ressort (#88 : 26 m avant ; 40 m en v6.55 n'était jamais atteint, même à 100 km/h)
 const RAIDEUR := 7.0           # m/s² par mètre au-delà de RESSORT
 const GRILLE := 64.0
 

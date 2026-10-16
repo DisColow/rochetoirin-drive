@@ -593,6 +593,10 @@ def main():
     unpaved_u = unary_union(unpaved).difference(paved_u) if unpaved else Polygon()
     walk_u = unary_union(walk).difference(paved_u).difference(unpaved_u.buffer(0.01)) if walk else Polygon()
     shapely.prepare(paved_u); shapely.prepare(walk_u)
+    # routes et chemins de terre : les garde-corps des ponts s'arrêtent avant (v6.56, #89 : il en restait sur des
+    # chemins qui rejoignent les ponts)
+    chaussees_u = unary_union([paved_u, unpaved_u]) if not unpaved_u.is_empty else paved_u
+    shapely.prepare(chaussees_u)
     hroad = lambda x, z: rf(x, z)[0]
     # marquages et panneaux (données OSM réelles)
     import furniture, signs_atlas
@@ -663,7 +667,7 @@ def main():
                 E = w["P"] + w["N"] * sg * (w["hw_arr"][:, None] if "hw_arr" in w else w["w"] / 2)
                 # parapets et rive du tablier, coupés là où ils entreraient sur une autre chaussée (v6.55, #89 : aux
                 # carrefours collés aux petits ponts, on se prenait le garde-corps en tournant)
-                for Er, yr in _hors_chaussee(E, w["y"], paved_u):
+                for Er, yr in _hors_chaussee(E, w["y"], chaussees_u):
                     walls(mbp, Er, yr + 1.0, yr - 0.9)
                     walls(mbp, Er[::-1], (yr + 1.0)[::-1], (yr - 0.9)[::-1])
             # piles tous les 25 m si le tablier est haut

@@ -169,7 +169,7 @@ func _process(_dt: float) -> void:
 func _physics_process(dt: float) -> void:
 	if not actif or corps == null or get_tree().paused:
 		return
-	# regard : stick droit (manette) ; axe vertical inversé (#82 : pousser vers le haut baisse le regard)
+	# regard : stick droit (manette) ; axe vertical inversé (#82) : pousser vers le haut lève le regard (avant : le baissait)
 	var rx := Input.get_joy_axis(0, JOY_AXIS_RIGHT_X)
 	var ry := Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y)
 	if absf(rx) > 0.15:
