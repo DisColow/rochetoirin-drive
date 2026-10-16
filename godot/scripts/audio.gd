@@ -353,10 +353,12 @@ func impact(m: String, force: float, pos: Vector3, casse := false) -> void:
 			if force > 9.0 or casse:
 				_one_shot("eboulis", pos, g * 0.8, p)
 		"bois":
-			_one_shot("choc_bois_%d" % (randi() % 5), pos, g, p)
 			if casse or force > 5.0:
-				_one_shot("bois_casse_0", pos, g, randf_range(0.85, 1.1))
-				_one_shot("brindille_%d" % (randi() % 2), pos, g * 0.7, p)
+				# bois qui casse (#84, 2e série « 4B ») : composite complet, plus de choc de planche dessous
+				_one_shot("bois_casse_%d" % (randi() % 3), pos, g, randf_range(0.95, 1.05))
+				_one_shot("brindille_%d" % (randi() % 2), pos, g * 0.5, p)
+			else:
+				_one_shot("choc_bois_%d" % (randi() % 5), pos, g, p)
 			if force > 4.0:
 				_one_shot("tole_%d" % (randi() % 5), pos, g * 0.5, p)
 		"haie":
@@ -483,10 +485,14 @@ func feuillage(n: int, kmh: float, tiges: bool) -> void:
 		pt.volume_db = linear_to_db(g) + 1.0
 		pt.play()
 
+var _sons_log := OS.get_cmdline_user_args().has("--sons-log")    # essai : journal des sons joués
+
 func _one_shot(name: String, pos: Vector3, gain: float, pitch := 1.0, unit := 14.0, maxd := 400.0) -> void:
 	var st := _stream(name, false)
 	if st == null:
 		return
+	if _sons_log:
+		print("[son] %s (%.2f, ×%.2f)" % [name, gain, pitch])
 	var p: AudioStreamPlayer3D = _pool[_pool_i % _pool.size()]
 	_pool_i += 1
 	p.stream = st

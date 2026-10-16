@@ -51,28 +51,15 @@ func _ecran() -> void:
 	position = Vector2.ZERO
 	size = get_viewport_rect().size
 	get_viewport().size_changed.connect(func(): size = get_viewport_rect().size)
-	var fond := ColorRect.new()
-	fond.color = Color(0.06, 0.07, 0.09)
-	fond.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(fond)
-	var centre := CenterContainer.new()
-	centre.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(centre)
-	var v := VBoxContainer.new()
+	# illustration « Rochetoirin Drive » (#102), textes en bas
+	var v: VBoxContainer = preload("res://scripts/ecran_titre.gd").poser(self)
 	v.custom_minimum_size = Vector2(760, 0)
-	v.alignment = BoxContainer.ALIGNMENT_CENTER
-	v.add_theme_constant_override("separation", 22)
-	centre.add_child(v)
-	var t := Label.new()
-	t.text = "Rochetoirin Simulator"
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	t.add_theme_font_size_override("font_size", 56)
-	v.add_child(t)
 	_info = Label.new()
 	_info.text = "Recherche de mise à jour…"
 	_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_info.add_theme_font_size_override("font_size", 28)
-	_info.modulate = Color(1, 1, 1, 0.8)
+	_info.modulate = Color(1, 1, 1, 0.85)
+	preload("res://scripts/ecran_titre.gd").lisible(_info)
 	v.add_child(_info)
 	_barre = ProgressBar.new()
 	_barre.custom_minimum_size = Vector2(760, 30)

@@ -85,8 +85,9 @@ SONS = {
     "eboulis": dict(file=MK % 1703, t0=1.5, t1=4.5, lp=5000, db=-20, fi=0.1, fo=1.2),
     "tole_lourd_0": dict(bsb=1776, trim=True, db=-13, fo=0.3),
     "tole_lourd_1": dict(file=MK % 2958, t0=0.6, t1=2.4, db=-13, fi=0.01, fo=0.5),
-    "verre_0": dict(file=MK % 1551, trim=True, db=-15, fo=0.3),
-    "verre_1": dict(file=MK % 759, trim=True, db=-15, fo=0.3),
+    # verre brisé : composite « 5B » de la 2e série (#84, choix de l'utilisateur à l'écoute, 16/10 ; compo_chocs.py)
+    **{"verre_%d" % i: dict(file="data/sons/compo_5_B.wav", trim=True, speed=sp, db=-14, fo=0.3)
+       for i, sp in enumerate((1.0, 0.92))},
     "debris_0": dict(file=MK % 1562, t0=2.5, t1=6.0, db=-22, fi=0.05, fo=1.2),
     **{"metal_%d" % i: dict(bsb=n, t0=1.6, t1=3.8, trim=True, db=-15, fo=0.4) for i, n in enumerate((2358, 2359, 2360))},
     "metal_3": dict(file=MK % 2980, trim=True, db=-14, fo=0.4),
@@ -97,7 +98,9 @@ SONS = {
     "poubelle_0": dict(bsb=1266, t0=3.4, t1=5.2, trim=True, db=-15, fo=0.4),
     "poubelle_1": dict(bsb=1266, t0=8.4, t1=9.9, trim=True, db=-15, fo=0.4),
     "poubelle_2": dict(file=MK % 389, trim=True, db=-16, fo=0.3),
-    "bois_casse_0": dict(file=MK % 2182, trim=True, db=-14, fo=0.1),
+    # bois qui casse : composite « 4B » de la 2e série (#84, choix de l'utilisateur, 16/10 ; compo_chocs.py)
+    **{"bois_casse_%d" % i: dict(file="data/sons/compo_4_B.wav", trim=True, speed=sp, db=-13, fo=0.2)
+       for i, sp in enumerate((0.9, 1.0, 1.1))},
     **{"choc_sol_%d" % i: dict(file=K % ("impactSoft_heavy_%03d" % i), db=-13, lp=900) for i in range(5)},
 }
 

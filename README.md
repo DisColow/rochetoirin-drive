@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.60.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.60/RochetoirinSimulator-v6.60.apk)**
+**[RochetoirinSimulator-v6.61.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.61/RochetoirinSimulator-v6.61.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,9 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.60 :
-- **Caméra arrière à trois distances** : le bouton caméra passe de la vue proche à la vue moyenne puis à la vue
-  lointaine, puis à la vue conducteur et à la vue capot.
+Nouveautés de la v6.61 :
+- **Nouveau logo et nouvel écran de démarrage** : icône de l'application, illustration « Rochetoirin Drive » pendant
+  le chargement, avec les astuces par-dessus.
+- **Sons des chocs** : bois qui casse et verre brisé plus percutants, façon jeu vidéo.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

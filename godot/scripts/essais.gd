@@ -827,6 +827,16 @@ func _physics_process(_dt: float) -> void:
 			print("  [épreuves] activité « %s », épreuve %s, voiture déplacée de %.0f m, à %.0f m du départ" % [act.mode, e.get("nom", "?"), car.global_position.distance_to(get_meta("p0")), d])
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--sons-test"):
+		# #84 : choc contre du dur à 12,5 m/s (seuil du verre : 11) et bois cassé, appelés directement ; avec --sons-log
+		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0
+		if t == 300:
+			sound.impact("dur", 12.5, car.global_position)
+		if t == 420:
+			sound.impact("bois", 6.0, car.global_position, true)
+		if t == 540:
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--crans-test"):
 		# #103 : bouton caméra pressé 6 fois (ordre des vues), puis captures et distance caméra-voiture de chaque cran
 		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0

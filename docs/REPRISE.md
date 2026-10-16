@@ -13,6 +13,18 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   247 photos = 1,73 $ au 13/10).
 - Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
 
+## v6.61 (16/10)
+- #84 : sons 4B (bois) et 5B (verre) de la 2e série : `pipeline/compo_chocs.py` (composites, sources du scratchpad)
+  -> `data/sons/compo_4_B.wav`, `compo_5_B.wav` -> `build_sons.py` (`bois_casse_0-2`, `verre_0-1`). Essai
+  `--sons-test --sons-log` (journal `[son]`).
+- #102 : logo détouré (`pipeline/sources/logo_detoure.png`, originaux à côté), icônes Android
+  (`assets/logo/icone_192|avant|fond.png`), splash de boot, `scripts/ecran_titre.gd` (fond du boot et du voile,
+  calé en haut). Nom du jeu inchangé (« Rochetoirin Simulator ») : question posée.
+- #95 en cours : `fetch_voitures_joueur.py` (9 modèles, `godot/import/voitures/<id>`, `.gdignore`),
+  `blender_voitures_joueur.py` -> `assets/voitures/<id>/`. Reste : faux logos, Laguna peinte, car.gd paramétré,
+  garage achat/changement, cockpits pixel art par voiture, mini-carte sans GPS, voiture des autres joueurs (net.gd).
+- Disque : penser à vider `~/.cache/speech-dispatcher` (500 Mo) et les captures.
+
 ## v6.60 (16/10)
 - #103 : `camera_rig.gd` `CRANS` (5,3 / 7,6 / 10,5 m), `cran` ; cycle proche > moyen > loin > conducteur > capot.
   Essai `--crans-test`. #102 : images non reçues (échec d'envoi GitHub), redemandées, `pending`.

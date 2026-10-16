@@ -17,6 +17,7 @@ var _liste: Array = []
 var _t_astuce := 0.0
 var _i_astuce := -1
 const Chargement := preload("res://scripts/chargement.gd")
+const EcranTitre := preload("res://scripts/ecran_titre.gd")
 
 func _ready() -> void:
 	layer = 120
@@ -26,26 +27,27 @@ func _ready() -> void:
 	_boite.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_boite.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_boite)
-	var fond := ColorRect.new()
-	fond.color = Color(0.06, 0.07, 0.09)
-	fond.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fond.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_boite.add_child(fond)
-	var centre := CenterContainer.new()
-	centre.set_anchors_preset(Control.PRESET_FULL_RECT)
-	centre.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_boite.add_child(centre)
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 22)
-	centre.add_child(v)
-	var t := Label.new()
-	t.text = "Rochetoirin Simulator"
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	t.add_theme_font_size_override("font_size", 56)
-	v.add_child(t)
+	# illustration « Rochetoirin Drive » (#102) ; astuce au-dessus, barre et étape en bas
+	var v: VBoxContainer = EcranTitre.poser(_boite)
+	_astuce_titre = Label.new()
+	_astuce_titre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_astuce_titre.add_theme_font_size_override("font_size", 26)
+	_astuce_titre.add_theme_color_override("font_color", Color(1.0, 0.78, 0.3))
+	EcranTitre.lisible(_astuce_titre)
+	v.add_child(_astuce_titre)
+	_astuce = Label.new()
+	_astuce.custom_minimum_size = Vector2(1100, 84)
+	_astuce.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_astuce.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_astuce.add_theme_font_size_override("font_size", 30)
+	EcranTitre.lisible(_astuce)
+	v.add_child(_astuce)
+	var sep := Control.new(); sep.custom_minimum_size = Vector2(0, 8)
+	v.add_child(sep)
 	# étape en cours et barre de progression réelle (v6.14, chargement.gd)
 	_barre = ProgressBar.new()
-	_barre.custom_minimum_size = Vector2(760, 30)
+	_barre.custom_minimum_size = Vector2(760, 24)
+	_barre.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_barre.max_value = 1.0
 	_barre.show_percentage = false
 	_barre.value = Chargement.DEPART
@@ -53,22 +55,10 @@ func _ready() -> void:
 	_info = Label.new()
 	_info.text = "Démarrage…"
 	_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_info.add_theme_font_size_override("font_size", 28)
-	_info.modulate = Color(1, 1, 1, 0.8)
+	_info.add_theme_font_size_override("font_size", 24)
+	_info.modulate = Color(1, 1, 1, 0.85)
+	EcranTitre.lisible(_info)
 	v.add_child(_info)
-	var sep := Control.new(); sep.custom_minimum_size = Vector2(0, 40)
-	v.add_child(sep)
-	_astuce_titre = Label.new()
-	_astuce_titre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_astuce_titre.add_theme_font_size_override("font_size", 26)
-	_astuce_titre.add_theme_color_override("font_color", Color(1.0, 0.78, 0.3))
-	v.add_child(_astuce_titre)
-	_astuce = Label.new()
-	_astuce.custom_minimum_size = Vector2(900, 120)
-	_astuce.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_astuce.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_astuce.add_theme_font_size_override("font_size", 30)
-	v.add_child(_astuce)
 	var d = JSON.parse_string(FileAccess.get_file_as_string(ASTUCES)) if FileAccess.file_exists(ASTUCES) else null
 	if d is Dictionary:
 		for tx in d.get("astuces", []):
