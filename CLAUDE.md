@@ -41,6 +41,16 @@
   s'écrivent par Claude Code directement (pas par l'API). Les rebonds du 12/10 (`taxi_rebonds.py`, ~4,50 $) ont été
   générés par l'API sans cet accord : erreur à ne pas reproduire ; l'action `taxi_rebonds.yml` est en lancement
   manuel seulement.
+- **RÈGLE ABSOLUE — Preuve à chaque ticket livré** (demande du 16/10, après des livraisons non vérifiées) : le
+  commentaire « livré en vX.Y » contient la preuve que ça marche (capture ou extrait du journal d'un essai qui
+  exerce vraiment la correction : chiffres avant/après). Sans preuve : « NON VÉRIFIÉ : raison », et le message de
+  livraison à l'utilisateur liste ces points. Un essai qui n'atteint pas la situation visée (ex. voiture qui
+  n'arrive jamais au bord) ne compte pas comme preuve.
+- **Hypothèses annoncées avant de coder** (16/10) : quand une donnée ou une demande est floue (usage « Indifférencié »
+  de la BD TOPO, mot mal transcrit d'un vocal, cas limite), poser la question à l'utilisateur AVANT de livrer, pas
+  après ; dire explicitement ce qui a été supposé.
+- **Tri avant de proposer** (16/10) : avant de soumettre des choix (sons, modèles, textures), les comparer soi-même
+  aux références du genre (« canons du genre ») et écarter les faibles ; ne proposer que ce qu'on défendrait.
 - **Contrôle avant chaque livraison** (issue #30) : `tools/verifier.sh` (scripts GDScript, ~1 min) ; `--complet` ajoute
   les essais en jeu sans écran (casse, champ, conduite, ~30 min) après une modification du jeu. 0 erreur exigée.
 - **Notification à la fin de chaque tour** : quand le travail est fini et que c'est à l'utilisateur d'écrire, lui
