@@ -1,0 +1,37 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://ytp8iy6wr5c5"
+path="res://.godot/imported/body_Parachoques_baseColor.jpg-773f6751133dc77b75e1e27bf4d1cd69.ctex"
+metadata={
+"vram_texture": false
+}
+generator_parameters={
+"md5": "210b5377f2d2b575114868e07713ce75"
+}
+
+[deps]
+
+source_file="res://assets/voitures/r5/body_Parachoques_baseColor.jpg"
+dest_files=["res://.godot/imported/body_Parachoques_baseColor.jpg-773f6751133dc77b75e1e27bf4d1cd69.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=1
