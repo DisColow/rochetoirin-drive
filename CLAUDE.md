@@ -35,6 +35,8 @@
 - **Reprise automatique** (routine horaire « Reprise après limite d'utilisation », h+07) : terminer d'abord le travail
   en cours jusqu'à la livraison complète, puis enchaîner sur les issues ouvertes (sauf `pour-toi` / en attente).
   Si la session travaillait déjà quand le réveil arrive : ne rien écrire à l'utilisateur (demande du 14/10).
+  S'il ne reste rien à faire (demande du 16/10) : REPRISE.md à jour et poussé, puis « Rien à reprendre : tu peux faire
+  /clear (REPRISE.md est à jour). » en message et en notification ; l'utilisateur fait /clear (la session ne peut pas).
 - **API Claude (payante, crédit de l'utilisateur) : uniquement pour l'actualité du jour** (`actu.yml`, ~0,40 $/jour).
   Tout autre usage (génération ponctuelle de textes, essais…) **demande l'accord explicite de l'utilisateur avant**,
   avec le coût estimé ; ne jamais changer de méthode en cours de route sans le lui redemander. Les textes du jeu
