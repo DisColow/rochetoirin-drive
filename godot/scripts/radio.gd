@@ -25,6 +25,7 @@ var _cockpit := 0.0
 var _cur := -1                     # indice du morceau en cours dans le programme de la station
 var _lap := -1
 var _duck := 0.0                   # baisse du volume quand un client du taxi parle
+var taxi := false                  # un client est à bord (taxi_talk.gd) : pas de flash lu par la voix (#104)
 var _fm: AudioStreamPlayer         # grésillement FM : souffle léger et petits crachotements de temps en temps
 var _fm_t := 6.0
 var _fm_len := 0.0
@@ -120,6 +121,10 @@ func _process_corps(dt: float) -> void:
 			_tune()
 		if _flash_t > 0.0:
 			_flash_t -= dt
+			# #104 : le client du taxi et le flash parlent par la même voix du téléphone ; le client passe d'abord
+			if not flash_permis():
+				_flash_t = 0.0
+				DisplayServer.tts_stop()
 			if _flash_t <= 0.0:
 				_tune()
 
@@ -230,8 +235,10 @@ func _tune_infos() -> void:
 			if hud:
 				hud.toast("♪ Rochetoirin Info\n%s" % title, 3.0)
 			return
+		# voix du téléphone au volume de la musique (#67 : plein volume ; #111 : rien si la musique est coupée), jamais
+		# pendant une course de taxi (#104)
 		var t: String = infos.flash()
-		var d: float = infos.lire_flash(t, 1.0)          # voix du téléphone à plein volume (#67)
+		var d: float = 0.0 if not flash_permis() else infos.lire_flash(t, _vol_flash())
 		if d > 0.0:
 			_player.stop()
 			title = "Flash info"
@@ -244,6 +251,15 @@ func _tune_infos() -> void:
 		_player.stream = load(path)
 		title = m.titre
 		_player.play(0.0)
+
+## Flash lu par la voix du téléphone seulement si la musique n'est pas coupée (#111) et sans client à bord (#104).
+func flash_permis() -> bool:
+	return not taxi and _vol_flash() >= 0.02
+
+func _vol_flash() -> float:
+	var AU := preload("res://scripts/audio.gd")
+	AU.volume_db("musique")
+	return float(AU.volumes["musique"])
 
 ## Texte de l'écran de l'autoradio (cockpit) : fréquence de la station, vide si éteinte.
 func lcd_text() -> String:

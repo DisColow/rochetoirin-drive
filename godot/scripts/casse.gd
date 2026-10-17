@@ -16,7 +16,7 @@ const VIE := 15.0                 # durée de vie d'un débris (s)
 const MAX_DEBRIS := 10
 const ARBRE_MAX := 9.0            # hauteur maximale d'un arbre cassable (m)
 const GRILLE := 16.0
-# perte de vitesse (part), son, rayon de l'objet (m), vitesse minimale pour casser (m/s)
+# perte de vitesse (part, inutilisée depuis #105), son, rayon de l'objet (m), vitesse minimale pour casser (m/s)
 const KINDS := {
 	"panneau": [0.06, "choc_leger_%d", 0.12, 0.0],
 	"lampadaire": [0.22, "choc_dur_%d", 0.18, 0.0],
@@ -281,8 +281,7 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 			fences.breche(p, 2.1)
 			corps = _corps_bloc("bloc", Vector3(0.9, 0.45, 0.35), 180.0)
 			corps.global_position = p + Vector3(0, 0.6, 0)
-	var k: Array = KINDS[genre]
-	car.linear_velocity = v * (1.0 - float(k[0]) * clampf(spd / 12.0, 0.3, 1.0))
+	# #105 : la voiture ne bronche pas (plus aucune perte de vitesse, KINDS[…][0] n'est plus utilisé)
 	if corps:
 		car.add_collision_exception_with(corps)
 		corps.linear_velocity = dir * spd * randf_range(0.75, 1.0) + Vector3(0, randf_range(1.5, 3.5), 0)
@@ -534,10 +533,18 @@ func essai() -> void:
 		for a in OS.get_cmdline_user_args():
 			if a.begins_with("--casse-vitesse="):
 				vit = float(a.trim_prefix("--casse-vitesse="))
-		for i in 60:
-			car.linear_velocity = f * vit + Vector3(0, car.linear_velocity.y, 0)
-			await get_tree().physics_frame
-		for i in 30:
+		# #105 : élan imposé jusqu'à la casse, puis roue libre ; vitesse juste avant et 0,25 s après le choc
+		var v_avant := -1.0
+		for i in 90:
+			if _casses.size() == n0:
+				car.linear_velocity = f * vit + Vector3(0, car.linear_velocity.y, 0)
+			elif v_avant < 0.0:
+				v_avant = vit * 3.6
+				for j in 30:
+					if OS.get_cmdline_user_args().has("--casse-debug") and j % 5 == 0:
+						print("[casse]    +%d : %.0f km/h, touche %s" % [j, car.kmh(), car._touching()])
+					await get_tree().physics_frame
+				print("[casse] %s : %.0f km/h au choc, %.0f km/h 0,25 s après" % [genre, v_avant, car.kmh()])
 			await get_tree().physics_frame
 		var img_ok := DisplayServer.get_name() != "headless"
 		if img_ok:

@@ -306,6 +306,7 @@ func _process_corps(dt: float) -> void:
 	var speaking := _full != "" and (_shown < _full.length() or _voice_busy())
 	if main and main.get("radio") != null and main.radio.has_method("set_duck"):
 		main.radio.set_duck(1.0 if speaking else 0.0)
+		main.radio.taxi = riding
 	var AU := preload("res://scripts/audio.gd")
 	AU.talk_duck = move_toward(AU.talk_duck, 1.0 if speaking else 0.0, dt * (5.0 if speaking else 1.2))
 	if paused:

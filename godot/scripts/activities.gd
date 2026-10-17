@@ -337,21 +337,15 @@ func _close_menu(resume := false) -> void:
 	if resume:
 		hud._show_drive(true)
 
-func open_menu() -> void:
-	var v := _panel("Activités")
-	_btn(v, "Course : créer un tracé (départ, étapes facultatives, arrivée)", _course_setup)
-	if not _last_route.is_empty():
-		_btn(v, "Recommencer le dernier tracé" + ("" if _best == INF else "  (record " + _fmt(_best) + ")"), _course_again)
-	_btn(v, "Chasse au lieu (un joueur cache, l'autre cherche)", _hunt_menu)
-	_btn(v, "Taxi" + ("" if _rides == 0 else "  (%d courses, %s)" % [_rides, _euros(_total)]), _taxi_start)
-	if not epreuves.is_empty():
-		_btn(v, "Épreuves chronométrées (%d) : partir d'ici" % epreuves.size(), _epreuves_menu)
-	if main.garage:
-		_btn(v, "Garage : améliorer la voiture  (%s)" % main.garage.euros(main.garage.argent), _garage)
-	_btn(v, "Multijoueur (jusqu'à 4)" + ("  — %d joueur(s)" % main.net.joueurs.size() if main.net and main.net.en_ligne() else ""), _net_menu)
-	if mode != "":
-		_btn(v, "Arrêter l'activité en cours", _stop_and_close)
-	_btn(v, "Fermer", _resume)
+## Menu en plein écran à onglets (#119, menu_activites.gd) .
+func open_menu(onglet := 0) -> void:
+	_close_menu()
+	hud._show_drive(false)
+	var m = preload("res://scripts/menu_activites.gd").new()
+	m.act = self
+	m.onglet = onglet
+	add_child(m)
+	_menu = m
 
 # ================================================================ garage (#43, garage_ui.gd)
 func _garage() -> void:
@@ -553,7 +547,20 @@ func _course_beacons() -> void:
 		var col := Color(0.95, 0.25, 0.2) if fin else Color(1.0, 0.8, 0.15)
 		if k > _next:
 			col = col * 0.45
-		_beacon(_r3(_route[k]), col, CHECK_R)
+		var b := _beacon(_r3(_route[k]), col, CHECK_R)
+		# #107 : numéro du point de passage au-dessus de la colonne, visible de loin et à travers le décor
+		var l := Label3D.new()
+		l.text = "ARRIVÉE" if fin else str(k)
+		l.font_size = 200
+		l.pixel_size = 0.03 if k == _next else 0.02
+		l.outline_size = 36
+		l.modulate = Color(1, 1, 1) if k == _next else Color(1, 1, 1, 0.75)
+		l.outline_modulate = Color(0, 0, 0)
+		l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		l.no_depth_test = true
+		l.fixed_size = false
+		l.position = Vector3(0, 14.0, 0)
+		b.add_child(l)
 	for m in marks.size():
 		marks[m].gps = m >= _next
 
@@ -571,6 +578,7 @@ func _course_process(dt: float) -> void:
 		return
 	_t += dt
 	var target := _rp(_route[_next])
+	_itineraire(dt, target)                 # #107 : tracé GPS jusqu'au prochain point de passage
 	var d := _car2().distance_to(target)
 	var lab := "arrivée" if _next == _route.size() - 1 else "étape %d / %d" % [_next, _route.size() - 2]
 	_set_status("%s\nprochain point : %s, %d m" % [_fmt(_t), lab, int(d)])
@@ -674,28 +682,7 @@ void fragment() {
 
 ## Menu des épreuves (#101) : on choisit une épreuve et la voiture est posée sur sa ligne de départ, sans y rouler.
 func _epreuves_menu() -> void:
-	if mode != "":
-		hud.toast("Arrêtez d'abord l'activité en cours.", 3.0)
-		return
-	var v := _panel("Épreuves chronométrées")
-	var sc := ScrollContainer.new()
-	sc.custom_minimum_size = Vector2(900, minf(_vs().y * 0.62, 640.0))
-	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	v.add_child(sc)
-	var l := VBoxContainer.new(); l.add_theme_constant_override("separation", 10)
-	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	sc.add_child(l)
-	var c := _car2()
-	var tri := epreuves.duplicate()
-	tri.sort_custom(func(a, b): return c.distance_to(Vector2(a.a[0], a.a[1])) < c.distance_to(Vector2(b.a[0], b.a[1])))
-	for e in tri:
-		var id := int(e.id)
-		var med := _medaille(id)
-		var b := _btn(l, "%s — %.1f km%s   (à %.1f km)" % [e.nom, float(e.km), ("  · " + med) if med != "" else "",
-			c.distance_to(Vector2(e.a[0], e.a[1])) / 1000.0], func(): _close_menu(true); _epreuve_depart(id))
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_btn(v, "Retour", open_menu)
+	open_menu(0)
 
 func _epreuve_proche() -> void:
 	var c := _car2()
@@ -747,6 +734,9 @@ func _epreuve_fin(t: float) -> Array:
 			break
 	var avant := _medaille(_epreuve)
 	var prime := 10.0
+	if main.garage and t < float(main.garage.records.get(str(_epreuve), INF)):
+		main.garage.records[str(_epreuve)] = t
+		main.garage.sauver()
 	if med != "" and (avant == "" or MEDAILLES.find(med) < MEDAILLES.find(avant)):
 		prime = PRIMES[med] - (PRIMES[avant] if avant != "" else 0.0)
 		if main.garage:

@@ -809,14 +809,26 @@ func _physics_process(_dt: float) -> void:
 		var act = activities
 		if t == 300:
 			set_meta("p0", car.global_position)
-			act.open_menu()
-			act._epreuves_menu()
+			# #112 / #119 : menu plein écran, onglet Épreuves ; la plus loin de la liste, puis « Lancer »
+			act.open_menu(0)
+			var c0: Vector2 = act._car2()
+			var loin: int = -1
+			for e in act.epreuves:
+				if loin < 0 or c0.distance_to(Vector2(e.a[0], e.a[1])) > c0.distance_to(Vector2(act.epreuves[loin].a[0], act.epreuves[loin].a[1])):
+					loin = int(e.id)
+			act._menu.choix = loin
+			act._menu._aller(0)
+			set_meta("loin", loin)
+		if t == 300 + 120:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/epreuves_menu.png")
 			var bs: Array = act._menu.find_children("*", "Button", true, false)
 			var cible: Button = null
 			for b in bs:
-				if " km" in b.text and "(à " in b.text:
+				if b.text == "▶ Lancer":
 					cible = b
-			print("  [épreuves] menu : %d boutons, choix « %s »" % [bs.size(), cible.text])
+			var md: int = act._menu.find_children("*", "Control", true, false).filter(func(x): return x.get_class() == "Control" and x.has_method("_draw") and x.get("med") != null).size()
+			print("  [épreuves] menu plein écran : %d boutons, %d médailles dessinées, fiche « %s », tracé %d points" % [bs.size(), md, act.epreuves[get_meta("loin")].nom, act._menu.find_children("*", "Control", true, false).filter(func(x): return x.get_script() == preload("res://scripts/carte_trace.gd"))[0]._trace.size()])
 			cible.pressed.emit()
 		if t == 300 + 300:
 			DirAccess.make_dir_recursive_absolute("user://shots")
@@ -825,6 +837,15 @@ func _physics_process(_dt: float) -> void:
 			var e: Dictionary = act.epreuves[act._epreuve] if act._epreuve >= 0 else {}
 			var d := Vector2(car.global_position.x, car.global_position.z).distance_to(Vector2(e.a[0], e.a[1])) if not e.is_empty() else -1.0
 			print("  [épreuves] activité « %s », épreuve %s, voiture déplacée de %.0f m, à %.0f m du départ" % [act.mode, e.get("nom", "?"), car.global_position.distance_to(get_meta("p0")), d])
+		if t == 300 + 1100:
+			# #107 : course lancée : numéros au-dessus des colonnes, tracé GPS vers le prochain point
+			var nums := []
+			for b in act._beacons:
+				if is_instance_valid(b):
+					for l in b.find_children("*", "Label3D", false, false):
+						nums.append(l.text)
+			print("  [épreuves] phase %s, numéros affichés %s, tracé GPS %d points" % [act._phase, nums, act.route_gps.size()])
+			get_viewport().get_texture().get_image().save_png("user://shots/epreuve_course.png")
 			get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--garage-voitures-test"):
@@ -920,6 +941,71 @@ func _physics_process(_dt: float) -> void:
 		if u == 540:
 			print("  [voitures] %-24s vue conducteur : écran GPS %s, mini-carte %s" % [V.CATALOGUE[id].nom, cockpit.a_gps(), get_node("HUD").gps.visible])
 			get_viewport().get_texture().get_image().save_png("user://shots/cockpit_%s.png" % id)
+		return
+	if OS.get_cmdline_user_args().has("--mur-test"):
+		# #106 : mur posé en travers devant la voiture (angle --mur-angle=°, 0 = de face) ; pleins gaz contre le mur :
+		# déplacement le long du mur après 4 s
+		car.touch_steer = 0.0; car.touch_brake = 0.0
+		car.touch_throttle = 1.0 if t >= 240 else 0.0
+		if t == 240:
+			var ang := 0.0
+			var loin: float = car.gabarit.z * 0.5 + 2.5
+			for a in OS.get_cmdline_user_args():
+				if a.begins_with("--mur-angle="):
+					ang = deg_to_rad(float(a.get_slice("=", 1)))
+				if a.begins_with("--mur-loin="):              # #121 : élan pour arriver vite contre le mur
+					loin = float(a.get_slice("=", 1))
+			var fw := car.global_transform.basis.z
+			fw.y = 0.0
+			fw = fw.normalized()
+			var mur := StaticBody3D.new()
+			var cs := CollisionShape3D.new()
+			var bs := BoxShape3D.new()
+			bs.size = Vector3(40.0, 4.0, 1.0)
+			cs.shape = bs
+			mur.add_child(cs)
+			var mi := MeshInstance3D.new()
+			var bm := BoxMesh.new()
+			bm.size = bs.size
+			mi.mesh = bm
+			mur.add_child(mi)
+			add_child(mur)
+			mur.global_position = car.global_position + fw * loin + Vector3.UP * 1.0
+			mur.look_at(mur.global_position + fw.rotated(Vector3.UP, ang), Vector3.UP)
+			set_meta("mur_p0", car.global_position)
+			set_meta("mur_fw", fw)
+			print("  [mur] mur à %.1f m devant, angle %.0f°" % [loin, rad_to_deg(ang)])
+		if t > 240 and car.blown and not has_meta("boum_t"):
+			set_meta("boum_t", t)
+			print("  [mur] EXPLOSION à t=%.2f s (vitesse juste avant : %.0f km/h)" % [(t - 240) / 120.0, get_meta("v_avant", 0.0)])
+		if t > 240 and not car.blown:
+			set_meta("v_avant", car.kmh())
+		if has_meta("boum_t") and t - int(get_meta("boum_t")) in [25, 70, 160]:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/boum_%d.png" % (t - int(get_meta("boum_t"))))
+		if t > 240 and t % 60 == 0:
+			var d: Vector3 = car.global_position - get_meta("mur_p0")
+			var fw0: Vector3 = get_meta("mur_fw")
+			print("  [mur] t=%.1f s : avancé %.1f m, latéral %.1f m, %.0f km/h, contact=%s explosée=%s cap %.0f° roues motrices %.0f N" % [(t - 240) / 120.0, d.dot(fw0), d.dot(fw0.cross(Vector3.UP)), car.kmh(), car.mur_contact, car.blown, rad_to_deg(car.global_transform.basis.z.signed_angle_to(fw0, Vector3.UP)), car.engine_force])
+		if t == 240 + 120 * 7:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/mur.png")
+			get_tree().quit()
+		return
+	if OS.get_cmdline_user_args().has("--flash-test"):
+		# #111 / #104 : flash info autorisé selon le volume de la musique et la présence d'un client du taxi
+		if t == 300:
+			var AU := preload("res://scripts/audio.gd")
+			var r = radio
+			var l := []
+			for cas in [[1.0, false], [0.0, false], [1.0, true]]:
+				AU.volumes["musique"] = cas[0]
+				r.taxi = cas[1]
+				l.append("musique %.0f %%, client %s -> flash %s" % [cas[0] * 100.0, "oui" if cas[1] else "non", "lu" if r.flash_permis() else "PAS lu"])
+			AU.volumes["musique"] = 1.0
+			r.taxi = false
+			print("  [flash] " + " ; ".join(l))
+			get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--sons-test"):
 		# #84 : choc contre du dur à 12,5 m/s (seuil du verre : 11) et bois cassé, appelés directement ; avec --sons-log

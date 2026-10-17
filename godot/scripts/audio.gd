@@ -310,6 +310,15 @@ func _physics_process(dt: float) -> void:
 		if kind != "" or dv.length() > 5.0:
 			impact(kind if kind != "" else "sol", dv.length(), car.global_position)
 			_hit_cd = 0.18
+			if kind in ["dur", "metal", "bois"] and dv.length() * 3.6 > car.VITESSE_BOUM:
+				boum()
+				car.exploser()
+
+## Détonation du champignon atomique (#121) : chocs sourds très graves superposés.
+func boum() -> void:
+	for i in 3:
+		_one_shot("choc_dur_%d" % i, car.global_position, 1.0, 0.35 + 0.08 * i)
+	_one_shot("debris_0", car.global_position, 0.8, 0.6)
 
 var _fr: Array = []
 func _fracas(hard: float) -> void:

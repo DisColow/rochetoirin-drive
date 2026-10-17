@@ -8,7 +8,7 @@ var _present := 0.0
 var _boite: Control
 var _info: Label
 var _barre: ProgressBar
-# astuces et anecdotes (#96, façon Fallout 4) : une toutes les 7 s, en fondu, sous la barre
+# astuces et anecdotes (#96, façon Fallout 4) : une toutes les 7 s, sans fondu (#110 : l'image n'est redessinée qu'entre deux étapes, le fondu saccadait)
 const ASTUCES := "res://data/astuces.json"
 const DUREE_ASTUCE := 7.0
 var _astuce_titre: Label
@@ -83,8 +83,6 @@ func _process(dt: float) -> void:
 	_t_astuce += minf(dt, 0.5)
 	if _t_astuce > DUREE_ASTUCE:
 		_suivante()
-	var fa := clampf(minf(_t_astuce / 0.4, (DUREE_ASTUCE - _t_astuce) / 0.4), 0.0, 1.0)
-	_astuce.modulate.a = fa; _astuce_titre.modulate.a = fa
 	var p := Chargement.progres()
 	_barre.value = maxf(_barre.value, p)
 	if Chargement.fini:

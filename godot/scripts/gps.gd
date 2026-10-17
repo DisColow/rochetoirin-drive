@@ -107,6 +107,12 @@ func _draw_activity(anchor: Vector2) -> void:
 		if inner.has_point(sp):
 			overlay.draw_circle(sp, 12 * k + 0.5, Color.BLACK)
 			overlay.draw_circle(sp, 9 * k + 0.5, m.col)
+			var tx: String = str(m.get("txt", ""))
+			if tx.length() <= 2 and k > 0.5:             # #107 : numéro du point de passage dans sa pastille
+				var fs := int(13 * k)
+				var f := get_theme_default_font()
+				var tw := f.get_string_size(tx, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
+				overlay.draw_string(f, sp + Vector2(-tw.x * 0.5, fs * 0.36), tx, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color.BLACK)
 		else:
 			var d := (sp - anchor).normalized()
 			var t := INF

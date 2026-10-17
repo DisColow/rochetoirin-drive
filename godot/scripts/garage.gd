@@ -48,6 +48,7 @@ var argent := DEPART
 var possede := {}                   # rubrique -> [indices achetés]
 var monte := {}                     # rubrique -> indice monté
 var medailles := {}                 # épreuves (#59) : identifiant -> "or" | "argent" | "bronze"
+var records := {}                   # épreuves (#112) : identifiant -> meilleur temps (s)
 var apercu := {}                    # rubrique -> choix essayé dans l'écran du garage (non acheté, non gardé)
 
 func _ready() -> void:
@@ -58,6 +59,7 @@ func charger() -> void:
 	if c.load(FICHIER) == OK:
 		argent = float(c.get_value("garage", "argent", DEPART))
 		medailles = c.get_value("garage", "medailles", {})
+		records = c.get_value("garage", "records", {})
 		voitures = c.get_value("garage", "voitures", [Voitures.DEPART])
 		pieces = c.get_value("garage", "pieces", {})
 		# avant la v6.62 : une seule voiture, ses pièces directement dans « possede » et « monte »
@@ -73,6 +75,7 @@ func sauver() -> void:
 	var c := ConfigFile.new()
 	c.set_value("garage", "argent", argent)
 	c.set_value("garage", "medailles", medailles)
+	c.set_value("garage", "records", records)
 	c.set_value("garage", "voitures", voitures)
 	c.set_value("garage", "voiture", voiture)
 	c.set_value("garage", "pieces", pieces)

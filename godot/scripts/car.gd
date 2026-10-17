@@ -523,6 +523,21 @@ func blow_up() -> void:
 		w.visible = false
 	freeze = true
 
+## #121 : choc contre un obstacle indestructible au-delà de VITESSE_BOUM (vitesse perdue d'un coup, détectée par
+## audio.gd) : petit champignon atomique façon Looney Tunes (champignon.gd), puis la voiture revient sur la route.
+const VITESSE_BOUM := 60.0          # km/h
+func exploser() -> void:
+	if blown or carried:
+		return
+	var ch = preload("res://scripts/champignon.gd").new()
+	get_parent().add_child(ch)
+	ch.global_position = global_position - Vector3(0, 0.3, 0)
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
+	blow_up()
+	await get_tree().create_timer(3.2).timeout
+	respawn_at(Vector3.INF, 0.0)
+
 ## Réapparition après l'explosion (position et cap choisis par le gardien ; INF : route la plus proche).
 func respawn_at(p: Vector3, heading_deg: float) -> void:
 	freeze = false
@@ -666,6 +681,7 @@ func _physics_process(dt: float) -> void:
 		engine_force = f if brk < 0.1 or thr > brk else 0.0
 		brake = BRAKE * k_frein * freinage * brk + (2.0 if thr < 0.05 and spd < 3.0 and brk < 0.1 else 0.0)
 	_nitro(dt, thr, v, spd)
+	_glisse_mur(thr, brk, v, st)
 	# frein à main (#64) : roues arrière bloquées et moins d'adhérence derrière (dérapage), moteur débrayé ; frein de
 	# parking : toutes les roues bloquées, moteur coupé
 	for w in wheels:
@@ -696,6 +712,61 @@ func _physics_process(dt: float) -> void:
 	apply_central_force(-side * lat * mass * 0.6 * dt * 60.0 * 0.05)
 	_anti_roll()
 	_recovery(dt)
+
+## #106 : accélérer contre un mur ne laisse plus la voiture plantée : elle pivote pour longer le mur et glisse vers la
+## gauche ou la droite (côté où le nez est déjà tourné, sinon côté du volant, sinon au hasard, gardé tant qu'on pousse).
+var _mur_cote := 0.0
+var mur_contact := false             # essais : un mur est devant la voiture et elle glisse
+func _glisse_mur(thr: float, brk: float, v: float, st: float) -> void:
+	var pousse := brk if reversing else thr
+	mur_contact = false
+	if pousse < 0.3 or absf(v) > 3.0 or not controle:
+		_mur_cote = 0.0
+		return
+	var sens := -1.0 if reversing else 1.0
+	var fwd := global_transform.basis.z * sens
+	fwd.y = 0.0
+	fwd = fwd.normalized()
+	var side := global_transform.basis.x
+	side.y = 0.0
+	side = side.normalized()
+	var ss := get_world_3d().direct_space_state
+	var n := Vector3.ZERO
+	for dx: float in [0.0, -0.4, 0.4]:
+		var o := global_position + Vector3.UP * 0.55 + side * dx * gabarit.x
+		var q := PhysicsRayQueryParameters3D.create(o, o + fwd * (gabarit.z * 0.5 + 0.6))
+		q.exclude = [get_rid()]
+		var h := ss.intersect_ray(q)
+		if not h.is_empty() and absf((h.normal as Vector3).y) < 0.6:
+			n += h.normal
+	n.y = 0.0
+	if n.length() < 0.1:
+		_mur_cote = 0.0
+		return
+	n = n.normalized()
+	var t := n.cross(Vector3.UP)                       # le long du mur
+	if _mur_cote == 0.0:
+		var a := fwd.dot(t)
+		if absf(a) > 0.12:
+			_mur_cote = signf(a)
+		elif absf(st) > 0.1:
+			_mur_cote = signf(t.dot(side) * st * sens)   # volant à gauche : vers la gauche de la voiture
+		else:
+			_mur_cote = 1.0 if randf() < 0.5 else -1.0
+	t *= _mur_cote
+	mur_contact = true
+	# le nez tourne pour longer le mur et la caisse glisse le long du mur en s'en décollant un peu ; vitesses imposées
+	# (des forces ne suffisaient pas : la caisse plaquée par le moteur restait collée au mur par frottement), moteur
+	# réduit pour ne plus la plaquer
+	var ang := fwd.signed_angle_to(t, Vector3.UP)
+	var av := angular_velocity
+	av.y = move_toward(av.y, clampf(ang * 2.0, -1.4, 1.4) * pousse, 0.15)
+	angular_velocity = av
+	var lv := linear_velocity
+	lv += t * (move_toward(lv.dot(t), 3.5 * pousse, 0.12) - lv.dot(t))
+	lv += n * (move_toward(lv.dot(n), 0.6, 0.12) - lv.dot(n))
+	linear_velocity = lv
+	engine_force *= 0.3
 
 ## Pédale d'une gâchette ou d'une touche, 0 à 1 (v6.56, #91) : beaucoup de manettes sur Android plafonnent leurs
 ## gâchettes vers 0,8 à 0,95 ; la course pleine est donc calée sur le plus grand enfoncement déjà vu (au moins

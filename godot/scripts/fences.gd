@@ -219,6 +219,8 @@ func breche(p: Vector3, r: float) -> void:
 				g.append(f[i + j])
 	colfaces[k] = g
 	if bodies.has(k):
+		# #105 : retiré tout de suite (queue_free laissait l'ancien corps une image de plus : la voiture le heurtait)
+		bodies[k].get_parent().remove_child(bodies[k])
 		bodies[k].queue_free()
 		bodies[k] = _corps(colfaces[k], genres.get(k, PackedByteArray()))
 		loaded[k].add_child(bodies[k])
