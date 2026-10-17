@@ -16,12 +16,13 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.62 :
-- **10 voitures à acheter au garage** (onglet « Voitures ») : Citrouille Deuche, Renaud Cinq, Tango, Clia, Espèce,
-  Lagune Break, Pijo 106, 206, 306 Maxi et Porc'Che 119 GT3 RS. On les essaie sur place, on les achète, puis on passe
-  de l'une à l'autre ; chacune a ses propres améliorations.
-- **Un habitacle en pixel art pour chaque voiture**. Celles qui n'ont pas de GPS gardent la mini-carte en vue
-  conducteur.
+Nouveautés de la v6.63 :
+- **Menu Activités en plein écran**, à onglets ; les épreuves affichent leur médaille, la carte du tracé, votre temps
+  et les temps à battre.
+- **Courses** : points de passage numérotés et tracé GPS jusqu'au prochain.
+- **Chocs** : on traverse le décor cassable sans ralentir, on glisse le long des murs en accélérant, et au-delà de
+  60 km/h contre un obstacle indestructible… KA-BOOM.
+- Astuces du chargement sans fondu ; plus de flash info radio volume coupé ou client à bord.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

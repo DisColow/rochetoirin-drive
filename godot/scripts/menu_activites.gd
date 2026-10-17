@@ -39,10 +39,18 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	add_to_group("ui_zone")
-	var fond := Panel.new()
+	# plein écran : la taille suit la fenêtre (les ancres seules ne suffisent pas, le parent n'est pas un Control)
+	size = get_viewport_rect().size
+	get_viewport().size_changed.connect(func(): size = get_viewport_rect().size)
+	var fond := ColorRect.new()
+	fond.color = Color(0.06, 0.07, 0.09, 0.97)
 	fond.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fond.add_theme_stylebox_override("panel", UI.panel(0, 0))
 	add_child(fond)
+	var cadre := Panel.new()
+	cadre.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cadre.add_theme_stylebox_override("panel", UI.panel(0, 0))
+	cadre.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(cadre)
 	var m := MarginContainer.new()
 	m.set_anchors_preset(Control.PRESET_FULL_RECT)
 	for k in ["left", "right", "top", "bottom"]:
@@ -168,6 +176,7 @@ func _epreuves() -> void:
 		n.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var s := _texte(t, "%.1f km  ·  à %.1f km" % [float(e.km), c.distance_to(Vector2(e.a[0], e.a[1])) / 1000.0], 20, Color(1, 1, 1, 0.65))
 		s.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		s.autowrap_mode = TextServer.AUTOWRAP_OFF
 	if choix >= 0:
 		_fiche(h, act.epreuves[choix])
 
@@ -194,8 +203,9 @@ func _fiche(h: Control, e: Dictionary) -> void:
 	lr.add_theme_constant_override("separation", 10)
 	v.add_child(lr)
 	lr.add_child(Medaille.new(med, 48.0))
-	_texte(lr, ("Votre temps : " + act._fmt(float(rec))) if rec != null else ("Médaille obtenue" if med != "" else "Pas encore courue"), 26,
+	var lt0 := _texte(lr, ("Votre temps : " + act._fmt(float(rec))) if rec != null else ("Médaille obtenue" if med != "" else "Pas encore courue"), 26,
 		Color(1.0, 0.9, 0.6))
+	lt0.autowrap_mode = TextServer.AUTOWRAP_OFF             # dans une rangée : pas de retour à la ligne (calcul sans fin)
 	var lt := HBoxContainer.new()
 	lt.add_theme_constant_override("separation", 18)
 	v.add_child(lt)
@@ -204,7 +214,7 @@ func _fiche(h: Control, e: Dictionary) -> void:
 		cell.add_theme_constant_override("separation", 4)
 		lt.add_child(cell)
 		cell.add_child(Medaille.new(m, 40.0))
-		_texte(cell, act._fmt(float(e[m])), 23)
+		_texte(cell, act._fmt(float(e[m])), 23).autowrap_mode = TextServer.AUTOWRAP_OFF
 	_texte(v, "%.1f km · %d point(s) de passage" % [float(e.km), e.etapes.size()], 21, Color(1, 1, 1, 0.65))
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 12)

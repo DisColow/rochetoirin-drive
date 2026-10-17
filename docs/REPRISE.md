@@ -3,15 +3,36 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 14/10/2026 (v6.45)
+## État au 17/10/2026 (v6.63)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
+  Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip`.
 - Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). Après une régénération des bâtiments,
   remettre les `.import` publiés : `git fetch origin donnees` puis, pour chaque `world/buildings/*.import`,
   `git show FETCH_HEAD:world/buildings/<fichier>` (Godot donne sinon de nouveaux identifiants), puis réimporter.
 - Captures : `--shots=<fichier.json>` (un CHEMIN de fichier, pas du JSON en ligne).
-- Street View : **plafond absolu 20 $** (`pipeline/sv_budget.py`, compteur `pipeline/sources/sv_depenses.json` :
-  247 photos = 1,73 $ au 13/10).
-- Réveil automatique de la session toutes les 3 h (routine « Reprise après limite d'utilisation »).
+- Street View : **plafond de 9 000 images par mois** (`pipeline/sv_budget.py`, compteur `pipeline/sources/sv_depenses.json`).
+- Réveil automatique de la session toutes les heures (routine « Reprise après limite d'utilisation », h+07).
+- Pièges des essais : `pkill -f "[g]odot --path"` tue aussi le shell (motif présent dans la commande) : utiliser
+  `pkill -x godot` ; les menus mettent le jeu en pause (`hud._show_drive(false)`) : un essai qui attend des images
+  doit remettre `get_tree().paused = false` ; une étiquette `autowrap` dans une rangée (HBox) fausse la mise en page.
+  Transcription d'un vocal : venv `scratchpad/fw` (faster-whisper, modèle « small », `language="fr"`).
+
+## À faire (vocal du 17/10, issues #105 à #121 ; faits en v6.63 : #104 #105 #106 #107 #110 #111 #112 #119 #121)
+- #108 plus d'épreuves ; #109 modèles de voitures à corriger (captures de chacune) ; #113 gare de La Tour-du-Pin sur
+  mesure (photos du cache d'abord, annoncer les appels Street View) ; #114 fausses affiches de cinéma ; #115 terrains
+  multisports (cages + paniers) ; #116 ombres plus loin ; #117 champs (fauchage plus large, blé en sprites, maïs en
+  simple aplat) ; #118 herbe de bien plus loin ; #120 proposition de mode carrière (pas de développement).
+- #105 : clôtures et murets font encore perdre ~6 km/h (casse.gd ne freine plus ; à chercher : boîtes voisines ?
+  essai `--casse-test --casse-genres=cloture,muret --casse-debug`).
+
+## v6.63 (17/10)
+- #110 astuces sans fondu (`voile_demarrage.gd`) ; #111/#104 `radio.flash_permis()` (volume musique, `radio.taxi`
+  tenu par `taxi_talk.gd`), essai `--flash-test` ; #105 plus de perte de vitesse dans `casse._casser`, corps de
+  clôture retiré tout de suite (`fences.breche`) ; #106 `car._glisse_mur` (vitesses imposées le long du mur),
+  essai `--mur-test [--mur-angle=°] [--mur-loin=m]` ; #121 `car.exploser()` + `champignon.gd` (déclenché par
+  `audio.gd` : vitesse perdue d'un coup > 60 km/h contre dur/métal/bois) ; #107 numéros `Label3D` au-dessus des
+  portes et `_itineraire` pendant la course ; #119/#112 `menu_activites.gd` (plein écran, onglets) +
+  `carte_trace.gd` (carte du tracé par les routes) + `garage.records` (meilleurs temps) ; essai `--epreuves-menu-test`.
 
 ## v6.62 (16/10)
 - #95 livré (voir la section « Voitures du garage » de CLAUDE.md) : 10 voitures, faux logos, Laguna peinte, cockpits,

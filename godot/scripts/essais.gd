@@ -819,6 +819,7 @@ func _physics_process(_dt: float) -> void:
 			act._menu.choix = loin
 			act._menu._aller(0)
 			set_meta("loin", loin)
+			get_tree().paused = false             # le menu met le jeu en pause : l'essai continue de compter les images
 		if t == 300 + 120:
 			DirAccess.make_dir_recursive_absolute("user://shots")
 			get_viewport().get_texture().get_image().save_png("user://shots/epreuves_menu.png")

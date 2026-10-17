@@ -8,6 +8,7 @@ var _data
 var _layers := []
 var _over: Control
 var _itin
+static var _graphe
 var _leg := 0
 var _trace := PackedVector2Array()  # chemin par les routes, étapes déjà calculées
 var _fini := false
@@ -32,7 +33,9 @@ func montrer(pts: Array) -> void:
 	_leg = 0
 	_fini = false
 	if _itin == null:
-		_itin = preload("res://scripts/itineraire.gd").new()
+		if _graphe == null:                     # graphe routier lu une seule fois (long à décoder)
+			_graphe = preload("res://scripts/itineraire.gd").new()
+		_itin = _graphe
 	if points.size() >= 2:
 		_itin.calculer(points[0], points[1])
 	queue_redraw()
