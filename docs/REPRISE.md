@@ -472,7 +472,7 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   clôtures 20 ; lampadaires 3 Mo, panneaux déjà plats (planches 11 Mo) -> sprites inutiles pour la mémoire.
 - Choix de l'utilisateur : seulement les réglages sans perte visible (« Aucun » compromis, pas de sprites) :
   - voitures du garage : `compress/mode=2` (+ `normal_map=1`) via `pipeline/compresser_textures.py` (à relancer après
-    `blender_voitures_joueur.py`) : R5 ~90 -> ~17 Mo ;
+    `blender_voitures_joueur.py`) : R5 ~76 -> 16,9 Mo, 2CV -> 14,8 Mo (tools/mesure_texture.gd sur body.glb + wheel.glb) ;
   - ciel de midi : `pipeline/build_ciel_midi.py` (+ `rgbe.py`) -> `assets/ciel/midi_haut.hdr` (4096 × 1024),
     `midi_bas.hdr` (1024 × 256), `midi.json` (azimut du soleil) ; `scripts/ciel_midi.gdshader` ; `assets/sky.hdr`
     supprimé (build_assets.py appelle build_ciel_midi) : 45 -> 24 Mo mesurés à part (`tools/mesure_ciel.gd`) ;
