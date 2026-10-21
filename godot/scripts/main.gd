@@ -469,9 +469,9 @@ func _environment() -> void:
 	sun.light_energy = 1.6
 	sun.light_color = Color(1.0, 0.96, 0.9)
 	sun.shadow_enabled = true
-	# ombres : 2 cascades (40 m nette, puis jusqu'à 320 m) fondues entre elles et au loin, pas d'apparition sèche
+	# ombres : 2 cascades (45 m nette, puis jusqu'à 480 m ; v6.64, #116 : portées × 1,5) fondues entre elles et au loin, pas d'apparition sèche
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
-	sun.directional_shadow_max_distance = 320.0
+	sun.directional_shadow_max_distance = 480.0
 	sun.directional_shadow_split_1 = 0.14
 	sun.directional_shadow_blend_splits = true
 	sun.directional_shadow_fade_start = 0.7
@@ -489,10 +489,10 @@ func _environment() -> void:
 ## tiers des triangles ; l'anticrénelage 4× coûte cher sur les petites puces).
 const NIVEAUX := [
 	# msaa, ombres (portée m, cascades, carte), seuil de détail (px), résolution 3D, distances, étalonnage
-	{"msaa": Viewport.MSAA_DISABLED, "ombre": 90.0, "split": false, "carte": 2048, "lod": 6.0, "res": 0.8, "dist": 0.55, "post": false},
-	{"msaa": Viewport.MSAA_2X, "ombre": 150.0, "split": false, "carte": 2048, "lod": 3.0, "res": 0.9, "dist": 0.75, "post": true},
-	{"msaa": Viewport.MSAA_4X, "ombre": 240.0, "split": true, "carte": 4096, "lod": 1.5, "res": 1.0, "dist": 1.0, "post": true},
-	{"msaa": Viewport.MSAA_4X, "ombre": 320.0, "split": true, "carte": 4096, "lod": 1.0, "res": 1.0, "dist": 1.0, "post": true},
+	{"msaa": Viewport.MSAA_DISABLED, "ombre": 140.0, "split": false, "carte": 2048, "lod": 6.0, "res": 0.8, "dist": 0.55, "post": false},
+	{"msaa": Viewport.MSAA_2X, "ombre": 220.0, "split": false, "carte": 2048, "lod": 3.0, "res": 0.9, "dist": 0.75, "post": true},
+	{"msaa": Viewport.MSAA_4X, "ombre": 360.0, "split": true, "carte": 4096, "lod": 1.5, "res": 1.0, "dist": 1.0, "post": true},
+	{"msaa": Viewport.MSAA_4X, "ombre": 480.0, "split": true, "carte": 4096, "lod": 1.0, "res": 1.0, "dist": 1.0, "post": true},
 ]
 var _vues_base := {}
 
@@ -506,6 +506,7 @@ func set_post(level: int) -> void:
 	vp.scaling_3d_scale = N.res
 	if _sun:
 		_sun.directional_shadow_max_distance = N.ombre
+		_sun.directional_shadow_split_1 = 45.0 / N.ombre      # cascade nette toujours sur ~45 m
 		_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS if N.split else DirectionalLight3D.SHADOW_ORTHOGONAL
 		RenderingServer.directional_shadow_atlas_set_size(N.carte, true)
 	# distances d'affichage des objets posés par tuiles (valeurs de base gardées au premier appel)

@@ -10,9 +10,13 @@ const CELL := 12.0
 # par niveau de densité (Réglages) : portée (m), écartement des touffes (m)
 # v6.23 (« l'herbe apparaît trop près ») : portées presque doublées ; au-delà de PRES m, cases clairsemées (écartement
 # × CLAIR, touffes un peu plus grandes) reconstruites serrées quand on s'approche : peu de touffes en plus.
-const LEVELS := [[45.0, 0.95], [60.0, 0.78], [75.0, 0.66], [95.0, 0.58]]
+# v6.64 (#118, « beaucoup plus loin ») : portées doublées ; troisième bande au-delà de LOIN m, très clairsemée
+# (écartement × 4, touffes 1,4 fois plus grandes) : de loin, on voit la teinte du pré, pas chaque brin.
+const LEVELS := [[90.0, 0.95], [120.0, 0.78], [150.0, 0.66], [190.0, 0.58]]
 const PRES := 30.0
-const CLAIR := 2.2
+const LOIN := 70.0
+const CLAIR := [1.0, 2.2, 4.0]
+const GRAND := [1.0, 1.15, 1.4]
 # par catégorie : cases de la planche (avec poids), hauteur min / max (m), largeur relative, part des places occupées
 const CAT := {
 	1: [[0, 0, 0, 1], 0.2, 0.34, 1.8, 0.85],
@@ -53,7 +57,7 @@ func _ready() -> void:
 func set_level(l: int) -> void:
 	level = clampi(l, 0, LEVELS.size() - 1)
 	var r: float = LEVELS[level][0]
-	mat.set_shader_parameter("fade_start", r - 10.0)
+	mat.set_shader_parameter("fade_start", r - 25.0)
 	mat.set_shader_parameter("fade_end", r)
 	for k in cells.keys():
 		if cells[k]:
@@ -111,8 +115,8 @@ func _step() -> bool:
 			var k := kc + Vector2i(dx, dz)
 			var d := Vector2((k.x + 0.5) * CELL - c.x, (k.y + 0.5) * CELL - c.z).length()
 			if cells.has(k):
-				# case clairsemée qui se retrouve près : à reconstruire serrée (en priorité, c'est la plus visible)
-				if bandes.get(k, 0) == 1 and d < PRES - CELL * 0.5 and d < bd:
+				# case clairsemée qui se retrouve près : à reconstruire plus serrée (en priorité, c'est la plus visible)
+				if bandes.get(k, 0) > _bande(d + CELL * 0.5) and d < bd:
 					bd = d; best = k
 				continue
 			if d < r + CELL * 0.71 and d < bd:
@@ -128,14 +132,17 @@ func _step() -> bool:
 	_build(best)
 	return true
 
+static func _bande(d: float) -> int:
+	return 2 if d > LOIN else (1 if d > PRES else 0)
+
 func _build(k: Vector2i) -> void:
 	if cells.has(k) and cells[k]:
 		cells[k].queue_free()
 	var c := target.global_position
-	var bande := 1 if Vector2((k.x + 0.5) * CELL - c.x, (k.y + 0.5) * CELL - c.z).length() > PRES else 0
+	var bande := _bande(Vector2((k.x + 0.5) * CELL - c.x, (k.y + 0.5) * CELL - c.z).length())
 	bandes[k] = bande
-	var sp: float = LEVELS[level][1] * (CLAIR if bande == 1 else 1.0)
-	var grand := 1.15 if bande == 1 else 1.0
+	var sp: float = LEVELS[level][1] * CLAIR[bande]
+	var grand: float = GRAND[bande]
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(k)
 	var buf := PackedFloat32Array()
