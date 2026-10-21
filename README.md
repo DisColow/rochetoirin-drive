@@ -16,13 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.63 :
-- **Menu Activités en plein écran**, à onglets ; les épreuves affichent leur médaille, la carte du tracé, votre temps
-  et les temps à battre.
-- **Courses** : points de passage numérotés et tracé GPS jusqu'au prochain.
-- **Chocs** : on traverse le décor cassable sans ralentir, on glisse le long des murs en accélérant, et au-delà de
-  60 km/h contre un obstacle indestructible… KA-BOOM.
-- Astuces du chargement sans fondu ; plus de flash info radio volume coupé ou client à bord.
+Nouveautés de la v6.64 :
+- **Herbe affichée deux fois plus loin**, plus clairsemée au loin pour rester fluide.
+- **Ombres affichées 1,5 fois plus loin**, toujours nettes près de la voiture.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
