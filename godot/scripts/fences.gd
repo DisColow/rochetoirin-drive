@@ -31,6 +31,7 @@ var results := {}         # Vector2i -> [opaque, découpe, collisions] (écrit p
 var bodies := {}
 var colfaces := {}        # Vector2i -> PackedVector3Array
 var lignes := {}          # Vector2i -> PackedVector3Array (segments a, b des clôtures cassables : casse.gd)
+var colgenres := {}       # genres des tronçons encore solides (alignés sur colfaces, brèches retirées)
 var genres := {}          # Vector2i -> PackedByteArray (un par segment : 0 clôture, 1 haie, 2 muret, 3 pilier ; v6.24, v6.55)
 var lscale := PackedFloat32Array()
 var mat: ShaderMaterial
@@ -147,6 +148,7 @@ func _process_corps(dt: float) -> void:
 			colfaces.erase(k)
 			lignes.erase(k)
 			genres.erase(k)
+			colgenres.erase(k)
 	_collisions()
 
 func _finish(k: Vector2i) -> void:
@@ -199,6 +201,7 @@ func _finish(k: Vector2i) -> void:
 	if r.size() > 5:
 		lignes[k] = r[4]
 		genres[k] = r[5]
+		colgenres[k] = r[5]
 
 ## Clôture enfoncée (casse.gd) : plus de collision dans un rayon r autour de p (la voiture passe par la brèche).
 func breche(p: Vector3, r: float) -> void:
@@ -207,22 +210,25 @@ func breche(p: Vector3, r: float) -> void:
 		return
 	var f: PackedVector3Array = colfaces[k]
 	var g := PackedVector3Array()
-	var r2 := r * r
+	var ge: PackedByteArray = colgenres.get(k, PackedByteArray())
+	var ng := PackedByteArray()
 	var c := Vector2(p.x, p.z)
 	for i in range(0, f.size() - 5, 6):                 # par tronçon entier (6 sommets = une boîte)
-		var near := false
+		# #105 : distance au tronçon lui-même (un long tronçon touché en son milieu restait en place : arrêt net)
+		var q := Geometry2D.get_closest_point_to_segment(c, Vector2(f[i].x, f[i].z), Vector2(f[i + 1].x, f[i + 1].z))
+		if q.distance_to(c) < r:
+			continue
 		for j in 6:
-			if Vector2(f[i + j].x, f[i + j].z).distance_squared_to(c) < r2:
-				near = true
-		if not near:
-			for j in 6:
-				g.append(f[i + j])
+			g.append(f[i + j])
+		if i / 6 < ge.size():
+			ng.append(ge[i / 6])
 	colfaces[k] = g
+	colgenres[k] = ng
 	if bodies.has(k):
 		# #105 : retiré tout de suite (queue_free laissait l'ancien corps une image de plus : la voiture le heurtait)
 		bodies[k].get_parent().remove_child(bodies[k])
 		bodies[k].queue_free()
-		bodies[k] = _corps(colfaces[k], genres.get(k, PackedByteArray()))
+		bodies[k] = _corps(colfaces[k], ng)
 		loaded[k].add_child(bodies[k])
 
 ## Collisions en boîtes (v6.19 : BoxShape3D seulement) : chaque tronçon de clôture ou de haie (2 triangles de 6
@@ -252,7 +258,7 @@ func _collisions() -> void:
 	for k in loaded.keys():
 		var need := _d(k, p) < COLL + TILE * 0.71
 		if need and not bodies.has(k) and colfaces.has(k) and colfaces[k].size() > 0:
-			var sb := _corps(colfaces[k], genres.get(k, PackedByteArray()))
+			var sb := _corps(colfaces[k], colgenres.get(k, PackedByteArray()))
 			loaded[k].add_child(sb)
 			bodies[k] = sb
 		elif not need and bodies.has(k):

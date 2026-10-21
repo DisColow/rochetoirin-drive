@@ -16,9 +16,8 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.64 :
-- **Herbe affichée deux fois plus loin**, plus clairsemée au loin pour rester fluide.
-- **Ombres affichées 1,5 fois plus loin**, toujours nettes près de la voiture.
+Nouveautés de la v6.65 :
+- **Clôtures** : la voiture passe à travers une longue clôture sans s'arrêter net, même touchée en son milieu.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

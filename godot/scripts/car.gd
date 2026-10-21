@@ -835,7 +835,11 @@ func _touching() -> Array:
 		var c: Object = r.collider
 		if c is Node:
 			var n := c as Node
-			out.append("%s/%s%s" % [n.get_parent().name if n.get_parent() else "", n.name, (" " + str(n.get_meta("surface"))) if n.has_meta("surface") else ""])
+			var gp := n.get_parent()
+			if gp and not gp.get_script() and gp.get_parent() and gp.get_parent().get_script():
+				gp = gp.get_parent()
+			var sc: String = (gp.get_script().resource_path.get_file() + ":") if gp and gp.get_script() else ""
+			out.append("%s%s/%s%s" % [sc, gp.name if gp else "", n.name, (" " + str(n.get_meta("surface"))) if n.has_meta("surface") else ""])
 	return out
 
 ## Remise sur la route la plus proche, dans le sens de la voie le plus proche de celui de la voiture.

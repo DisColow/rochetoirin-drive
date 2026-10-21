@@ -471,6 +471,7 @@ func essai() -> void:
 		if a.begins_with("--casse-genres="):
 			genres = Array(a.trim_prefix("--casse-genres=").split(","))
 	for genre in genres:
+		var perp := Vector3.ZERO                   # clôtures : arrivée perpendiculaire au segment (sinon on longe la ligne)
 		var c := car.global_position
 		var best := Vector3.INF
 		var bd := INF
@@ -516,12 +517,12 @@ func essai() -> void:
 						var m := (L[i] + L[i + 1]) * 0.5
 						var d := Vector2(m.x - c.x, m.z - c.z).length()
 						if d < bd and d > 3.0 and L[i].distance_to(L[i + 1]) > (3.0 if genre == "cloture" else (0.3 if genre == "pilier" else 1.5)):
-							bd = d; best = m
+							bd = d; best = m; perp = (L[i + 1] - L[i]).cross(Vector3.UP).normalized()
 		if best == Vector3.INF:
 			print("[casse] essai ", genre, " : aucun objet chargé")
 			continue
 		# élan court (3,6 m) depuis l'ouest : peu de chances de buter sur autre chose avant l'objet
-		var f := Vector3(1, 0, 0)
+		var f := Vector3(1, 0, 0) if perp == Vector3.ZERO else perp
 		var start := best - f * (_hl + 1.0)
 		start.y = best.y + 0.8
 		car.place(start, 180.0 - rad_to_deg(atan2(f.x, f.z)))
