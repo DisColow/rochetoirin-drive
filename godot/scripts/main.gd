@@ -252,6 +252,7 @@ func _ready() -> void:
 	guardian = preload("res://scripts/guardian.gd").new()
 	guardian.car = car
 	guardian.terrain = terrain
+	guardian.actif = OS.get_cmdline_user_args().has("--void-test")      # soucoupe chargée seulement pour son essai
 	add_child(guardian)
 	# v6.22 : soucoupe désactivée (code conservé), remplacée par les bords façon Motocross Madness (bord.gd)
 	guardian.process_mode = Node.PROCESS_MODE_DISABLED
@@ -420,10 +421,12 @@ func _teleport(p: Vector3, heading: float) -> void:
 	grass.update_now()
 
 func _environment() -> void:
-	var sky_tex: Texture2D = load("res://assets/sky.hdr")
-	var mat := PanoramaSkyMaterial.new()
-	mat.panorama = sky_tex
-	mat.energy_multiplier = 1.0
+	# v6.70 (#122) : ciel de midi en deux images (haut à pleine définition, bas réduit) au lieu du panorama HDR de
+	# 4096 × 2048 (45 Mo de mémoire vidéo) : pipeline/build_ciel_midi.py, scripts/ciel_midi.gdshader
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://scripts/ciel_midi.gdshader")
+	mat.set_shader_parameter("haut", load("res://assets/ciel/midi_haut.hdr"))
+	mat.set_shader_parameter("bas", load("res://assets/ciel/midi_bas.hdr"))
 	var sky := Sky.new()
 	sky.sky_material = mat
 	sky.radiance_size = Sky.RADIANCE_SIZE_256
@@ -451,18 +454,9 @@ func _environment() -> void:
 	add_child(we)
 	_env = env
 	_sky_day = mat
-	# soleil : direction du point le plus lumineux de l'HDRI
-	var img := sky_tex.get_image()
-	var az := 0.0
-	if img:
-		var w := img.get_width(); var h := img.get_height()
-		var best := 0.0
-		for y in range(0, h / 2, 4):
-			for x in range(0, w, 4):
-				var c := img.get_pixel(x, y)
-				var l := c.r + c.g + c.b
-				if l > best:
-					best = l; az = float(x) / w
+	# soleil : direction du point le plus lumineux de l'HDRI (cherché par build_ciel_midi.py, plus au démarrage : la
+	# lecture de l'image entière depuis la carte graphique coûtait du temps et de la mémoire)
+	var az := float(JSON.parse_string(FileAccess.get_file_as_string("res://assets/ciel/midi.json")).soleil_az)
 	var sun := DirectionalLight3D.new()
 	# u = 0,5 face à -Z dans Godot (centre du panorama) ; azimut en radians autour de Y
 	sun.rotation = Vector3(deg_to_rad(-SUN_ELEV), (0.5 - az) * TAU + PI, 0)

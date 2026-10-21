@@ -167,7 +167,9 @@
   - modèles : `fetch_voitures_joueur.py` (Sketchfab -> `godot/import/voitures/<id>`, `.gdignore`),
     `faux_logos.py` (emblèmes Renaud, Pijo, Citrouille, Porc'Che ; textures photo retouchées, originaux `*.orig.png`),
     `blender_voitures_joueur.py` (orientation, échelle réelle, roues par coins, matériaux du jeu, habitacle vidé,
-    badges et lettrages en volume retirés, faux logos posés en décalcomanie) -> `assets/voitures/<id>/` ;
+    badges et lettrages en volume retirés, faux logos posés en décalcomanie) -> `assets/voitures/<id>/`, puis
+    **`compresser_textures.py`** (v6.70 : les images extraites des glb s'importent sinon sans compression, jusqu'à
+    80 Mo de mémoire vidéo pour la seule R5) ;
   - cockpits : `build_cockpits.py` (même procédé que `build_cockpit.py`) -> `assets/cockpit/<id>/`, chargés par
     `cockpit.gd` `charger(id)` ; `a_gps()` faux -> la mini-carte reste affichée (`hud.gd`) ;
   - essai : `-- --drive-test --voitures-test --drive-from=-8410.95,221,-7187.25,45.2` (vitesse après 2 s, roues au
@@ -294,7 +296,11 @@
 - **Mémoire vidéo** (image figée sur le téléphone : la 3D cesse d'être dessinée quand la mémoire vidéo sature, l'écran
   alterne alors entre les deux dernières images) : **toute texture de plus de 4 Mo doit être importée compressée**
   (`compress/mode=2`, sauf pixel art de `assets/ui` et `assets/cockpit`) ; le sprite de la voiture n'est chargé qu'à
-  la demande (`car.set_sprite_mode`). Contrôle : `-- --mem-test` (mémoire vidéo, textures, tampons). **Le gel persiste
+  la demande (`car.set_sprite_mode`). Contrôle : `-- --mem-test` (mémoire vidéo, textures, tampons) ; **`-- --vram
+  [--vram-at=x,y,z] [--vram-voiture=id]`** (v6.70, #122) : mémoire vidéo par système (maillages et textures,
+  relief Terrain3D). Relevé du 21/10 (Rochetoirin, Équilibré) : 615 Mo, dont relief ~130, bâtiments ~100, ciel
+  45 (ramené à 18 : `build_ciel_midi.py`, `assets/ciel/`, `ciel_midi.gdshader`), horizon ~34, arbres 30,
+  lampadaires 3 (sprites inutiles pour la mémoire). **Le gel persiste
   en v6.7 (issue #4)** : témoin de rendu depuis la v6.10 (`crash_report.gd` : vignette 4 × 4 px relue toutes les 5 s de
   temps réel ; deux échecs -> `[figé]` dans le journal, `user://fige.txt`, bandeau « Image figée » au lancement
   suivant avec rapport) ; essai : `-- --fige-test` (simule l'arrêt du rendu). Attendre un rapport avant de corriger.

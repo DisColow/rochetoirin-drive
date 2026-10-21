@@ -37,6 +37,7 @@ var _b0 := Basis()
 var _lift := Vector3.ZERO       # fin du levage
 var _dest := Vector3.ZERO       # point de route d'arrivée
 var _dest_h := 0.0              # cap d'arrivée (degrés, 0 = Nord, sens horaire)
+var actif := true            # faux : seule la limite de la zone est lue (_nearest), sans soucoupe (main.gd)
 var _cruise_y := 0.0
 var _dur := 1.0
 
@@ -44,6 +45,8 @@ func _ready() -> void:
 	var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://world/zone.json"))
 	for p in d.pts:
 		zone.append(Vector2(float(p[0]), float(p[1])))
+	if not actif:
+		return                  # v6.70 (#122) : soucoupe désactivée, ni modèle ni sons chargés (6 Mo de mémoire vidéo)
 	_build_saucer()
 	_build_beam()
 	preload("res://scripts/audio.gd").ensure_buses()

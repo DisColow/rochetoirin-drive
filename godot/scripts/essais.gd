@@ -12,6 +12,8 @@ func _enter_tree() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--shots="):
 			_shots.call_deferred(a.trim_prefix("--shots="))
+		if a == "--vram":
+			_vram_detail.call_deferred()
 
 func _shots(path: String) -> void:
 	while not Chargement.fini:                 # le monde se construit par étapes (v6.14)
@@ -37,6 +39,9 @@ func _shots(path: String) -> void:
 			# vue de la caméra du jeu (0 poursuite, 1 conducteur, 2 capot) après un court trajet
 			car.freeze = false
 			set_process(true); cam_rig.set_process(true); roads.target = car; buildings.target = car; fences.target = car; water.target = car; poles.target = car; props.target = car; pools.target = car; shops.target = car; sport.target = car; animaux.target = car; autoroute.target = car; vegetation.target = car; crops.target = car; grass.target = car
+			if s.has("voiture"):
+				car.construire(String(s.voiture))           # voiture du garage (#122 : comparaison des textures)
+				tuning.appliquer()
 			if s.has("place"):
 				# voiture posée ailleurs (x, y, z, cap) avant le court trajet
 				car.place(Vector3(s.place[0], s.place[1], s.place[2]), float(s.place[3]))
@@ -1383,3 +1388,127 @@ func _mem_test() -> void:
 			roads.loaded.size(), buildings.loaded.size()])
 	if t > 120 * 240:
 		get_tree().quit()
+
+# ---------------------------------------------------------------- essai : --vram (mémoire vidéo par famille, #122)
+## Voiture posée au centre de Rochetoirin (ou --vram-at=x,y,z) ; 30 s plus tard : textures chargées groupées par
+## dossier et les plus grosses, puis tampons (maillages et MultiMesh) de chaque système, lus dans le serveur de rendu.
+func _vram_detail() -> void:
+	while not Chargement.fini:
+		await get_tree().process_frame
+	var at := Vector3(92.8, 450.6, 419.5)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--vram-at="):
+			var v := a.trim_prefix("--vram-at=").split(",")
+			at = Vector3(float(v[0]), float(v[1]), float(v[2]))
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--vram-voiture="):
+			car.construire(a.trim_prefix("--vram-voiture="))      # voiture du garage conduite pendant la mesure
+	car.place(at, 108.5)
+	car.hold(1.0)
+	var t0 := Time.get_ticks_msec()                        # temps réel : le rendu logiciel des essais tient ~1 image/s
+	while Time.get_ticks_msec() - t0 < 40000:
+		await get_tree().process_frame
+	print("[vram] totale %.0f Mo : textures %.0f Mo, tampons %.0f Mo" % [Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1e6,
+		Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1e6, Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1e6])
+	var par := {}                  # système (script ou nom) -> [maillages vus, octets maillages, textures vues]
+	var toutes := {}
+	for c in get_children():
+		if not (c is Node3D):
+			continue
+		var sc: String = c.get_script().resource_path.get_file() if c.get_script() else String(c.name).rstrip("0123456789_@")
+		if not par.has(sc):
+			par[sc] = [{}, 0, {}]
+		var e: Array = par[sc]
+		for n in c.find_children("*", "GeometryInstance3D", true, false) + ([c] if c is GeometryInstance3D else []):
+			var mats := []
+			if n.material_override:
+				mats.append(n.material_override)
+			var m: Mesh = n.mesh if n is MeshInstance3D else (n.multimesh.mesh if n is MultiMeshInstance3D and n.multimesh else null)
+			if m:
+				for k in m.get_surface_count():
+					if m.surface_get_material(k):
+						mats.append(m.surface_get_material(k))
+			if n is MeshInstance3D:
+				for k in n.get_surface_override_material_count():
+					if n.get_surface_override_material(k):
+						mats.append(n.get_surface_override_material(k))
+			for mat in mats:
+				for t in _textures_de(mat):
+					e[2][t] = true
+					toutes[t] = true
+			if n is MultiMeshInstance3D and n.multimesh:
+				var mm: MultiMesh = n.multimesh
+				e[1] += mm.instance_count * (12 + (4 if mm.use_colors else 0) + (4 if mm.use_custom_data else 0)) * 4
+			if m == null or e[0].has(m):
+				continue
+			e[0][m] = true
+			for k in m.get_surface_count():
+				var d: Dictionary = RenderingServer.mesh_get_surface(m.get_rid(), k)
+				for cle in ["vertex_data", "attribute_data", "skin_data", "index_data"]:
+					if d.has(cle):
+						e[1] += (d[cle] as PackedByteArray).size()
+				for l in d.get("lods", []):
+					if l is Dictionary and l.has("index_data"):
+						e[1] += (l.index_data as PackedByteArray).size()
+	var res := []
+	for sc in par:
+		var e: Array = par[sc]
+		var to := 0
+		var noms := []
+		for t in e[2]:
+			var b := _octets_texture(t)
+			to += b
+			noms.append([b, String(t.resource_path).trim_prefix("res://")])
+		noms.sort_custom(func(x, y): return x[0] > y[0])
+		res.append([e[1] + to, sc, e[0].size(), e[1], to, noms.slice(0, 5)])
+	res.sort_custom(func(x, y): return x[0] > y[0])
+	for r in res:
+		if r[0] < 100000:
+			continue
+		print("[vram] %-22s %6.1f Mo : maillages %5.1f Mo (%d), textures %5.1f Mo : %s" % [r[1], r[0] / 1e6, r[3] / 1e6, r[2], r[4] / 1e6,
+			", ".join(r[5].map(func(x): return "%s %.1f" % [x[1].get_file(), x[0] / 1e6]))])
+	var tt := 0
+	for t in toutes:
+		tt += _octets_texture(t)
+	print("[vram] textures des objets 3D (sans doublons) : %.0f Mo" % (tt / 1e6))
+	if terrain and terrain.get("data"):
+		var nreg: int = terrain.data.get_region_locations().size()
+		var rs: int = int(terrain.get("region_size"))
+		print("[vram] relief Terrain3D : %d régions de %d² ; cartes hauteur + contrôle + couleur ≈ %.0f Mo" % [nreg, rs, nreg * rs * rs * (4 + 4 + 4 * 1.33) / 1e6])
+	get_tree().quit()
+
+## Textures d'un matériau (StandardMaterial3D ou ShaderMaterial).
+func _textures_de(mat: Material) -> Array:
+	var out := []
+	if mat is ShaderMaterial and mat.shader:
+		for u in mat.shader.get_shader_uniform_list():
+			var v = mat.get_shader_parameter(u.name)
+			if v is Texture:
+				out.append(v)
+	elif mat is BaseMaterial3D:
+		for t in [mat.albedo_texture, mat.normal_texture, mat.emission_texture, mat.roughness_texture, mat.metallic_texture,
+				mat.ao_texture, mat.orm_texture if mat is ORMMaterial3D else null]:
+			if t:
+				out.append(t)
+	if mat and mat.next_pass:
+		out.append_array(_textures_de(mat.next_pass))
+	return out
+
+## Mémoire vidéo estimée d'une texture : compressée (VRAM) 1 octet par pixel, sinon 4 ; + 1/3 avec les mipmaps.
+func _octets_texture(t: Texture) -> int:
+	var w := 0; var h := 0; var couches := 1
+	if t is Texture2D:
+		w = t.get_width(); h = t.get_height()
+	elif t is TextureLayered:
+		w = t.get_width(); h = t.get_height(); couches = t.get_layers()
+	elif t is Texture3D:
+		w = t.get_width(); h = t.get_height(); couches = t.get_depth()
+	var bpp := 4.0
+	var mip := false
+	var imp := String(t.resource_path).get_slice("::", 0) + ".import"
+	if t.resource_path != "" and FileAccess.file_exists(imp):
+		var txt := FileAccess.get_file_as_string(imp)
+		if txt.contains("compress/mode=2") or txt.contains("compress/mode=3") or txt.contains("compress/mode=4"):
+			bpp = 1.0
+		mip = txt.contains("mipmaps/generate=true")
+	return int(w * h * couches * bpp * (1.33 if mip else 1.0))

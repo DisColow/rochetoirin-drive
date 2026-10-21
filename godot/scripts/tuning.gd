@@ -39,7 +39,6 @@ func _ready() -> void:
 	car.set("tuning", self)
 	_peinture = ShaderMaterial.new()
 	_peinture.shader = preload("res://scripts/carrosserie.gdshader")
-	_peinture.set_shader_parameter("vin_tex", load("res://assets/garage/vinyles.png"))
 	_verre = StandardMaterial3D.new()
 	_verre.metallic = 0.6; _verre.roughness = 0.04
 	lier()
@@ -128,6 +127,11 @@ func appliquer() -> void:
 	# peinture et vitres
 	_peinture.set_shader_parameter("couleur", couleur())
 	var vi: int = garage.choix("vinyle")
+	# v6.70 (#122) : planche des vinyles peints (7 Mo de mémoire vidéo) chargée seulement quand l'un d'eux est posé
+	if vi >= 3 and _peinture.get_shader_parameter("vin_tex") == null:
+		_peinture.set_shader_parameter("vin_tex", load("res://assets/garage/vinyles.png"))
+	elif vi < 3:
+		_peinture.set_shader_parameter("vin_tex", null)
 	_peinture.set_shader_parameter("vinyle", vi)
 	var clair: bool = couleur().get_luminance() > 0.45
 	_peinture.set_shader_parameter("vin_col", Color(0.05, 0.05, 0.06) if clair else Color(0.95, 0.95, 0.95))

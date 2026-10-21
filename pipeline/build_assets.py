@@ -67,7 +67,8 @@ def road_textures():
         im("%s/%s/diff.jpg" % (PH, t), "RGB").save("%s/%s_albedo.jpg" % (GX, name), quality=92)
         im("%s/%s/nor_gl.jpg" % (PH, t), "RGB").save("%s/%s_normal.jpg" % (GX, name), quality=95)
         im("%s/%s/rough.jpg" % (PH, t), "L").save("%s/%s_rough.jpg" % (GX, name), quality=92)
-    shutil.copy(PH + "/sky.hdr", "../godot/assets/sky.hdr")
+    import build_ciel_midi                     # v6.70 (#122) : ciel de midi en deux images (mémoire vidéo)
+    build_ciel_midi.main()
 
 
 def grid_mesh(A, x0, z0, step, skip, sink):

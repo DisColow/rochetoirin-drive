@@ -6,7 +6,7 @@ set -e
 cd "$(dirname "$0")/../godot"
 export GIT_INDEX_FILE=$(mktemp -u)
 L=""
-for d in world terrain assets/terrain_tex assets/tex assets/sky.hdr assets/sky.hdr.import assets/car \
+for d in world terrain assets/terrain_tex assets/tex assets/ciel assets/car \
   assets/terrain_assets.tres assets/bld assets/veg assets/fence assets/sfx assets/cockpit assets/props \
   assets/voitures assets/shops assets/sport assets/animaux assets/autoroute assets/sur_mesure assets/maisons assets/ufo assets/clients assets/radio assets/ui assets/voix assets/fx assets/veg assets/shops assets/autoroute assets/aeronefs assets/garage; do
   [ -e "$d" ] && L="$L $d"
