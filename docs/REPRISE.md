@@ -436,3 +436,8 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - #118 herbe : portées doublées (grass.gd LEVELS 90/120/150/190 m, 3e bande > 70 m écartement ×4) ; #116 ombres : NIVEAUX ombre 140/220/360/480 m, cascade nette 45 m (split_1 = 45/portée). Aperçu docs/apercus/v664.jpg.
 - Reste : #105 (clôtures/murets freinent encore), #108, #109, #113, #114, #115, #117, #120.
 - Piège : --perf-breakdown trop lent ici (1 img/s, timeout) : mesure inutilisable.
+
+## v6.65 (21/10)
+- #105 : fences.breche retire les tronçons par distance au segment (avant : par sommets, un long tronçon touché au milieu restait : 45 -> 0 km/h ; après : 45 -> 39, reste = objet de jardin poussé). colgenres = genres alignés sur colfaces. Essai casse : arrivée perpendiculaire au tronçon ; car._touching donne le script du parent.
+- Piège : disque plein (allocation ~40 Go) : nettoyer scratchpad (bl = venv Blender 1 Go, fw = whisper).
+- Reste : #108, #109, #113, #114, #115, #117, #120.
