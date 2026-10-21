@@ -3,7 +3,8 @@
 // Données d'instance : x = culture (0 maïs, 1 céréales, 2 colza, 3 tournesol), y = variante (0-3), z = teinte,
 // w = hauteur de la case (m). Une touffe touchée par la voiture disparaît (il a éclaté : trample.gd + dust.gd).
 // Maïs (v6.71, #117) : un seul plan, toujours parallèle à l'écran (tourné autour de la verticale), au lieu de la
-// croix : on le traverse comme un décor de carton, sans qu'il pivote quand on le dépasse.
+// croix : on le traverse comme un décor de carton, sans qu'il pivote quand on le dépasse. (Essayé aussi pour les
+// céréales en v6.72 : rangées de rectangles façon bottes de paille ; elles gardent la croix.)
 shader_type spatial;
 render_mode cull_disabled;
 #include "res://scripts/env.gdshaderinc"

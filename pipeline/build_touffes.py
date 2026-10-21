@@ -3,7 +3,10 @@ Au lieu d'un sprite par plant, un plan montre une bande de champ : plusieurs pla
 (plants_albedo.png de tools/bake_cultures.gd, cases de 256 × 512 px : largeur = hauteur / 2) collés sur trois
 profondeurs (les plus lointains plus sombres et un peu plus bas). Cases de 512 × 512 px : 4 cultures (lignes) ×
 4 variantes (colonnes) ; une case = LARGEUR m de large sur la hauteur de case de la culture (crops.gd HCASE).
+Céréales (v6.72, #117, choix « C ») : ce feuillage, assombri, passe derrière un rang dense d'épis d'orge scannée
+(data/orge/touffe_ble_<v>.png de blender_orge.py, s'ils existent).
 Lue par crops.gd / crops_plants.gdshader.   python3 build_touffes.py"""
+import os
 import random
 from PIL import Image, ImageEnhance
 
@@ -39,6 +42,11 @@ for t in range(4):
                 pl = Image.merge("RGBA", (*rgb.split(), a))
                 x = round((i + rng.uniform(0.0, 1.0)) / n * C - w / 2)
                 case.alpha_composite(pl, (max(-w // 2, min(C - w // 2, x)), C - h - bas))
+        orge = "data/orge/touffe_ble_%d.png" % v
+        if t == 1 and os.path.exists(orge):
+            r, g, b, a = case.split()
+            case = Image.merge("RGBA", (*[c.point(lambda x: int(x * 0.9)) for c in (r, g, b)], a))
+            case.alpha_composite(Image.open(orge).convert("RGBA").resize((C, C), Image.LANCZOS))
         # bords gauche et droit adoucis : les touffes voisines se chevauchent sans couture nette
         a = case.getchannel("A").load()
         for y in range(C):
