@@ -7,8 +7,10 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip`.
 - En attente de l'utilisateur (étiquette `pending`) : #120 (carrière), #123 (tout le décor défonçable : 4 questions),
-  #124 (plan de performances : 4 questions ; répartition par système à ajouter en commentaire). Rien d'autre d'ouvert
-  hors `à tester`.
+  #124 (plan de performances en 3 étapes + mesures par système : 4 questions ; idée n° 1 : voitures garées = 40 % des
+  appels de dessin, 12 matériaux par modèle pour car1 et car3). Rien d'autre d'ouvert hors `à tester`.
+- Pas fait (interne, facultatif) : import par paquets des fichiers jamais importés ici (routes surtout), voir
+  « Import Godot ici » ci-dessous.
 - Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). `build_buildings.py` (25 min) EFFACE
   `world/buildings` (`.import` compris) : remettre les `.import` publiés d'un coup :
   `git fetch --filter=blob:none --depth=1 origin donnees` puis
