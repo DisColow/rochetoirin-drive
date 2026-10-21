@@ -485,3 +485,12 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   routes ; mais dans ce conteneur, les routes manquent sur ces tuiles (dont le village, t_0_0) : captures et essais
   sans routes à ces endroits. À réparer : import par paquets (`.github/scripts/import_paquets.sh`) puis publier.
 - `tools/mesure_texture.gd` : mémoire vidéo d'une texture (écart du compteur avant/après chargement).
+
+## v6.71 (21/10) : champs (#117, en partie)
+- Maïs : `crops_plants.gdshader`, culture 0 = un seul plan parallèle à l'écran (droite de la caméra ramenée à
+  l'horizontale), second plan de la croix effacé ; normale et `BACKLIGHT` calculés dans le fragment (sinon champ
+  sombre à contre-jour). Fauchage : `trample.gd` pinceau ±6 px (4,9 m) au lieu de ±3 (2,6 m). Aperçu v671.jpg.
+- Blé : planche `docs/apercus/ble_candidats.jpg` (A actuel, B orge scannée CC0 dense, C = B devant le feuillage de A),
+  script `pipeline/candidats_ble.py` ; en attente du choix (#117 pending). Hypothèse annoncée : le blé deviendra aussi
+  un plan face à l'écran, comme le maïs. Intégration du choix : ajouter le modèle à `fetch_trees.py`,
+  `prepare_trees.gd`, `bake_cultures.gd` (BANDES), puis `build_crop_tex.py` / `build_touffes.py`.
