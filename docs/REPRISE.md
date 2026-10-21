@@ -6,6 +6,12 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 ## État au 21/10/2026 (v6.73)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip`.
+- **En cours : #125 voies ferrées** (hypothèses postées sur le ticket) : `pipeline/fetch_rails.py` (OSM ->
+  `data/osm_rails.json`), `pipeline/build_rails.py` (-> `godot/world/rails/rl_tx_tz.bin` : 39,8 km de voie, 10 passages
+  à niveau dans la zone ; ponts et tunnels sautés), `godot/scripts/rails.gd` + `rails.gdshader` (ballast roulable,
+  rails sans collision, croix de Saint-André, feux, demi-barrières). Reste : brancher dans main.gd (`suivre`, étape
+  « Terrains de sport », téléportation) et casse.gd (genre « barriere » : `rails.barrieres`, `rails.casser()`), essai,
+  `publier_donnees.sh`, v6.75.
 - v6.74 : mode carrière, chapitre 1 (#120, `à tester`). En attente de l'utilisateur (étiquette `pending`) : #123 (tout le décor défonçable : 4 questions),
   #124 (plan de performances en 3 étapes + mesures par système : 4 questions ; idée n° 1 : voitures garées = 40 % des
   appels de dessin, 12 matériaux par modèle pour car1 et car3). Rien d'autre d'ouvert hors `à tester`.
