@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bfufee7hjo273"
-path="res://.godot/imported/body_material_baseColor.jpg-efc2abc32bb2322c0ce57264e9de3687.ctex"
+path.s3tc="res://.godot/imported/body_material_baseColor.jpg-efc2abc32bb2322c0ce57264e9de3687.s3tc.ctex"
+path.etc2="res://.godot/imported/body_material_baseColor.jpg-efc2abc32bb2322c0ce57264e9de3687.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "0572e0b98cbbfe6c918c2352e2a6e6be"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/p306/body_material_baseColor.jpg"
-dest_files=["res://.godot/imported/body_material_baseColor.jpg-efc2abc32bb2322c0ce57264e9de3687.ctex"]
+dest_files=["res://.godot/imported/body_material_baseColor.jpg-efc2abc32bb2322c0ce57264e9de3687.s3tc.ctex", "res://.godot/imported/body_material_baseColor.jpg-efc2abc32bb2322c0ce57264e9de3687.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

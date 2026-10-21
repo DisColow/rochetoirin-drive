@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://hhxbxs11x1k6"
-path="res://.godot/imported/body_Pintura_clearcoat_normal.jpg-fb1536fb467c1d863e75e7ce3c1d3fae.ctex"
+path.s3tc="res://.godot/imported/body_Pintura_clearcoat_normal.jpg-fb1536fb467c1d863e75e7ce3c1d3fae.s3tc.ctex"
+path.etc2="res://.godot/imported/body_Pintura_clearcoat_normal.jpg-fb1536fb467c1d863e75e7ce3c1d3fae.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "360d12bae4bab97de2a4fb4ee2a3dd13"
@@ -14,15 +16,15 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/r5/body_Pintura_clearcoat_normal.jpg"
-dest_files=["res://.godot/imported/body_Pintura_clearcoat_normal.jpg-fb1536fb467c1d863e75e7ce3c1d3fae.ctex"]
+dest_files=["res://.godot/imported/body_Pintura_clearcoat_normal.jpg-fb1536fb467c1d863e75e7ce3c1d3fae.s3tc.ctex", "res://.godot/imported/body_Pintura_clearcoat_normal.jpg-fb1536fb467c1d863e75e7ce3c1d3fae.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d07n7b3bkraqn"
-path="res://.godot/imported/body_piloto_trasero_transmission.jpg-53d9df66c76168729850e8b895906686.ctex"
+path.s3tc="res://.godot/imported/body_piloto_trasero_transmission.jpg-53d9df66c76168729850e8b895906686.s3tc.ctex"
+path.etc2="res://.godot/imported/body_piloto_trasero_transmission.jpg-53d9df66c76168729850e8b895906686.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "84512a2c4428a10321d8bdc2a11dcc16"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/r5/body_piloto_trasero_transmission.jpg"
-dest_files=["res://.godot/imported/body_piloto_trasero_transmission.jpg-53d9df66c76168729850e8b895906686.ctex"]
+dest_files=["res://.godot/imported/body_piloto_trasero_transmission.jpg-53d9df66c76168729850e8b895906686.s3tc.ctex", "res://.godot/imported/body_piloto_trasero_transmission.jpg-53d9df66c76168729850e8b895906686.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

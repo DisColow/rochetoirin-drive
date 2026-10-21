@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwde7piio3maf"
-path="res://.godot/imported/body_renaud.png-703583bf7d4881afce00a6cb22623926.ctex"
+path.s3tc="res://.godot/imported/body_renaud.png-703583bf7d4881afce00a6cb22623926.s3tc.ctex"
+path.etc2="res://.godot/imported/body_renaud.png-703583bf7d4881afce00a6cb22623926.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "3cd37252e917dc95b4c97d616540af7c"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/laguna/body_renaud.png"
-dest_files=["res://.godot/imported/body_renaud.png-703583bf7d4881afce00a6cb22623926.ctex"]
+dest_files=["res://.godot/imported/body_renaud.png-703583bf7d4881afce00a6cb22623926.s3tc.ctex", "res://.godot/imported/body_renaud.png-703583bf7d4881afce00a6cb22623926.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

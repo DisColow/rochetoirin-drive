@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cjsjc2qkvqg44"
-path="res://.godot/imported/body_VIDRIO_transmission.jpg-cdd6db26b7d31b392e190a07520e8c82.ctex"
+path.s3tc="res://.godot/imported/body_VIDRIO_transmission.jpg-cdd6db26b7d31b392e190a07520e8c82.s3tc.ctex"
+path.etc2="res://.godot/imported/body_VIDRIO_transmission.jpg-cdd6db26b7d31b392e190a07520e8c82.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "84512a2c4428a10321d8bdc2a11dcc16"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/r5/body_VIDRIO_transmission.jpg"
-dest_files=["res://.godot/imported/body_VIDRIO_transmission.jpg-cdd6db26b7d31b392e190a07520e8c82.ctex"]
+dest_files=["res://.godot/imported/body_VIDRIO_transmission.jpg-cdd6db26b7d31b392e190a07520e8c82.s3tc.ctex", "res://.godot/imported/body_VIDRIO_transmission.jpg-cdd6db26b7d31b392e190a07520e8c82.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://hfy5rl7rgk5t"
-path="res://.godot/imported/body_Carro_Freio_baseColor.jpg-da14a71c19f40359e9458dce865fe1d3.ctex"
+path.s3tc="res://.godot/imported/body_Carro_Freio_baseColor.jpg-da14a71c19f40359e9458dce865fe1d3.s3tc.ctex"
+path.etc2="res://.godot/imported/body_Carro_Freio_baseColor.jpg-da14a71c19f40359e9458dce865fe1d3.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "bab7e4d2052c6074a23fe46ffc69014d"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/p206/body_Carro_Freio_baseColor.jpg"
-dest_files=["res://.godot/imported/body_Carro_Freio_baseColor.jpg-da14a71c19f40359e9458dce865fe1d3.ctex"]
+dest_files=["res://.godot/imported/body_Carro_Freio_baseColor.jpg-da14a71c19f40359e9458dce865fe1d3.s3tc.ctex", "res://.godot/imported/body_Carro_Freio_baseColor.jpg-da14a71c19f40359e9458dce865fe1d3.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://6tjhsyn5kh5q"
-path="res://.godot/imported/wheel_Wheels_normal.jpg-7ba619ac9f3b02dcd9478f024e40bc4d.ctex"
+path.s3tc="res://.godot/imported/wheel_Wheels_normal.jpg-7ba619ac9f3b02dcd9478f024e40bc4d.s3tc.ctex"
+path.etc2="res://.godot/imported/wheel_Wheels_normal.jpg-7ba619ac9f3b02dcd9478f024e40bc4d.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e7f7e424f08640c29e58e653cacdb9cf"
@@ -14,15 +16,15 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/deuche/wheel_Wheels_normal.jpg"
-dest_files=["res://.godot/imported/wheel_Wheels_normal.jpg-7ba619ac9f3b02dcd9478f024e40bc4d.ctex"]
+dest_files=["res://.godot/imported/wheel_Wheels_normal.jpg-7ba619ac9f3b02dcd9478f024e40bc4d.s3tc.ctex", "res://.godot/imported/wheel_Wheels_normal.jpg-7ba619ac9f3b02dcd9478f024e40bc4d.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1

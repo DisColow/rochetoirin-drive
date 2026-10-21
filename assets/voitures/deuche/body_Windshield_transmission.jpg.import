@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cjvm432nr5ofa"
-path="res://.godot/imported/body_Windshield_transmission.jpg-e6c649f86f14e639fc95d09f0e52d4a9.ctex"
+path.s3tc="res://.godot/imported/body_Windshield_transmission.jpg-e6c649f86f14e639fc95d09f0e52d4a9.s3tc.ctex"
+path.etc2="res://.godot/imported/body_Windshield_transmission.jpg-e6c649f86f14e639fc95d09f0e52d4a9.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f093608e2018009c6581ae857d320621"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/deuche/body_Windshield_transmission.jpg"
-dest_files=["res://.godot/imported/body_Windshield_transmission.jpg-e6c649f86f14e639fc95d09f0e52d4a9.ctex"]
+dest_files=["res://.godot/imported/body_Windshield_transmission.jpg-e6c649f86f14e639fc95d09f0e52d4a9.s3tc.ctex", "res://.godot/imported/body_Windshield_transmission.jpg-e6c649f86f14e639fc95d09f0e52d4a9.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

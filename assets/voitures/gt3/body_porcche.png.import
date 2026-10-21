@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c3xs8h1qpjjhd"
-path="res://.godot/imported/body_porcche.png-285e75cf91719bca448e9a173f7db3fe.ctex"
+path.s3tc="res://.godot/imported/body_porcche.png-285e75cf91719bca448e9a173f7db3fe.s3tc.ctex"
+path.etc2="res://.godot/imported/body_porcche.png-285e75cf91719bca448e9a173f7db3fe.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "30822d97e4145ac822940d91a4e89cdc"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/gt3/body_porcche.png"
-dest_files=["res://.godot/imported/body_porcche.png-285e75cf91719bca448e9a173f7db3fe.ctex"]
+dest_files=["res://.godot/imported/body_porcche.png-285e75cf91719bca448e9a173f7db3fe.s3tc.ctex", "res://.godot/imported/body_porcche.png-285e75cf91719bca448e9a173f7db3fe.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

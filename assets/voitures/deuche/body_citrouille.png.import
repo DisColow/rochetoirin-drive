@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dq3jug13qor8f"
-path="res://.godot/imported/body_citrouille.png-e7a0487516ec1e552eb306334fe34312.ctex"
+path.s3tc="res://.godot/imported/body_citrouille.png-e7a0487516ec1e552eb306334fe34312.s3tc.ctex"
+path.etc2="res://.godot/imported/body_citrouille.png-e7a0487516ec1e552eb306334fe34312.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "941b9ed52779225679cc2aa9382c5907"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/deuche/body_citrouille.png"
-dest_files=["res://.godot/imported/body_citrouille.png-e7a0487516ec1e552eb306334fe34312.ctex"]
+dest_files=["res://.godot/imported/body_citrouille.png-e7a0487516ec1e552eb306334fe34312.s3tc.ctex", "res://.godot/imported/body_citrouille.png-e7a0487516ec1e552eb306334fe34312.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

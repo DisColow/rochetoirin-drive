@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d81138jn0ljt"
-path="res://.godot/imported/wheel_material_baseColor.jpg-8eaf2d95b874b4f96fa5298ae0f9ce3d.ctex"
+path.s3tc="res://.godot/imported/wheel_material_baseColor.jpg-8eaf2d95b874b4f96fa5298ae0f9ce3d.s3tc.ctex"
+path.etc2="res://.godot/imported/wheel_material_baseColor.jpg-8eaf2d95b874b4f96fa5298ae0f9ce3d.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "0572e0b98cbbfe6c918c2352e2a6e6be"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/p306/wheel_material_baseColor.jpg"
-dest_files=["res://.godot/imported/wheel_material_baseColor.jpg-8eaf2d95b874b4f96fa5298ae0f9ce3d.ctex"]
+dest_files=["res://.godot/imported/wheel_material_baseColor.jpg-8eaf2d95b874b4f96fa5298ae0f9ce3d.s3tc.ctex", "res://.godot/imported/wheel_material_baseColor.jpg-8eaf2d95b874b4f96fa5298ae0f9ce3d.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

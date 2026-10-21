@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bmdb0cy5320tu"
-path="res://.godot/imported/wheel_Wheels_metallicRoughness.jpg-80e697840763e63005848bef23bbe1b8.ctex"
+path.s3tc="res://.godot/imported/wheel_Wheels_metallicRoughness.jpg-80e697840763e63005848bef23bbe1b8.s3tc.ctex"
+path.etc2="res://.godot/imported/wheel_Wheels_metallicRoughness.jpg-80e697840763e63005848bef23bbe1b8.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "2ddbdc92996074e8fad4393b3807d262"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/deuche/wheel_Wheels_metallicRoughness.jpg"
-dest_files=["res://.godot/imported/wheel_Wheels_metallicRoughness.jpg-80e697840763e63005848bef23bbe1b8.ctex"]
+dest_files=["res://.godot/imported/wheel_Wheels_metallicRoughness.jpg-80e697840763e63005848bef23bbe1b8.s3tc.ctex", "res://.godot/imported/wheel_Wheels_metallicRoughness.jpg-80e697840763e63005848bef23bbe1b8.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

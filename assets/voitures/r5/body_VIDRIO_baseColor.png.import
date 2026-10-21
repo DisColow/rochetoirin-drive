@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ghl85ktkb0d1"
-path="res://.godot/imported/body_VIDRIO_baseColor.png-7b54b32c69a8785bdc71a67fc813988b.ctex"
+path.s3tc="res://.godot/imported/body_VIDRIO_baseColor.png-7b54b32c69a8785bdc71a67fc813988b.s3tc.ctex"
+path.etc2="res://.godot/imported/body_VIDRIO_baseColor.png-7b54b32c69a8785bdc71a67fc813988b.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "4dab7d1fc9346ae8ab51b8c6a6e6243d"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/r5/body_VIDRIO_baseColor.png"
-dest_files=["res://.godot/imported/body_VIDRIO_baseColor.png-7b54b32c69a8785bdc71a67fc813988b.ctex"]
+dest_files=["res://.godot/imported/body_VIDRIO_baseColor.png-7b54b32c69a8785bdc71a67fc813988b.s3tc.ctex", "res://.godot/imported/body_VIDRIO_baseColor.png-7b54b32c69a8785bdc71a67fc813988b.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

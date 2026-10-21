@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dx22605icjhni"
-path="res://.godot/imported/body_Grid_normal.jpg-a8d7947d0f108f0c769f3b806625a1ee.ctex"
+path.s3tc="res://.godot/imported/body_Grid_normal.jpg-a8d7947d0f108f0c769f3b806625a1ee.s3tc.ctex"
+path.etc2="res://.godot/imported/body_Grid_normal.jpg-a8d7947d0f108f0c769f3b806625a1ee.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f7aa165bdb0b0cec0a4f9e614be66f1b"
@@ -14,15 +16,15 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/deuche/body_Grid_normal.jpg"
-dest_files=["res://.godot/imported/body_Grid_normal.jpg-a8d7947d0f108f0c769f3b806625a1ee.ctex"]
+dest_files=["res://.godot/imported/body_Grid_normal.jpg-a8d7947d0f108f0c769f3b806625a1ee.s3tc.ctex", "res://.godot/imported/body_Grid_normal.jpg-a8d7947d0f108f0c769f3b806625a1ee.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1

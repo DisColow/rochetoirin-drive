@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cbrfmaixy1f8p"
-path="res://.godot/imported/body_TAPICERIA_normal.jpg-247b7b6599d0d4e61048544412259377.ctex"
+path.s3tc="res://.godot/imported/body_TAPICERIA_normal.jpg-247b7b6599d0d4e61048544412259377.s3tc.ctex"
+path.etc2="res://.godot/imported/body_TAPICERIA_normal.jpg-247b7b6599d0d4e61048544412259377.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "cdb04bf8602fddf0ad6e3203897a1bbb"
@@ -14,15 +16,15 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/r5/body_TAPICERIA_normal.jpg"
-dest_files=["res://.godot/imported/body_TAPICERIA_normal.jpg-247b7b6599d0d4e61048544412259377.ctex"]
+dest_files=["res://.godot/imported/body_TAPICERIA_normal.jpg-247b7b6599d0d4e61048544412259377.s3tc.ctex", "res://.godot/imported/body_TAPICERIA_normal.jpg-247b7b6599d0d4e61048544412259377.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1

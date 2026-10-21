@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cqhst75vsu6fa"
-path="res://.godot/imported/body_Parachoques_metallicRoughness.jpg-0b7d334e8662a5b5a4a2c2f3b398b8ad.ctex"
+path.s3tc="res://.godot/imported/body_Parachoques_metallicRoughness.jpg-0b7d334e8662a5b5a4a2c2f3b398b8ad.s3tc.ctex"
+path.etc2="res://.godot/imported/body_Parachoques_metallicRoughness.jpg-0b7d334e8662a5b5a4a2c2f3b398b8ad.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "fd309810c942bbe81f9237f6c2085a10"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/r5/body_Parachoques_metallicRoughness.jpg"
-dest_files=["res://.godot/imported/body_Parachoques_metallicRoughness.jpg-0b7d334e8662a5b5a4a2c2f3b398b8ad.ctex"]
+dest_files=["res://.godot/imported/body_Parachoques_metallicRoughness.jpg-0b7d334e8662a5b5a4a2c2f3b398b8ad.s3tc.ctex", "res://.godot/imported/body_Parachoques_metallicRoughness.jpg-0b7d334e8662a5b5a4a2c2f3b398b8ad.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxc3b75uwq34g"
-path="res://.godot/imported/body_Pintura_metallicRoughness.jpg-51bd3e1d7b3a2dbd5a1d261b0ba622b1.ctex"
+path.s3tc="res://.godot/imported/body_Pintura_metallicRoughness.jpg-51bd3e1d7b3a2dbd5a1d261b0ba622b1.s3tc.ctex"
+path.etc2="res://.godot/imported/body_Pintura_metallicRoughness.jpg-51bd3e1d7b3a2dbd5a1d261b0ba622b1.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "66768232acdac1ed9af1d2be21bebaf9"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/r5/body_Pintura_metallicRoughness.jpg"
-dest_files=["res://.godot/imported/body_Pintura_metallicRoughness.jpg-51bd3e1d7b3a2dbd5a1d261b0ba622b1.ctex"]
+dest_files=["res://.godot/imported/body_Pintura_metallicRoughness.jpg-51bd3e1d7b3a2dbd5a1d261b0ba622b1.s3tc.ctex", "res://.godot/imported/body_Pintura_metallicRoughness.jpg-51bd3e1d7b3a2dbd5a1d261b0ba622b1.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

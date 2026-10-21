@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cdgc5ibxiwkld"
-path="res://.godot/imported/body_glass_metallicRoughness.jpg-749637f56099f69ad8f623478591a7a7.ctex"
+path.s3tc="res://.godot/imported/body_glass_metallicRoughness.jpg-749637f56099f69ad8f623478591a7a7.s3tc.ctex"
+path.etc2="res://.godot/imported/body_glass_metallicRoughness.jpg-749637f56099f69ad8f623478591a7a7.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "79c3af171d3e8141bea2604c0b1290b5"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/deuche/body_glass_metallicRoughness.jpg"
-dest_files=["res://.godot/imported/body_glass_metallicRoughness.jpg-749637f56099f69ad8f623478591a7a7.ctex"]
+dest_files=["res://.godot/imported/body_glass_metallicRoughness.jpg-749637f56099f69ad8f623478591a7a7.s3tc.ctex", "res://.godot/imported/body_glass_metallicRoughness.jpg-749637f56099f69ad8f623478591a7a7.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

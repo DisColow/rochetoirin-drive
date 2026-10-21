@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://q064i2c82b8w"
-path="res://.godot/imported/body_Interior_metallicRoughness.jpg-4c4e1c5806a74b2fe92e0ad550deb709.ctex"
+path.s3tc="res://.godot/imported/body_Interior_metallicRoughness.jpg-4c4e1c5806a74b2fe92e0ad550deb709.s3tc.ctex"
+path.etc2="res://.godot/imported/body_Interior_metallicRoughness.jpg-4c4e1c5806a74b2fe92e0ad550deb709.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "247527e3d59c773c82ed022862202400"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/deuche/body_Interior_metallicRoughness.jpg"
-dest_files=["res://.godot/imported/body_Interior_metallicRoughness.jpg-4c4e1c5806a74b2fe92e0ad550deb709.ctex"]
+dest_files=["res://.godot/imported/body_Interior_metallicRoughness.jpg-4c4e1c5806a74b2fe92e0ad550deb709.s3tc.ctex", "res://.godot/imported/body_Interior_metallicRoughness.jpg-4c4e1c5806a74b2fe92e0ad550deb709.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

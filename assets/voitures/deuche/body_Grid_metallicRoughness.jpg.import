@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://t4g3tiyewk74"
-path="res://.godot/imported/body_Grid_metallicRoughness.jpg-524580587b9b52a826588915e15d07a1.ctex"
+path.s3tc="res://.godot/imported/body_Grid_metallicRoughness.jpg-524580587b9b52a826588915e15d07a1.s3tc.ctex"
+path.etc2="res://.godot/imported/body_Grid_metallicRoughness.jpg-524580587b9b52a826588915e15d07a1.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "481d302d592c291d9cb6cbc762ed02de"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/deuche/body_Grid_metallicRoughness.jpg"
-dest_files=["res://.godot/imported/body_Grid_metallicRoughness.jpg-524580587b9b52a826588915e15d07a1.ctex"]
+dest_files=["res://.godot/imported/body_Grid_metallicRoughness.jpg-524580587b9b52a826588915e15d07a1.s3tc.ctex", "res://.godot/imported/body_Grid_metallicRoughness.jpg-524580587b9b52a826588915e15d07a1.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

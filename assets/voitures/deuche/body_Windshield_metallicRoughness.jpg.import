@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://kxeeg8xls6pu"
-path="res://.godot/imported/body_Windshield_metallicRoughness.jpg-93715d3bd468136d332eaecb0d0ec8e7.ctex"
+path.s3tc="res://.godot/imported/body_Windshield_metallicRoughness.jpg-93715d3bd468136d332eaecb0d0ec8e7.s3tc.ctex"
+path.etc2="res://.godot/imported/body_Windshield_metallicRoughness.jpg-93715d3bd468136d332eaecb0d0ec8e7.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "44dc709b509094edef45f12a0956e258"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/deuche/body_Windshield_metallicRoughness.jpg"
-dest_files=["res://.godot/imported/body_Windshield_metallicRoughness.jpg-93715d3bd468136d332eaecb0d0ec8e7.ctex"]
+dest_files=["res://.godot/imported/body_Windshield_metallicRoughness.jpg-93715d3bd468136d332eaecb0d0ec8e7.s3tc.ctex", "res://.godot/imported/body_Windshield_metallicRoughness.jpg-93715d3bd468136d332eaecb0d0ec8e7.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

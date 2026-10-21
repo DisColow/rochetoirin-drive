@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://2gg81f3n0uc5"
-path="res://.godot/imported/body_pijo.png-01256c917f54df5890c8c0392e56416c.ctex"
+path.s3tc="res://.godot/imported/body_pijo.png-01256c917f54df5890c8c0392e56416c.s3tc.ctex"
+path.etc2="res://.godot/imported/body_pijo.png-01256c917f54df5890c8c0392e56416c.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "9c85c9d115a5204e1cfdbe84c63db741"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/p206/body_pijo.png"
-dest_files=["res://.godot/imported/body_pijo.png-01256c917f54df5890c8c0392e56416c.ctex"]
+dest_files=["res://.godot/imported/body_pijo.png-01256c917f54df5890c8c0392e56416c.s3tc.ctex", "res://.godot/imported/body_pijo.png-01256c917f54df5890c8c0392e56416c.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

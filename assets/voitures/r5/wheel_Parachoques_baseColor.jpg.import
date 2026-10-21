@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dmnwp77xpoqvg"
-path="res://.godot/imported/wheel_Parachoques_baseColor.jpg-4cfadde71cd69d096c27e9a01d377093.ctex"
+path.s3tc="res://.godot/imported/wheel_Parachoques_baseColor.jpg-4cfadde71cd69d096c27e9a01d377093.s3tc.ctex"
+path.etc2="res://.godot/imported/wheel_Parachoques_baseColor.jpg-4cfadde71cd69d096c27e9a01d377093.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "210b5377f2d2b575114868e07713ce75"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/voitures/r5/wheel_Parachoques_baseColor.jpg"
-dest_files=["res://.godot/imported/wheel_Parachoques_baseColor.jpg-4cfadde71cd69d096c27e9a01d377093.ctex"]
+dest_files=["res://.godot/imported/wheel_Parachoques_baseColor.jpg-4cfadde71cd69d096c27e9a01d377093.s3tc.ctex", "res://.godot/imported/wheel_Parachoques_baseColor.jpg-4cfadde71cd69d096c27e9a01d377093.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
