@@ -75,6 +75,8 @@ def main():
         if L < 8 or W < 5:
             continue
         cx, cz = r.centroid.x, r.centroid.y
+        if typ == 5 and L > 60:                            # #115 : « multisport » de 109 × 38 m = un vrai terrain de foot
+            typ = 1
         ang = math.atan2(ax[0], ax[1])                     # cap de la longueur (axe +z local)
         surf = SURF.get(t.get("surface", ""), {1: 0, 2: 0, 3: 3, 4: 3, 5: 3, 6: 4, 7: 5}[typ])
         if typ == 3 and t.get("surface") is None:
@@ -89,6 +91,8 @@ def main():
         H = float(np.nanmax(dem.h(gx.ravel(), gz.ravel()))) + 0.05
         pitches.append((typ, cx, cz, L, W, ang, surf, lit, H))     # 9e : hauteur du terrain aplani
         stats[typ] += 1
+        if typ == 5 and surf in (0, 1):
+            print("multisport en herbe :", round(cx), round(cz), round(L), round(W), round(H, 1), surf)
 
         def h(p):
             """Hauteur d'un équipement : sur le terrain aplani s'il est dessus (marge 0,6 m), sinon le relief."""
@@ -103,9 +107,12 @@ def main():
                 model = "but_foot" if typ != 2 else "poteaux_rugby"
                 sc = (1, 1, 1) if typ != 5 else (0.41, 0.82, 0.5)          # buts de hand / multisport : 3 × 2 m
                 inst.append(xf(model, (p[0], h(p), p[1]), ang + (math.pi if sg > 0 else 0.0), sc))
-            if typ == 5 and W >= 12:
+            # #115 : paniers seulement sur les plateaux en dur (city-stades) ; un multisport en herbe ou en synthétique
+            # est un petit terrain de foot. Panneau juste au-dessus du but (poteau 20 cm hors du terrain), comme sur
+            # les vrais city-stades, et non plus 1,2 m devant le but.
+            if typ == 5 and W >= 12 and surf not in (0, 1):
                 for sg in (-1, 1):
-                    p = cen + fwd * sg * (L / 2 - 2.2)          # panneau à 1,2 m de la ligne de fond
+                    p = cen + fwd * sg * (L / 2 + 0.2)
                     inst.append(xf("panier_basket", (p[0], h(p), p[1]), ang + (math.pi if sg > 0 else 0.0)))
             if typ == 1 and L > 70:
                 for sg in (-1, 1):
@@ -146,6 +153,7 @@ def main():
         b = np.int32(len(Ps)).tobytes() + (np.array(Ps, "<f4").tobytes() if Ps else b"")
         b += np.int32(len(Is)).tobytes() + (np.array(Is, "<f4").tobytes() if Is else b"")
         open("%s/sp_%d_%d.bin" % (OUT, tx, tz), "wb").write(b)
+    print("paniers :", sum(1 for r in inst if r[0] == MODELS.index("panier_basket")))
     print(dict(stats), len(pitches), "terrains,", len(inst), "objets,", len(T), "tuiles")
 
 

@@ -16,8 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.65 :
-- **Clôtures** : la voiture passe à travers une longue clôture sans s'arrêter net, même touchée en son milieu.
+Nouveautés de la v6.66 :
+- **Terrains de sport** : les grands terrains en herbe sont de vrais terrains de foot (buts, tracés, bancs), sans
+  paniers de basket ; les paniers des city-stades sont posés au-dessus des buts.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
