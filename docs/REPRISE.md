@@ -450,3 +450,7 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 ## v6.67 (21/10)
 - #114 : FILMS de build_shops.py = 10 parodies (motifs dino et requin ajoutés), titres de 4 lignes en plus petit. Toutes les tuiles shops + atlas d enseignes republiés. Aperçus v667_affiches.jpg, v667_cinema.jpg.
 - Reste : #108 (courses), #109 (modèles de voitures), #113 (gare, Street View : annoncer le lot), #117 (champs).
+
+## v6.68 (21/10)
+- #108 : build_epreuves.py : 14 d origine (ids 0-13 identiques, records gardés) + 12 sprints + 12 longues = 38. Aperçu v668.jpg (la capture du menu montre une ligne droite : tracé encore en calcul, le journal donne 1826 points).
+- Reste : #109 (modèles de voitures), #113 (gare, Street View : annoncer le lot), #117 (champs).
