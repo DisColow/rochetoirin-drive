@@ -464,3 +464,24 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - Demande : tout ce qui peut l être en sprites, compatible avec un futur passage en 2D ; proposer et poser des questions AVANT de coder.
 - Proposition postée (#122) : studio Blender unique (angles communs dont dessus 90° et iso 35°, même soleil, masques couleur/lumière, normales), sprites en panneaux face caméra maintenant, mêmes planches pour la 2D ; voiture du joueur photographiée dans le jeu au garage ; relief/routes/eau/bâtiments en 3D pour l instant. Planche docs/apercus/sprites_vues.jpg.
 - Questions : 2D visée, style, ordre, bâtiments. Rien de codé en attendant les réponses.
+
+## v6.70 (21/10) : mémoire vidéo (#122)
+- Demande précisée : sprites pour panneaux, lampadaires, arbres « pour libérer de la mémoire vidéo ». Mesure d'abord
+  (essai `--vram [--vram-at=x,y,z] [--vram-voiture=id]`, essais.gd) : 615 Mo au village (Équilibré, Ranger) ; relief ~130
+  (Terrain3D 29 régions ≈ 101 + relief simplifié 30), bâtiments ~100, ciel 45, horizon ~34, arbres 30, sur mesure 21,
+  clôtures 20 ; lampadaires 3 Mo, panneaux déjà plats (planches 11 Mo) -> sprites inutiles pour la mémoire.
+- Choix de l'utilisateur : seulement les réglages sans perte visible (« Aucun » compromis, pas de sprites) :
+  - voitures du garage : `compress/mode=2` (+ `normal_map=1`) via `pipeline/compresser_textures.py` (à relancer après
+    `blender_voitures_joueur.py`) : R5 ~90 -> ~17 Mo ;
+  - ciel de midi : `pipeline/build_ciel_midi.py` (+ `rgbe.py`) -> `assets/ciel/midi_haut.hdr` (4096 × 1024),
+    `midi_bas.hdr` (1024 × 256), `midi.json` (azimut du soleil) ; `scripts/ciel_midi.gdshader` ; `assets/sky.hdr`
+    supprimé (build_assets.py appelle build_ciel_midi) : 45 -> 24 Mo mesurés à part (`tools/mesure_ciel.gd`) ;
+  - soucoupe : `guardian.actif` faux (seulement avec `--void-test`) : −5,6 Mo ; vinyles chargés seulement si posés : −7,3 Mo ;
+  - carte : impossible sans perte (une seule image de 17 Mo chargée, partagée avec la mini-carte) ; `assets/tex/map.jpg`,
+    inutilisée, exclue de l'export (taille de l'APK seulement).
+  - Mesures dans le jeu (bruit d'une mesure à l'autre ~±15 Mo) : Ranger 615 -> 598 Mo ; R5 682 -> 599 Mo.
+- **Piège trouvé** : 1 643 tuiles de routes sur 2 930 n'ont pas de `.import`, ici comme sur la branche `donnees`, depuis
+  le 16/10 (0 le 16/10 à 9 h, puis 1 266 -> 1 287). L'action GitHub les importe (import par paquets), donc l'APK a ses
+  routes ; mais dans ce conteneur, les routes manquent sur ces tuiles (dont le village, t_0_0) : captures et essais
+  sans routes à ces endroits. À réparer : import par paquets (`.github/scripts/import_paquets.sh`) puis publier.
+- `tools/mesure_texture.gd` : mémoire vidéo d'une texture (écart du compteur avant/après chargement).
