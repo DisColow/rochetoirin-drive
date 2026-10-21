@@ -2,6 +2,8 @@
 // l'atlas des touffes (pipeline/build_touffes.py : 4 cultures × 4 variantes, cases de 512 × 512 px).
 // Données d'instance : x = culture (0 maïs, 1 céréales, 2 colza, 3 tournesol), y = variante (0-3), z = teinte,
 // w = hauteur de la case (m). Une touffe touchée par la voiture disparaît (il a éclaté : trample.gd + dust.gd).
+// Maïs (v6.71, #117) : un seul plan, toujours parallèle à l'écran (tourné autour de la verticale), au lieu de la
+// croix : on le traverse comme un décor de carton, sans qu'il pivote quand on le dépasse.
 shader_type spatial;
 render_mode cull_disabled;
 #include "res://scripts/env.gdshaderinc"
@@ -12,11 +14,23 @@ uniform vec4 trample_zone = vec4(0.0, 0.0, 96.0, 0.0);   // coin x, coin z, tail
 
 varying float v_tint;
 varying float v_gust;
+varying float v_plat;
 varying vec3 v_wp;
 
 void vertex() {
 	vec3 base = MODEL_MATRIX[3].xyz;
 	float h = INSTANCE_CUSTOM.w;
+	v_plat = INSTANCE_CUSTOM.x < 0.5 ? 1.0 : 0.0;
+	if (v_plat > 0.5) {
+		if (abs(VERTEX.x) < 0.01) {
+			VERTEX = vec3(0.0, -50.0, 0.0);          // second plan de la croix : rien (triangles dégénérés)
+		} else {
+			vec3 r = INV_VIEW_MATRIX[0].xyz;          // droite de l'écran, ramenée à l'horizontale
+			r = normalize(vec3(r.x, 0.0, r.z) + vec3(1e-4, 0.0, 0.0));
+			vec3 decal = r * VERTEX.x * length(MODEL_MATRIX[0].xyz) + vec3(0.0, VERTEX.y * MODEL_MATRIX[1].y, 0.0);
+			VERTEX = inverse(mat3(MODEL_MATRIX)) * decal;
+		}
+	}
 	v_gust = env_gust(base.xz);
 	// haut du plant penché dans le sens du vent, plus fort dans les rafales (le pied reste en place)
 	float top = 1.0 - UV.y;                       // UV.y : 0 en haut du sprite, 1 au pied
@@ -44,9 +58,20 @@ void fragment() {
 	if (c.a < 0.5) {
 		discard;
 	}
-	// éclairage doux : normale du plan ramenée vers le haut (feuillage fin, pas de face sombre)
+	// éclairage doux : normale du plan ramenée vers le haut (feuillage fin, pas de face sombre) ; maïs (plan face à
+	// l'écran) : normale horizontale vers la caméra, calculée ici (celle du sommet passe mal par la matrice d'instance)
 	vec3 up = (VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz;
-	NORMAL = normalize(mix(FRONT_FACING ? NORMAL : -NORMAL, up, 0.35));
+	vec3 n0 = FRONT_FACING ? NORMAL : -NORMAL;
+	float vers_haut = 0.35;
+	if (v_plat > 0.5) {
+		// plan face à la caméra : souvent à contre-jour ; normale surtout vers le haut (comme l'herbe) et feuilles
+		// translucides, sinon tout le champ devient sombre dès qu'on roule face au soleil
+		vec3 nw = normalize(vec3(INV_VIEW_MATRIX[2].x, 0.0, INV_VIEW_MATRIX[2].z) + vec3(0.0, 0.0, 1e-4));
+		n0 = normalize((VIEW_MATRIX * vec4(nw, 0.0)).xyz);
+		vers_haut = 0.75;
+		BACKLIGHT = vec3(0.3, 0.36, 0.14);
+	}
+	NORMAL = normalize(mix(n0, up, vers_haut));
 	ALBEDO = c.rgb * v_tint * (1.0 + (v_gust - 0.5) * 0.18 * wind.z) * env_cloud(v_wp.xz);
 	ROUGHNESS = 0.85;
 	SPECULAR = 0.25;

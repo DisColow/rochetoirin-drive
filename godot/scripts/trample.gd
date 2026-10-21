@@ -93,7 +93,8 @@ func _physics_process(dt: float) -> void:
 			if t < 0:
 				continue
 			var dir_c := Color(fwd.x * 0.5 + 0.5, fwd.y * 0.5 + 0.5, 1.0, (ROW[clampi(t, 0, 3)] + 1.0) / 8.0)
-			for v in range(-3, 4):                  # ~ 2,6 m de large : les plants touchés par la caisse éclatent (v6.39)
+			for v in range(-6, 7):                  # ~ 4,9 m de large (v6.71, #117 : 2,6 m avant) : toute touffe (2,4 m) qui
+				# touche la caisse éclate, au lieu de rester debout de part et d'autre de la voiture
 				var w := c + fwd * (u * px) + cote * (v * px * 1.0)
 				var ix := int((w.x - _orig.x) / px)
 				var iz := int((w.y - _orig.y) / px)

@@ -16,9 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.70 :
-- **Moins de mémoire vidéo**, sans changement visible : textures des voitures du garage compressées (la R5 et la
-  2CV pesaient jusqu'à 80 Mo de plus), ciel de midi allégé ; la soucoupe désactivée et les vinyles ne sont plus chargés pour rien.
+Nouveautés de la v6.71 :
+- **Champs de maïs** : chaque touffe est un simple plan tourné vers l'écran, qu'on traverse sans qu'il pivote.
+- **Fauchage plus large** : la voiture couche tout sur 4,9 m au lieu de 2,6 m ; plus de tiges debout qui la traversent.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
