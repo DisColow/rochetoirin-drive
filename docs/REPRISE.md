@@ -441,3 +441,8 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - #105 : fences.breche retire les tronçons par distance au segment (avant : par sommets, un long tronçon touché au milieu restait : 45 -> 0 km/h ; après : 45 -> 39, reste = objet de jardin poussé). colgenres = genres alignés sur colfaces. Essai casse : arrivée perpendiculaire au tronçon ; car._touching donne le script du parent.
 - Piège : disque plein (allocation ~40 Go) : nettoyer scratchpad (bl = venv Blender 1 Go, fw = whisper).
 - Reste : #108, #109, #113, #114, #115, #117, #120.
+
+## v6.66 (21/10)
+- #115 : build_sport.py : multisport > 60 m -> foot ; pas de paniers sur multisport herbe/synthétique ; paniers des city-stades au-dessus des buts (L/2 + 0,2). 132 -> 114 paniers. Aperçu docs/apercus/v666.jpg. Données publiées (donnees).
+- #120 : proposition de carrière postée, étiquette pending.
+- Reste : #108, #109, #113, #114, #117.
