@@ -97705,5 +97705,55 @@
   "remplace_commerce": [],
   "nom": "Mairie de Rochetoirin",
   "une_face": true
+ },
+ "gare_la_tour_du_pin": {
+  "boites": [
+   [
+    -0.0,
+    1.714,
+    -0.0,
+    13.8,
+    2.986,
+    5.45,
+    -0.299
+   ]
+  ],
+  "glb": "res://assets/sur_mesure/gare_la_tour_du_pin.glb",
+  "atlas": "res://assets/sur_mesure/gare_la_tour_du_pin.png",
+  "pos": [
+   2599.267,
+   338.737,
+   2799.791
+  ],
+  "remplace_bati": [
+   "BATIMENT0000000007622188"
+  ],
+  "remplace_commerce": [],
+  "nom": "Gare de La Tour-du-Pin",
+  "une_face": true
+ },
+ "gare_la_tour_du_pin_1": {
+  "boites": [
+   [
+    -0.0,
+    4.578,
+    -0.0,
+    6.35,
+    6.022,
+    4.3,
+    -0.299
+   ]
+  ],
+  "glb": "res://assets/sur_mesure/gare_la_tour_du_pin_1.glb",
+  "atlas": "res://assets/sur_mesure/gare_la_tour_du_pin_1.png",
+  "pos": [
+   2618.565,
+   338.768,
+   2805.591
+  ],
+  "remplace_bati": [],
+  "remplace_commerce": [],
+  "nom": "Gare de La Tour-du-Pin",
+  "une_face": true
  }
 }
