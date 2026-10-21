@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 17/10/2026 (v6.63)
+## État au 17/10/2026 (v6.64)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip`.
 - Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). Après une régénération des bâtiments,
@@ -430,3 +430,9 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 3. #126 modéliser tous les bâtiments restants.
 4. #132 GPS taxi, #130/#131 cultures, #135 clôtures pâtures, #136 terrains de sport, #133 cockpit Raptor,
    #118/#128 nouvelles zones, #139 multijoueur.
+
+
+## v6.64 (21/10)
+- #118 herbe : portées doublées (grass.gd LEVELS 90/120/150/190 m, 3e bande > 70 m écartement ×4) ; #116 ombres : NIVEAUX ombre 140/220/360/480 m, cascade nette 45 m (split_1 = 45/portée). Aperçu docs/apercus/v664.jpg.
+- Reste : #105 (clôtures/murets freinent encore), #108, #109, #113, #114, #115, #117, #120.
+- Piège : --perf-breakdown trop lent ici (1 img/s, timeout) : mesure inutilisable.
