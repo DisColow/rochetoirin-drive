@@ -165,6 +165,12 @@ func construire(id: String) -> void:
 	var ech_roue := (r - 0.045) / r_mod
 	var leger := base_masse / 2400.0
 	var wheel_scene: PackedScene = load(dossier + "/wheel.glb")
+	# #109 : roue empruntée à une autre voiture quand celle du modèle est ratée (meta « roue_de »), mise au même rayon
+	var ech_autre := 1.0
+	if meta.has("roue_de"):
+		var autre := dossier.get_base_dir() + "/" + String(meta.roue_de)
+		wheel_scene = load(autre + "/wheel.glb")
+		ech_autre = r_mod / float(JSON.parse_string(FileAccess.get_file_as_string(autre + "/meta.json")).radius)
 	var trac := String(fiche.traction)
 	for i in 4:
 		var front := i < 2
@@ -184,7 +190,7 @@ func construire(id: String) -> void:
 		var v: Node3D = wheel_scene.instantiate()
 		_materials(v)
 		v.rotation.y = 0.0 if right else PI
-		v.scale = Vector3(1.1 if ranger else 1.0, ech_roue, ech_roue)
+		v.scale = Vector3(1.1 if ranger else 1.0, ech_roue, ech_roue) * ech_autre
 		w.add_child(v)
 		add_child(w)
 		wheels.append(w)

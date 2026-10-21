@@ -27,7 +27,7 @@ CARS = {
                    roues=[r"^Object_(17|18|28|29|33|34|60|61)$"], suppr=[],
                    mats={"r_glass": "glass", "auto_11": "glass", "Material__130": "glass", "silver1": "paint", "auto_9": "tail", "auto_10": "orange",
                          "chrome2": "chrome"},
-                   par_materiau={"silver1": 0.6, "chrome2": 0.5, "auto_6": 0.6}, cylindres=True, vider=True, faces=48000,
+                   par_materiau={"silver1": 1.0, "chrome2": 0.5, "auto_6": 1.0, "r_glass": 1.0, "auto_11": 1.0, "Material__130": 1.0}, cylindres=True, vider=True, faces=90000,
                    couleur=(0.42, 0.03, 0.04)),
     "deuche": dict(effacer=[("ar", 0.64, 0.80)], effacer_mats=["material"], effacer_x=0.55, marque="citrouille", logos=[("av", 0.58, 0.2), ("ar", 0.72, 0.1)], lh=(1.48, 1.6), L=3.86, rot=0, roues=["Wheels"], suppr=[], mats={"Windshield": "glass", "glass": "glass"},
                    couleur=None),
@@ -49,7 +49,7 @@ CARS = {
                  couleur=(0.82, 0.83, 0.84)),
     "p106": dict(marque="pijo", lh=(1.59, 1.37), L=3.68, rot=180, roues=[r"^unnamed\.0(09|14|15|16)_"], suppr=[],
                  mats={}, couleur=None),
-    "p306": dict(marque="pijo", lh=(1.69, 1.38), L=4.03, rot=180, roues=["Cylinder"], suppr=["_Material_0"], mats={}, couleur=None),
+    "p306": dict(roue_de="p206", marque="pijo", lh=(1.69, 1.38), L=4.03, rot=180, roues=["Cylinder"], suppr=["_Material_0"], mats={}, couleur=None),
     "r5": dict(marque="renaud", logos=[("av", 0.62, 0.10)], lh=(1.52, 1.39), L=3.52, rot=90, roues=["FrontLeft", "FrontRight", "RearLeft", "RearRight"], suppr=["SUSPENSION"],
                mats={"Pintura": "paint", "VIDRIO": "glass"}, couleur=(0.86, 0.72, 0.30)),
     "gt3": dict(marque="porcche", logos=[("capot", 0.28, 0.10)], lh=(1.88, 1.3), L=4.55, rot=180, roues=["Rim1Mtl", "Tyre1Mtl", "Rotor1Mtl", "Caliper1Mtl"], suppr=[],
@@ -376,6 +376,8 @@ def convertir(cid, c):
             "steer": [-round(W * 0.2, 2), round(H * 0.62, 2), -round(L * 0.1, 2)],
             "beams": [round(W * 0.36, 2), round(H * 0.5, 2), round(z.y - mid - 0.1, 2)],
             "couleur": list(c["couleur"]) if c["couleur"] else None}
+    if c.get("roue_de"):                    # #109 : roue du modèle ratée, celle d'une autre voiture (car.gd)
+        meta["roue_de"] = c["roue_de"]
     json.dump(meta, open(os.path.join(d, "meta.json"), "w"))
     print("OK", cid, "caisse", len(b.data.polygons), "faces, roue", len(w.data.polygons), meta)
 
