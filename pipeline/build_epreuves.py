@@ -42,23 +42,29 @@ def main():
     while len(choisis) < N * 3 and len(choisis) < len(places):
         choisis.append(max(places, key=lambda p: min((p["x"] - q["x"]) ** 2 + (p["z"] - q["z"]) ** 2 for q in choisis)))
     out = []
-    for a in choisis:
-        if len(out) >= N:
-            break
-        na = proche(a["x"], a["z"])
-        dist = nx.single_source_dijkstra_path_length(G, na, cutoff=6000, weight="L")
-        cands = [p for p in places if p is not a and p["n"] != a["n"] and 2500 <= dist.get(proche(p["x"], p["z"]), 0) <= 6000]
-        if not cands:
-            continue
-        b = max(cands, key=lambda p: (p["k"] in ("mairie", "gare", "chateau", "culte"), -abs(dist[proche(p["x"], p["z"])] - 4000)))
-        path = nx.shortest_path(G, na, proche(b["x"], b["z"]), weight="t")
-        t = sum(G[u][v]["t"] for u, v in zip(path[:-1], path[1:]))
-        L = sum(G[u][v]["L"] for u, v in zip(path[:-1], path[1:]))
-        cum = np.cumsum([0.0] + [G[u][v]["L"] for u, v in zip(path[:-1], path[1:])])
-        etapes = [pos[path[int(np.searchsorted(cum, L * f))]] for f in (0.25, 0.5, 0.75)]
-        out.append(dict(id=len(out), nom="%s → %s" % (a["n"], b["n"]), a=list(pos[na]), etapes=[list(e) for e in etapes],
-                        b=list(pos[path[-1]]), km=round(L / 1000, 1), **{"or": round(t), "argent": round(t * 1.25), "bronze": round(t * 1.6)}))
-        print("%-70s %.1f km  or %d:%02d" % (out[-1]["nom"][:70], L / 1000, t // 60, t % 60))
+    # v6.68 (#108) : les 14 épreuves d'origine (ids 0-13, records conservés), puis 12 sprints et 12 longues
+    for (dmin, dmax, cible, nmax, genre) in ((2500, 6000, 4000, N, ""), (1200, 2500, 1800, N + 12, "Sprint : "),
+                                            (6000, 10000, 8000, N + 24, "Longue : ")):
+        for a in choisis:
+            if len(out) >= nmax:
+                break
+            na = proche(a["x"], a["z"])
+            dist = nx.single_source_dijkstra_path_length(G, na, cutoff=dmax, weight="L")
+            cands = [p for p in places if p is not a and p["n"] != a["n"] and dmin <= dist.get(proche(p["x"], p["z"]), 0) <= dmax]
+            if not cands:
+                continue
+            b = max(cands, key=lambda p: (p["k"] in ("mairie", "gare", "chateau", "culte"), -abs(dist[proche(p["x"], p["z"])] - cible)))
+            nom = "%s%s → %s" % (genre, a["n"], b["n"])
+            if any(o["nom"] == nom for o in out):
+                continue
+            path = nx.shortest_path(G, na, proche(b["x"], b["z"]), weight="t")
+            t = sum(G[u][v]["t"] for u, v in zip(path[:-1], path[1:]))
+            L = sum(G[u][v]["L"] for u, v in zip(path[:-1], path[1:]))
+            cum = np.cumsum([0.0] + [G[u][v]["L"] for u, v in zip(path[:-1], path[1:])])
+            etapes = [pos[path[int(np.searchsorted(cum, L * f))]] for f in (0.25, 0.5, 0.75)]
+            out.append(dict(id=len(out), nom=nom, a=list(pos[na]), etapes=[list(e) for e in etapes],
+                            b=list(pos[path[-1]]), km=round(L / 1000, 1), **{"or": round(t), "argent": round(t * 1.25), "bronze": round(t * 1.6)}))
+            print("%-70s %.1f km  or %d:%02d" % (out[-1]["nom"][:70], L / 1000, t // 60, t % 60))
     json.dump(out, open("../godot/world/epreuves.json", "w"), ensure_ascii=False, indent=1)
     print(len(out), "épreuves")
 
