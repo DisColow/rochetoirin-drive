@@ -459,3 +459,8 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - #109 : captures des 11 voitures (--voitures-test). Espace : trous (allègement par matériau) -> par_materiau 1.0 sur peinture/vitres, faces 90000 (89 k faces, lourd). 306 : roue du modèle = cylindre gris -> meta « roue_de »: « p206 » (car.gd met la roue empruntée au rayon). Aperçu v669.jpg.
 - Piège : blender_voitures_joueur.py sans « -- » reconvertit toutes les voitures (sans dommage constaté).
 - Reste : #113 (gare, Street View : annoncer le lot), #117 (champs).
+
+## Proposition « tout en sprites, prêt pour la 2D » (21/10, #122, pending)
+- Demande : tout ce qui peut l être en sprites, compatible avec un futur passage en 2D ; proposer et poser des questions AVANT de coder.
+- Proposition postée (#122) : studio Blender unique (angles communs dont dessus 90° et iso 35°, même soleil, masques couleur/lumière, normales), sprites en panneaux face caméra maintenant, mêmes planches pour la 2D ; voiture du joueur photographiée dans le jeu au garage ; relief/routes/eau/bâtiments en 3D pour l instant. Planche docs/apercus/sprites_vues.jpg.
+- Questions : 2D visée, style, ordre, bâtiments. Rien de codé en attendant les réponses.
