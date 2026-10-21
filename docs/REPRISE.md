@@ -6,7 +6,7 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 ## État au 21/10/2026 (v6.73)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip`.
-- En attente de l'utilisateur (étiquette `pending`) : #120 (carrière), #123 (tout le décor défonçable : 4 questions),
+- v6.74 : mode carrière, chapitre 1 (#120, `à tester`). En attente de l'utilisateur (étiquette `pending`) : #123 (tout le décor défonçable : 4 questions),
   #124 (plan de performances en 3 étapes + mesures par système : 4 questions ; idée n° 1 : voitures garées = 40 % des
   appels de dessin, 12 matériaux par modèle pour car1 et car3). Rien d'autre d'ouvert hors `à tester`.
 - Pas fait (interne, facultatif) : import par paquets des fichiers jamais importés ici (routes surtout), voir
@@ -526,3 +526,21 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - #124 : `--perf-breakdown` regroupe les nœuds par système (nom du script) et prend `NIVEAU=0..3` ; marche ici
   (~10 min, nombres d'appels et de triangles justes, img/s sans valeur). Mesures et plan postés sur #124.
 - #123 : questions postées (gros arbres, autoroute, pylônes et monuments, durée), étiquette `pending`.
+
+## v6.74 (21/10) : mode carrière, chapitre 1 (#120)
+- Validé par l'utilisateur (21/10, 14 h 59) : chapitre 1 seul, carte libre, rival en fantôme qui roule en même temps.
+- `scripts/carriere.gd` (nœud « Carriere » de main) : réputation 0-100 (`user://carriere.cfg` : reputation, faites,
+  message_vu, commencee, victoires, defaites), 4 missions (`MISSIONS`) : livraison « Le pain du matin » (boulangerie
+  Chez Flonflon -> école, mairie de Saint-Jean-de-Soudain, Montbertaud ; 3 chocs = raté ; temps limite d'après les
+  distances), taxi imposé « Monsieur le maire » (`activities.impose` : client, destination, temps limite ; pas
+  d'arrêt ni de client suivant), « Premier chrono » (bronze à l'épreuve 14), « Le duel » (épreuve 0 contre Kévin
+  Turbot, fantôme à 0,88 × le temps de l'or). Bonus/pertes du jeu libre seulement une fois la carrière commencée.
+  Bulles (`_bulle_choix`) + voix du téléphone (`_dire`) ; message de fin à 100.
+- `scripts/fantome.gd` : tracé itineraire.gd jambe par jambe, profil de vitesse (virages 6,5 m/s², accélération 3,
+  freinage 6, 150 km/h), mis à l'échelle du temps cible ; horloge = `activities._t` ; Pijo 106 translucide
+  (ALPHA_HASH), nom en Label3D, départ 2,4 m à gauche du joueur.
+- Onglet « Carrière » (index 6, affiché en tête : `ORDRE` de menu_activites.gd). Crochets : activities (`_stop`,
+  fin d'épreuve, `_epreuve_proche`, taxi), casse.gd (`decor_casse`), car.gd (`explosion`).
+- Essai `--drive-test --carriere-test` (étapes déclenchées par l'état du jeu, `Engine.time_scale = 4` : à 1 img/s
+  le temps du jeu n'avance que de 0,07 s par image). **Piège** : un speech-dispatcher resté d'un essai précédent
+  bloque le démarrage suivant (« [étape] Interface » figé) : `pkill -9 -x speech-dispatch` avant et après.

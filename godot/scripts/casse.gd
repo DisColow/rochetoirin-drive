@@ -229,6 +229,8 @@ func _grille_arbres(k: Vector2i) -> Dictionary:
 
 # ---------------------------------------------------------------- casse
 func _casser(genre: String, p: Vector3, it: Array) -> void:
+	if main and main.get("carriere"):
+		main.carriere.decor_casse()                   # carrière (#120) : décor cassé pendant une mission
 	_casses.append(p)
 	if _casses.size() > 200:
 		_casses.pop_front()

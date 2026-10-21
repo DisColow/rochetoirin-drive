@@ -37,6 +37,7 @@ func suivre(n: Node3D) -> void:
 	if terrain and "collision_target" in terrain:
 		terrain.set("collision_target", n)
 var garage: Node            # argent et pièces achetées (#43, garage.gd)
+var carriere: Node          # mode carrière (#120, carriere.gd)
 var tuning: Node            # pièces montées sur la voiture (tuning.gd)
 var net: Node
 var shops: Node3D
@@ -356,6 +357,10 @@ func _ready() -> void:
 	tuning = preload("res://scripts/tuning.gd").new()
 	tuning.car = car; tuning.garage = garage; tuning.main = self; tuning.activities = activities
 	add_child(tuning)
+	carriere = preload("res://scripts/carriere.gd").new()     # mode carrière (#120)
+	carriere.name = "Carriere"
+	carriere.main = self; carriere.act = activities; carriere.hud = hud; carriere.car = car
+	add_child(carriere)
 	var sv = preload("res://scripts/sauvegarde.gd").new()
 	sv.name = "Sauvegarde"
 	sv.car = car

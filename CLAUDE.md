@@ -138,6 +138,11 @@
   ou au hasard ; zone `circle` qui rétrécit, dessinée par `map.gd` et `gps.gd` avec les repères `marks`), taxi
   (clients `assets/clients/` de `fetch_clients.py` + `blender_clients.py`, destinations `world/places.json` de
   `fetch_places.py` + `build_places.py` : lieux publics seulement). Essai : captures `{"act": "menu|course|chasse|taxi"}`. Pas de téléportation pendant une activité (`map.locked`, taxi compris) ; bouton « ■ Arrêter » dans le bandeau d'activité.
+- **Mode carrière** (v6.74, #120, `scripts/carriere.gd` + `scripts/fantome.gd`, onglet « Carrière » en tête du menu
+  Activités) : chapitre 1 « Le village » validé par l'utilisateur (carte jamais verrouillée hors mission, rival en
+  fantôme qui roule en même temps) ; réputation 0-100 et 4 missions (livraison, taxi imposé `activities.impose`,
+  premier chrono, duel), progression dans `user://carriere.cfg`. Essai `-- --drive-test --carriere-test --sans-voix`
+  (~20 min ici ; `--sans-voix` : pas de synthèse vocale, speech-dispatcher fige le jeu sous Linux).
 - **Orientation des faces** : `glb.write_glb(..., fix_winding=True)` remet chaque triangle dans le sens de ses normales
   (tuiles de routes) ; contrôle : `python3 pipeline/check_winding.py godot/world/roads` doit donner 0 % partout.
 - **Rien ne déborde sur la route** (arbres : couronne hors chaussée, champs arrêtés avant, bâtiments découpés).

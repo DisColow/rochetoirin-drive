@@ -535,6 +535,8 @@ const VITESSE_BOUM := 60.0          # km/h
 func exploser() -> void:
 	if blown or carried:
 		return
+	if get_parent().get("carriere"):
+		get_parent().carriere.explosion()                # carrière (#120) : le KA-BOOM coûte de la réputation
 	var ch = preload("res://scripts/champignon.gd").new()
 	get_parent().add_child(ch)
 	ch.global_position = global_position - Vector3(0, 0.3, 0)

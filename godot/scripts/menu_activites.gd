@@ -1,11 +1,12 @@
-## Menu des activités en plein écran (#119) : un onglet par activité (Épreuves, Course libre, Taxi, Chasse au lieu,
-## Garage, Multijoueur). Onglet Épreuves (#112) : liste avec l'icône de la médaille gagnée, et pour l'épreuve
+## Menu des activités en plein écran (#119) : un onglet par activité (Carrière, Épreuves, Course libre, Taxi, Chasse
+## au lieu, Garage, Multijoueur). Onglet Carrière (#120) : chapitre, jauge de réputation, missions, rival (carriere.gd). Onglet Épreuves (#112) : liste avec l'icône de la médaille gagnée, et pour l'épreuve
 ## touchée, la carte du tracé (carte_trace.gd), le meilleur temps, les temps des médailles, Lancer et Retour.
 ## Les actions appellent celles d'activities.gd (act).
 extends Control
 
 const UI := preload("res://scripts/ui.gd")
-const ONGLETS := ["Épreuves", "Course libre", "Taxi", "Chasse au lieu", "Garage", "Multijoueur"]
+const ONGLETS := ["Épreuves", "Course libre", "Taxi", "Chasse au lieu", "Garage", "Multijoueur", "Carrière"]
+const ORDRE := [6, 0, 1, 2, 3, 4, 5]          # ordre d'affichage des onglets (indices de ONGLETS : la carrière en tête)
 
 var act: Node
 var onglet := 0
@@ -75,11 +76,12 @@ func _ready() -> void:
 	var barre := HBoxContainer.new()
 	barre.add_theme_constant_override("separation", 6)
 	v.add_child(barre)
-	for i in ONGLETS.size():
+	_tabs.resize(ONGLETS.size())
+	for i in ORDRE:
 		var b := _bouton(barre, ONGLETS[i], _aller.bind(i), 0.0, 27)
 		b.toggle_mode = true
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_tabs.append(b)
+		_tabs[i] = b
 	_corps = MarginContainer.new()
 	_corps.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(_corps)
@@ -116,6 +118,7 @@ func _aller(i: int) -> void:
 		3: _chasse()
 		4: _garage()
 		5: _multi()
+		6: _carriere()
 
 func _colonne() -> VBoxContainer:
 	var v := VBoxContainer.new()
@@ -262,3 +265,76 @@ func _multi() -> void:
 	_texte(v, "Jusqu'à 4 joueurs sur le même réseau : courses et taxi ensemble."
 		+ ("\n%d joueur(s) dans la partie." % net.joueurs.size() if net and net.en_ligne() else ""))
 	_bouton(v, "Ouvrir le multijoueur", act._net_menu)
+
+# ---------------------------------------------------------------- carrière (#120)
+class Jauge extends Control:
+	## Jauge de réputation : barre dorée sur fond sombre, valeur au milieu.
+	var valeur := 0.0
+	func _init(v: float) -> void:
+		valeur = v
+		custom_minimum_size = Vector2(420, 46)
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+	func _draw() -> void:
+		var r := Rect2(Vector2.ZERO, size)
+		draw_rect(r, Color(0, 0, 0, 0.55))
+		var f := clampf(valeur / 100.0, 0.0, 1.0)
+		draw_rect(Rect2(Vector2(3, 3), Vector2((size.x - 6) * f, size.y - 6)), Color(1.0, 0.72, 0.2).lerp(Color(0.35, 0.9, 0.4), f))
+		draw_rect(r, Color(1, 1, 1, 0.6), false, 2.0)
+		var fnt := get_theme_default_font()
+		var txt := "Réputation %d / 100" % int(valeur)
+		var w := fnt.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
+		draw_string_outline(fnt, Vector2((size.x - w) / 2, size.y / 2 + 9), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, 6, Color.BLACK)
+		draw_string(fnt, Vector2((size.x - w) / 2, size.y / 2 + 9), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
+
+func _carriere() -> void:
+	var ca = act.main.get("carriere")
+	if ca == null:
+		return
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_corps.add_child(sc)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(v)
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 24)
+	v.add_child(h)
+	var ti := _texte(h, "Chapitre 1 : Le village", 34, Color(1.0, 0.85, 0.45))
+	ti.autowrap_mode = TextServer.AUTOWRAP_OFF
+	ti.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(Jauge.new(float(ca.rep)))
+	_texte(v, "De Rochetoirin à la Nationale : fais-toi un nom au village. Chaque mission rapporte 25 points de réputation ; "
+		+ "les médailles et les clients contents en rapportent aussi, le décor cassé en mission et le KA-BOOM en coûtent.", 22,
+		Color(1, 1, 1, 0.7))
+	for m in ca.MISSIONS:
+		var faite: bool = ca.faites.has(m.id)
+		var pc := PanelContainer.new()
+		pc.add_theme_stylebox_override("panel", UI.panel(18, 10))
+		v.add_child(pc)
+		var r := HBoxContainer.new()
+		r.add_theme_constant_override("separation", 16)
+		pc.add_child(r)
+		var ic := _texte(r, "✔" if faite else "○", 44, Color(0.4, 0.95, 0.45) if faite else Color(1, 1, 1, 0.5))
+		ic.autowrap_mode = TextServer.AUTOWRAP_OFF
+		ic.custom_minimum_size = Vector2(52, 0)
+		var t := VBoxContainer.new()
+		t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		t.add_theme_constant_override("separation", 2)
+		r.add_child(t)
+		_texte(t, str(m.titre), 28)
+		_texte(t, str(m.texte), 20, Color(1, 1, 1, 0.75))
+		var gain := "+%d réputation" % int(m.rep) + (" · %d €" % int(m.prime) if float(m.prime) > 0.0 else "")
+		if m.id == "duel":
+			gain += " · duels : %d gagné(s), %d perdu(s)" % [int(ca.victoires), int(ca.defaites)]
+		_texte(t, ("Réussie" if faite else gain), 20, Color(1.0, 0.9, 0.6))
+		var bv := VBoxContainer.new()
+		bv.add_theme_constant_override("separation", 8)
+		r.add_child(bv)
+		var id := String(m.id)
+		_bouton(bv, "Itinéraire" if not faite else "Rejouer", func(): ca.lancer(id, false), 230.0, 24)
+		_bouton(bv, "Y aller", func(): ca.lancer(id, true), 230.0, 24)
+	var riv := _texte(v, "Rival : %s, au volant de sa Pijo 106 : « le roi du village »." % ca.RIVAL.nom, 22, Color(1.0, 0.6, 0.5))
+	riv.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if ca.chapitre_fini():
+		_texte(v, "Chapitre 1 terminé ! Chapitre 2 : « La vallée » : bientôt.", 26, Color(0.5, 1.0, 0.6))

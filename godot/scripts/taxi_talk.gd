@@ -212,6 +212,15 @@ func start_ride(home: String, dest: String, dest_commune: String, dest_kind: Str
 	_client_says(_pick(data.bonjour), 2.5)
 	return ""
 
+## Identité imposée (carrière, #120 : le maire) : prénom et métier, bandeau du nom mis à jour tout de suite.
+func renommer(prenom: String, metier: String) -> void:
+	if client.is_empty():
+		return
+	client.prenom = prenom
+	client.metier = metier
+	if _name and _name.text != "Vous":
+		_name.text = "%s · %d ans · %s" % [prenom, int(client.get("age", 40)), metier]
+
 ## Caractère du prochain client, tiré dès qu'il apparaît au bord de la route (#72 : un ivre titube déjà en
 ## marchant jusqu'au taxi). Renvoie son identifiant (« ivre », « colere »…).
 var _car_suivant := -1

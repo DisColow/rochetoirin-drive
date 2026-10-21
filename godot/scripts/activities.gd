@@ -110,6 +110,9 @@ var _prev_v := Vector3.ZERO
 var _shock_cd := 0.0
 var _phase := ""
 var _talk: CanvasLayer             # conversations des clients (taxi_talk.gd)
+## Course de taxi imposée par la carrière (#120, mission « Monsieur le maire ») : {pick, nom, dest, dest_nom, limite}
+## (points de route, temps limite en s) ; pas d'arrêt ni de retour, pas de client suivant.
+var impose := {}
 var _status_t := 0.0            # > 0 : le message de fin s'efface au bout de ce temps
 
 
@@ -287,6 +290,9 @@ func _clear_world() -> void:
 func _stop() -> void:
 	if main.net and main.net.armes:
 		main.net.armes.arreter()
+	impose = {}
+	if main.get("carriere"):
+		main.carriere.activite_arretee()
 	_epreuve = -1
 	_rappel = {}
 	_arret = -1
@@ -595,9 +601,13 @@ func _course_process(dt: float) -> void:
 				long += _rp(_route[i - 1]).distance_to(_rp(_route[i]))
 			var prime := maxf(10.0, roundf(long * 0.02)) + (15.0 if rec else 0.0)
 			var med := ""
+			var id_ep := _epreuve
+			var avant := _medaille(_epreuve) if _epreuve >= 0 else ""
 			if _epreuve >= 0:
 				var r := _epreuve_fin(_t)
 				med = r[0]; prime = r[1]
+				if main.get("carriere"):
+					main.carriere.epreuve_finie(id_ep, _t, med, avant)
 			if main.garage:
 				main.garage.gagner(prime)
 			if _epreuve >= 0:
@@ -685,6 +695,8 @@ func _epreuves_menu() -> void:
 	open_menu(0)
 
 func _epreuve_proche() -> void:
+	if main.get("carriere") and main.carriere.en_cours != "":
+		return
 	var c := _car2()
 	var ici := -1
 	for e in epreuves:
@@ -882,7 +894,10 @@ func _taxi_new_client() -> void:
 	# connaisseurs prennent des raccourcis ; sinon au bord d'une route, annoncée par son nom et sa commune
 	_cl_nom = ""
 	_en_rappel = false
-	if not _rappel.is_empty() and int(_rappel.courses) <= 0:
+	if not impose.is_empty():
+		pick = int(impose.pick)
+		_cl_nom = str(impose.nom)
+	elif not _rappel.is_empty() and int(_rappel.courses) <= 0:
 		# on revient chercher le client déposé plus tôt (#53)
 		_en_rappel = true
 		pick = int(_rappel.idx)
@@ -926,11 +941,16 @@ func _taxi_new_client() -> void:
 	var mh: Array = JSON.parse_string(FileAccess.get_file_as_string("res://assets/clients/mh.json")) if FileAccess.file_exists("res://assets/clients/mh.json") else []
 	if not mh.is_empty():
 		var k := int(_rappel.get("modele", randi() % mh.size())) if _en_rappel else randi() % mh.size()
+		if not impose.is_empty():               # le maire : un homme d'âge mûr
+			for j in mh.size():
+				if str(mh[j].get("sexe", "")) == "m" and int(mh[j].get("age", 0)) >= 50:
+					k = j
+					break
 		_profil = mh[k].duplicate()
 		_profil["modele"] = k
 		_client = (load("res://assets/clients/" + str(mh[k].fichier)) as PackedScene).instantiate()
 		_client.set_script(preload("res://scripts/pieton.gd"))
-		if not _en_rappel and _talk.choisir_caractere() == "ivre":
+		if not _en_rappel and _talk.choisir_caractere() == "ivre" and impose.is_empty():
 			_client.ivre = true
 	else:
 		var path := "res://assets/clients/client%d.glb" % (randi() % 4)
@@ -1020,6 +1040,14 @@ func _taxi_process(dt: float) -> void:
 		var stars := _stars()
 		var nom := _arret_nom + " (arrêt)" if _arret >= 0 else _dest_name
 		_set_status("%s\n→ %s : %d m  ·  %s" % [head, nom, int(d), "★".repeat(stars) + "☆".repeat(5 - stars)])
+		if impose.has("limite"):
+			_set_status("MISSION  ·  %s restantes\n→ %s : %d m  ·  %s" % [_fmt(maxf(float(impose.limite) - _t, 0.0)), nom, int(d), "★".repeat(stars) + "☆".repeat(5 - stars)])
+			if _t > float(impose.limite):
+				var tt := _t
+				_stop()
+				if main.get("carriere"):
+					main.carriere.taxi_impose_fini(false, tt)
+				return
 		if d < TAXI_STOP_R and slow:
 			_stop_t += dt
 			if _stop_t > 0.6:
@@ -1088,7 +1116,11 @@ func _taxi_pickup() -> void:
 	_dest_name = p.n
 	_arret = -1
 	_sorte = "normale"
-	if _en_rappel:
+	if not impose.is_empty():
+		_dest = int(impose.dest)
+		_dest_name = str(impose.dest_nom)
+		p = {"n": _dest_name, "c": "", "k": "mairie"}
+	elif _en_rappel:
 		_dest = int(_rappel.retour)
 		_dest_name = str(_rappel.retour_nom)
 		p = {"n": _dest_name, "c": "", "k": "autre"}
@@ -1145,6 +1177,8 @@ func _taxi_pickup() -> void:
 		_rappel = {}
 	else:
 		_talk.start_ride(hud.names.commune_at(car.global_position), p.n, p.c, str(p.get("k", "autre")), {}, _profil)
+		if not impose.is_empty():
+			_talk.renommer("Bernard", "maire de Rochetoirin")      # carrière (#120) : le maire, nom fictif
 	if _arret >= 0:
 		_talk.dire(_arret_annonce)                     # juste après le bonjour (file des répliques)
 	if _sorte == "retour":
@@ -1206,6 +1240,19 @@ func _taxi_drop() -> void:
 			_client.queue_free()
 	_client = null
 	_phase = "pause"
+	if not impose.is_empty():
+		# course imposée par la carrière : mission réussie (à l'heure), pas de client suivant
+		var tt := _t
+		var ok := tt <= float(impose.get("limite", INF))
+		impose = {}
+		if main.get("carriere"):
+			main.carriere.taxi_impose_fini(ok, tt)
+		get_tree().create_timer(4.0).timeout.connect(func():
+			if mode == "taxi" and _phase == "pause":
+				_stop())
+		return
+	if main.get("carriere"):
+		main.carriere.taxi_course(stars)
 	get_tree().create_timer(3.0).timeout.connect(func():
 		if mode == "taxi":
 			_taxi_new_client())

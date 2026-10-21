@@ -827,6 +827,9 @@ func _physics_process(_dt: float) -> void:
 			print("  [carte] cas 2 (second toucher, dans la carte) : voiture déplacée de %.0f m" % car.global_position.distance_to(get_meta("p0")))
 			get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--carriere-test"):
+		_carriere_test(t)
+		return
 	if OS.get_cmdline_user_args().has("--epreuves-menu-test"):
 		# #101 : menu des épreuves -> la dernière de la liste (la plus loin) ; la voiture doit être sur sa ligne de départ
 		var act = activities
@@ -1530,3 +1533,128 @@ func _octets_texture(t: Texture) -> int:
 			bpp = 1.0
 		mip = txt.contains("mipmaps/generate=true")
 	return int(w * h * couches * bpp * (1.33 if mip else 1.0))
+
+# ---------------------------------------------------------------- essai : --carriere-test (#120)
+## Les 4 missions du chapitre 1, étape par étape (chaque étape attend l'état du jeu, 900 pas au plus) : onglet Carrière,
+## duel (bulle du rival, fantôme qui part au « Partez ! », arrivée simulée 5 s avant lui), livraison (voiture posée à
+## chaque arrêt), taxi du maire (prise en charge, dépôt), premier chrono (arrivée simulée), message de fin à 100.
+## Temps du jeu ×4 (à 1 image/s, les minuteries du jeu avancent sinon de 0,07 s par image). Captures
+## user://shots/carriere_*.png, journal « [carrière] ». Lancer avec --drive-test --carriere-test.
+func _carriere_test(t: int) -> void:
+	var ca = carriere
+	var act = activities
+	car.touch_throttle = 0.0
+	car.touch_steer = 0.0
+	car.touch_brake = 1.0
+	if t < 240:
+		return
+	var etape: int = get_meta("c_etape", 0)
+	var t0: int = get_meta("c_t0", 240)
+	var dt := t - t0
+	var suite := func():
+		set_meta("c_etape", etape + 1)
+		set_meta("c_t0", t)
+	var shot := func(n: String):
+		DirAccess.make_dir_recursive_absolute("user://shots")
+		get_viewport().get_texture().get_image().save_png("user://shots/carriere_%s.png" % n)
+	var poser := func(i: int, vers: Vector2):
+		var s: Array = act._start_at(i, vers)
+		get_node("HUD").teleport.emit(s[0], s[1])
+	if dt > 900:
+		print("  [carrière] ÉCHEC : étape %d bloquée (phase carrière « %s », activité %s/%s)" % [etape, ca._phase, act.mode, act._phase])
+		get_tree().quit()
+		return
+	match etape:
+		0:
+			Engine.time_scale = 4.0
+			DirAccess.remove_absolute(ProjectSettings.globalize_path("user://carriere.cfg"))
+			ca.rep = 0.0; ca.faites = {}; ca.message_vu = false; ca.commencee = false; ca.victoires = 0; ca.defaites = 0
+			act.open_menu(6)
+			get_tree().paused = false
+			suite.call()
+		1:
+			if dt >= 60:
+				shot.call("menu")
+				var bs: Array = act._menu.find_children("*", "Button", true, false) if act._menu else []
+				print("  [carrière] onglet : %d boutons, réputation %d" % [bs.size(), int(ca.rep)])
+				ca.lancer("duel", true)
+				suite.call()
+		2:
+			if ca._bulle != null:
+				shot.call("defi")
+				var b: Array = ca._bulle.find_children("*", "Button", true, false)
+				print("  [carrière] bulle du rival : %d réponses" % b.size())
+				b[0].pressed.emit()
+				suite.call()
+		3:
+			if act._phase == "course" and ca._fantome != null and ca._fantome.pret:
+				var f = ca._fantome
+				print("  [carrière] duel lancé : tracé du rival %.0f m, temps visé %.1f s, fantôme à %.0f m de la voiture" % [f.longueur,
+					f.temps_cible, f.global_position.distance_to(car.global_position)])
+				suite.call()
+		4:
+			if dt >= 30:
+				shot.call("fantome")
+				suite.call()
+		5:
+			if dt >= 240:
+				var f = ca._fantome
+				print("  [carrière] course t=%.1f s : fantôme à %.0f m de la voiture (temps de passage %.1f s à 100 m)" % [act._t,
+					f.global_position.distance_to(car.global_position), f.temps_a(100.0)])
+				shot.call("fantome_loin")
+				ca.epreuve_finie(0, f.temps_cible - 5.0, "or", "")
+				act._stop()
+				suite.call()
+		6:
+			if ca.faites.has("duel"):
+				print("  [carrière] duel gagné : réputation %d, victoires %d" % [int(ca.rep), ca.victoires])
+				ca.lancer("pain", true)
+				set_meta("c_k", 0)
+				suite.call()
+		7:
+			if ca._phase == "livre":
+				print("  [carrière] livraison : commandes chargées, %d arrêts, limite %.0f s" % [ca._arrets.size(), ca._limite])
+				shot.call("livraison")
+				poser.call(int(ca._arrets[0].i), act._rp(int(ca._arrets[0].i)) + Vector2(50, 0))
+				suite.call()
+		8:
+			var k: int = get_meta("c_k", 0)
+			if ca.faites.has("pain"):
+				print("  [carrière] livraison réussie : réputation %d, chocs %d, temps %.0f s" % [int(ca.rep), ca._chocs, ca._t])
+				suite.call()
+			elif ca._phase == "livre" and ca._k > k:
+				set_meta("c_k", ca._k)
+				set_meta("c_t0", t)
+				print("  [carrière] livré : %s" % ca._arrets[k].nom)
+				poser.call(int(ca._arrets[ca._k].i), act._rp(int(ca._arrets[ca._k].i)) + Vector2(50, 0))
+			elif ca._phase == "" and not ca.faites.has("pain") and dt > 30:
+				print("  [carrière] ÉCHEC : livraison ratée (chocs %d)" % ca._chocs)
+				get_tree().quit()
+		9:
+			if dt >= 60 and ca.rep >= 50.0:
+				ca.lancer("maire", true)
+				suite.call()
+		10:
+			if dt >= 60 and not act.impose.is_empty():
+				poser.call(int(act.impose.pick), act._rp(int(act.impose.dest)))
+				suite.call()
+		11:
+			if act.mode == "taxi" and act._phase == "course":
+				print("  [carrière] le maire est monté (%s) ; bulle : « %s »" % [act._cl_nom, act._talk._name.text])
+				shot.call("maire")
+				poser.call(int(act.impose.dest), Vector2.ZERO)
+				suite.call()
+		12:
+			if ca.faites.has("maire"):
+				print("  [carrière] maire déposé : réputation %d" % int(ca.rep))
+				ca.epreuve_finie(14, 200.0, "bronze", "")
+				suite.call()
+		13:
+			if ca.message_vu and ca._bulle != null:
+				suite.call()
+		14:
+			if dt >= 40:
+				shot.call("message")
+				print("  [carrière] fin : réputation %d, missions %s, message de fin %s\n%s" % [int(ca.rep), str(ca.faites.keys()),
+					ca.message_vu, FileAccess.get_file_as_string("user://carriere.cfg")])
+				get_tree().quit()

@@ -20,6 +20,8 @@ static var _essai_ms := -99999
 ## Voix françaises du téléphone : [{id, nom, sexe ("f", "m" ou ""), locale}]. Le moteur d'Android démarre après le
 ## jeu : tant que la liste est vide, on la redemande (au plus toutes les 2 s).
 static func voix() -> Array:
+	if OS.get_cmdline_user_args().has("--sans-voix"):
+		return _voix               # essais sous Linux : speech-dispatcher fige parfois le jeu en pleine partie (v6.74)
 	if _voix.is_empty() and Time.get_ticks_msec() - _essai_ms > 2000:
 		_essai_ms = Time.get_ticks_msec()
 		if not DisplayServer.has_feature(DisplayServer.FEATURE_TEXT_TO_SPEECH):
