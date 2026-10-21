@@ -16,8 +16,8 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.68 :
-- **38 épreuves contre la montre** au lieu de 14 : 12 sprints (1 à 2,5 km) et 12 longues (8 à 13 km) en plus.
+Nouveautés de la v6.69 :
+- **Garage** : l'Espace n'a plus de trous dans les vitres et les portières ; la 306 a de vraies roues.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
