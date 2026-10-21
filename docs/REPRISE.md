@@ -3,14 +3,31 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 21/10/2026 (v6.73)
+## État au 21/10/2026, 22 h 10 (v6.75 publiée ; v6.76 en préparation)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
-  Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip`.
-- v6.75 : voies ferrées et passages à niveau (#125, `à tester`). `build_ground.py` exclut le ballast (`_rails()` lit
-  `world/rails`) : à lancer après `build_rails.py`.
-- v6.74 : mode carrière, chapitre 1 (#120, `à tester`). En attente de l'utilisateur (étiquette `pending`) : #123 (tout le décor défonçable : 4 questions),
-  #124 (plan de performances en 3 étapes + mesures par système : 4 questions ; idée n° 1 : voitures garées = 40 % des
-  appels de dessin, 12 matériaux par modèle pour car1 et car3). Rien d'autre d'ouvert hors `à tester`.
+  Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip` (**le code de la v6.76 en cours y est**,
+  pas encore sur `godot` : pousser `godot/` déclenche l'APK).
+- **En cours pour la v6.76** (code sur `zone-wip`, commit « En cours : … ») :
+  - #129 explosion : `scripts/explosion.gd` + `explosion.gdshader` (planches CC0 Unity Labs de
+    `pipeline/fetch_explosions.py` -> `assets/fx/explosion_a|b.png`, `fumee_boule.png`, importées compressées) ; 3 styles
+    « film », « mini », « atomique » au choix dans ⚙ > Conduite (`car.style_explosion`, défaut « mini »), `car.exploser()`
+    l'utilise. Planche postée sur #129 (`docs/apercus/explosions_candidats.jpg`), étiquette `pending` (choix attendu).
+    Essai : `-- --drive-test --explosion-test [--explosion-styles=film,mini] [--explosion-derriere]`.
+  - #124 étape 1 (Économie) : `main.gd` `NIVEAUX[0]` (pas d'ombres, `res_auto` 50-80 %, `fps` 30 / `eco_60`, physique
+    60, `brume` ×30, nuit plus claire), arbres 0 (`vegetation.gd`), pas d'herbe (`grass._step`), pas de plants
+    (`crops.gd`, terre à sillons gardée), champs sans teinte photo (`terrain.gdshader` `terre_labouree`), lampadaires
+    sans vraies lampes (`poles.gd`), **phares factices** (`env.gdshaderinc` `env_phares_lum`, `env.gd` `phares_sur` /
+    `set_phares`, `car._maj_phares_factices`). Option ⚙ « Économie à 60 img/s ». RESTE : vérifier les phares
+    factices de nuit (vue capot), mesures `--perf-breakdown` avant/après, essais de conduite à 60 Hz.
+  - #127 argent : `activities.gd` `NIVEAUX_EP` (Normal / Difficile ×0,9 temps ×2,5 primes / Extrême ×0,82 ×6),
+    `prime_medaille` (200 € + 45 €/km), rejouer = 25 %, clés `cle_ep(id, niv)` ; menu (`menu_activites.gd`) : choix du
+    niveau ; taxi ×3 (`taximetre.gd`), chasse 100 €, course libre ×3, carrière ×3. RESTE : essai.
+  - #126 revue des voitures : essai `-- --drive-test --voitures-revue [--revue-ids=a,b]` écrit, pas encore lancé.
+- En attente de l'utilisateur : #123 (4 questions), #128 (3 questions, `pending`), #129 (choix), #127 (question du
+  niveau par épreuve : je pars sur 3 niveaux au choix sauf contre-ordre).
+- v6.75 : voies ferrées (#125, `à tester`), v6.74 : carrière (#120, `à tester`).
+- Disque : ~1 Go libre. `git prune --expire=2.hours.ago` dans `rochetoirin-drive` a libéré 500 Mo (objets inaccessibles).
+  Les tuiles de routes (1 634) ne sont toujours pas importées ici : captures sans routes.
 - Pas fait (interne, facultatif) : import par paquets des fichiers jamais importés ici (routes surtout), voir
   « Import Godot ici » ci-dessous.
 - Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). `build_buildings.py` (25 min) EFFACE
