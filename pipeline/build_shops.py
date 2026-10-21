@@ -861,13 +861,17 @@ def station(P, t, title, bg, fg, font, style, atlas, inst, dem, MAINL, free_box)
 
 
 # ---------------------------------------------------------------- cinémas
-FILMS = [  # affiches parodiques : titre, fond, motif
-    ("LA SOUCOUPE DE ROCHETOIRIN", (20, 24, 60), "soucoupe"),
-    ("ESPACE 85", (180, 40, 30), "voiture"),
-    ("LES VACHES DE SAINT-CHEF", (60, 120, 50), "vache"),
-    ("BOURGOIN EXPRESS", (30, 30, 34), "train"),
-    ("LE RETOUR DU TAXI", (230, 180, 30), "taxi"),
-    ("NUIT SUR L'A43", (10, 14, 30), "route"),
+FILMS = [  # affiches parodiques (#114 : jeux de mots sur des films connus) : titre, fond, motif
+    ("E.T. L'EXTRA-TOIRIN", (20, 24, 60), "soucoupe"),
+    ("RETOUR VERS LE FUTUR DE BOURGOIN", (180, 40, 30), "voiture"),
+    ("LA GUERRE DES CHAMPS", (60, 120, 50), "vache"),
+    ("LE CRIME DU TER EXPRESS", (30, 30, 34), "train"),
+    ("TAXI DRIVEUR DU DIMANCHE", (230, 180, 30), "taxi"),
+    ("FAST & FURIEUX À SAINT-CHEF", (10, 14, 30), "route"),
+    ("LES DENTS DE LA BOURBRE", (20, 70, 120), "requin"),
+    ("JURASSIC PRÉ", (90, 140, 60), "dino"),
+    ("LES BRONZÉS FONT DU TRACTEUR", (230, 120, 40), "route"),
+    ("MISSION IMPOSSIBLE : SE GARER À BOURGOIN", (40, 40, 60), "voiture"),
 ]
 
 
@@ -887,12 +891,12 @@ def draw_poster(title, bg, motif):
             d.ellipse([cx - 60, cy - 8, cx + 60, cy + 18], fill=(190, 195, 205))
             d.ellipse([cx - 24, cy - 30, cx + 24, cy + 4], fill=(120, 200, 255))
         elif motif == "voiture":
+            d.ellipse([cx - 34, 84, cx + 34, 140], fill=(255, 200, 80))
             d.polygon([(30, 150), (60, 110), (150, 108), (160, 150)], fill=(120, 20, 30))
             d.rectangle([24, 148, 166, 172], fill=(120, 20, 30))
             d.polygon([(66, 114), (100, 112), (100, 140), (52, 140)], fill=(60, 70, 90))
             for x in (52, 140):
                 d.ellipse([x - 14, 160, x + 14, 188], fill=(20, 20, 20))
-            d.ellipse([cx - 40, 30, cx + 40, 90], fill=(255, 200, 80))
         elif motif == "vache":
             d.ellipse([40, 110, 150, 170], fill=(240, 240, 235))
             d.ellipse([70, 120, 100, 145], fill=(30, 30, 30)); d.ellipse([115, 140, 140, 160], fill=(30, 30, 30))
@@ -911,6 +915,21 @@ def draw_poster(title, bg, motif):
             d.text((74, 98), "TAXI", font=ImageFont.truetype(F_SANS, 18), fill=(0, 0, 0))
             for x in (60, 130):
                 d.ellipse([x - 12, 160, x + 12, 184], fill=(15, 15, 15))
+        elif motif == "dino":
+            d.rectangle([0, 192, W, H], fill=(70, 140, 60))
+            d.ellipse([40, 120, 130, 170], fill=(60, 90, 50))
+            d.polygon([(110, 130), (128, 140), (150, 70), (138, 66)], fill=(60, 90, 50))
+            d.ellipse([132, 56, 166, 76], fill=(60, 90, 50))
+            d.polygon([(44, 140), (4, 170), (50, 156)], fill=(60, 90, 50))
+            for x in (55, 75, 100, 115):
+                d.rectangle([x, 160, x + 10, 196], fill=(60, 90, 50))
+            d.ellipse([150, 60, 155, 65], fill=(255, 255, 255))
+            d.ellipse([20, 150, 50, 175], fill=(240, 240, 235))   # une vache, pour l'échelle
+        elif motif == "requin":
+            d.rectangle([0, 150, W, H], fill=(20, 60, 110))
+            d.polygon([(cx - 30, 152), (cx + 6, 92), (cx + 22, 152)], fill=(120, 130, 140))
+            for k in range(4):
+                d.arc([10 + k * 44, 144, 50 + k * 44, 160], 180, 360, fill=(200, 230, 255), width=3)
         elif motif == "route":
             d.polygon([(cx - 10, 100), (cx + 10, 100), (W, H - 40), (0, H - 40)], fill=(40, 40, 50))
             for k in range(5):
@@ -925,12 +944,13 @@ def draw_poster(title, bg, motif):
             else:
                 cur = (cur + " " + w_).strip()
         lines.append(cur)
-        fnt = ImageFont.truetype(F_COND, 22)
+        grand = len(lines) <= 3                                 # titres longs (4 lignes) en plus petit
+        fnt = ImageFont.truetype(F_COND, 22 if grand else 17)
         y = 8
         for ln_ in lines:
             bx = fnt.getbbox(ln_)
             d.text(((W - (bx[2] - bx[0])) // 2, y), ln_, font=fnt, fill=(255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0))
-            y += 26
+            y += 26 if grand else 20
         fs = ImageFont.truetype(F_COND, 15)
         bx = fs.getbbox("AU CINÉMA")
         d.rectangle([0, H - 30, W, H], fill=(0, 0, 0))
@@ -992,7 +1012,7 @@ def cinema(e, blds, BT, MAINL, atlas, inst, dem, free_box, used, height_info):
             continue
         m = a + tdir * (L / 2 + off) + nrm * 0.1
         ym = float(dem.h(np.array([m[0]]), np.array([m[1]]))[0]) + 0.35
-        title, fbg, motif = FILMS[(i + int(rnd(name, "films") * 6)) % len(FILMS)]
+        title, fbg, motif = FILMS[(i + int(rnd(name, "films") * len(FILMS))) % len(FILMS)]
         r = atlas.drawn_cell(("film", title), draw_poster(title, fbg, motif))
         inst.append(xf("affiche", (m[0], ym, m[1]), tdir, custom=r))
         n += 1
