@@ -29,7 +29,7 @@ var pied: Node                     # a_pied.gd (#66)
 
 ## Tout ce qui se charge et se calcule autour du joueur suit ce nœud : la voiture, ou le piéton quand on marche (#66).
 func suivre(n: Node3D) -> void:
-	for s in [roads, buildings, fences, water, vegetation, crops, grass, poles, props, pools, shops, sport, animaux, autoroute, birds, ciel]:
+	for s in [roads, buildings, fences, water, vegetation, crops, grass, poles, props, pools, shops, sport, rails, animaux, autoroute, birds, ciel]:
 		if s and "target" in s:
 			s.target = n
 	if relief and "cible" in relief:
@@ -42,6 +42,7 @@ var tuning: Node            # pièces montées sur la voiture (tuning.gd)
 var net: Node
 var shops: Node3D
 var sport: Node3D
+var rails: Node3D           # voies ferrées et passages à niveau (#125, rails.gd)
 var animaux: Node3D
 var autoroute: Node3D
 var dust: Node3D
@@ -237,6 +238,11 @@ func _ready() -> void:
 	add_child(sport)
 	sport.target = car
 	sport.update_now()
+	rails = preload("res://scripts/rails.gd").new()          # voies ferrées (#125)
+	rails.terrain = terrain
+	add_child(rails)
+	rails.target = car
+	rails.update_now()
 	await _etape("Animaux")
 	animaux = preload("res://scripts/animaux.gd").new()
 	add_child(animaux)
@@ -420,6 +426,7 @@ func _teleport(p: Vector3, heading: float) -> void:
 	pools.update_now()
 	shops.update_now()
 	sport.update_now()
+	rails.update_now()
 	animaux.update_now()
 	autoroute.update_now()
 	vegetation.update_now()

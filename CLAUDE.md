@@ -143,6 +143,13 @@
   fantôme qui roule en même temps) ; réputation 0-100 et 4 missions (livraison, taxi imposé `activities.impose`,
   premier chrono, duel), progression dans `user://carriere.cfg`. Essai `-- --drive-test --carriere-test --sans-voix`
   (~20 min ici ; `--sans-voix` : pas de synthèse vocale, speech-dispatcher fige le jeu sous Linux).
+- **Voies ferrées** (v6.75, #125 : rouler dessus sans partir en vrille, passages à niveau aux barrières défonçables, pas
+  de train) : `pipeline/fetch_rails.py` (OSM) + `build_rails.py` (après `build_roads.py` ; voies posées sur le relief
+  terrassé, ponts et tunnels sautés, nœuds de passage d'une même route regroupés) -> `world/rails/rl_tx_tz.bin`, avant
+  `build_ground.py` (pas d'herbe sur le ballast) ;
+  `scripts/rails.gd` + `rails.gdshader` : ballast = collision en maillage (surface de roulage), rails sans collision,
+  croix de Saint-André, feux qui clignotent, demi-barrières cassées par `casse.gd` (genre « barriere »). Essai
+  `-- --drive-test --rails-test --casse-debug --sans-voix`.
 - **Orientation des faces** : `glb.write_glb(..., fix_winding=True)` remet chaque triangle dans le sens de ses normales
   (tuiles de routes) ; contrôle : `python3 pipeline/check_winding.py godot/world/roads` doit donner 0 % partout.
 - **Rien ne déborde sur la route** (arbres : couronne hors chaussée, champs arrêtés avant, bâtiments découpés).

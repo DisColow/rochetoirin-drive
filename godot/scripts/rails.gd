@@ -1,6 +1,6 @@
 ## Voies ferrées (#125 : on roule dessus sans partir en vrille, passages à niveau aux barrières défonçables, pas de
 ## train). Tuiles world/rails/rl_tx_tz.bin de pipeline/build_rails.py, chargées autour du joueur comme sport.gd.
-## - Ballast : bosse douce (dessus de 3,2 m, talus jusqu'à 4,8 m), seule partie qui porte la voiture (collision en
+## - Ballast : bosse douce (dessus de 3,2 m à 0,10 m du sol, talus jusqu'à 6,4 m), seule partie qui porte la voiture (collision en
 ##   maillage, comme les routes : c'est une surface de roulage) ; traverses peintes par rails.gdshader.
 ## - Rails en volume, sans collision (aucune marche contre les roues) ; noyés au ras de la chaussée aux passages.
 ## - Passages à niveau : croix de Saint-André, feux rouges qui clignotent, demi-barrières baissées ; casse.gd les
@@ -12,8 +12,8 @@ const PerfMon := preload("res://scripts/perf_monitor.gd")
 const TILE := 256.0
 const VIEW := 700.0
 const DEMI := 1.6              # demi-largeur du dessus du ballast (m)
-const PIED := 2.4              # demi-largeur au pied du talus
-const BAS := 0.43              # pied du talus sous le dessus (enterré de 0,25 m sous le relief)
+const PIED := 3.2              # demi-largeur au pied du talus : pente de ~5° (essai v6.75 : talus de 0,8 m = choc)
+const BAS := 0.14              # pied du talus sous le dessus (4 cm sous le relief)
 const ECART := 0.7175          # demi-écartement des rails (voie normale : 1,435 m)
 const L_RAIL := 0.036          # demi-largeur d'un champignon de rail
 const H_RAIL := 0.15
@@ -124,7 +124,7 @@ func _add(k: Vector2i) -> void:
 	_bras[k] = []
 	var np_ := f.get_32()
 	for p in np_:
-		var q := f.get_buffer(28).to_float32_array()
+		var q := f.get_buffer(32).to_float32_array()
 		_passage(root, k, q)
 	if not V.is_empty():
 		var a := []
@@ -179,16 +179,16 @@ func _voie(raw: PackedFloat32Array, m: int, V: PackedVector3Array, N: PackedVect
 				_quad(q, uv, Color(0, 0, 0), V, N, U, C, I)
 				faces.append_array(PackedVector3Array([q[0], q[2], q[1], q[0], q[3], q[2]]))
 		# rails : dessus (et flancs hors des passages)
-		for cote in [-1.0, 1.0]:
+		for cote: float in [-1.0, 1.0]:
 			var h := 0.0 if noye else H_RAIL
-			var o := cote * ECART
-			var t0 := ballast.call(i, o - L_RAIL, h); var t1 := ballast.call(i, o + L_RAIL, h)
-			var t2 := ballast.call(i + 1, o + L_RAIL, h); var t3 := ballast.call(i + 1, o - L_RAIL, h)
+			var o: float = cote * ECART
+			var t0: Vector3 = ballast.call(i, o - L_RAIL, h); var t1: Vector3 = ballast.call(i, o + L_RAIL, h)
+			var t2: Vector3 = ballast.call(i + 1, o + L_RAIL, h); var t3: Vector3 = ballast.call(i + 1, o - L_RAIL, h)
 			_quad([t0, t1, t2, t3], [Vector2(o, S[i]), Vector2(o, S[i]), Vector2(o, S[i + 1]), Vector2(o, S[i + 1])], Color(1, 1, 0), V, N, U, C, I)
 			if not noye:
-				for e in [-L_RAIL, L_RAIL]:
-					var b0 := ballast.call(i, o + e, 0.0); var b1 := ballast.call(i + 1, o + e, 0.0)
-					var h0 := ballast.call(i, o + e, H_RAIL); var h1 := ballast.call(i + 1, o + e, H_RAIL)
+				for e: float in [-L_RAIL, L_RAIL]:
+					var b0: Vector3 = ballast.call(i, o + e, 0.0); var b1: Vector3 = ballast.call(i + 1, o + e, 0.0)
+					var h0: Vector3 = ballast.call(i, o + e, H_RAIL); var h1: Vector3 = ballast.call(i + 1, o + e, H_RAIL)
 					var q := [b0, h0, h1, b1] if e < 0.0 else [h0, b0, b1, h1]
 					_quad(q, [Vector2(o, S[i]), Vector2(o, S[i]), Vector2(o, S[i + 1]), Vector2(o, S[i + 1])], Color(1, 0, 0), V, N, U, C, I)
 
@@ -209,14 +209,15 @@ func _quad(q: Array, uv: Array, col: Color, V: PackedVector3Array, N: PackedVect
 		I.append_array(PackedInt32Array([b, b + 1, b + 2, b, b + 2, b + 3]))
 
 # ================================================================ passages à niveau
-## q : x, y de la chaussée, z, cap de la voie, cap de la route (rad), largeur de la route, barrières (0, 1, 2).
+## q : x, y de la chaussée, z, cap de la voie, cap de la route (rad), largeur de la route, barrières (0, 1, 2),
+## écart entre les voies extrêmes (ligne à double voie).
 func _passage(root: Node3D, k: Vector2i, q: PackedFloat32Array) -> void:
 	var c := Vector2(q[0], q[2])
 	var ra := q[4]
 	var r := Vector2(sin(ra), -cos(ra))                 # sens de la route
 	var droite := Vector2(cos(ra), sin(ra))
 	var sin_a := maxf(absf(sin(q[4] - q[3])), 0.4)
-	var dist := 4.6 / sin_a                              # du milieu de la voie à la barrière, le long de la route
+	var dist := (4.6 + q[7] * 0.5) / sin_a               # du milieu des voies à la barrière, le long de la route
 	var larg := q[5]
 	for sens in [1.0, -1.0]:
 		var av: Vector2 = r * sens
@@ -284,8 +285,8 @@ func _rayures() -> ImageTexture:
 		_tex_rayures = ImageTexture.create_from_image(im)
 	return _tex_rayures
 
-## Bras de barrière touché par la voiture (casse.gd) : caché et retiré de la liste ; renvoie son maillage (débris)
-## et sa longueur, ou [] s'il n'y en a plus là.
+## Bras de barrière touché par la voiture (casse.gd) : caché et retiré de la liste ; renvoie son maillage (débris),
+## sa longueur et sa position, ou [] s'il n'y en a plus là.
 func casser(p: Vector3) -> Array:
 	var kc := Vector2i(floori(p.x / TILE), floori(p.z / TILE))
 	for dx in range(-1, 2):
@@ -303,5 +304,5 @@ func casser(p: Vector3) -> Array:
 					# segment retiré (remplacé par un point hors d'atteinte : les indices des autres bras ne bougent pas)
 					ens[i] = Vector3(0, -1000, 0); ens[i + 1] = Vector3(0, -1000, 0)
 					barrieres[k] = ens
-					return [bras.mesh, (bras.mesh as BoxMesh).size.x]
+					return [bras.mesh, (bras.mesh as BoxMesh).size.x, bras.global_transform]
 	return []

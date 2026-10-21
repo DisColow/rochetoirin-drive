@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.74.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.74/RochetoirinSimulator-v6.74.apk)**
+**[RochetoirinSimulator-v6.75.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.75/RochetoirinSimulator-v6.75.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.74 :
-- **Mode carrière, chapitre 1 « Le village »** (★ > Carrière) : jauge de réputation et quatre missions — livrer le
-  pain de Flonflon sans casser la tarte, ramener le maire de Saint-Chef avant le conseil, un premier chrono, et un duel
-  contre Kévin Turbot et sa Pijo 106, qui roule en même temps que vous en fantôme.
+Nouveautés de la v6.75 :
+- **Voies ferrées** : la ligne de Lyon à Grenoble et les voies des gares, ballast, traverses et rails ; on peut rouler
+  dessus et les traverser sans partir en vrille.
+- **Passages à niveau** : croix de Saint-André, feux rouges qui clignotent et barrières baissées, à défoncer.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

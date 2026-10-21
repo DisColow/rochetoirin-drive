@@ -34,7 +34,7 @@ void fragment() {
 		vec3 beton = vec3(0.6, 0.59, 0.56) * (0.92 + 0.08 * h21(floor(vec2(u * 4.0, v / 0.6))));
 		c = mix(c, mix(beton, mix(gris, beton, 0.43), loin), trav);
 		c *= 1.0 - 0.25 * smoothstep(0.12, 0.0, abs(abs(u) - 0.72)) * (1.0 - loin);    // ombre au pied des rails
-		c *= 1.0 - 0.18 * smoothstep(1.7, 2.4, abs(u));                             // talus plus sombres
+		c *= 1.0 - 0.18 * smoothstep(1.7, 3.2, abs(u));                             // talus plus sombres
 	}
 	ALBEDO = c * env_cloud(v_wp.xz) * (1.0 - 0.3 * wet);
 	METALLIC = metal;

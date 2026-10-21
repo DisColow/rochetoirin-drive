@@ -102,8 +102,25 @@ def _fence_lines(i, j):
     return out
 
 
+def _rails():
+    """Ballast des voies ferrées (build_rails.py, #125) : rien n'y pousse (talus compris, 3,2 m de part et d'autre)."""
+    import glob, struct
+    out = []
+    for f in glob.glob("../godot/world/rails/rl_*.bin"):
+        b = open(f, "rb").read()
+        o = 4
+        for _ in range(struct.unpack_from("<i", b, 0)[0]):
+            m = struct.unpack_from("<i", b, o)[0]
+            V = np.frombuffer(b, "<f4", m * 4, o + 4).reshape(m, 4)
+            o += 4 + m * 16
+            if m > 1:
+                out.append(LineString(V[:, [0, 2]]).buffer(3.4))
+    return out
+
+
 def main():
     shutil.rmtree(OUT, ignore_errors=True); os.makedirs(OUT)
+    rails = _rails()
     plan = json.load(open("data/routes_plan.json"))
     ways = pickle.load(open("data/roads.pkl", "rb"))["ways"]
     roads = [LineString(w["P"]).buffer(w["w"] / 2 + (1.6 if any(w["sidewalk"]) else 0.0) + 0.4)
@@ -128,6 +145,8 @@ def main():
         cat[vb & (cat > 0) & (cat != 4)] = 3
         # exclusions
         cat[_poly_raster(roads, i, j)] = 0
+        if rails:
+            cat[_poly_raster(rails, i, j)] = 0                          # voies ferrées (#125)
         cat[ndi.binary_dilation(building_mask(i, j), iterations=1)] = 0
         cat[_poly_raster(_pools(), i, j, grow=0.5)] = 0                 # piscines (build_pools.py)
         im = Image.new("L", (N, N), 0); d = ImageDraw.Draw(im)

@@ -830,6 +830,9 @@ func _physics_process(_dt: float) -> void:
 	if OS.get_cmdline_user_args().has("--carriere-test"):
 		_carriere_test(t)
 		return
+	if OS.get_cmdline_user_args().has("--rails-test"):
+		_rails_test(t)
+		return
 	if OS.get_cmdline_user_args().has("--epreuves-menu-test"):
 		# #101 : menu des épreuves -> la dernière de la liste (la plus loin) ; la voiture doit être sur sa ligne de départ
 		var act = activities
@@ -1657,4 +1660,125 @@ func _carriere_test(t: int) -> void:
 				shot.call("message")
 				print("  [carrière] fin : réputation %d, missions %s, message de fin %s\n%s" % [int(ca.rep), str(ca.faites.keys()),
 					ca.message_vu, FileAccess.get_file_as_string("user://carriere.cfg")])
+				get_tree().quit()
+
+# ---------------------------------------------------------------- essai : --rails-test (#125)
+## Voie ferrée en terrain plat (x -8624, z 1519, entre Bourgoin et La Tour-du-Pin) : la voiture roule 4 s le long de
+## la voie sur le ballast, puis la traverse (5 s de plein gaz) ; puis elle fonce dans la barrière du passage à niveau
+## de la route de x 4845, z 2883 (approche droite de 30 m) ; à chaque fois :
+## roulis et tangage maximaux, rotation maximale, voiture retournée ou non. Captures user://shots/rails_*.png.
+## Lancer avec --drive-test --rails-test --casse-debug.
+func _rails_test(t: int) -> void:
+	car.touch_steer = 0.0
+	if t < 240:
+		car.touch_throttle = 0.0; car.touch_brake = 1.0
+		return
+	var etape: int = get_meta("r_etape", 0)
+	var t0: int = get_meta("r_t0", 240)
+	var dt := t - t0
+	var suite := func():
+		set_meta("r_etape", etape + 1)
+		set_meta("r_t0", t)
+	var shot := func(n: String):
+		DirAccess.make_dir_recursive_absolute("user://shots")
+		get_viewport().get_texture().get_image().save_png("user://shots/rails_%s.png" % n)
+	var poser := func(x: float, z: float, cap: float, sur_rails: float):
+		var y: float = sur_rails if sur_rails > 0.0 else preload("res://scripts/relief.gd").hauteur(Vector3(x, 0, z))
+		get_node("HUD").teleport.emit(Vector3(x, y + 1.0, z), cap)
+	# stabilité : roulis / tangage (°), rotation (°/s), vitesse
+	var b := car.global_transform.basis
+	var roulis := rad_to_deg(asin(clampf(b.x.y, -1.0, 1.0)))
+	var tangage := rad_to_deg(asin(clampf(b.z.y, -1.0, 1.0)))
+	var st: Dictionary = get_meta("r_st", {"roulis": 0.0, "tangage": 0.0, "rot": 0.0, "v": 0.0})
+	if etape in [2, 5, 8]:
+		st.roulis = maxf(st.roulis, absf(roulis)); st.tangage = maxf(st.tangage, absf(tangage))
+		st.rot = maxf(st.rot, rad_to_deg(car.angular_velocity.length())); st.v = maxf(st.v, car.kmh())
+		set_meta("r_st", st)
+	if etape == 5:                                  # traversée : stabilité à moins de 5 m de l'axe de la voie seulement
+		var ax := Vector2(car.global_position.x + 8624.12, car.global_position.z - 1519.17).dot(Vector2(-0.831, 0.556))
+		if absf(ax) < 5.0:
+			var s2: Dictionary = get_meta("r_st2", {"roulis": 0.0, "tangage": 0.0, "rot": 0.0, "vmin": 999.0, "vmax": 0.0})
+			s2.roulis = maxf(s2.roulis, absf(roulis)); s2.tangage = maxf(s2.tangage, absf(tangage))
+			s2.rot = maxf(s2.rot, rad_to_deg(car.angular_velocity.length()))
+			s2.vmin = minf(s2.vmin, car.kmh()); s2.vmax = maxf(s2.vmax, car.kmh())
+			set_meta("r_st2", s2)
+	if etape in [2, 5] and dt % 60 == 0:
+		print("  [rails]    t=%.1f s : %.0f km/h à %s %s" % [dt / 120.0, car.kmh(), str(car.global_position.round()), car._touching() if car.kmh() < 15.0 else ""])
+	var bilan := func(n: String):
+		print("  [rails] %s : %.0f km/h au plus, roulis %.1f°, tangage %.1f°, rotation %.0f°/s au plus, retournée %s, à %s" % [n,
+			st.v, st.roulis, st.tangage, st.rot, car.global_transform.basis.y.y < 0.3, str(car.global_position.round())])
+		set_meta("r_st", {"roulis": 0.0, "tangage": 0.0, "rot": 0.0, "v": 0.0})
+	match etape:
+		0:
+			poser.call(-8624.12, 1519.17, 146.2, 272.26)
+			suite.call()
+		1:
+			car.touch_throttle = 0.0; car.touch_brake = 1.0
+			if dt >= 300:
+				shot.call("voie")
+				var rl = rails
+				print("  [rails] %d tuiles chargées, voiture à %.2f m au-dessus du dessus du ballast (272.26)" % [rl.loaded.size(), car.global_position.y - 272.26])
+				set_meta("r_st", {"roulis": 0.0, "tangage": 0.0, "rot": 0.0, "v": 0.0})
+				suite.call()
+		2:
+			car.touch_brake = 0.0; car.touch_throttle = 0.6
+			if dt >= 480:
+				bilan.call("le long de la voie, 4 s à 60 % des gaz")
+				shot.call("voie_roule")
+				suite.call()
+		3:
+			car.touch_throttle = 0.0; car.touch_brake = 1.0
+			if dt >= 60:
+				poser.call(-8612.5, 1511.4, 236.2, -1.0)            # 14 m avant l'axe de la voie
+				suite.call()
+		4:
+			car.touch_throttle = 0.0; car.touch_brake = 1.0
+			if dt >= 300:
+				set_meta("r_st", {"roulis": 0.0, "tangage": 0.0, "rot": 0.0, "v": 0.0})
+				suite.call()
+		5:
+			car.touch_brake = 0.0; car.touch_throttle = 1.0
+			if dt == 300:
+				shot.call("traverse_milieu")
+			if dt >= 600:
+				var e := Vector2(car.global_position.x + 8624.12, car.global_position.z - 1519.17)
+				print("  [rails]    voiture à %.1f m au-delà de l'axe de la voie" % e.dot(Vector2(-0.831, 0.556)))
+				var s2: Dictionary = get_meta("r_st2", {})
+				if not s2.is_empty():
+					print("  [rails] sur le ballast (axe ± 5 m) : %.0f à %.0f km/h, roulis %.1f°, tangage %.1f°, rotation %.0f°/s au plus" % [s2.vmin, s2.vmax,
+						s2.roulis, s2.tangage, s2.rot])
+				bilan.call("en travers de la voie, 5 s de plein gaz")
+				shot.call("traverse")
+				suite.call()
+		6:
+			car.touch_throttle = 0.0; car.touch_brake = 1.0
+			if dt >= 60:
+				poser.call(4864.97, 2905.77, 321.5, -1.0)          # voie de droite, 30 m avant le passage
+				suite.call()
+		7:
+			car.touch_throttle = 0.0; car.touch_brake = 1.0
+			if dt >= 300:
+				shot.call("passage")
+				var n := 0
+				for k in rails.barrieres:
+					n += rails.barrieres[k].size() / 2
+				print("  [rails] passage à niveau : %d bras de barrière chargés" % n)
+				set_meta("r_st", {"roulis": 0.0, "tangage": 0.0, "rot": 0.0, "v": 0.0})
+				suite.call()
+		8:
+			car.touch_brake = 0.0; car.touch_throttle = 0.7
+			var casses := 0
+			for k in rails.barrieres:
+				var ens: PackedVector3Array = rails.barrieres[k]
+				for i in range(0, ens.size(), 2):
+					if ens[i].y < -900.0:
+						casses += 1
+			if casses > 0 and not has_meta("r_casse"):
+				set_meta("r_casse", t)
+				print("  [rails] barrière défoncée à %.0f km/h" % car.kmh())
+			if has_meta("r_casse") and t - int(get_meta("r_casse")) == 25:
+				shot.call("casse")
+			if dt >= 600 or (has_meta("r_casse") and t - int(get_meta("r_casse")) > 240):
+				bilan.call("à travers le passage à niveau")
+				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()

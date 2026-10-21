@@ -6,12 +6,8 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 ## État au 21/10/2026 (v6.73)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip`.
-- **En cours : #125 voies ferrées** (hypothèses postées sur le ticket) : `pipeline/fetch_rails.py` (OSM ->
-  `data/osm_rails.json`), `pipeline/build_rails.py` (-> `godot/world/rails/rl_tx_tz.bin` : 39,8 km de voie, 10 passages
-  à niveau dans la zone ; ponts et tunnels sautés), `godot/scripts/rails.gd` + `rails.gdshader` (ballast roulable,
-  rails sans collision, croix de Saint-André, feux, demi-barrières). Reste : brancher dans main.gd (`suivre`, étape
-  « Terrains de sport », téléportation) et casse.gd (genre « barriere » : `rails.barrieres`, `rails.casser()`), essai,
-  `publier_donnees.sh`, v6.75.
+- v6.75 : voies ferrées et passages à niveau (#125, `à tester`). `build_ground.py` exclut le ballast (`_rails()` lit
+  `world/rails`) : à lancer après `build_rails.py`.
 - v6.74 : mode carrière, chapitre 1 (#120, `à tester`). En attente de l'utilisateur (étiquette `pending`) : #123 (tout le décor défonçable : 4 questions),
   #124 (plan de performances en 3 étapes + mesures par système : 4 questions ; idée n° 1 : voitures garées = 40 % des
   appels de dessin, 12 matériaux par modèle pour car1 et car3). Rien d'autre d'ouvert hors `à tester`.
@@ -550,3 +546,16 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - Essai `--drive-test --carriere-test` (étapes déclenchées par l'état du jeu, `Engine.time_scale = 4` : à 1 img/s
   le temps du jeu n'avance que de 0,07 s par image). **Piège** : un speech-dispatcher resté d'un essai précédent
   bloque le démarrage suivant (« [étape] Interface » figé) : `pkill -9 -x speech-dispatch` avant et après.
+
+## v6.75 (21/10) : voies ferrées (#125)
+- `pipeline/fetch_rails.py` (OSM : railway=rail, level_crossing, platform -> `data/osm_rails.json`) ;
+  `build_rails.py` -> `world/rails/rl_tx_tz.bin` : 39,8 km de voie, ponts et tunnels sautés (18 tronçons), voie
+  rééchantillonnée à 2 m, dessus du ballast = max(relief lissé sur 12 m, relief) + 0,10 m ; passages à niveau :
+  nœuds OSM (un par voie) regroupés à 12 m -> 5 croisements, rails noyés au ras de la route (`rf`), rampe de 8 m.
+- `scripts/rails.gd` + `rails.gdshader` : ballast (dessus ±1,6 m, talus jusqu'à ±3,2 m, 14 cm plus bas),
+  collision en maillage (ConcavePolygonShape3D, deux faces), rails sans collision ; passages : mât, croix de
+  Saint-André, feux qui clignotent (2 matériaux partagés), demi-barrières (`barrieres`, `casser()`).
+- casse.gd : genre « barriere » (segment pied -> bout, débris = le bras lui-même).
+- Essai `--drive-test --rails-test --casse-debug --sans-voix` (~20 min) : le long de la voie (x -8624 z 1519),
+  traversée (stabilité à ± 5 m de l'axe), barrière du passage de x 4845 z 2883 (approche droite de 30 m).
+  Premier profil (18 cm, talus 0,8 m) : -17 km/h et 21° de tangage à la traversée ; adouci.

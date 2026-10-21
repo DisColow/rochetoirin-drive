@@ -1,15 +1,16 @@
 """Voies ferrées (#125, demande de l'utilisateur : rails sur lesquels on roule sans partir en vrille, passages à
 niveau aux barrières défonçables, pas de train). D'après OSM (fetch_rails.py : railway=rail, level_crossing).
 - Chaque voie est rééchantillonnée tous les 2 m et posée sur le relief terrassé (Carved), profil lissé sur ~12 m,
-  dessus du ballast 0,18 m au-dessus du sol ; dans la zone de jeu seulement ; ponts et tunnels sautés (le relief
+  dessus du ballast 0,10 m au-dessus du sol (jamais sous le relief) ; dans la zone de jeu seulement ; ponts et tunnels sautés (le relief
   n'a pas leurs tabliers).
 - Passages à niveau : sur la chaussée (rf : altitude de la route), rails noyés au ras de la route (drapeau 1, pas de
   ballast), rampe de 8 m de part et d'autre ; direction et largeur de la route relevées pour les barrières.
 Sortie : ../godot/world/rails/rl_tx_tz.bin (tuiles de 256 m) :
   int32 n voies, puis par voie : int32 m points, m × 4 float32 (x, y du dessus du ballast, z, drapeau 0 ballast /
   1 noyé dans la route) ;
-  int32 p passages, p × 7 float32 (x, y de la route, z, cap de la voie, cap de la route (rad), largeur de la route,
-  barrières 0 aucune / 1 demi-barrières / 2 barrières pleines).
+  int32 p passages, p × 8 float32 (x, y de la route, z, cap de la voie, cap de la route (rad), largeur de la route,
+  barrières 0 aucune / 1 demi-barrières / 2 barrières pleines, écart entre voies extrêmes).
+  OSM met un nœud de passage par voie (ligne à double voie : deux nœuds à ~4 m) : regroupés à moins de 12 m.
 Lancer depuis pipeline/ (après build_roads.py) : python3 build_rails.py"""
 import json, math, os, pickle, shutil, struct
 from collections import defaultdict
@@ -20,7 +21,7 @@ import geo
 OUT = "../godot/world/rails"
 TILE = 256.0
 PAS = 2.0
-DESSUS = 0.18                 # dessus du ballast au-dessus du relief (m)
+DESSUS = 0.10                 # dessus du ballast au-dessus du relief (m) : bosse douce (0,18 m : choc de 17 km/h)
 RAMPE = 8.0                   # raccord du ballast à la chaussée d'un passage à niveau (m)
 ROUTES = ("motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link", "secondary", "secondary_link",
           "tertiary", "tertiary_link", "unclassified", "residential", "living_street", "service", "track")
@@ -90,7 +91,7 @@ def main():
             h = dem.h(P[:, 0], P[:, 1])
             k = 7                                   # lissage sur ~12 m (relief à 2 m, bruit du LiDAR)
             hp = np.r_[np.full(k // 2, h[0]), h, np.full(k // 2, h[-1])]
-            y = np.convolve(hp, np.ones(k) / k, mode="valid") + DESSUS
+            y = np.maximum(np.convolve(hp, np.ones(k) / k, mode="valid"), h) + DESSUS      # jamais sous le relief
             drap = np.zeros(len(P))
             # passages à niveau de cette voie : chaussée au ras, rampe autour
             if len(PA):
@@ -128,8 +129,24 @@ def main():
             cour.append(V[i + 1])
         if cour is not None and len(cour) >= 2:
             par_tuile[kc].append(np.array(cour))
-    pas_t = defaultdict(list)
+    # un passage par croisement : nœuds à moins de 12 m regroupés (centre, écart entre les voies extrêmes)
+    groupes = []
     for p in passages:
+        for g in groupes:
+            if math.hypot(g[0][0] - p[0], g[0][2] - p[2]) < 12.0:
+                g.append(p)
+                break
+        else:
+            groupes.append([p])
+    fusion = []
+    for g in groupes:
+        G = np.array([[q[0], q[1], q[2]] for q in g])
+        ecart = max((math.hypot(a[0] - b[0], a[2] - b[2]) for a in G for b in G), default=0.0)
+        m = G.mean(axis=0)
+        fusion.append([m[0], m[1], m[2], g[0][3], g[0][4], g[0][5], g[0][6], ecart])
+    stats["passages (croisements)"] = len(fusion)
+    pas_t = defaultdict(list)
+    for p in fusion:
         pas_t[(math.floor(p[0] / TILE), math.floor(p[2] / TILE))].append(p)
     for k in set(par_tuile) | set(pas_t):
         b = bytearray(struct.pack("<i", len(par_tuile[k])))
@@ -137,7 +154,7 @@ def main():
             b += struct.pack("<i", len(V)) + V.astype("<f4").tobytes()
         b += struct.pack("<i", len(pas_t[k]))
         for p in pas_t[k]:
-            b += struct.pack("<7f", *p)
+            b += struct.pack("<8f", *p)
         open(os.path.join(OUT, "rl_%d_%d.bin" % k), "wb").write(bytes(b))
     print("%d tuiles, %.1f km de voie, %d passages à niveau" % (len(set(par_tuile) | set(pas_t)), stats["km de voie"], len(passages)),
           {k: (round(v, 1) if isinstance(v, float) else v) for k, v in stats.items()})
