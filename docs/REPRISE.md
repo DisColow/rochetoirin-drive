@@ -454,3 +454,8 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 ## v6.68 (21/10)
 - #108 : build_epreuves.py : 14 d origine (ids 0-13 identiques, records gardés) + 12 sprints + 12 longues = 38. Aperçu v668.jpg (la capture du menu montre une ligne droite : tracé encore en calcul, le journal donne 1826 points).
 - Reste : #109 (modèles de voitures), #113 (gare, Street View : annoncer le lot), #117 (champs).
+
+## v6.69 (21/10)
+- #109 : captures des 11 voitures (--voitures-test). Espace : trous (allègement par matériau) -> par_materiau 1.0 sur peinture/vitres, faces 90000 (89 k faces, lourd). 306 : roue du modèle = cylindre gris -> meta « roue_de »: « p206 » (car.gd met la roue empruntée au rayon). Aperçu v669.jpg.
+- Piège : blender_voitures_joueur.py sans « -- » reconvertit toutes les voitures (sans dommage constaté).
+- Reste : #113 (gare, Street View : annoncer le lot), #117 (champs).
