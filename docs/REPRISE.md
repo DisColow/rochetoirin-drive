@@ -494,3 +494,11 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   script `pipeline/candidats_ble.py` ; en attente du choix (#117 pending). Hypothèse annoncée : le blé deviendra aussi
   un plan face à l'écran, comme le maïs. Intégration du choix : ajouter le modèle à `fetch_trees.py`,
   `prepare_trees.gd`, `bake_cultures.gd` (BANDES), puis `build_crop_tex.py` / `build_touffes.py`.
+
+## v6.72 (21/10) : blé (#117, « fais comme tu le sens » -> choix C)
+- `pipeline/blender_orge.py` (venv bpy) : orge scannée ffish.asia / floraZia (CC0, `data/orge/`, téléchargée avec
+  SKETCHFAB_TOKEN) -> `data/orge/touffe_ble_<v>.png` (2,4 × 1,2 m, 70 tiges/m, moins dense vers les bords, hauteurs
+  0,72-1,08) ; `build_touffes.py` : céréales = feuillage actuel ×0,9 + épis devant -> `assets/veg/touffes_albedo.png`.
+- Shader : céréales aussi en plan face à l'écran (v_plat pour cultures 0 et 1), contre-jour doré. Essais : en croix
+  avec la texture dense (160 tiges/m) = bandes ; à plat avec un haut droit = « bottes de paille » ; retenu : contour
+  irrégulier + plan unique. Aperçu v672.jpg (3 colonnes). Crédit ajouté (hud.gd).

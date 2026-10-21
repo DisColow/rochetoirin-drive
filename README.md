@@ -16,9 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.71 :
-- **Champs de maïs** : chaque touffe est un simple plan tourné vers l'écran, qu'on traverse sans qu'il pivote.
-- **Fauchage plus large** : la voiture couche tout sur 4,9 m au lieu de 2,6 m ; plus de tiges debout qui la traversent.
+Nouveautés de la v6.72 :
+- **Champs de céréales** : épis d'orge barbus devant le feuillage du blé, touffes au contour irrégulier, et, comme le
+  maïs, un simple plan tourné vers l'écran qu'on traverse.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

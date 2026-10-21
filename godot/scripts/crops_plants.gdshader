@@ -2,9 +2,9 @@
 // l'atlas des touffes (pipeline/build_touffes.py : 4 cultures × 4 variantes, cases de 512 × 512 px).
 // Données d'instance : x = culture (0 maïs, 1 céréales, 2 colza, 3 tournesol), y = variante (0-3), z = teinte,
 // w = hauteur de la case (m). Une touffe touchée par la voiture disparaît (il a éclaté : trample.gd + dust.gd).
-// Maïs (v6.71, #117) : un seul plan, toujours parallèle à l'écran (tourné autour de la verticale), au lieu de la
-// croix : on le traverse comme un décor de carton, sans qu'il pivote quand on le dépasse. (Essayé aussi pour les
-// céréales en v6.72 : rangées de rectangles façon bottes de paille ; elles gardent la croix.)
+// Maïs (v6.71) et céréales (v6.72) (#117) : un seul plan, toujours parallèle à l'écran (tourné autour de la
+// verticale), au lieu de la croix : on le traverse comme un décor de carton, sans qu'il pivote quand on le dépasse.
+// Les touffes de céréales ont un contour irrégulier (blender_orge.py) : à plat, un haut droit faisait des bottes.
 shader_type spatial;
 render_mode cull_disabled;
 #include "res://scripts/env.gdshaderinc"
@@ -16,12 +16,14 @@ uniform vec4 trample_zone = vec4(0.0, 0.0, 96.0, 0.0);   // coin x, coin z, tail
 varying float v_tint;
 varying float v_gust;
 varying float v_plat;
+varying float v_culture;
 varying vec3 v_wp;
 
 void vertex() {
 	vec3 base = MODEL_MATRIX[3].xyz;
 	float h = INSTANCE_CUSTOM.w;
-	v_plat = INSTANCE_CUSTOM.x < 0.5 ? 1.0 : 0.0;
+	v_plat = INSTANCE_CUSTOM.x < 1.5 ? 1.0 : 0.0;
+	v_culture = INSTANCE_CUSTOM.x;
 	if (v_plat > 0.5) {
 		if (abs(VERTEX.x) < 0.01) {
 			VERTEX = vec3(0.0, -50.0, 0.0);          // second plan de la croix : rien (triangles dégénérés)
@@ -70,7 +72,7 @@ void fragment() {
 		vec3 nw = normalize(vec3(INV_VIEW_MATRIX[2].x, 0.0, INV_VIEW_MATRIX[2].z) + vec3(0.0, 0.0, 1e-4));
 		n0 = normalize((VIEW_MATRIX * vec4(nw, 0.0)).xyz);
 		vers_haut = 0.75;
-		BACKLIGHT = vec3(0.3, 0.36, 0.14);
+		BACKLIGHT = v_culture < 0.5 ? vec3(0.3, 0.36, 0.14) : vec3(0.4, 0.33, 0.12);   // feuilles / paille dorée
 	}
 	NORMAL = normalize(mix(n0, up, vers_haut));
 	ALBEDO = c.rgb * v_tint * (1.0 + (v_gust - 0.5) * 0.18 * wind.z) * env_cloud(v_wp.xz);
