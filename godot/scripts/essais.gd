@@ -402,17 +402,35 @@ func _perf_breakdown() -> void:
 		var f: float = await fps.call(3.0)
 		return [Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000.0,
 			Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), f]
+	if OS.get_environment("NIVEAU") != "":                 # niveau de qualité imposé (#124 : Économie mesurée à part)
+		perf_auto = false
+		get_node("HUD").appliquer_niveau(int(OS.get_environment("NIVEAU")))
 	await get_tree().create_timer(20.0).timeout
 	car.freeze = true
+	print("[répartition] niveau %d, position %s" % [int(Engine.get_meta("niveau_perf", -1)), str(car.global_position.round())])
 	var ref: Array = await mesure.call()
 	print("[répartition] référence : %.0fk triangles, %d appels, %.1f img/s" % ref)
+	# enfants regroupés par système (nom du script, sinon nom sans numéro) : une mesure par groupe (#124)
+	var groupes := {}
 	for c in get_children():
 		if not (c is Node3D) or c == car or not c.visible:
 			continue
-		c.visible = false
+		var cle := String(c.name)
+		if c.get_script() != null:
+			cle = c.get_script().resource_path.get_file().get_basename()
+		else:
+			cle = cle.split("@", false)[0] if cle.begins_with("@") else cle.split("_")[0]
+		if not groupes.has(cle):
+			groupes[cle] = []
+		groupes[cle].append(c)
+	for cle in groupes:
+		for c in groupes[cle]:
+			c.visible = false
 		var m: Array = await mesure.call()
-		c.visible = true
-		print("[répartition] %-14s %6.0fk triangles  %5d appels  %+5.1f img/s" % [c.name, ref[0] - m[0], ref[1] - m[1], m[2] - ref[2]])
+		for c in groupes[cle]:
+			c.visible = true
+		if ref[1] - m[1] != 0 or ref[0] - m[0] >= 1.0:
+			print("[répartition] %-18s %6.0fk triangles  %5d appels  %+5.1f img/s  (%d nœuds)" % [cle, ref[0] - m[0], ref[1] - m[1], m[2] - ref[2], groupes[cle].size()])
 	var essais := [
 		["ombres", func(on): _sun.shadow_enabled = on],
 		["anticrénelage", func(on): get_viewport().msaa_3d = Viewport.MSAA_4X if on else Viewport.MSAA_DISABLED],

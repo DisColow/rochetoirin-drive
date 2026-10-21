@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.62.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.62/RochetoirinSimulator-v6.62.apk)**
+**[RochetoirinSimulator-v6.73.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.73/RochetoirinSimulator-v6.73.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,9 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.72 :
-- **Champs de céréales** : épis d'orge barbus devant le feuillage du blé, touffes au contour irrégulier, et, comme le
-  maïs, un simple plan tourné vers l'écran qu'on traverse.
+Nouveautés de la v6.73 :
+- **Gare de La Tour-du-Pin** refaite d'après les photos : le grand bâtiment à trois niveaux (volets gris, balconnets,
+  « GARE DE LA TOUR DU PIN » au-dessus des portes) et la longue aile basse aux encadrements de pierre.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

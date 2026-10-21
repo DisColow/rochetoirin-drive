@@ -3,12 +3,22 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 17/10/2026 (v6.64)
+## État au 21/10/2026 (v6.73)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip`.
-- Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). Après une régénération des bâtiments,
-  remettre les `.import` publiés : `git fetch origin donnees` puis, pour chaque `world/buildings/*.import`,
-  `git show FETCH_HEAD:world/buildings/<fichier>` (Godot donne sinon de nouveaux identifiants), puis réimporter.
+- En attente de l'utilisateur (étiquette `pending`) : #120 (carrière), #123 (tout le décor défonçable : 4 questions),
+  #124 (plan de performances : 4 questions ; répartition par système à ajouter en commentaire). Rien d'autre d'ouvert
+  hors `à tester`.
+- Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). `build_buildings.py` (25 min) EFFACE
+  `world/buildings` (`.import` compris) : remettre les `.import` publiés d'un coup :
+  `git fetch --filter=blob:none --depth=1 origin donnees` puis
+  `GIT_INDEX_FILE=$(mktemp -u) git --work-tree=godot checkout FETCH_HEAD -- 'world/buildings/*.import'`.
+  Comparer les empreintes (md5) avant/après : seules les tuiles du bâtiment doivent changer.
+- **Import Godot ici** : beaucoup de fichiers n'ont jamais été importés dans ce conteneur (1 643 tuiles de routes sans
+  `.import`, routes, eau, bâtiments de L'Isle-d'Abeau…) : un `godot --headless --import` complet les réimporte TOUS
+  (4 768 fichiers, 12 Go de mémoire après 1 150 : tué). Import ciblé : sortir du projet (renommer hors de `godot/`)
+  `world/roads`, `world/water`, `world/bord` et les `b_*.glb` inutiles, importer (1 min), tout remettre. Ne pas
+  utiliser `.gdignore`.
 - Captures : `--shots=<fichier.json>` (un CHEMIN de fichier, pas du JSON en ligne).
 - Street View : **plafond de 9 000 images par mois** (`pipeline/sv_budget.py`, compteur `pipeline/sources/sv_depenses.json`).
 - Réveil automatique de la session toutes les heures (routine « Reprise après limite d'utilisation », h+07).
@@ -17,13 +27,7 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   doit remettre `get_tree().paused = false` ; une étiquette `autowrap` dans une rangée (HBox) fausse la mise en page.
   Transcription d'un vocal : venv `scratchpad/fw` (faster-whisper, modèle « small », `language="fr"`).
 
-## À faire (vocal du 17/10, issues #105 à #121 ; faits en v6.63 : #104 #105 #106 #107 #110 #111 #112 #119 #121)
-- #108 plus d'épreuves ; #109 modèles de voitures à corriger (captures de chacune) ; #113 gare de La Tour-du-Pin sur
-  mesure (photos du cache d'abord, annoncer les appels Street View) ; #114 fausses affiches de cinéma ; #115 terrains
-  multisports (cages + paniers) ; #116 ombres plus loin ; #117 champs (fauchage plus large, blé en sprites, maïs en
-  simple aplat) ; #118 herbe de bien plus loin ; #120 proposition de mode carrière (pas de développement).
-- #105 : clôtures et murets font encore perdre ~6 km/h (casse.gd ne freine plus ; à chercher : boîtes voisines ?
-  essai `--casse-test --casse-genres=cloture,muret --casse-debug`).
+## Vocal du 17/10 (issues #105 à #121) : tout est livré (`à tester`), sauf #120 (carrière, `pending`)
 
 ## v6.63 (17/10)
 - #110 astuces sans fondu (`voile_demarrage.gd`) ; #111/#104 `radio.flash_permis()` (volume musique, `radio.taxi`
@@ -435,7 +439,7 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 ## v6.64 (21/10)
 - #118 herbe : portées doublées (grass.gd LEVELS 90/120/150/190 m, 3e bande > 70 m écartement ×4) ; #116 ombres : NIVEAUX ombre 140/220/360/480 m, cascade nette 45 m (split_1 = 45/portée). Aperçu docs/apercus/v664.jpg.
 - Reste : #105 (clôtures/murets freinent encore), #108, #109, #113, #114, #115, #117, #120.
-- Piège : --perf-breakdown trop lent ici (1 img/s, timeout) : mesure inutilisable.
+- (v6.73 : `--perf-breakdown` regroupé par système, utilisable ici en ~10 min ; voir v6.73.)
 
 ## v6.65 (21/10)
 - #105 : fences.breche retire les tronçons par distance au segment (avant : par sommets, un long tronçon touché au milieu restait : 45 -> 0 km/h ; après : 45 -> 39, reste = objet de jardin poussé). colgenres = genres alignés sur colfaces. Essai casse : arrivée perpendiculaire au tronçon ; car._touching donne le script du parent.
@@ -502,3 +506,21 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - Shader : céréales aussi en plan face à l'écran (v_plat pour cultures 0 et 1), contre-jour doré. Essais : en croix
   avec la texture dense (160 tiges/m) = bandes ; à plat avec un haut droit = « bottes de paille » ; retenu : contour
   irrégulier + plan unique. Aperçu v672.jpg (3 colonnes). Crédit ajouté (hud.gd).
+
+## v6.73 (21/10) : gare de La Tour-du-Pin (#113)
+- Photos : 3 vues Street View (compteur du mois 2 714 -> 2 717 / 9 000), `fetch_sv_batiments.py` : filtre
+  `--cleabs=ID,ID`, plafond de 700 compté par lancement (avant : total payé, qui bloquait tout). Clé Google : variable
+  `GOOGLE_MAPS_API_KEY` à mettre dans l'environnement de la session, jamais dans le dépôt. Photos poussées dans le cache
+  privé (rochetoirin-streetview 6196a71).
+- Relevé `sur_mesure/releves/gare_la_tour_du_pin.json` : aile basse u 0-27,6 (égout 4,7, 8 baies à encadrements de
+  pierre, corniche) + corps à 3 niveaux u 27,6-40,3 (égout 10,6, faîtage 12,4 ; portes vitrées sous linteaux gris,
+  « GARE DE LA TOUR DU PIN », logo parodié « SNIF », volets gris ouverts au 1er, clos au 2e, garde-corps). Caméras
+  corrigées (`cams`, tangage −7,5 / −5,5 / cap −3 et −5) : les caméras Google semblent à ~1,8 m du sol. Couleurs des
+  photos × 1,2 (× 1,3 donnait des murs presque blancs au soleil du jeu).
+- `build_buildings.py` (seule `b_10_10` change) puis `build_shops.py` : l'ancien volume portait une devanture
+  générique (usage « Commercial et services ») -> 64 tuiles `world/shops` + `enseignes2.png` republiées. 9 tuiles de
+  routes autour de la gare importées ici (`.import` créés, publiés). Comparatif : `planches/cmp_gare_la_tour_du_pin.jpg`
+  (cache privé) ; aperçu jeu `docs/apercus/v673.jpg`.
+- #124 : `--perf-breakdown` regroupe les nœuds par système (nom du script) et prend `NIVEAU=0..3` ; marche ici
+  (~10 min, nombres d'appels et de triangles justes, img/s sans valeur). Mesures et plan postés sur #124.
+- #123 : questions postées (gros arbres, autoroute, pylônes et monuments, durée), étiquette `pending`.
