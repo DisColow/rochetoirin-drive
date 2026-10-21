@@ -446,3 +446,7 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - #115 : build_sport.py : multisport > 60 m -> foot ; pas de paniers sur multisport herbe/synthétique ; paniers des city-stades au-dessus des buts (L/2 + 0,2). 132 -> 114 paniers. Aperçu docs/apercus/v666.jpg. Données publiées (donnees).
 - #120 : proposition de carrière postée, étiquette pending.
 - Reste : #108, #109, #113, #114, #117.
+
+## v6.67 (21/10)
+- #114 : FILMS de build_shops.py = 10 parodies (motifs dino et requin ajoutés), titres de 4 lignes en plus petit. Toutes les tuiles shops + atlas d enseignes republiés. Aperçus v667_affiches.jpg, v667_cinema.jpg.
+- Reste : #108 (courses), #109 (modèles de voitures), #113 (gare, Street View : annoncer le lot), #117 (champs).
