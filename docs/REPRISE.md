@@ -9,7 +9,14 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - **v6.78** (#124 étape 2) : `pipeline/alleger_pano.py` -> `world/far/pano.glb` 173 000 -> 30 000 triangles (silhouette
   à 2 px près, 0,32 % des pixels changent au plus) ; Économie au village 1 004 k -> 718 k triangles. Données publiées.
   Le panorama complet d'origine : `scratchpad/pano_complet.glb` (non versionné) ou l'historique de la branche `donnees`.
-- **À FAIRE ENSUITE (#124, validé par l'utilisateur : étapes 2 et 3 « dans l'ordre », pas pressé)** :
+- **#124 en attente (`pending`) : relevé de performances du TCL demandé (v6.78, Économie, village et Bourgoin)** avant la
+  suite, qui demande de régénérer et réimporter ~1 600 tuiles de bâtiments (l'import complet sature la mémoire ici).
+  Le relief cuit (`world/relief/albedo.png`, 3456 × 2176 sur toute la carte = 16 m/px) est trop grossier pour le sol
+  proche : l'étape 3 « relief cuit » serait plutôt un shader de Terrain3D allégé (moins de couches) en Économie.
+  Atlas des bâtiments sur mesure : minuscules (64 × 32 à 96 × 96 px, décalcomanies seulement) : un atlas commun par
+  tuile est faisable dans `batiment.py`.
+- **À FAIRE ENSUITE (#124, validé par l'utilisateur : étapes 2 et 3 « dans l'ordre », pas pressé ; ordre à revoir
+  d'après le relevé)** :
   1. Étape 2, point 9 : bâtiments sur mesure regroupés par tuile (`sur_mesure.gd` : un modèle + un atlas par bâtiment,
      28 appels au village, 60 au centre de Bourgoin ; il faut un atlas commun par tuile ou un Texture2DArray).
   2. Étape 2, point 11 : villes lointaines simplifiées (bâtiments génériques `buildings.gd` : 121 appels et 553 000
