@@ -11,7 +11,7 @@
 ##   arrivée dans trafic.bin, même calcul que signal_light.gdshader, horloge Env.temps_feux()) ; obstacle immobile
 ##   (épave, joueur arrêté) dépassé après ATTENTE s : autre file d'un sens unique, ou voie d'en face si elle est libre
 ##   (écart `dep` progressif le long de la voie, donc la voiture braque).
-##   Course contre des concurrents : leur tracé est dégagé (_route_course).
+##   Course contre des concurrents : leur tracé est dégagé et barré (_route_course, _sur_trace).
 ## - Autour du joueur : NOMBRE voitures selon le niveau de performances × réglage ⚙ > Conduite > Circulation ;
 ##   apparition hors de vue (ou au loin, dans le fondu), disparition au-delà de R_LOIN ; tout est replacé après une
 ##   téléportation (vider()).
@@ -55,6 +55,7 @@ const ATTENTE := 3.0                           # s derrière un obstacle immobil
 const DEGAGE := 85.0                           # voie d'en face libre sur cette longueur pour dépasser (m)
 const COURSE_MARGE := 30.0                     # course contre des concurrents : tracé dégagé sur cette largeur (m)
 const COURSE_CASE := 16.0
+const BARRAGE := 12.0                          # course : arrêt à cette distance du carrefour d'une rue du tracé (m)
 
 var target: Node3D
 var main: Node
@@ -95,6 +96,7 @@ var _id := 0
 var _remplir := true
 var _course_cases := {}                        # cases de COURSE_CASE m le long du tracé de la course en cours
 var _course_id := 0                            # concurrent dont le tracé a servi
+var _trace := {}                               # cases de 8 m -> points du tracé (voies qui le suivent : barrées)
 var _t := 0.0
 var _son_klaxon: AudioStream
 var _moteurs: Array = []                       # AudioStreamPlayer3D des voitures les plus proches
@@ -229,7 +231,7 @@ func _noeud_fin(voie: int) -> int:
 	return _b[voie >> 1] if voie & 1 == 0 else _a[voie >> 1]
 
 ## Voie suivante au bout de `voie` : plutôt tout droit et vers les grands axes, pas de demi-tour ni d'impasse s'il y a
-## mieux ; -1 si rien (impasse d'un sens unique).
+## mieux ; -1 si rien (impasse d'un sens unique) ; -2 si la seule suite est le tracé d'une course (route barrée).
 func _suite(voie: int) -> int:
 	var n := _noeud_fin(voie)
 	var t_fin: Vector2 = _geo(voie, _longueur(voie), 0)[1]
@@ -237,9 +239,14 @@ func _suite(voie: int) -> int:
 	var cands := []
 	var poids := []
 	var total := 0.0
+	var barre := false
+	var ferme := not _trace.is_empty() and not _sur_trace(voie)        # course : on ne s'engage pas sur le tracé
 	for i in range(_sort_debut[n], _sort_debut[n + 1]):
 		var w := _sort[i]
 		if w == retour:
+			continue
+		if ferme and _sur_trace(w):
+			barre = true
 			continue
 		var t0: Vector2 = _geo(w, 0.0, 0)[1]
 		var p := (1.6 + t_fin.dot(t0)) * float(CLASSE_POIDS[clampi((_fl[w >> 1] >> 8) & 15, 0, 10)])
@@ -247,6 +254,8 @@ func _suite(voie: int) -> int:
 			p *= 0.05
 		cands.append(w); poids.append(p); total += p
 	if cands.is_empty():
+		if barre:
+			return -2
 		return retour if not (_fl[voie >> 1] & 1) else -1
 	var r := randf() * total
 	for i in cands.size():
@@ -600,7 +609,10 @@ func _devant(c: Dictionary, obstacles: Array) -> Array:
 
 func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 	var k := int(c.voie) >> 1
-	if int(c.suite) < 0 and float(c.L) - float(c.s) < 60.0:
+	if int(c.suite) == -2 and _trace.is_empty():
+		c.suite = -1                            # fin de la course : la route est rouverte
+		c.impasse = false
+	if int(c.suite) == -1 and float(c.L) - float(c.s) < 60.0:
 		c.suite = _suite(int(c.voie))
 		c.clign = _clignotant(int(c.voie), int(c.suite))
 	var v0: float = _v[k] * float(c.perso)
@@ -636,6 +648,9 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 				gap = g2; vl = 0.0; c.leader = "carrefour"
 	if int(c.suite) < 0 and _deg[n] <= 1 and reste < gap:
 		gap = reste - 2.0; vl = 0.0; c.leader = "impasse"
+	if int(c.suite) == -2 and reste - BARRAGE < gap:            # route barrée par une course : arrêt avant le carrefour
+		gap = reste - BARRAGE; vl = 0.0; c.leader = "barrage"
+		c.impasse = true
 	# obstacle immobile devant (épave, joueur arrêté, concurrent) : on le dépasse après ATTENTE s
 	if (c.dep as Array).is_empty() and String(c.leader) in ["joueur", "épave", "concurrent"] and float(c.v) < 0.5 \
 			and vl < 0.3 and gap < 12.0:
@@ -666,7 +681,7 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 	c.s = float(c.s) + v * dt
 	c.roue = fmod(float(c.roue) + v * dt / RAYON_ROUE, TAU)
 	while float(c.s) >= float(c.L):
-		if int(c.suite) < 0:
+		if int(c.suite) == -1:
 			c.suite = _suite(int(c.voie))
 		if int(c.suite) < 0:
 			c.s = c.L; c.v = 0.0; c.impasse = true
@@ -907,14 +922,16 @@ func _epaves(dt: float) -> void:
 
 ## Course contre des concurrents (activities.mode « course ») : leur tracé est dégagé sur COURSE_MARGE m de part et
 ## d'autre (sinon, en circulation dense, le peloton percutait voiture sur voiture et s'empilait sur les épaves dans les
-## rues étroites des villages) : au départ, voitures et épaves du tracé retirées ; ensuite, aucune n'y apparaît. Celles
-## qui y entrent par un carrefour restent (les concurrents les évitent, concurrent.gd).
+## rues étroites des villages) : au départ, voitures et épaves du tracé retirées ; ensuite, aucune n'y apparaît, et
+## celles d'ailleurs ne s'engagent plus sur le tracé (_suite : -2, arrêt BARRAGE m avant le carrefour, comme devant une route barrée,
+## puis retirées hors de vue) ; les concurrents évitent celles qui le traversent (concurrent.gd).
 func _route_course() -> void:
 	var act = main.get("activities") if main else null
 	var cs = act.get("concurrents") if act else null
 	if act == null or str(act.mode) != "course" or cs == null or (cs as Array).is_empty() or not is_instance_valid(cs[0]):
 		if not _course_cases.is_empty():
 			_course_cases = {}
+			_trace = {}
 			_course_id = 0
 		return
 	var c0 = cs[0]
@@ -922,9 +939,14 @@ func _route_course() -> void:
 		return
 	_course_id = c0.get_instance_id()
 	_course_cases = {}
+	_trace = {}
 	var r := ceili(COURSE_MARGE / COURSE_CASE)
 	var vu := {}
 	for q: Vector2 in c0._chemin:
+		var kt := Vector2i(floori(q.x / 8.0), floori(q.y / 8.0))
+		if not _trace.has(kt):
+			_trace[kt] = PackedVector2Array()
+		(_trace[kt] as PackedVector2Array).append(q)
 		var k := Vector2i(floori(q.x / COURSE_CASE), floori(q.y / COURSE_CASE))
 		if vu.has(k):
 			continue
@@ -940,6 +962,27 @@ func _route_course() -> void:
 		if is_instance_valid(rb) and _sur_course((rb as Node3D).global_position):
 			rb.queue_free()
 			epaves.remove_at(i)
+
+## La voie suit-elle le tracé de la course ? (deux de ses points, vers 8 et 20 m, à moins de 6 m du tracé)
+func _sur_trace(voie: int) -> bool:
+	var L := _longueur(voie)
+	for s in [minf(8.0, L * 0.4), minf(20.0, L * 0.8)]:
+		var p: Vector3 = _geo(voie, s, 0)[0]
+		var k := Vector2i(floori(p.x / 8.0), floori(p.z / 8.0))
+		var pres := false
+		for dx in range(-1, 2):
+			for dz in range(-1, 2):
+				for q: Vector2 in _trace.get(k + Vector2i(dx, dz), PackedVector2Array()):
+					if q.distance_squared_to(Vector2(p.x, p.z)) < 36.0:
+						pres = true
+						break
+				if pres:
+					break
+			if pres:
+				break
+		if not pres:
+			return false
+	return true
 
 func _sur_course(p: Vector3) -> bool:
 	return not _course_cases.is_empty() and _course_cases.has(Vector2i(floori(p.x / COURSE_CASE), floori(p.z / COURSE_CASE)))
