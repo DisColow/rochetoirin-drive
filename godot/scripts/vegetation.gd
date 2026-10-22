@@ -10,7 +10,7 @@ const NEAR_MARGIN := 14.0     # avance possible de la caméra entre deux choix d
 const SPECIES := ["chene", "feuillu", "chene2", "bouleau", "peuplier", "epicea", "sapin", "pin"]
 # niveaux de densité : part des arbres, portée des imposteurs (m), rayon des modèles 3D (m), nombre max de modèles 3D
 const LEVELS := [
-	{"name": "Faible", "frac": 0.3, "far": 700.0, "near": 45.0, "max_near": 50},
+	{"name": "Faible", "frac": 0.0, "far": 300.0, "near": 45.0, "max_near": 0},   # Économie (#124) : pas d'arbres du tout
 	{"name": "Moyenne", "frac": 0.55, "far": 1000.0, "near": 60.0, "max_near": 90},
 	{"name": "Élevée", "frac": 0.8, "far": 1650.0, "near": 70.0, "max_near": 140},
 	{"name": "Maximale", "frac": 1.0, "far": 2200.0, "near": 80.0, "max_near": 220},

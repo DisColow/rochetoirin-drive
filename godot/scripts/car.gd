@@ -122,6 +122,9 @@ func construire(id: String) -> void:
 	for b in _beams:
 		b.queue_free()
 	_beams.clear()
+	for q in _coronas:
+		q.queue_free()
+	_coronas.clear()
 	_paint_mat = null; _lamp_mat = null; _tail_mat = null
 	# fiche technique
 	base_masse = float(fiche.masse)
@@ -176,7 +179,9 @@ func construire(id: String) -> void:
 		var front := i < 2
 		var right := i % 2 == 0
 		var w := VehicleWheel3D.new()
-		w.position = Vector3((-1.0 if right else 1.0) * tr / 2, r_mod + (0.12 if ranger else 0.08) - (r - r_mod), (1.0 if front else -1.0) * wb / 2)
+		# #126 : autres voitures +5 cm (mesuré : caisse à 4,5 cm au-dessus du sol du modèle, roues 5 cm trop bas dans
+		# leurs passages de roue : toutes les voitures du garage paraissaient surélevées)
+		w.position = Vector3((-1.0 if right else 1.0) * tr / 2, r_mod + (0.12 if ranger else 0.13) - (r - r_mod), (1.0 if front else -1.0) * wb / 2)
 		w.wheel_radius = r
 		w.suspension_travel = 0.24 if ranger else 0.16     # pick-up : suspensions Fox à grand débattement
 		w.suspension_stiffness = 38.0 if ranger else 48.0
@@ -200,6 +205,8 @@ func construire(id: String) -> void:
 	(_blob.mesh as PlaneMesh).size = Vector2(gabarit.x * 1.15, gabarit.z * 0.91)
 	if tuning:
 		tuning.lier()
+	if lights_on:
+		set_lights(true)                 # #126 : la nuit, la nouvelle voiture rallume ses phares
 	# le sprite pixel art (option masquée depuis la v6.0) n'est construit qu'à la demande : ses 4 planches non
 	# compressées occupaient ~170 Mo de mémoire vidéo pour rien (cause probable de l'image figée, v6.5)
 
@@ -307,6 +314,8 @@ func _apply_sprite() -> void:
 
 func _process(_dt: float) -> void:
 	var t0_perf := Time.get_ticks_usec()
+	if _phares_factices:
+		_maj_phares_factices()
 	_process_corps(_dt)
 	PerfMon.note("car", Time.get_ticks_usec() - t0_perf)
 
@@ -370,7 +379,6 @@ func _process_corps(_dt: float) -> void:
 	var up_v := cam.global_basis.inverse() * global_basis.y
 	_sprite_mat.set_shader_parameter("roll", atan2(up_v.x, up_v.y))
 	_squash_stretch(cam, get_process_delta_time())
-	var lights_on: bool = not _beams.is_empty() and _beams[0].visible
 	_sprite_mat.set_shader_parameter("head", 1.0 if lights_on else 0.0)
 	_sprite_mat.set_shader_parameter("tail", (0.8 if lights_on else 0.0) + (1.2 if brake > 1.0 else 0.0))
 
@@ -401,6 +409,7 @@ func _squash_stretch(cam: Camera3D, dt: float) -> void:
 	_sprite_mat.set_shader_parameter("squash", _sq)
 
 var _wheel_node: Node3D
+var _volant_avant := true            # visibilité du volant 3D avant l'explosion
 var _wheel_rim: Node3D
 var _blob: MeshInstance3D
 
@@ -527,23 +536,30 @@ func blow_up() -> void:
 	_blob.visible = false
 	for w in wheels:
 		w.visible = false
+	if _wheel_node:                      # #126 : le volant 3D restait suspendu en l'air pendant l'explosion
+		_volant_avant = _wheel_node.visible
+		_wheel_node.visible = false
+	for q in _coronas:
+		q.visible = false
 	freeze = true
 
 ## #121 : choc contre un obstacle indestructible au-delà de VITESSE_BOUM (vitesse perdue d'un coup, détectée par
-## audio.gd) : petit champignon atomique façon Looney Tunes (champignon.gd), puis la voiture revient sur la route.
+## audio.gd) : explosion (#129, explosion.gd : style choisi dans ⚙ > Conduite), puis la voiture revient sur la route.
 const VITESSE_BOUM := 60.0          # km/h
+var style_explosion := "mini"        # « film », « mini » ou « atomique » (#129, ⚙ > Conduite)
 func exploser() -> void:
 	if blown or carried:
 		return
 	if get_parent().get("carriere"):
 		get_parent().carriere.explosion()                # carrière (#120) : le KA-BOOM coûte de la réputation
-	var ch = preload("res://scripts/champignon.gd").new()
-	get_parent().add_child(ch)
-	ch.global_position = global_position - Vector3(0, 0.3, 0)
+	var fx = preload("res://scripts/explosion.gd").new()
+	fx.style = style_explosion
+	fx.position = global_position - Vector3(0, 0.3, 0)       # avant add_child : _ready lit le sol sous ce point
+	get_parent().add_child(fx)
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
 	blow_up()
-	await get_tree().create_timer(3.2).timeout
+	await get_tree().create_timer(float(fx.duree) + 0.1).timeout
 	respawn_at(Vector3.INF, 0.0)
 
 ## Réapparition après l'explosion (position et cap choisis par le gardien ; INF : route la plus proche).
@@ -558,7 +574,10 @@ func respawn_at(p: Vector3, heading_deg: float) -> void:
 	_blob.visible = true
 	for w in wheels:
 		w.visible = true
+	if _wheel_node:
+		_wheel_node.visible = _volant_avant
 	blown = false
+	_maj_coronas(lights_on)
 	_apply_sprite()
 
 var _lamp_mat: StandardMaterial3D
@@ -575,13 +594,20 @@ var _tail_mat: StandardMaterial3D
 var _beams := []
 var _meta := {}
 
-## Phares (soir, nuit) : deux faisceaux, optiques et feux arrière lumineux.
+## Phares (soir, nuit) : deux faisceaux, optiques et feux arrière lumineux. Réglage Économie (#124) : pas de vraies
+## lampes, la lumière des phares est calculée par le sol, les routes et les murs (env.gdshaderinc, env_phares_lum).
+var _phares_factices := false
+var lights_on := false
 func set_lights(on: bool) -> void:
-	if _beams.is_empty() and on:
-		var bm: Array = _meta.get("beams", [0.585, 0.69, 2.2])
-		for sx in [-float(bm[0]), float(bm[0])]:
+	lights_on = on
+	_phares_factices = on and int(Engine.get_meta("niveau_perf", 1)) == 0
+	if not _phares_factices:
+		preload("res://scripts/env.gd").set_phares(Vector4.ZERO, Vector4(0, 0, 1, 45), Vector3.ONE)
+	if _beams.is_empty() and on and not _phares_factices:
+		var bm := _phares_pos()
+		for sx in [-bm.x, bm.x]:
 			var s := SpotLight3D.new()
-			s.position = Vector3(sx, float(bm[1]), float(bm[2]))
+			s.position = Vector3(sx, bm.y, bm.z)
 			s.rotation = Vector3(deg_to_rad(-4.0), PI, 0)        # vers l'avant (+Z) et un peu vers le bas
 			s.spot_range = 45.0
 			s.spot_angle = 28.0
@@ -592,7 +618,8 @@ func set_lights(on: bool) -> void:
 			add_child(s)
 			_beams.append(s)
 	for s in _beams:
-		s.visible = on
+		s.visible = on and not _phares_factices
+	_maj_coronas(on)
 	if _lamp_mat:
 		_lamp_mat.emission_enabled = on
 		_lamp_mat.emission = Color(1.0, 0.95, 0.85)
@@ -601,6 +628,81 @@ func set_lights(on: bool) -> void:
 		_tail_mat.emission_enabled = on
 		_tail_mat.emission = Color(0.9, 0.05, 0.03)
 		_tail_mat.emission_energy_multiplier = 2.0
+
+## Position des phares (x = demi-écart, y = hauteur, z = avant) d'après meta.json. #126 : pour quatre voitures du garage
+## (Clia, Deuche, Espèce, Porc'Che : z = 3,8 / 2,6 / 4,8 / -17 m), blender_voitures_joueur.py a mesuré l'avant sur une
+## pièce qui dépasse : faisceaux devant la voiture dans le vide, ou derrière elle. Hors du nez de la caisse, on
+## prend le bout de la caisse (dims[0] = longueur).
+func _phares_pos() -> Vector3:
+	var bm: Array = _meta.get("beams", [0.585, 0.69, 2.2])
+	var z := float(bm[2])
+	var dims: Array = _meta.get("dims", [])
+	if dims.size() >= 1:
+		var demi := float(dims[0]) * 0.5
+		if z < demi * 0.75 or z > demi * 1.15:
+			z = demi - 0.12
+	return Vector3(float(bm[0]), float(bm[1]), z)
+
+## #126 : halos des phares et des feux arrière (« coronas », comme GTA) : la plupart des voitures du garage ont leurs
+## optiques peintes dans une texture, donc rien ne s'allumait la nuit. Disque lumineux face à la caméra, posé au nez et à
+## l'arrière de la caisse, visible seulement du côté où l'optique regarde.
+var _coronas: Array = []
+const CORONA_SHADER := """
+shader_type spatial;
+render_mode unshaded, cull_disabled, skip_vertex_transform;
+uniform vec3 coul : source_color = vec3(1.0, 0.95, 0.82);
+uniform float taille = 0.5;
+uniform float sens = 1.0;          // +1 : optique vers l'avant de la voiture, -1 : vers l'arrière
+varying float v_face;
+void vertex() {
+	vec3 c = (MODELVIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+	vec3 axe = normalize((MODELVIEW_MATRIX * vec4(0.0, 0.0, sens, 0.0)).xyz);
+	v_face = smoothstep(0.05, 0.5, dot(axe, normalize(-c)));
+	c += normalize(-c) * 0.12;      // un peu vers la caméra : pas coupé par le bord de la caisse
+	VERTEX = c + vec3(VERTEX.xy * taille, 0.0);
+}
+void fragment() {
+	float k = pow(clamp(1.0 - length(UV - 0.5) * 2.0, 0.0, 1.0), 1.6) * v_face;
+	ALBEDO = coul * (0.7 + 1.6 * k);
+	const float BAYER[16] = { 0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0 };
+	if (k <= (BAYER[int(mod(FRAGCOORD.x, 4.0)) + int(mod(FRAGCOORD.y, 4.0)) * 4] + 0.5) / 16.0) {
+		discard;
+	}
+}
+"""
+func _maj_coronas(on: bool) -> void:
+	if on and _coronas.is_empty() and _body:
+		var bm := _phares_pos()
+		var dims: Array = _meta.get("dims", [])
+		var bx: Array = _meta.get("box", [1.76, 1.15, 4.24])
+		var arr := -(float(dims[0]) * 0.5 - 0.1) if dims.size() >= 1 else -float(bx[2]) * 0.5
+		var sh := Shader.new()
+		sh.code = CORONA_SHADER
+		for f in [[bm.z, Color(1.0, 0.95, 0.82), 0.55, 1.0], [arr, Color(1.0, 0.1, 0.06), 0.34, -1.0]]:
+			var m := ShaderMaterial.new()
+			m.shader = sh
+			m.set_shader_parameter("coul", f[1])
+			m.set_shader_parameter("taille", f[2])
+			m.set_shader_parameter("sens", f[3])
+			var qm := QuadMesh.new()
+			qm.material = m
+			for sx in [-bm.x, bm.x]:
+				var q := MeshInstance3D.new()
+				q.mesh = qm
+				q.position = Vector3(sx, bm.y, f[0])
+				q.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				add_child(q)
+				_coronas.append(q)
+	for q in _coronas:
+		q.visible = on and not blown
+
+func _maj_phares_factices() -> void:
+	var bm := _phares_pos()
+	var p := global_transform * Vector3(0.0, bm.y, bm.z)
+	var d := (global_basis * Vector3(0.0, -0.07, 1.0)).normalized()
+	var on := visible and not blown
+	preload("res://scripts/env.gd").set_phares(Vector4(p.x, p.y, p.z, 1.7 if on else 0.0), Vector4(d.x, d.y, d.z, 45.0),
+		Vector3(phare_couleur.r, phare_couleur.g, phare_couleur.b))
 
 func place(p: Vector3, heading_deg: float) -> void:
 	# cap : 0 = Nord (-Z), sens horaire ; l'avant du véhicule est +Z
@@ -702,6 +804,12 @@ func _physics_process(dt: float) -> void:
 		else:
 			for w in wheels:
 				w.brake = BRAKE * k_frein * 1.6 * fm if not w.use_as_steering else w.brake
+	# le frein des roues de Godot est une impulsion par pas de physique (non multipliée par la durée du pas) : réglé à
+	# 120 pas/s, il freinait deux fois moins à 60 pas/s (Économie, #124 : 100 à 0 km/h en 32,7 m au lieu de 23,5 m)
+	var k_pas := 120.0 / float(Engine.physics_ticks_per_second)
+	if k_pas != 1.0:
+		for w in wheels:
+			w.brake *= k_pas
 	# aide au freinage (pédale opposée au sens de marche), seulement roues au sol
 	var pedale := thr if reversing else brk
 	if pedale > 0.1 and linear_velocity.length() > 0.5 and wheels.any(func(w): return w.is_in_contact()):
@@ -717,7 +825,7 @@ func _physics_process(dt: float) -> void:
 		apply_central_force(-linear_velocity.normalized() * mass * 9.81 * 0.015)
 	var side := global_transform.basis.x
 	var lat := linear_velocity.dot(side)
-	apply_central_force(-side * lat * mass * 0.6 * dt * 60.0 * 0.05)
+	apply_central_force(-side * lat * mass * 0.6 * 0.5 * 0.05)    # (0,5 = dt × 60 à 120 pas/s : même effet à 60 pas/s)
 	_anti_roll()
 	_recovery(dt)
 

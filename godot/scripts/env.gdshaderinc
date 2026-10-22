@@ -25,6 +25,30 @@ vec3 env_casse(vec3 wp) {
 }
 uniform vec3 env_cam = vec3(0.0);
 
+// Phares factices (réglage Économie, #124) : pas de vraie lampe (en Compatibility, chaque lampe redessine une fois de
+// plus chaque objet qu'elle touche) ; le sol, les routes et les murs ajoutent eux-mêmes la lumière des phares du joueur.
+//  env_phares      : xyz = milieu des deux phares (monde), w = intensité (0 : éteints) ;
+//  env_phares_dir  : xyz = axe du faisceau (monde, normé), w = portée (m) ; env_phares_coul : couleur.
+uniform vec4 env_phares = vec4(0.0);
+uniform vec4 env_phares_dir = vec4(0.0, 0.0, 1.0, 45.0);
+uniform vec3 env_phares_coul = vec3(1.0, 0.93, 0.8);
+// Lumière des phares reçue en un point du monde (à ajouter : EMISSION += ALBEDO * env_phares_lum(wp)).
+vec3 env_phares_lum(vec3 wp) {
+	if (env_phares.w <= 0.0) {
+		return vec3(0.0);
+	}
+	vec3 v = wp - env_phares.xyz;
+	float d = dot(v, env_phares_dir.xyz);
+	if (d <= 0.2 || d > env_phares_dir.w) {
+		return vec3(0.0);
+	}
+	// deux phares écartés de ~1,2 m : faisceau large dès le pare-chocs, qui s'ouvre (~16°) et s'éteint au loin
+	float lat = length(v - env_phares_dir.xyz * d);
+	float cone = 1.0 - smoothstep(0.8 + d * 0.22, 1.6 + d * 0.42, lat);
+	float att = pow(1.0 - d / env_phares_dir.w, 1.7) * smoothstep(0.2, 3.0, d);
+	return env_phares_coul * env_phares.w * cone * att;
+}
+
 // Rafales qui traversent le paysage dans le sens du vent (0 … 1).
 float env_gust(vec2 p) {
 	vec2 d = wind.xy;

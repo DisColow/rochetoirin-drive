@@ -267,7 +267,8 @@ func _night_lights() -> void:
 		return
 	var c := target.global_position
 	var best := []
-	if night > 0.2:
+	# Économie (#124) : pas de vraies lampes (une passe de dessin de plus par objet éclairé) ; têtes lumineuses seules
+	if night > 0.2 and int(Engine.get_meta("niveau_perf", 1)) != 0:
 		for k in lamps:
 			for h: Vector3 in lamps[k]:
 				var d := h.distance_squared_to(c)

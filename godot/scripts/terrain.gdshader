@@ -10,6 +10,7 @@ uniform vec4 trample_zone = vec4(0.0, 0.0, 96.0, 0.0);
 // cuisson du relief de remplacement (tools/bake_relief.gd) : 1 albédo, 2 normale du monde, 3 rugosité / AO / spéculaire
 uniform int bake_mode = 0;
 uniform sampler2D crops_albedo : source_color, filter_linear_mipmap, repeat_enable;
+uniform float terre_labouree = 0.0;   // Économie (#124) : champs en terre labourée, sans la teinte de la photo aérienne
 uniform vec3 _camera_pos = vec3(0.f);
 uniform float _mesh_size = 48.f;
 uniform uint _background_mode = 1u;
@@ -407,11 +408,18 @@ void fragment() {
  macrov = mix(vec3(1.0), macrov, clamp(w_normal.y + macro_variation_slope, 0., 1.));
  }
 
+ // Économie (#124) : la terre des champs (texture 4) perd la teinte des cultures de la photo (vert, blond)
+ if (terre_labouree > 0.0) {
+  float k4 = (texture_ids[3].x == 4 ? t_weights[3].x : 0.0) + (texture_ids[3].y == 4 ? t_weights[3].y : 0.0);
+  float lum = dot(color_map.rgb, vec3(0.3333));
+  color_map.rgb = mix(color_map.rgb, vec3(lum) * vec3(1.06, 0.96, 0.84), k4 * terre_labouree);
+ }
  float roughness = clamp( ((color_map.a - 0.5) * (2.0) + (mat.normal_rough.a)) , 0., 1.);
 
  // ambiance : ombre des nuages, sol mouillé (plus sombre et brillant, surtout à plat)
  float wet_k = wet * smoothstep(0.6, 0.95, w_normal.y);
  ALBEDO = mat.albedo_height.rgb * color_map.rgb * macrov * env_cloud(v_vertex.xz) * (1.0 - 0.38 * wet_k);
+ EMISSION = ALBEDO * env_phares_lum(v_vertex);
  ROUGHNESS = mix(roughness, 0.22, wet_k * 0.85);
  if (trample_zone.w > 0.5) {
   vec2 tuv = (v_vertex.xz - trample_zone.xy) / trample_zone.z;

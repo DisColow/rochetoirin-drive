@@ -57,6 +57,7 @@ void fragment() {
 		float lit = step(0.5, hash(floor(wpos.xz * 0.9) + floor(wpos.y / 2.7) * 7.31));
 		EMISSION = vec3(1.0, 0.72, 0.42) * 1.8 * night * lit * a.a;
 	}
+	EMISSION += ALBEDO * env_phares_lum(wpos);
 	ROUGHNESS = mix(n.a, 0.04, a.a) * (1.0 - 0.45 * wet);
 	SPECULAR = mix(0.4, 0.9, a.a);
 	METALLIC = 0.0;

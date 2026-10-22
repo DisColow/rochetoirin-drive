@@ -143,11 +143,22 @@ func _epreuves() -> void:
 	var c: Vector2 = act._car2()
 	var tri: Array = act.epreuves.duplicate()
 	tri.sort_custom(func(a, b): return c.distance_to(Vector2(a.a[0], a.a[1])) < c.distance_to(Vector2(b.a[0], b.a[1])))
+	var niv: int = act.niveau_menu
 	var faites := 0
 	for e in tri:
-		if act._medaille(int(e.id)) != "":
+		if act._medaille(int(e.id), niv) != "":
 			faites += 1
-	_texte(l, "%d / %d épreuves réussies" % [faites, tri.size()], 24, Color(1.0, 0.85, 0.45))
+	# #127 : niveau de difficulté (temps des médailles resserrés, primes multipliées)
+	var hn := HBoxContainer.new()
+	hn.add_theme_constant_override("separation", 8)
+	l.add_child(hn)
+	for k in act.NIVEAUX_EP.size():
+		var bn := _bouton(hn, "%s  ×%s" % [act.NIVEAUX_EP[k][0], str(act.NIVEAUX_EP[k][2]).replace(".", ",")],
+			func(): act.niveau_menu = k; _aller(0), 0.0, 24)
+		bn.toggle_mode = true
+		bn.button_pressed = k == niv
+		bn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_texte(l, "%d / %d épreuves réussies en %s" % [faites, tri.size(), act.NIVEAUX_EP[niv][0]], 24, Color(1.0, 0.85, 0.45))
 	if choix < 0 and not tri.is_empty():
 		choix = int(tri[0].id)
 	for e in tri:
@@ -164,7 +175,7 @@ func _epreuves() -> void:
 		r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		r.add_theme_constant_override("separation", 12)
 		b.add_child(r)
-		var md := Medaille.new(act._medaille(id), 60.0)
+		var md := Medaille.new(act._medaille(id, niv), 60.0)
 		md.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		r.add_child(md)
 		var t := VBoxContainer.new()
@@ -200,8 +211,9 @@ func _fiche(h: Control, e: Dictionary) -> void:
 	pts.append(Vector2(e.b[0], e.b[1]))
 	carte.montrer(pts)
 	var id := int(e.id)
-	var rec = act.main.garage.records.get(str(id)) if act.main.garage else null
-	var med: String = act._medaille(id)
+	var niv: int = act.niveau_menu
+	var rec = act.main.garage.records.get(act.cle_ep(id, niv)) if act.main.garage else null
+	var med: String = act._medaille(id, niv)
 	var lr := HBoxContainer.new()
 	lr.add_theme_constant_override("separation", 10)
 	v.add_child(lr)
@@ -217,12 +229,16 @@ func _fiche(h: Control, e: Dictionary) -> void:
 		cell.add_theme_constant_override("separation", 4)
 		lt.add_child(cell)
 		cell.add_child(Medaille.new(m, 40.0))
-		_texte(cell, act._fmt(float(e[m])), 23).autowrap_mode = TextServer.AUTOWRAP_OFF
+		var tc := VBoxContainer.new()
+		tc.add_theme_constant_override("separation", 0)
+		cell.add_child(tc)
+		_texte(tc, act._fmt(act.temps_medaille(e, m, niv)), 23).autowrap_mode = TextServer.AUTOWRAP_OFF
+		_texte(tc, act._euros(act.prime_medaille(e, m, niv)), 19, Color(0.6, 1.0, 0.6)).autowrap_mode = TextServer.AUTOWRAP_OFF
 	_texte(v, "%.1f km · %d point(s) de passage" % [float(e.km), e.etapes.size()], 21, Color(1, 1, 1, 0.65))
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 12)
 	v.add_child(hb)
-	var go := _bouton(hb, "▶ Lancer", func(): act._close_menu(true); act._epreuve_depart(id))
+	var go := _bouton(hb, "▶ Lancer (%s)" % act.NIVEAUX_EP[niv][0], func(): act._close_menu(true); act._epreuve_depart(id, niv))
 	go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	go.disabled = act.mode != ""
 	var ret := _bouton(hb, "Retour", act._resume)

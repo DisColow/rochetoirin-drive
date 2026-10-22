@@ -103,7 +103,7 @@ func _process_corps(dt: float) -> void:
 
 ## Construit au plus une case manquante (la plus proche) et retire les cases trop lointaines ; faux s'il n'y a rien à faire.
 func _step() -> bool:
-	if target == null or terrain == null:
+	if target == null or terrain == null or level == 0:     # Économie (#124) : pas d'herbe
 		return false
 	var c := target.global_position
 	var r: float = LEVELS[level][0]

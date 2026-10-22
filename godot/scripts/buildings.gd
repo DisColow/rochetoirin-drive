@@ -35,6 +35,7 @@ func _ready() -> void:
 	mat = ShaderMaterial.new()
 	mat.shader = preload("res://scripts/building.gdshader")
 	preload("res://scripts/env.gd").add(mat)
+	preload("res://scripts/env.gd").phares_sur(mat)
 	mat.set_shader_parameter("albedo_tex", load("res://assets/bld/albedo.png"))
 	mat.set_shader_parameter("normal_tex", load("res://assets/bld/normal.png"))
 	if ResourceLoader.exists("res://assets/maisons/fenetre.glb"):

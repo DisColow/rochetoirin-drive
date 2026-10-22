@@ -38,6 +38,7 @@ void fragment() {
 		}
 	}
 	ALBEDO = c * env_cloud(v_wp.xz) * (1.0 - 0.35 * wet);
+	EMISSION += ALBEDO * env_phares_lum(v_wp);
 	ROUGHNESS = mix(0.95, 0.4, wet);
 	SPECULAR = 0.2;
 }

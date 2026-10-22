@@ -50,6 +50,7 @@ func _ready() -> void:
 	mat_sol = ShaderMaterial.new()
 	mat_sol.shader = preload("res://scripts/crops_sol.gdshader")
 	preload("res://scripts/env.gd").add(mat_sol)
+	preload("res://scripts/env.gd").phares_sur(mat_sol)
 	preload("res://scripts/env.gd").fade(mat_sol, RANGE[level] + 15.0)
 	mat_sol.set_shader_parameter("dirt", load("res://assets/tex/dirt_albedo.jpg"))
 	# deux plans croisés de 1 × 1 (pied en 0), UV.y = 0 en haut
@@ -271,7 +272,7 @@ func _poser(k: Vector2i, res: Array) -> void:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		root.add_child(mi)
 	var count: int = res[1]
-	if count > 0:
+	if count > 0 and level > 0:          # Économie (#124) : pas de plants, la terre à sillons seule
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_custom_data = true

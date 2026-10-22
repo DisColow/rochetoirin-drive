@@ -33,4 +33,5 @@ void fragment() {
 		ALBEDO = tint * env_cloud(wpos.xz) * (1.0 - wet_dark * 0.5 * k);
 		ROUGHNESS = mix(rough, 0.2, k * 0.8);
 	}
+	EMISSION += ALBEDO * env_phares_lum(wpos);
 }

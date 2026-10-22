@@ -19,6 +19,7 @@ void fragment() {
 	}
 	float dirt = (1.0 - smoothstep(0.3, 0.75, v_y)) * (1.0 - wet * 0.7);
 	ALBEDO = mix(v_col, vec3(0.42, 0.38, 0.32), dirt * 0.35) * env_cloud(v_wp.xz);
+	EMISSION += ALBEDO * env_phares_lum(v_wp);
 	ROUGHNESS = mix(mix(0.32, 0.6, dirt), 0.08, wet);
 	METALLIC = 0.15;
 	CLEARCOAT = 0.7;

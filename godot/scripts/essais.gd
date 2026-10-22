@@ -76,6 +76,9 @@ func _shots(path: String) -> void:
 				await get_tree().physics_frame
 			car.touch_throttle = 0.0
 			get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % s.name)
+			var EnvP := preload("res://scripts/env.gd")
+			print("  phares : factices=%s allumés=%s %s (%d matériaux, relief %s)" % [car._phares_factices, car.lights_on,
+				str(EnvP.phares[0]), EnvP.phare_mats.size(), EnvP.terrain_mat != null])
 			print("capture ", s.name, " : objets ", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
 				", appels de dessin ", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
 				", primitives ", Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
@@ -431,17 +434,24 @@ func _perf_breakdown() -> void:
 			c.visible = true
 		if ref[1] - m[1] != 0 or ref[0] - m[0] >= 1.0:
 			print("[répartition] %-18s %6.0fk triangles  %5d appels  %+5.1f img/s  (%d nœuds)" % [cle, ref[0] - m[0], ref[1] - m[1], m[2] - ref[2], groupes[cle].size()])
+	# réglage coupé puis remis à son état d'avant (en Économie, ombres et anticrénelage sont déjà coupés : sautés)
+	var vp := get_viewport()
 	var essais := [
-		["ombres", func(on): _sun.shadow_enabled = on],
-		["anticrénelage", func(on): get_viewport().msaa_3d = Viewport.MSAA_4X if on else Viewport.MSAA_DISABLED],
-		["post-traitement", func(on): if post: post.visible = on],
-		["brouillard", func(on): _env.fog_enabled = on],
-		["lueur", func(on): _env.glow_enabled = on],
+		["ombres", _sun.shadow_enabled, func(): _sun.shadow_enabled = false, func(): _sun.shadow_enabled = true],
+		["anticrénelage", vp.msaa_3d != Viewport.MSAA_DISABLED, func(): vp.msaa_3d = Viewport.MSAA_DISABLED, func(): pass],
+		["post-traitement", post != null and post.visible, func(): post.visible = false, func(): post.visible = true],
+		["brouillard", _env.fog_enabled, func(): _env.fog_enabled = false, func(): _env.fog_enabled = true],
+		["lueur", _env.glow_enabled, func(): _env.glow_enabled = false, func(): _env.glow_enabled = true],
 	]
+	var msaa0 := vp.msaa_3d
 	for e in essais:
-		e[1].call(false)
+		if not e[1]:
+			print("[répartition] %s : déjà coupé" % e[0])
+			continue
+		e[2].call()
 		var m: Array = await mesure.call()
-		e[1].call(true)
+		e[3].call()
+		vp.msaa_3d = msaa0
 		print("[répartition] sans %-14s %6.0fk triangles  %5d appels  %+5.1f img/s" % [e[0], ref[0] - m[0], ref[1] - m[1], m[2] - ref[2]])
 	get_tree().quit()
 
@@ -455,6 +465,13 @@ func _physics_process(_dt: float) -> void:
 	var t := Engine.get_physics_frames()
 	if t == 1:
 		print("départ ", car.global_position)
+	if not has_meta("niv_fixe") and OS.get_environment("NIVEAU") != "" and Chargement.fini:
+		set_meta("niv_fixe", true)
+		# niveau de qualité imposé pour tous les essais de conduite (#124 : physique à 60 pas en Économie)
+		perf_auto = false
+		get_node("HUD").appliquer_niveau(int(OS.get_environment("NIVEAU")))
+		print("niveau imposé %d : physique %d pas/s, %d img/s au plus" % [int(OS.get_environment("NIVEAU")),
+			Engine.physics_ticks_per_second, Engine.max_fps])
 	var dur := 3000 if OS.get_cmdline_user_args().has("--long") else 1200
 	car.touch_throttle = 1.0 if t < dur else 0.0
 	car.touch_brake = 1.0 if t >= dur else 0.0
@@ -846,6 +863,7 @@ func _physics_process(_dt: float) -> void:
 				if loin < 0 or c0.distance_to(Vector2(e.a[0], e.a[1])) > c0.distance_to(Vector2(act.epreuves[loin].a[0], act.epreuves[loin].a[1])):
 					loin = int(e.id)
 			act._menu.choix = loin
+			act.niveau_menu = 2                   # #127 : niveau Extrême choisi dans le menu
 			act._menu._aller(0)
 			set_meta("loin", loin)
 			get_tree().paused = false             # le menu met le jeu en pause : l'essai continue de compter les images
@@ -855,7 +873,7 @@ func _physics_process(_dt: float) -> void:
 			var bs: Array = act._menu.find_children("*", "Button", true, false)
 			var cible: Button = null
 			for b in bs:
-				if b.text == "▶ Lancer":
+				if b.text.begins_with("▶ Lancer"):
 					cible = b
 			var md: int = act._menu.find_children("*", "Control", true, false).filter(func(x): return x.get_class() == "Control" and x.has_method("_draw") and x.get("med") != null).size()
 			print("  [épreuves] menu plein écran : %d boutons, %d médailles dessinées, fiche « %s », tracé %d points" % [bs.size(), md, act.epreuves[get_meta("loin")].nom, act._menu.find_children("*", "Control", true, false).filter(func(x): return x.get_script() == preload("res://scripts/carte_trace.gd"))[0]._trace.size()])
@@ -867,6 +885,9 @@ func _physics_process(_dt: float) -> void:
 			var e: Dictionary = act.epreuves[act._epreuve] if act._epreuve >= 0 else {}
 			var d := Vector2(car.global_position.x, car.global_position.z).distance_to(Vector2(e.a[0], e.a[1])) if not e.is_empty() else -1.0
 			print("  [épreuves] activité « %s », épreuve %s, voiture déplacée de %.0f m, à %.0f m du départ" % [act.mode, e.get("nom", "?"), car.global_position.distance_to(get_meta("p0")), d])
+			if not e.is_empty():
+				print("  [épreuves] niveau %s : or en %s (Normal : %s), prime de l'or %s" % [act.NIVEAUX_EP[act.niveau_ep][0],
+					act._fmt(act.temps_medaille(e, "or", act.niveau_ep)), act._fmt(float(e["or"])), act._euros(act.prime_medaille(e, "or", act.niveau_ep))])
 		if t == 300 + 1100:
 			# #107 : course lancée : numéros au-dessus des colonnes, tracé GPS vers le prochain point
 			var nums := []
@@ -971,6 +992,21 @@ func _physics_process(_dt: float) -> void:
 		if u == 540:
 			print("  [voitures] %-24s vue conducteur : écran GPS %s, mini-carte %s" % [V.CATALOGUE[id].nom, cockpit.a_gps(), get_node("HUD").gps.visible])
 			get_viewport().get_texture().get_image().save_png("user://shots/cockpit_%s.png" % id)
+		return
+	if OS.get_cmdline_user_args().has("--argent-test") and t == 250:
+		_argent_test()
+	if OS.get_cmdline_user_args().has("--voitures-revue"):
+		# commandes tenues par _voitures_revue (le pleins gaz par défaut des essais envoyait la voiture dans une haie)
+		car.touch_throttle = _revue_gaz; car.touch_brake = _revue_frein; car.touch_steer = 0.0
+		if not has_meta("depart0"):
+			set_meta("depart0", car.global_transform)
+		if t == 300:
+			_voitures_revue()
+		return
+	if OS.get_cmdline_user_args().has("--explosion-test"):
+		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0
+		if t == 300:
+			_explosion_test()
 		return
 	if OS.get_cmdline_user_args().has("--mur-test"):
 		# #106 : mur posé en travers devant la voiture (angle --mur-angle=°, 0 = de face) ; pleins gaz contre le mur :
@@ -1536,6 +1572,174 @@ func _octets_texture(t: Texture) -> int:
 			bpp = 1.0
 		mip = txt.contains("mipmaps/generate=true")
 	return int(w * h * couches * bpp * (1.33 if mip else 1.0))
+
+## #127 : primes réelles du jeu (activities._epreuve_fin) pour un sprint et une longue épreuve aux trois niveaux :
+## première médaille d'or, puis la même refaite ; course de taxi de 4 km en 6 min. Garage sauvegardé puis remis.
+func _argent_test() -> void:
+	var act = get_tree().get_nodes_in_group("activites")[0]
+	var med0: Dictionary = garage.medailles.duplicate()
+	var rec0: Dictionary = garage.records.duplicate()
+	garage.medailles = {}
+	garage.records = {}
+	for id in [14, 27]:
+		var e: Dictionary = act.epreuves[id]
+		for niv in act.NIVEAUX_EP.size():
+			act._epreuve = id
+			act.niveau_ep = niv
+			var t_or: float = act.temps_medaille(e, "or", niv)
+			var r1: Array = act._epreuve_fin(t_or - 1.0)
+			var r2: Array = act._epreuve_fin(t_or - 2.0)
+			var r3: Array = act._epreuve_fin(act.temps_medaille(e, "bronze", niv) + 5.0)
+			print("  [argent] %-40s %-9s or en %s : %s %d €, refaite %s %d €, trop lent : %d €" % [str(e.nom).left(40),
+				act.NIVEAUX_EP[niv][0], act._fmt(t_or), r1[0], r1[1], r2[0], r2[1], r3[1]])
+	act._epreuve = -1
+	act.niveau_ep = 0
+	garage.medailles = med0
+	garage.records = rec0
+	garage.sauver()
+	var TM := preload("res://scripts/taximetre.gd")
+	print("  [argent] taxi 4 km en 6 min (dont 1 min d'attente) : %.2f € au compteur (avant : %.2f €)" % [
+		TM.PRISE + TM.PAR_KM * 4.0 + TM.PAR_MIN * 1.0, 3.5 + 1.6 * 4.0 + 0.6 * 1.0])
+
+## #126 : revue des voitures du garage. Chacune posée au même endroit, roulée 1,5 s (suspensions en place), puis figée
+## et photographiée sous 7 angles à midi (3/4 avant et arrière, profil, face, arrière, dessus, ras du sol), de nuit
+## (phares) et en roulant derrière elle (caméra du jeu). Captures user://shots/revue_<id>_<angle>.png ;
+## --revue-ids=a,b pour n'en faire que certaines. Lancer avec --drive-test --voitures-revue.
+const REVUE_ANGLES := [   # nom, position de la caméra dans le repère de la voiture (x à gauche, z vers l'avant), visée
+	["av", Vector3(4.6, 1.5, 5.2), 0.6], ["ar", Vector3(-4.6, 1.5, -5.2), 0.6], ["profil", Vector3(-7.0, 0.9, 0.0), 0.6],
+	["face", Vector3(0.0, 0.9, 6.5), 0.6], ["dos", Vector3(0.0, 0.9, -6.5), 0.6], ["dessus", Vector3(0.0, 8.5, 0.6), 0.0],
+	["ras", Vector3(3.2, 0.25, 3.6), 0.45]]
+var _revue_gaz := 0.0
+var _revue_frein := 1.0
+func _voitures_revue() -> void:
+	var V := preload("res://scripts/voitures.gd")
+	var ids: Array = V.ordre().filter(func(i): return ResourceLoader.exists(String(V.CATALOGUE[i].dossier) + "/body.glb"))
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--revue-ids="):
+			ids = Array(a.get_slice("=", 1).split(","))
+	perf_auto = false
+	car.aide_voie = false
+	var depart: Transform3D = get_meta("depart0")
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	for id in ids:
+		if not garage.a_voiture(id):
+			garage.voitures.append(id)
+		garage.conduire(id)
+		set_time(0)
+		car.freeze = false
+		car.global_transform = depart
+		car.linear_velocity = Vector3.ZERO; car.angular_velocity = Vector3.ZERO
+		cam_rig.set_process(true)
+		cam_rig.set_mode(0)
+		if car.blown:
+			car.respawn_at(depart.origin, 0.0)
+			car.global_transform = depart
+		_revue_frein = 0.0; _revue_gaz = 0.35
+		for i in 60:
+			await get_tree().physics_frame
+		_revue_gaz = 0.0
+		for i in 30:
+			await get_tree().process_frame
+		get_viewport().get_texture().get_image().save_png("user://shots/revue_%s_route.png" % id)
+		_revue_frein = 1.0
+		for i in 240:
+			await get_tree().physics_frame
+			if car.kmh() < 0.5:
+				break
+		# hauteur de l'origine de la caisse (= sol du modèle) au-dessus du sol, et centre des roues dans le repère de la
+		# caisse comparé au rayon du modèle : une caisse posée juste a 0 cm et des roues à leur rayon (#126)
+		var q := PhysicsRayQueryParameters3D.create(car.global_position + Vector3(0, 3, 0), car.global_position - Vector3(0, 3, 0))
+		q.exclude = [car.get_rid()]
+		var hit := get_world_3d().direct_space_state.intersect_ray(q)
+		var garde: float = car.global_position.y - (float(hit.position.y) if not hit.is_empty() else 0.0)
+		var cy := 0.0
+		for w in car.wheels:
+			cy += (car.global_transform.affine_inverse() * (w as Node3D).global_position).y / 4.0
+		print("  [revue] %s : caisse à %.1f cm du sol, centre des roues à %.1f cm dans la caisse (rayon du modèle %.1f cm)" % [
+			id, garde * 100.0, cy * 100.0, float(car._meta.get("radius", 0.0)) * 100.0])
+		car.linear_velocity = Vector3.ZERO; car.angular_velocity = Vector3.ZERO
+		car.freeze = true
+		cam_rig.set_process(false)
+		var xf := car.global_transform
+		for ang in REVUE_ANGLES:
+			var c: Camera3D = cam_rig.cam
+			c.fov = 50.0
+			c.global_position = xf * (ang[1] as Vector3)
+			c.look_at(xf.origin + Vector3(0, ang[2], 0), Vector3.UP if ang[0] != "dessus" else xf.basis.z)
+			for i in 3:
+				await get_tree().process_frame
+			get_viewport().get_texture().get_image().save_png("user://shots/revue_%s_%s.png" % [id, ang[0]])
+		set_time(3)
+		var c2: Camera3D = cam_rig.cam
+		c2.global_position = xf * Vector3(3.8, 1.3, 6.5)
+		c2.look_at(xf.origin + Vector3(0, 0.6, 0), Vector3.UP)
+		for i in 5:
+			await get_tree().process_frame
+		get_viewport().get_texture().get_image().save_png("user://shots/revue_%s_nuit.png" % id)
+		print("  [revue] %s : %d captures" % [id, REVUE_ANGLES.size() + 2])
+	set_time(0)
+	garage.conduire("ranger")
+	get_tree().quit()
+
+## #129 : explosions candidates (et le champignon actuel pour comparer) photographiées aux mêmes instants, temps de
+## l'effet réglé à la main (indépendant de la vitesse du rendu). Voiture cachée comme au moment de l'explosion, caméra
+## fixe reculée selon la taille de l'effet. Captures user://shots/boum_<style>_<n>.png ; --explosion-styles=a,b,…
+## pour n'en faire que certains. Lancer avec --drive-test --explosion-test.
+const BOUM_INSTANTS := [0.1, 0.4, 0.9, 1.5, 2.1, 2.6]
+const BOUM_VUES := {"avant": [14.0, 2.5], "film": [16.0, 3.0], "mini": [17.0, 6.5], "atomique": [32.0, 12.0, 14.0]}  # recul, visée, hauteur
+var _boum_sens := 1.0            # caméra devant (1) ou derrière (-1) la voiture : --explosion-derriere
+func _explosion_test() -> void:
+	var styles := ["avant", "film", "mini", "atomique"]
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--explosion-styles="):
+			styles = a.get_slice("=", 1).split(",")
+		if a == "--explosion-derriere":
+			_boum_sens = -1.0
+	car.linear_velocity = Vector3.ZERO
+	car.freeze = true
+	var xf := car.global_transform
+	car.blow_up()
+	cam_rig.set_process(false)
+	get_node("HUD").visible = false
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	var fw := xf.basis.z
+	fw.y = 0.0
+	fw = fw.normalized()
+	var cote := fw.cross(Vector3.UP)
+	for st in styles:
+		var vue: Array = BOUM_VUES.get(st, [20.0, 5.0])
+		var c: Camera3D = cam_rig.cam
+		c.fov = 62.0
+		c.global_position = xf.origin + fw * vue[0] * _boum_sens + cote * vue[0] * 0.35 + Vector3(0, vue[2] if vue.size() > 2 else 2.0 + vue[0] * 0.12, 0)
+		c.look_at(xf.origin + Vector3(0, vue[1], 0), Vector3.UP)
+		var fx: Node3D
+		if st == "avant":
+			fx = preload("res://scripts/champignon.gd").new()
+			fx.set_process(false)
+		else:
+			fx = preload("res://scripts/explosion.gd").new()
+			fx.style = st
+			fx.auto = false
+			fx.graine = 129
+		fx.position = xf.origin - Vector3(0, 0.3, 0)
+		add_child(fx)
+		for n in BOUM_INSTANTS.size():
+			var tt: float = BOUM_INSTANTS[n]
+			if st == "avant":
+				fx._t = tt
+				if tt < fx.DUREE:
+					fx._maj()
+				fx.visible = tt < fx.DUREE
+			else:
+				fx.regler(tt)
+				fx.visible = tt < fx.duree
+			for i in 3:
+				await get_tree().process_frame
+			get_viewport().get_texture().get_image().save_png("user://shots/boum_%s_%d.png" % [st, n])
+		print("  [explosion] %s : %d captures" % [st, BOUM_INSTANTS.size()])
+		fx.queue_free()
+		await get_tree().process_frame
+	get_tree().quit()
 
 # ---------------------------------------------------------------- essai : --carriere-test (#120)
 ## Les 4 missions du chapitre 1, étape par étape (chaque étape attend l'état du jeu, 900 pas au plus) : onglet Carrière,

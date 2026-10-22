@@ -138,6 +138,12 @@
   ou au hasard ; zone `circle` qui rétrécit, dessinée par `map.gd` et `gps.gd` avec les repères `marks`), taxi
   (clients `assets/clients/` de `fetch_clients.py` + `blender_clients.py`, destinations `world/places.json` de
   `fetch_places.py` + `build_places.py` : lieux publics seulement). Essai : captures `{"act": "menu|course|chasse|taxi"}`. Pas de téléportation pendant une activité (`map.locked`, taxi compris) ; bouton « ■ Arrêter » dans le bandeau d'activité.
+- **Argent** (v6.76, #127) : chaque épreuve en Normal / Difficile / Extrême (`activities.gd` `NIVEAUX_EP` : temps ×1 /
+  0,9 / 0,82, primes ×1 / 2,5 / 6 ; or en Normal = 200 € + 45 €/km, argent 60 %, bronze 35 %, rejouer 25 %) ;
+  médailles et records par niveau (`cle_ep(id, niv)`) ; taxi ×3, chasse 100 €. Essai `--drive-test --argent-test`.
+- **Explosions** (v6.76, #129, `scripts/explosion.gd`) : styles « film », « mini », « atomique » (⚙ > Conduite,
+  `car.style_explosion`) ; planches CC0 Unity Labs (`pipeline/fetch_explosions.py` -> `assets/fx/`). Essai
+  `--drive-test --explosion-test [--explosion-styles=a,b]`.
 - **Mode carrière** (v6.74, #120, `scripts/carriere.gd` + `scripts/fantome.gd`, onglet « Carrière » en tête du menu
   Activités) : chapitre 1 « Le village » validé par l'utilisateur (carte jamais verrouillée hors mission, rival en
   fantôme qui roule en même temps) ; réputation 0-100 et 4 missions (livraison, taxi imposé `activities.impose`,
@@ -297,6 +303,12 @@
   30 s d'après les images/s. Tuiles des routes et bâtiments lues en arrière-plan (`scripts/chargeur.gd`), végétation
   préparée sur un fil de travail, shaders préchauffés sous le voile de démarrage (`_prechauffer`). Essai
   `--perf-breakdown` : coût de chaque système et réglage (ombres ≈ 1/3 des triangles) ; captures `{"niveau": 0-3}`.
+  **Économie** (v6.76, #124, cible : TCL 40 R 5G, Mali-G57, 720p) : `NIVEAUX[0]` de `main.gd` (pas d'ombres, résolution
+  3D auto 50-80 %, 30 img/s ou 60 avec `eco_60`, physique 60 pas/s, brume), ni arbres, ni herbe, ni plants (terre
+  labourée), phares et lampadaires factices (`env_phares_lum` d'`env.gdshaderinc`, à ajouter à tout nouveau shader de
+  sol ou de mur : `EMISSION += ALBEDO * env_phares_lum(wp)`). **Le frein des roues de Godot est une impulsion par pas
+  de physique** : `car.gd` le met à l'échelle (`k_pas`) ; tout effet réglé par pas doit faire de même.
+  **Essais en parallèle** : chacun son `XDG_DATA_HOME` (sinon `demarrage.flag` met l'autre en mode sûr).
 - **Cultures fauchées** (v6.36, #131 : les tiges explosent en éclats de la couleur de la culture, `dust.eclats()`, couleurs `ECLATS` de `trample.gd` ; les bandes sont rasées à 10-20 cm dans la trace ; essai `-- --drive-test --champ-test [--champ-type=0-3]`, captures `user://shots/champ_N.png`). Ancien fonctionnement (v6.5, refait en v6.9 : issue #8, couchées à 90°) (`scripts/trample.gd`) : carte des passages
   de 96 m qui suit la voiture (256 px, R/V = sens, B = écrasement, A = ligne de l'atlas des cultures + 1 sur 8), peinte
   **seulement dans les champs** (`crops.field_at`), lue par `crops.gdshader` (`trample_tex`, `trample_zone`) au sommet

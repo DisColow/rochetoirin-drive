@@ -18,15 +18,15 @@ const STOP_R := 14.0
 const MEDAILLES := ["or", "argent", "bronze"]
 const RIVAL := {"nom": "Kévin Turbot", "court": "Kévin", "voiture": "p106"}
 const MISSIONS := [
-	{"id": "pain", "titre": "Le pain du matin", "genre": "livraison", "rep": 25, "prime": 150.0,
+	{"id": "pain", "titre": "Le pain du matin", "genre": "livraison", "rep": 25, "prime": 450.0,
 	 "texte": "Flonflon, le boulanger, a trois commandes à livrer : l'école de Rochetoirin, la mairie de Saint-Jean-de-Soudain et Montbertaud. Chargement fragile : au troisième gros choc, la tarte est fichue.",
 	 "arrets": ["École primaire publique Rochetoirin", "Mairie de Saint-Jean-de-Soudain", "Montbertaud"]},
-	{"id": "maire", "titre": "Monsieur le maire", "genre": "taxi", "rep": 25, "prime": 120.0,
+	{"id": "maire", "titre": "Monsieur le maire", "genre": "taxi", "rep": 25, "prime": 360.0,
 	 "texte": "Le maire est coincé à la mairie de Saint-Chef. Ramène-le à la mairie de Rochetoirin avant l'ouverture du conseil municipal.",
 	 "depart": "Mairie de Saint-Chef", "arrivee": "Mairie de Rochetoirin"},
 	{"id": "chrono", "titre": "Premier chrono", "genre": "chrono", "rep": 25, "prime": 0.0, "epreuve": 14, "medaille": "bronze",
 	 "texte": "Montre au village que tu sais conduire : au moins le bronze au sprint de la place des Anciens Combattants."},
-	{"id": "duel", "titre": "Le duel", "genre": "duel", "rep": 25, "prime": 200.0, "epreuve": 0, "allure": 0.88,
+	{"id": "duel", "titre": "Le duel", "genre": "duel", "rep": 25, "prime": 600.0, "epreuve": 0, "allure": 0.88,
 	 "texte": "Kévin Turbot et sa Pijo 106 font la loi au village. Il te défie jusqu'à la chapelle Saint-Joseph : il roule en même temps que toi, en fantôme."},
 ]
 const REPLIQUES_AVANT := [

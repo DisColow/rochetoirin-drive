@@ -33,7 +33,14 @@ var _epreuve := -1                # épreuve en cours (-1 : course libre)
 var _offre: Control               # proposition de départ quand on s'arrête sur un départ d'épreuve
 var _offre_vue := -1              # épreuve déjà proposée (pas de nouvelle proposition avant de s'éloigner)
 const MEDAILLES := ["or", "argent", "bronze"]
-const PRIMES := {"or": 150.0, "argent": 90.0, "bronze": 50.0}
+## #127 : chaque épreuve se joue en trois niveaux (temps des médailles resserrés, primes multipliées), médailles et
+## records séparés par niveau. Prime de l'or en Normal : 200 € + 45 € par km (sprint ~310 €, longue ~610 €) ; argent
+## 60 %, bronze 35 %. Une meilleure médaille paie la différence ; refaire une médaille déjà gagnée en paie le quart.
+const NIVEAUX_EP := [["Normal", 1.0, 1.0], ["Difficile", 0.9, 2.5], ["Extrême", 0.82, 6.0]]   # nom, temps ×, primes ×
+const PART_MEDAILLE := {"or": 1.0, "argent": 0.6, "bronze": 0.35}
+const REJOUER := 0.25
+var niveau_ep := 0                   # niveau de l'épreuve en cours
+var niveau_menu := 0                 # niveau choisi dans le menu des épreuves
 const COUL_MEDAILLE := {"or": Color(1.0, 0.8, 0.15), "argent": Color(0.8, 0.82, 0.86), "bronze": Color(0.8, 0.5, 0.25)}
 
 var _menu: Control
@@ -595,14 +602,14 @@ func _course_process(dt: float) -> void:
 			_phase = "fini"
 			var rec := _t < _best
 			_best = minf(_best, _t)
-			# prime du garage (#43) : 2 € par 100 m de tracé (au moins 10 €), 15 € de plus pour un record
+			# prime du garage (#43) : 6 € par 100 m de tracé (au moins 30 €), 50 € de plus pour un record (#127 : x 3)
 			var long := 0.0
 			for i in range(1, _route.size()):
 				long += _rp(_route[i - 1]).distance_to(_rp(_route[i]))
-			var prime := maxf(10.0, roundf(long * 0.02)) + (15.0 if rec else 0.0)
+			var prime := maxf(30.0, roundf(long * 0.06)) + (50.0 if rec else 0.0)
 			var med := ""
 			var id_ep := _epreuve
-			var avant := _medaille(_epreuve) if _epreuve >= 0 else ""
+			var avant := _medaille(_epreuve, niveau_ep) if _epreuve >= 0 else ""
 			if _epreuve >= 0:
 				var r := _epreuve_fin(_t)
 				med = r[0]; prime = r[1]
@@ -637,8 +644,21 @@ func reperes_epreuves() -> Array:
 		out.append({p = Vector2(e.a[0], e.a[1]), nom = e.nom, med = _medaille(int(e.id))})
 	return out
 
-func _medaille(id: int) -> String:
-	return str(main.garage.medailles.get(str(id), "")) if main.garage else ""
+## Clé des médailles et records d'une épreuve à un niveau (Normal : l'identifiant seul, comme avant la v6.76).
+static func cle_ep(id: int, niv := 0) -> String:
+	return str(id) if niv == 0 else "%d:%d" % [id, niv]
+
+func _medaille(id: int, niv := 0) -> String:
+	return str(main.garage.medailles.get(cle_ep(id, niv), "")) if main.garage else ""
+
+## Temps d'une médaille (s) au niveau niv.
+func temps_medaille(e: Dictionary, m: String, niv := 0) -> float:
+	return roundf(float(e[m]) * float(NIVEAUX_EP[niv][1]))
+
+## Prime d'une médaille (€) au niveau niv.
+func prime_medaille(e: Dictionary, m: String, niv := 0) -> float:
+	var base := roundf((200.0 + 45.0 * float(e.km)) / 10.0) * 10.0
+	return roundf(base * float(PART_MEDAILLE[m]) * float(NIVEAUX_EP[niv][2]) / 10.0) * 10.0
 
 ## Départs d'épreuves visibles dans le monde (#78 : seulement sur la carte, on les trouvait mal) : colonne de lumière
 ## dorée et grand drapeau à damier sur un mât, à moins de 700 m, hors activité.
@@ -719,41 +739,51 @@ func _epreuve_proche() -> void:
 	_text(v, "Épreuve : %s (%.1f km)" % [e.nom, float(e.km)], 26, true)
 	_text(v, "Or %s · Argent %s · Bronze %s%s" % [_fmt(float(e["or"])), _fmt(float(e.argent)), _fmt(float(e.bronze)),
 		("   ·   votre médaille : " + med) if med != "" else ""], 22, true)
+	_text(v, "Or : %s en Normal, %s en Difficile, %s en Extrême" % [_euros(prime_medaille(e, "or", 0)),
+		_euros(prime_medaille(e, "or", 1)), _euros(prime_medaille(e, "or", 2))], 22, true)
 	var h := HBoxContainer.new(); h.add_theme_constant_override("separation", 12); v.add_child(h)
-	_btn(h, "Départ !", func(): _offre.queue_free(); _epreuve_depart(ici), 260)
-	_btn(h, "Plus tard", func(): _offre.queue_free(), 220)
+	for niv in NIVEAUX_EP.size():
+		_btn(h, NIVEAUX_EP[niv][0], func(): _offre.queue_free(); _epreuve_depart(ici, niv), 200)
+	_btn(h, "Plus tard", func(): _offre.queue_free(), 200)
 	add_child(_offre)
 	_offre.reset_size()
 	_offre.position = Vector2((_vs().x - _offre.size.x) / 2, _vs().y - _offre.size.y - 260)
 
-func _epreuve_depart(id: int) -> void:
+func _epreuve_depart(id: int, niv := 0) -> void:
 	var e: Dictionary = epreuves[id]
+	niveau_ep = clampi(niv, 0, NIVEAUX_EP.size() - 1)
 	_route = [_nearest(Vector2(e.a[0], e.a[1]))]
 	for q in e.etapes:
 		_route.append(_nearest(Vector2(q[0], q[1])))
 	_route.append(_nearest(Vector2(e.b[0], e.b[1])))
 	_course_start()
 	_epreuve = id
-	hud.toast("%s\nOr %s · Argent %s · Bronze %s" % [e.nom, _fmt(float(e["or"])), _fmt(float(e.argent)), _fmt(float(e.bronze))], 6.0)
+	hud.toast("%s — %s\nOr %s · Argent %s · Bronze %s" % [e.nom, NIVEAUX_EP[niveau_ep][0], _fmt(temps_medaille(e, "or", niveau_ep)),
+		_fmt(temps_medaille(e, "argent", niveau_ep)), _fmt(temps_medaille(e, "bronze", niveau_ep))], 6.0)
 
-## Fin d'une épreuve : médaille d'après le temps ; la prime ne paie que le progrès (de bronze à or : la différence).
+## Fin d'une épreuve : médaille d'après le temps (au niveau choisi) ; une meilleure médaille paie la différence avec
+## l'ancienne, une médaille déjà gagnée en paie le quart (#127 : rejouer rapporte), sans médaille 10 €.
 func _epreuve_fin(t: float) -> Array:
 	var e: Dictionary = epreuves[_epreuve]
+	var niv := niveau_ep
+	var cle := cle_ep(_epreuve, niv)
 	var med := ""
 	for m in MEDAILLES:
-		if t <= float(e[m]):
+		if t <= temps_medaille(e, m, niv):
 			med = m
 			break
-	var avant := _medaille(_epreuve)
+	var avant := _medaille(_epreuve, niv)
 	var prime := 10.0
-	if main.garage and t < float(main.garage.records.get(str(_epreuve), INF)):
-		main.garage.records[str(_epreuve)] = t
+	if main.garage and t < float(main.garage.records.get(cle, INF)):
+		main.garage.records[cle] = t
 		main.garage.sauver()
 	if med != "" and (avant == "" or MEDAILLES.find(med) < MEDAILLES.find(avant)):
-		prime = PRIMES[med] - (PRIMES[avant] if avant != "" else 0.0)
+		prime = prime_medaille(e, med, niv) - (prime_medaille(e, avant, niv) if avant != "" else 0.0)
 		if main.garage:
-			main.garage.medailles[str(_epreuve)] = med
+			main.garage.medailles[cle] = med
 			main.garage.sauver()
+	elif med != "":
+		prime = roundf(prime_medaille(e, med, niv) * REJOUER)
 	return [med, prime]
 
 # ================================================================ chasse au lieu
@@ -858,8 +888,8 @@ func _hunt_process(dt: float) -> void:
 		marks = [{p = _target, col = Color(0.2, 0.85, 0.3), txt = "Trouvé", gps = true}]
 		_beacon(Vector3(_target.x, _ground(_target.x, _target.y, car.global_position.y), _target.y), Color(0.3, 1.0, 0.4), 10.0)
 		if main.garage:
-			main.garage.gagner(25.0)                       # prime du garage (#43)
-		hud.toast("Trouvé en %s !\nPrime : 25 €" % _fmt(_t), 7.0)
+			main.garage.gagner(100.0)                      # prime du garage (#43 ; #127 : 25 -> 100 €)
+		hud.toast("Trouvé en %s !\nPrime : 100 €" % _fmt(_t), 7.0)
 		_set_status("Trouvé en %s\n★ pour rejouer" % _fmt(_t))
 		_status_t = 12.0
 		mode = ""
@@ -1189,7 +1219,7 @@ func _taxi_pickup() -> void:
 
 func _taxi_drop() -> void:
 	# prix au compteur (issue #44) ; à défaut, l'ancien forfait sur la distance
-	var fare := (_compteur.montant if _compteur else 3.5 + 1.6 * _fare_d / 1000.0) as float
+	var fare := (_compteur.montant if _compteur else 10.5 + 4.8 * _fare_d / 1000.0) as float
 	if _compteur:
 		_compteur.arreter()
 	var stars := _stars()

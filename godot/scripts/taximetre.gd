@@ -1,13 +1,14 @@
 ## Compteur de taxi (issue #44) façon taximètre américain : boîtier noir, gros chiffres rouges à sept segments (police
-## LCD du compteur de vitesse), voyant « LIBRE » entre deux courses, distance et attente comptées. Tarif : prise en
-## charge 3,50 €, 1,60 € par km parcouru, 0,60 € par minute d'attente (sous 10 km/h). activities.gd le fait tourner
-## pendant la course et encaisse son montant à l'arrivée.
+## LCD du compteur de vitesse), voyant « LIBRE » entre deux courses, distance et attente comptées. Tarif (#127 : trois
+## fois le tarif réel, sinon il fallait des heures de taxi pour une voiture) : prise en charge 10,50 €, 4,80 € par km
+## parcouru, 1,80 € par minute d'attente (sous 10 km/h). activities.gd le fait tourner pendant la course et encaisse
+## son montant à l'arrivée.
 extends Control
 const UI := preload("res://scripts/ui.gd")
 
-const PRISE := 3.5
-const PAR_KM := 1.6
-const PAR_MIN := 0.6
+const PRISE := 10.5
+const PAR_KM := 4.8
+const PAR_MIN := 1.8
 
 var montant := 0.0
 var distance := 0.0          # m

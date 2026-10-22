@@ -181,6 +181,7 @@ func _ready() -> void:
 	var cfg := ConfigFile.new()
 	cfg.load("user://reglages.cfg")
 	perf_auto = bool(cfg.get_value("affichage", "perf_auto", true))
+	eco_60 = bool(cfg.get_value("affichage", "eco_60", false))
 	vegetation.level = int(cfg.get_value("affichage", "vegetation", 1))    # défaut : Équilibré (puis automatique)
 	add_child(vegetation)
 	vegetation.target = car
@@ -210,6 +211,7 @@ func _ready() -> void:
 	grass.target = car
 	weather = int(cfg.get_value("affichage", "meteo", 0))
 	car.aide_voie = bool(cfg.get_value("conduite", "aide_voie", true))
+	car.style_explosion = String(cfg.get_value("conduite", "explosion", "mini"))
 	set_time(int(cfg.get_value("affichage", "heure", 0)))
 	_wet = _wet_target                                    # au démarrage : sol déjà mouillé s'il pleut
 	await _etape("Poteaux et lampadaires")
@@ -493,24 +495,40 @@ func _environment() -> void:
 ## des cultures (réglées par hud.gd), il règle ici les ombres, l'anticrénelage, la simplification des objets lointains,
 ## la résolution 3D, les distances d'affichage et l'étalonnage. Mesures : essai --perf-breakdown (les ombres pèsent un
 ## tiers des triangles ; l'anticrénelage 4× coûte cher sur les petites puces).
+## Économie (#124, cible : TCL 40 R 5G, Mali-G57 à 2 cœurs, 720p) : pas d'ombres en temps réel (tache sous la voiture),
+## image 3D à 60 % ajustée seule entre 50 et 80 % (res_auto), 30 img/s, physique à 60 pas par seconde (2 pas par image
+## à 30 img/s : pas besoin d'interpolation), distances courtes cachées par la brume, phares et lampadaires factices.
 const NIVEAUX := [
 	# msaa, ombres (portée m, cascades, carte), seuil de détail (px), résolution 3D, distances, étalonnage
-	{"msaa": Viewport.MSAA_DISABLED, "ombre": 140.0, "split": false, "carte": 2048, "lod": 6.0, "res": 0.8, "dist": 0.55, "post": false},
+	{"msaa": Viewport.MSAA_DISABLED, "ombre": 0.0, "split": false, "carte": 1024, "lod": 8.0, "res": 0.6, "dist": 0.4, "post": false,
+		"res_auto": true, "fps": 30, "physique": 60, "brume": 30.0},
 	{"msaa": Viewport.MSAA_2X, "ombre": 220.0, "split": false, "carte": 2048, "lod": 3.0, "res": 0.9, "dist": 0.75, "post": true},
 	{"msaa": Viewport.MSAA_4X, "ombre": 360.0, "split": true, "carte": 4096, "lod": 1.5, "res": 1.0, "dist": 1.0, "post": true},
 	{"msaa": Viewport.MSAA_4X, "ombre": 480.0, "split": true, "carte": 4096, "lod": 1.0, "res": 1.0, "dist": 1.0, "post": true},
 ]
 var _vues_base := {}
 
+var eco_60 := false              # ⚙ > Performances : Économie à 60 img/s au lieu de 30 (#124)
 func set_post(level: int) -> void:
 	var N: Dictionary = NIVEAUX[clampi(level, 0, NIVEAUX.size() - 1)]
+	var avant := int(Engine.get_meta("niveau_perf", -1))
 	Engine.set_meta("niveau_perf", level)
 	var vp := get_viewport()
 	vp.msaa_3d = Viewport.MSAA_2X if safe_mode and N.msaa != Viewport.MSAA_DISABLED else N.msaa
 	vp.mesh_lod_threshold = N.lod
 	vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
 	vp.scaling_3d_scale = N.res
+	_res_auto = bool(N.get("res_auto", false))
+	var tm = preload("res://scripts/env.gd").terrain_mat
+	if tm:
+		tm.set_shader_param("terre_labouree", 1.0 if level == 0 else 0.0)
+	_res_t = 0.0
+	Engine.max_fps = (60 if eco_60 else int(N.fps)) if N.has("fps") else 0
+	Engine.physics_ticks_per_second = int(N.get("physique", 120))
+	Engine.max_physics_steps_per_frame = 8 if Engine.physics_ticks_per_second >= 120 else 4
 	if _sun:
+		_sun.shadow_enabled = N.ombre > 0.0
+	if _sun and N.ombre > 0.0:
 		_sun.directional_shadow_max_distance = N.ombre
 		_sun.directional_shadow_split_1 = 45.0 / N.ombre      # cascade nette toujours sur ~45 m
 		_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS if N.split else DirectionalLight3D.SHADOW_ORTHOGONAL
@@ -534,6 +552,39 @@ func set_post(level: int) -> void:
 			Env.fade(fences.mat_cut, fences.VIEW_CUT)
 	if post:
 		post.visible = N.post and not OS.get_environment("RS_SKIP").contains("post")
+	# Économie : lampadaires et phares factices, nuit plus claire, brume (set_time relit le niveau)
+	if avant != level and (avant == 0 or level == 0):
+		if poles:
+			poles.set_night(_night)
+		if car and car.has_method("set_lights"):
+			car.set_lights(car.lights_on)
+		if _env:
+			set_time(time_of_day)
+
+## Résolution 3D ajustée toute seule (Économie, #124) : on ne peut mesurer que le retard (à 30 img/s plafonnées, une
+## image en avance ne se voit pas) ; sous 28 img/s on baisse de 5 points (jusqu'à 50 %), et toutes les 6 s à 30 img/s
+## on remonte de 5 points (jusqu'à 80 %), pas avant 20 s après une baisse.
+var _res_auto := false
+var _res_t := 0.0
+var _res_baisse_t := 0.0
+func _resolution_auto(dt: float) -> void:
+	if not _res_auto or perf == null or get_tree().paused:
+		return
+	_res_t += dt
+	_res_baisse_t += dt
+	if _res_t < 2.0:
+		return
+	_res_t = 0.0
+	var f: float = perf.get_fps_moyen(1)
+	if f <= 0.0:
+		return
+	var vp := get_viewport()
+	var cible := float(Engine.max_fps) if Engine.max_fps > 0 else 60.0
+	if f < cible * 0.93 and vp.scaling_3d_scale > 0.5:
+		vp.scaling_3d_scale = maxf(0.5, vp.scaling_3d_scale - 0.05)
+		_res_baisse_t = 0.0
+	elif f >= cible * 0.98 and vp.scaling_3d_scale < 0.8 and _res_baisse_t > 20.0 and int(Time.get_ticks_msec() / 2000) % 3 == 0:
+		vp.scaling_3d_scale = minf(0.8, vp.scaling_3d_scale + 0.05)
 
 ## Niveau automatique : on part d'Équilibré ; toutes les 30 s, d'après les images/s mesurées (perf_monitor.gd), on
 ## descend d'un cran sous 24 img/s, on remonte (jusqu'à Élevée) au-dessus de 50 img/s.
@@ -615,7 +666,8 @@ func set_time(i: int) -> void:
 		_env.fog_aerial_perspective = 0.0
 		_env.fog_light_color = P[5]
 	_env.tonemap_exposure = P[4]
-	_env.fog_density = P[6]
+	var eco := int(Engine.get_meta("niveau_perf", 1)) == 0
+	_env.fog_density = P[6] * (float(NIVEAUX[0].brume) if eco else 1.0)
 	# lumière ambiante : ciel le jour ; chaude au coucher, bleutée la nuit (sinon tout devient noir)
 	if time_of_day < 2:
 		# v6.28 : ciel seul = ombres gris-bleu (murs beiges gris à l'ombre) ; on y mêle la lumière renvoyée par le sol,
@@ -629,6 +681,10 @@ func set_time(i: int) -> void:
 		_env.ambient_light_sky_contribution = 1.0
 		_env.ambient_light_color = Color(0.62, 0.50, 0.45) if time_of_day == 2 else Color(0.20, 0.25, 0.40)
 		_env.ambient_light_energy = 0.9 if time_of_day == 2 else 0.75
+		if eco and time_of_day == 3:
+			# Économie : ni phares ni lampadaires réels -> nuit de clair de lune plus claire (#124)
+			_env.ambient_light_color = Color(0.30, 0.36, 0.52)
+			_env.ambient_light_energy = 1.25
 	var night: float = P[7]
 	preload("res://scripts/env.gd").set_value("night", night)
 	_apply_ambience()
@@ -769,6 +825,7 @@ func _process(_dt: float) -> void:
 
 func _process_corps(_dt: float) -> void:
 	_perf_auto(_dt)
+	_resolution_auto(_dt)
 	# sol qui se mouille peu à peu sous la pluie et sèche après
 	if absf(_wet - _wet_target) > 0.001:
 		_wet = move_toward(_wet, _wet_target, _dt / (6.0 if _wet_target > _wet else 25.0))

@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.75.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.75/RochetoirinSimulator-v6.75.apk)**
+**[RochetoirinSimulator-v6.76.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.76/RochetoirinSimulator-v6.76.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,13 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.75 :
-- **Voies ferrées** : la ligne de Lyon à Grenoble et les voies des gares, ballast, traverses et rails ; on peut rouler
-  dessus et les traverser sans partir en vrille.
-- **Passages à niveau** : croix de Saint-André, feux rouges qui clignotent et barrières baissées, à défoncer.
+Nouveautés de la v6.76 :
+- **Mode Économie bien plus léger** pour les téléphones modestes : ni arbres, ni herbe, ni plantations, pas d'ombres,
+  30 images/s régulières, phares et lampadaires dessinés sans vraies lampes, nuit plus claire.
+- **On gagne de l'argent beaucoup plus vite** : chaque épreuve se joue en Normal, Difficile ou Extrême (primes jusqu'à
+  6 fois plus fortes), refaire une épreuve paie, taxi, chasse au lieu et carrière rapportent trois à quatre fois plus.
+- **Explosions refaites** : trois styles au choix dans ⚙ > Conduite (film, mini-champignon, champignon atomique).
+- **Voitures du garage** : posées juste sur leurs roues, phares au bon endroit et halos la nuit.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
@@ -27,7 +30,7 @@ Les versions précédentes et leurs notes sont dans les [Releases](https://githu
 
 Relief et orthophotos : IGN (Licence Ouverte). Routes : © contributeurs OpenStreetMap (ODbL). Textures et ciel :
 Poly Haven et ambientCG (CC0). Voiture : « 2008 Renault Espace » par tonielpro520 (Sketchfab, CC-BY-4.0).
-Terrain : Terrain3D (MIT). Bâtiments : IGN BD TOPO (Licence Ouverte), textures Poly Haven / ambientCG (CC0). Végétation : IGN LiDAR HD, BD TOPO, RPG (Licence Ouverte) ; arbres et maïs (Sketchfab, CC-BY-4.0) : « Oak tree » par massive-graphisme, « Realistic Tree » par danielpetrov, « Oak tree », « Birch tree » et « Pine Tree » par evolveduk, « Poplar tree » par evseevdaniil0011, « Spruce tree » et « Fir tree » par intice184, « Maize Corn Plant » par gilles.schaeck.
+Terrain : Terrain3D (MIT). Explosions : planches d'images de Unity Labs (CC0). Bâtiments : IGN BD TOPO (Licence Ouverte), textures Poly Haven / ambientCG (CC0). Végétation : IGN LiDAR HD, BD TOPO, RPG (Licence Ouverte) ; arbres et maïs (Sketchfab, CC-BY-4.0) : « Oak tree » par massive-graphisme, « Realistic Tree » par danielpetrov, « Oak tree », « Birch tree » et « Pine Tree » par evolveduk, « Poplar tree » par evseevdaniil0011, « Spruce tree » et « Fir tree » par intice184, « Maize Corn Plant » par gilles.schaeck.
 
 ---
 

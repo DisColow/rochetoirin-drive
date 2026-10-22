@@ -56,6 +56,8 @@ func _zone() -> void:
 func _physics_process(dt: float) -> void:
 	if car == null or mats.is_empty():
 		return
+	if int(Engine.get_meta("niveau_perf", 1)) == 0:
+		return                           # Économie (#124) : pas de plants, donc rien à faucher (ni éclats ni tiges couchées)
 	var p := car.global_position
 	var c := Vector2(p.x, p.z)
 	if _orig == Vector2.ZERO:

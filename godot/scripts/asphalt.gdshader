@@ -57,6 +57,7 @@ void fragment() {
 	c *= mix(1.0, 0.6, wet);
 	c = mix(c, c * 0.5, puddle);
 	ALBEDO = c * env_cloud(wpos.xz);
+	EMISSION += ALBEDO * env_phares_lum(wpos);
 	vec2 cell = fract(p * 1.3) - 0.5;
 	float ph = fract(hash(floor(p * 1.3)) + TIME * 0.9);
 	float ring = sin((length(cell) - ph * 0.5) * 60.0) * (1.0 - ph) * step(length(cell), ph * 0.5 + 0.03);

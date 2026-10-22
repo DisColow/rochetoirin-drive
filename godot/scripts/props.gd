@@ -37,6 +37,7 @@ func _ready() -> void:
 	var paint := ShaderMaterial.new()
 	paint.shader = preload("res://scripts/paint.gdshader")
 	preload("res://scripts/env.gd").add(paint)
+	preload("res://scripts/env.gd").phares_sur(paint)
 	var mats := {
 		"paint": paint,
 		"glass": _m(Color(0.05, 0.06, 0.07), 0.05, 0.3),

@@ -113,6 +113,7 @@ Voiture : « Ford Ranger Raptor 2019 » par David_Holiday (Sketchfab, licence CC
 Lampadaires : « Street Lantern » par Samuel Francis Johnson (Oneironauticus) (Sketchfab, licence CC BY 4.0).
 Aéronefs (Sketchfab, licence CC BY 4.0) : « Free Cessna 172 Replica » par quadzii, « Low Poly Airliner » par maurogsw, « Low Poly Helicopter » par antonmoek, « UNDERPOLY: Free Sailplane Glider » par underpolyproject.
 Animations des clients : « Universal Animation Library » 1 et 2 de Quaternius (CC0).
+Explosions : planches d'images de feu et de fumée de Unity Labs (« Free VFX Image Sequences & Flipbooks », CC0).
 Clients du taxi : MakeHuman (MPFB 2 et « makehuman system assets », communauté MakeHuman, licence CC0) ; son de téléportation : Joseph SARDIN - BigSoundBank.com (CC0).
 Rochetoirin Info (radio) : « Flash info » de 20 Minutes et journal de RTL (podcasts publics, écoutés en direct, non enregistrés dans le jeu), titres de franceinfo et du Dauphiné Libéré (flux RSS).
 Pièces du garage (Sketchfab, licence CC BY 4.0) : « Universal Spoiler 1 » et « 2 » par the_86_guy, « Ultimate Car Spoiler Pack » par DevPoly3D, « Universal Custom Car Spoiler » par JollyFox, « Car agressive Wing modification » par knitro_vedant, « Dual Exhaust Tip » par wojteX, « Exhaust Tips » par wiktors360, « Basic Low-Poly Exhaust Tip » 1 et 2 par NANOxDucko, « BBS RS16 Tuner Car Wheel », « Mugen M7 Tuner Car Wheel » et « Tuner Car Wheel » par TinoD2, « Volkswagen Rim » par PolyTigr, « Concept car Rim » par LagzDesign.
@@ -202,6 +203,17 @@ func _open_settings() -> void:
 		h.add_child(b)
 		boutons.append(b)
 	maj.call()
+	# #124 : Économie plafonnée à 30 img/s (régulier, le téléphone chauffe moins) ; 60 pour qui le veut
+	var b60 := CheckButton.new()
+	b60.text = "Économie à 60 img/s (au lieu de 30)"
+	b60.add_theme_font_size_override("font_size", 26)
+	b60.button_pressed = main_n.eco_60
+	b60.toggled.connect(func(on: bool):
+		main_n.eco_60 = on
+		main_n.set_post(veg.level)
+		var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+		cfg.set_value("affichage", "eco_60", on); cfg.save("user://reglages.cfg"))
+	v.add_child(b60)
 	# heure de la journée (lumière, ciel, phares et fenêtres éclairées le soir)
 	var lt := Label.new(); lt.text = "Heure de la journée"; lt.add_theme_font_size_override("font_size", 30); v.add_child(lt)
 	var ht := HBoxContainer.new(); ht.add_theme_constant_override("separation", 16); v.add_child(ht)
@@ -257,6 +269,26 @@ func _open_settings() -> void:
 		var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
 		cfg.set_value("conduite", "aide_voie", on); cfg.save("user://reglages.cfg"))
 	v.add_child(b_voie)
+	# #129 : explosion de la voiture, trois candidats à essayer en jeu avant le choix de l'utilisateur
+	var hx := HBoxContainer.new(); hx.add_theme_constant_override("separation", 12); v.add_child(hx)
+	var lx := Label.new(); lx.text = "Explosion :"; lx.add_theme_font_size_override("font_size", 26); hx.add_child(lx)
+	var bx := []
+	for st in [["film", "A · Film"], ["mini", "B · Mini-champignon"], ["atomique", "C · Champignon atomique"]]:
+		var b := Button.new()
+		b.text = st[1]
+		b.toggle_mode = true
+		b.button_pressed = car != null and car.style_explosion == st[0]
+		b.custom_minimum_size = Vector2(0, 64)
+		b.add_theme_font_size_override("font_size", 24)
+		b.pressed.connect(func():
+			if car:
+				car.style_explosion = st[0]
+			for o in bx:
+				o.button_pressed = o == b
+			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+			cfg.set_value("conduite", "explosion", st[0]); cfg.save("user://reglages.cfg"))
+		hx.add_child(b)
+		bx.append(b)
 	# son : volumes de l'ambiance, des effets (voiture, voix) et de la musique (radio), de 0 à 150 %
 	var ls := Label.new(); ls.text = "Son"; ls.add_theme_font_size_override("font_size", 30); v.add_child(ls)
 	var hs := HBoxContainer.new(); hs.add_theme_constant_override("separation", 24); v.add_child(hs)

@@ -28,6 +28,7 @@ func _ready() -> void:
 	var am := ShaderMaterial.new()
 	am.shader = preload("res://scripts/asphalt.gdshader")
 	preload("res://scripts/env.gd").add(am)
+	preload("res://scripts/env.gd").phares_sur(am)
 	am.set_shader_parameter("albedo_tex", load("res://assets/tex/asphalt_albedo.jpg"))
 	am.set_shader_parameter("normal_tex", load("res://assets/tex/asphalt_normal.jpg"))
 	am.set_shader_parameter("rough_tex", load("res://assets/tex/asphalt_rough.jpg"))
@@ -35,6 +36,7 @@ func _ready() -> void:
 	mats["asphalt_bridge"] = mats["asphalt"]
 	var amw: ShaderMaterial = am.duplicate()
 	preload("res://scripts/env.gd").add(amw)
+	preload("res://scripts/env.gd").phares_sur(amw)
 	amw.set_shader_parameter("motorway", true)
 	amw.set_shader_parameter("tint", Color(0.5, 0.5, 0.52))
 	mats["asphalt_mw"] = amw
@@ -48,6 +50,7 @@ func _ready() -> void:
 	var mk := ShaderMaterial.new()
 	mk.shader = preload("res://scripts/ground.gdshader")
 	preload("res://scripts/env.gd").add(mk)
+	preload("res://scripts/env.gd").phares_sur(mk)
 	mk.set_shader_parameter("textured", false)
 	mk.set_shader_parameter("tint", Color(0.86, 0.86, 0.84))
 	mk.set_shader_parameter("rough", 0.6)
@@ -83,6 +86,7 @@ func _mat(name: String, scale: float, tint: Color) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = preload("res://scripts/ground.gdshader")
 	preload("res://scripts/env.gd").add(m)
+	preload("res://scripts/env.gd").phares_sur(m)
 	m.set_shader_parameter("albedo_tex", load("res://assets/tex/%s_albedo.jpg" % name))
 	m.set_shader_parameter("normal_tex", load("res://assets/tex/%s_normal.jpg" % name))
 	m.set_shader_parameter("rough_tex", load("res://assets/tex/%s_rough.jpg" % name))
