@@ -96,7 +96,7 @@ var _id := 0
 var _remplir := true
 var _course_cases := {}                        # cases de COURSE_CASE m le long du tracé de la course en cours
 var _course_id := 0                            # concurrent dont le tracé a servi
-var _trace := {}                               # cases de 8 m -> points du tracé (voies qui le suivent : barrées)
+var _trace := {}                               # cases de 8 m -> [point, direction] du tracé (voies qui le suivent)
 var _t := 0.0
 var _son_klaxon: AudioStream
 var _moteurs: Array = []                       # AudioStreamPlayer3D des voitures les plus proches
@@ -944,11 +944,13 @@ func _route_course() -> void:
 	_trace = {}
 	var r := ceili(COURSE_MARGE / COURSE_CASE)
 	var vu := {}
-	for q: Vector2 in c0._chemin:
+	var ch: PackedVector2Array = c0._chemin
+	for i in ch.size():
+		var q := ch[i]
 		var kt := Vector2i(floori(q.x / 8.0), floori(q.y / 8.0))
 		if not _trace.has(kt):
-			_trace[kt] = PackedVector2Array()
-		(_trace[kt] as PackedVector2Array).append(q)
+			_trace[kt] = []
+		(_trace[kt] as Array).append([q, (ch[mini(i + 1, ch.size() - 1)] - ch[maxi(i - 1, 0)]).normalized()])
 		var k := Vector2i(floori(q.x / COURSE_CASE), floori(q.y / COURSE_CASE))
 		if vu.has(k):
 			continue
@@ -956,6 +958,7 @@ func _route_course() -> void:
 		for dx in range(-r, r + 1):
 			for dz in range(-r, r + 1):
 				_course_cases[k + Vector2i(dx, dz)] = true
+	var n_v := voitures.size()
 	for i in range(voitures.size() - 1, -1, -1):
 		if _sur_course(voitures[i].pos):
 			_retirer(i)
@@ -964,18 +967,28 @@ func _route_course() -> void:
 		if is_instance_valid(rb) and _sur_course((rb as Node3D).global_position):
 			rb.queue_free()
 			epaves.remove_at(i)
+	for c in voitures:                                  # suites choisies avant la course : à refaire
+		if int(c.suite) >= 0 and _sur_trace(int(c.suite)) and not _sur_trace(int(c.voie)):
+			c.suite = -1
+	if _debug:
+		print("[circulation] course : tracé de %d points, %d cases dégagées, %d voitures retirées" % [c0._chemin.size(),
+			_course_cases.size(), n_v - voitures.size()])
 
-## La voie suit-elle le tracé de la course ? (deux de ses points, vers 8 et 20 m, à moins de 6 m du tracé)
+## La voie suit-elle le tracé de la course ? Deux de ses points (au tiers et aux deux tiers, 20 m au plus) à moins de
+## 4,5 m d'un point du tracé, dans la même direction (dans un sens ou dans l'autre) : une rue qui débouche sur le tracé
+## n'en fait pas partie.
 func _sur_trace(voie: int) -> bool:
 	var L := _longueur(voie)
-	for s in [minf(8.0, L * 0.4), minf(20.0, L * 0.8)]:
-		var p: Vector3 = _geo(voie, s, 0)[0]
+	for s in [minf(L / 3.0, 10.0), minf(L * 2.0 / 3.0, 20.0)]:
+		var g := _geo(voie, s, 0)
+		var p: Vector3 = g[0]
+		var t: Vector2 = g[1]
 		var k := Vector2i(floori(p.x / 8.0), floori(p.z / 8.0))
 		var pres := false
 		for dx in range(-1, 2):
 			for dz in range(-1, 2):
-				for q: Vector2 in _trace.get(k + Vector2i(dx, dz), PackedVector2Array()):
-					if q.distance_squared_to(Vector2(p.x, p.z)) < 36.0:
+				for e in _trace.get(k + Vector2i(dx, dz), []):
+					if (e[0] as Vector2).distance_squared_to(Vector2(p.x, p.z)) < 4.5 * 4.5 and absf((e[1] as Vector2).dot(t)) > 0.8:
 						pres = true
 						break
 				if pres:
