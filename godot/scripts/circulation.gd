@@ -904,7 +904,9 @@ func _accident(i: int, par: Node3D) -> void:
 	if par == _joueur() and main.get("succes"):
 		main.succes.noter("circulation")              # succès (#133)
 	if _debug:
-		print("[circulation] choc : voiture %d devient une épave (%.0f km/h, percutée par %s)" % [int(c.id), float(c.v) * 3.6, par.name])
+		print("[circulation] choc : voiture %d devient une épave (%.0f km/h, percutée par %s) à (%.0f, %.0f), meneur %s, suite %d, sur le tracé %s" % [
+			int(c.id), float(c.v) * 3.6, par.name, (c.pos as Vector3).x, (c.pos as Vector3).z, c.leader, int(c.suite),
+			str(not _trace.is_empty() and _sur_trace(int(c.voie)))])
 
 func _epaves(dt: float) -> void:
 	var p := target.global_position
