@@ -269,26 +269,6 @@ func _open_settings() -> void:
 		var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
 		cfg.set_value("conduite", "aide_voie", on); cfg.save("user://reglages.cfg"))
 	v.add_child(b_voie)
-	# #129 : explosion de la voiture, trois candidats à essayer en jeu avant le choix de l'utilisateur
-	var hx := HBoxContainer.new(); hx.add_theme_constant_override("separation", 12); v.add_child(hx)
-	var lx := Label.new(); lx.text = "Explosion :"; lx.add_theme_font_size_override("font_size", 26); hx.add_child(lx)
-	var bx := []
-	for st in [["film", "A · Film"], ["mini", "B · Mini-champignon"], ["atomique", "C · Champignon atomique"]]:
-		var b := Button.new()
-		b.text = st[1]
-		b.toggle_mode = true
-		b.button_pressed = car != null and car.style_explosion == st[0]
-		b.custom_minimum_size = Vector2(0, 64)
-		b.add_theme_font_size_override("font_size", 24)
-		b.pressed.connect(func():
-			if car:
-				car.style_explosion = st[0]
-			for o in bx:
-				o.button_pressed = o == b
-			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
-			cfg.set_value("conduite", "explosion", st[0]); cfg.save("user://reglages.cfg"))
-		hx.add_child(b)
-		bx.append(b)
 	# son : volumes de l'ambiance, des effets (voiture, voix) et de la musique (radio), de 0 à 150 %
 	var ls := Label.new(); ls.text = "Son"; ls.add_theme_font_size_override("font_size", 30); v.add_child(ls)
 	var hs := HBoxContainer.new(); hs.add_theme_constant_override("separation", 24); v.add_child(hs)

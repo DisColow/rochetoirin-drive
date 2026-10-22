@@ -1003,6 +1003,11 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_voitures_revue()
 		return
+	if OS.get_cmdline_user_args().has("--boum-camera-test"):
+		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0
+		if t == 300:
+			_boum_camera_test()
+		return
 	if OS.get_cmdline_user_args().has("--explosion-test"):
 		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0
 		if t == 300:
@@ -1683,6 +1688,36 @@ func _voitures_revue() -> void:
 		print("  [revue] %s : %d captures" % [id, REVUE_ANGLES.size() + 2])
 	set_time(0)
 	garage.conduire("ranger")
+	get_tree().quit()
+
+## #129 : explosion en vue conducteur : la caméra doit passer en poursuite (plan large sur le champignon) le temps de
+## l'explosion, sans volant 3D en l'air, puis revenir en vue conducteur. Captures user://shots/boum_cam_<n>.png.
+func _boum_camera_test() -> void:
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	cam_rig.set_mode(1)
+	for i in 30:
+		await get_tree().process_frame
+	var vol: Node3D = car.get("_wheel_node")
+	print("  [boum-cam] avant : vue %d, style %s, volant visible %s" % [cam_rig.mode, car.style_explosion, vol.visible if vol else "?"])
+	get_viewport().get_texture().get_image().save_png("user://shots/boum_cam_0.png")
+	car.exploser()
+	var n := 1
+	var t0 := Time.get_ticks_msec()
+	for i in 400:
+		await get_tree().process_frame
+		if i in [3, 12, 24, 36]:
+			print("  [boum-cam] pendant (image %d) : vue %d, voiture explosée %s, volant visible %s, caméra à %.1f m de la voiture, %.1f m au-dessus" % [
+				i, cam_rig.mode, car.blown, vol.visible if vol else "?", cam_rig.cam.global_position.distance_to(car.global_position),
+				cam_rig.cam.global_position.y - car.global_position.y])
+			get_viewport().get_texture().get_image().save_png("user://shots/boum_cam_%d.png" % n)
+			n += 1
+		if not car.blown and i > 5:
+			for j in 20:
+				await get_tree().process_frame
+			print("  [boum-cam] après : vue %d (attendu 1), volant visible %s (vue conducteur : caché), %.1f s" % [
+				cam_rig.mode, vol.visible if vol else "?", (Time.get_ticks_msec() - t0) / 1000.0])
+			get_viewport().get_texture().get_image().save_png("user://shots/boum_cam_%d.png" % n)
+			break
 	get_tree().quit()
 
 ## #129 : explosions candidates (et le champignon actuel pour comparer) photographiées aux mêmes instants, temps de

@@ -141,9 +141,11 @@
 - **Argent** (v6.76, #127) : chaque épreuve en Normal / Difficile / Extrême (`activities.gd` `NIVEAUX_EP` : temps ×1 /
   0,9 / 0,82, primes ×1 / 2,5 / 6 ; or en Normal = 200 € + 45 €/km, argent 60 %, bronze 35 %, rejouer 25 %) ;
   médailles et records par niveau (`cle_ep(id, niv)`) ; taxi ×3, chasse 100 €. Essai `--drive-test --argent-test`.
-- **Explosions** (v6.76, #129, `scripts/explosion.gd`) : styles « film », « mini », « atomique » (⚙ > Conduite,
-  `car.style_explosion`) ; planches CC0 Unity Labs (`pipeline/fetch_explosions.py` -> `assets/fx/`). Essai
-  `--drive-test --explosion-test [--explosion-styles=a,b]`.
+- **Explosions** (v6.76, #129, `scripts/explosion.gd`) : **champignon atomique** (choix C de l'utilisateur, v6.80 ;
+  styles « film » et « mini » gardés pour les essais, plus de choix dans ⚙) ; planches CC0 Unity Labs
+  (`pipeline/fetch_explosions.py` -> `assets/fx/`). En vue conducteur ou capot, `camera_rig.gd` passe en poursuite
+  le temps de l'explosion (`_mode_avant`) et recule en plan large (`_boum`, 30 m, 9 m de haut). Essais
+  `--drive-test --explosion-test [--explosion-styles=a,b]`, `--drive-test --boum-camera-test`.
 - **Mode carrière** (v6.74, #120, `scripts/carriere.gd` + `scripts/fantome.gd`, onglet « Carrière » en tête du menu
   Activités) : chapitre 1 « Le village » validé par l'utilisateur (carte jamais verrouillée hors mission, rival en
   fantôme qui roule en même temps) ; réputation 0-100 et 4 missions (livraison, taxi imposé `activities.impose`,

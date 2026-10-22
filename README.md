@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.79.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.79/RochetoirinSimulator-v6.79.apk)**
+**[RochetoirinSimulator-v6.80.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.80/RochetoirinSimulator-v6.80.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.79 :
-- **2CV réparée** (et les autres voitures du garage) : sur téléphone, surtout en mode Économie, le modèle pouvait
-  s'afficher déchiqueté (version simplifiée ratée) ; les voitures sont maintenant toujours dessinées en pleine
-  définition.
+Nouveautés de la v6.80 :
+- **Champignon atomique** : c'est désormais l'explosion de la voiture contre un obstacle indestructible.
+- **On voit l'explosion de l'extérieur** : en vue conducteur ou capot, la caméra passe derrière la voiture et recule
+  pour cadrer tout le champignon, puis revient à ta vue.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

@@ -211,7 +211,6 @@ func _ready() -> void:
 	grass.target = car
 	weather = int(cfg.get_value("affichage", "meteo", 0))
 	car.aide_voie = bool(cfg.get_value("conduite", "aide_voie", true))
-	car.style_explosion = String(cfg.get_value("conduite", "explosion", "mini"))
 	set_time(int(cfg.get_value("affichage", "heure", 0)))
 	_wet = _wet_target                                    # au démarrage : sol déjà mouillé s'il pleut
 	await _etape("Poteaux et lampadaires")

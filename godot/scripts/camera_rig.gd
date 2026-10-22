@@ -23,6 +23,8 @@ var pitch_off := 0.0
 var _drag := {}
 var _idle := 0.0
 var _carry := 0.0                 # 0 à 1 : plan large quand la soucoupe porte la voiture
+var _boum := 0.0                  # 0 à 1 : plan large sur le champignon atomique (#129)
+var _mode_avant := -1             # vue d'avant l'explosion (conducteur, capot), rendue après
 var vitrine := false              # garage (#43) : la caméra tourne lentement autour de la voiture arrêtée
 var _vitrine_a := 0.0
 
@@ -116,6 +118,15 @@ func _process_corps(dt: float) -> void:
 		_pos = p
 		_org = t.origin; _org_l = t.origin
 		return
+	# #129 : en vue conducteur ou capot, la caméra passe en poursuite le temps de l'explosion (on comprend ce qui se
+	# passe), puis revient à la vue d'avant
+	var boum: bool = bool(target.get("blown")) and not bool(target.get("carried"))
+	if boum and mode != 0 and _mode_avant < 0:
+		_mode_avant = mode
+		set_mode(0)
+	elif not boum and _mode_avant >= 0:
+		set_mode(_mode_avant)
+		_mode_avant = -1
 	if mode == 0:
 		var flat := Vector3(fwd.x, 0, fwd.z).normalized().rotated(Vector3.UP, yaw_off)
 		# caméra proche de la voiture (souhait du joueur), à toutes les vitesses
@@ -127,6 +138,11 @@ func _process_corps(dt: float) -> void:
 		var c := _carry * _carry * (3.0 - 2.0 * _carry)
 		if c > 0.0:
 			want = want.lerp(t.origin - flat * 19.0 + Vector3(0, 1.0, 0), c)
+		# explosion (#129) : on recule et on monte pour cadrer le champignon (~25 m de haut) et son souffle
+		_boum = move_toward(_boum, 1.0 if boum else 0.0, dt * (1.6 if boum else 0.9))
+		var cb := _boum * _boum * (3.0 - 2.0 * _boum)
+		if cb > 0.0:
+			want = want.lerp(t.origin - flat * 30.0 + Vector3(0, 9.0, 0), cb)
 		var k := 1.0 - exp(-dt * lerpf(5.0, 14.0, c))
 		# lissage dans le repère de la voiture (#92) : lissée en position absolue, la caméra traînait d'autant plus
 		# que la voiture allait vite (5,7 m derrière à l'arrêt, 11,6 m à 100 km/h : la voiture rapetissait)
@@ -142,7 +158,7 @@ func _process_corps(dt: float) -> void:
 		if not hit.is_empty():
 			var hp: Vector3 = hit.position
 			_pos = head + (hp - head) * maxf(0.0, 1.0 - 0.45 / maxf((hp - head).length(), 0.01))
-		var look_at := (t.origin + Vector3(0, 1.3, 0) + flat * cv).lerp(t.origin + Vector3(0, 5.0, 0), c)
+		var look_at := (t.origin + Vector3(0, 1.3, 0) + flat * cv).lerp(t.origin + Vector3(0, 5.0, 0), c).lerp(t.origin + Vector3(0, 11.0, 0), cb)
 		_look = t.origin + ((_look - _org_l) if _look != Vector3.ZERO else (look_at - t.origin)).lerp(look_at - t.origin, 1.0 - exp(-dt * 10.0))
 		_org_l = t.origin
 		cam.global_position = _pos

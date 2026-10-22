@@ -310,7 +310,10 @@ func _apply_sprite() -> void:
 	for n in _body.find_children("*", "MeshInstance3D", true, false):
 		n.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	if _wheel_node:
-		_wheel_node.visible = not on
+		if blown:
+			_volant_avant = not on
+		else:
+			_wheel_node.visible = not on
 
 func _process(_dt: float) -> void:
 	var t0_perf := Time.get_ticks_usec()
@@ -526,7 +529,10 @@ func set_cockpit(on: bool) -> void:
 	for n in _body.find_children("*", "MeshInstance3D", true, false):
 		n.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY if on else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	if _wheel_node:
-		_wheel_node.visible = not on
+		if blown:
+			_volant_avant = not on           # rendu à la réapparition (#129 : vue changée pendant l'explosion)
+		else:
+			_wheel_node.visible = not on
 	if not on:
 		_apply_sprite()
 
@@ -547,9 +553,9 @@ func blow_up() -> void:
 	freeze = true
 
 ## #121 : choc contre un obstacle indestructible au-delà de VITESSE_BOUM (vitesse perdue d'un coup, détectée par
-## audio.gd) : explosion (#129, explosion.gd : style choisi dans ⚙ > Conduite), puis la voiture revient sur la route.
+## audio.gd) : explosion (#129, explosion.gd : champignon atomique), puis la voiture revient sur la route.
 const VITESSE_BOUM := 60.0          # km/h
-var style_explosion := "mini"        # « film », « mini » ou « atomique » (#129, ⚙ > Conduite)
+var style_explosion := "atomique"    # #129 : champignon atomique (choix C de l'utilisateur) ; « film », « mini » : essais
 func exploser() -> void:
 	if blown or carried:
 		return
