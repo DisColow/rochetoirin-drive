@@ -85,6 +85,7 @@ var _found_r := 40.0
 var _c0 := Vector2.ZERO
 var _r0 := 1000.0
 var _dur := 300.0
+var chasse_limite := INF          # carrière (#131, « Le colis perdu ») : temps pour trouver le lieu, affiché
 
 # taxi
 var _client: Node3D
@@ -318,6 +319,7 @@ func _stop() -> void:
 	if main.net and main.net.armes:
 		main.net.armes.arreter()
 	impose = {}
+	chasse_limite = INF
 	if main.get("carriere"):
 		main.carriere.activite_arretee()
 	_epreuve = -1
@@ -642,7 +644,7 @@ func _course_process(dt: float) -> void:
 				if _course_ia:
 					prime = roundf(prime * (1.0 + float(BONUS_PLACE[mini(place - 1, BONUS_PLACE.size() - 1)])))
 				if main.get("carriere"):
-					main.carriere.epreuve_finie(id_ep, _t, med, avant)
+					main.carriere.epreuve_finie(id_ep, _t, med, avant, place)
 			if main.garage:
 				main.garage.gagner(prime)
 			var classe := ""
@@ -750,6 +752,7 @@ func _epreuves_menu() -> void:
 
 func _epreuve_proche() -> void:
 	if main.get("carriere") and main.carriere.en_cours != "":
+		_fermer_offre()
 		return
 	var c := _car2()
 	var ici := -1
@@ -789,6 +792,13 @@ func _epreuve_proche() -> void:
 	add_child(_offre)
 	_offre.reset_size()
 	_offre.position = Vector2((_vs().x - _offre.size.x) / 2, _vs().y - _offre.size.y - 260)
+
+## Proposition de départ retirée (activité ou mission lancée entre-temps, par exemple « Y aller » du menu : elle
+## restait affichée par-dessus, et ses boutons lançaient une autre épreuve).
+func _fermer_offre() -> void:
+	if _offre and is_instance_valid(_offre):
+		_offre.queue_free()
+	_offre = null
 
 func _epreuve_depart(id: int, niv := 0, course := avec_concurrents) -> void:
 	var e: Dictionary = epreuves[id]
@@ -987,7 +997,8 @@ func _hunt_process(dt: float) -> void:
 	var r := lerpf(_r0, 60.0, k)
 	circle = {c = _target + (_c0 - _target) * (r / _r0), r = r}
 	var what := ("À trouver : " + _target_name) if _target_name != "" else "Endroit secret"
-	_set_status("%s\n%s  ·  zone de %d m" % [what, _fmt(_t), int(r)])
+	var reste := ("  ·  reste %s" % _fmt(maxf(chasse_limite - _t, 0.0))) if chasse_limite < INF else ""
+	_set_status("%s\n%s%s  ·  zone de %d m" % [what, _fmt(_t), reste, int(r)])
 	if _car2().distance_to(_target) < _found_r:
 		_bip.play()
 		_phase = "fini"
@@ -1001,6 +1012,9 @@ func _hunt_process(dt: float) -> void:
 		_status_t = 12.0
 		mode = ""
 		map.locked = false
+		chasse_limite = INF
+		if main.get("carriere") and main.carriere.en_cours != "":
+			main.carriere.chasse_finie(_t)
 
 # ================================================================ taxi
 func _taxi_start() -> void:
@@ -1078,9 +1092,11 @@ func _taxi_new_client() -> void:
 	var mh: Array = JSON.parse_string(FileAccess.get_file_as_string("res://assets/clients/mh.json")) if FileAccess.file_exists("res://assets/clients/mh.json") else []
 	if not mh.is_empty():
 		var k := int(_rappel.get("modele", randi() % mh.size())) if _en_rappel else randi() % mh.size()
-		if not impose.is_empty():               # le maire : un homme d'âge mûr
+		if not impose.is_empty():               # carrière : client imposé (le maire, la mariée…) : sexe et âge
+			var cl: Dictionary = impose.get("client", {"sexe": "m", "age": [50, 120]})
+			var ages: Array = cl.get("age", [0, 120])
 			for j in mh.size():
-				if str(mh[j].get("sexe", "")) == "m" and int(mh[j].get("age", 0)) >= 50:
+				if str(mh[j].get("sexe", "")) == str(cl.get("sexe", "m")) and int(mh[j].get("age", 0)) >= int(ages[0]) and int(mh[j].get("age", 0)) <= int(ages[1]):
 					k = j
 					break
 		_profil = mh[k].duplicate()
@@ -1256,7 +1272,7 @@ func _taxi_pickup() -> void:
 	if not impose.is_empty():
 		_dest = int(impose.dest)
 		_dest_name = str(impose.dest_nom)
-		p = {"n": _dest_name, "c": "", "k": "mairie"}
+		p = {"n": _dest_name, "c": "", "k": str(impose.get("dest_k", "mairie"))}
 	elif _en_rappel:
 		_dest = int(_rappel.retour)
 		_dest_name = str(_rappel.retour_nom)
@@ -1314,8 +1330,11 @@ func _taxi_pickup() -> void:
 		_rappel = {}
 	else:
 		_talk.start_ride(hud.names.commune_at(car.global_position), p.n, p.c, str(p.get("k", "autre")), {}, _profil)
-		if not impose.is_empty():
-			_talk.renommer("Bernard", "maire de Rochetoirin")      # carrière (#120) : le maire, nom fictif
+		if not impose.is_empty():                       # carrière (#120, #131) : client nommé (noms fictifs)
+			var cl: Dictionary = impose.get("client", {})
+			_talk.renommer(str(cl.get("prenom", "Bernard")), str(cl.get("metier", "maire de Rochetoirin")))
+			if str(cl.get("dit", "")) != "":
+				_talk.dire(str(cl.dit), 1.5)
 	if _arret >= 0:
 		_talk.dire(_arret_annonce)                     # juste après le bonjour (file des répliques)
 	if _sorte == "retour":
@@ -1411,6 +1430,8 @@ func _process_corps(dt: float) -> void:
 			_set_status("")
 	if mode == "" and not map.pick_mode:
 		_epreuve_proche()
+	elif _offre:
+		_fermer_offre()
 	_balises_t -= dt
 	if _balises_t <= 0.0:
 		_balises_t = 1.0
@@ -1432,5 +1453,13 @@ func _physics_process(dt: float) -> void:
 	if _shock_cd <= 0.0 and (v - _prev_v).length() > 5.5 and not car.carried:
 		_shocks += 1
 		_shock_cd = 1.0
-		hud.toast("Aïe ! Le client n'apprécie pas", 1.5)
+		# carrière (#131) : client fragile (la mariée, la future maman) : au chocs_max-ième choc, mission ratée
+		var maxi := int(impose.get("chocs_max", 0))
+		if maxi > 0 and _shocks >= maxi:
+			var tt := _t
+			_stop()
+			if main.get("carriere"):
+				main.carriere.taxi_impose_fini(false, tt, "chocs")
+			return
+		hud.toast(str(impose.aie) % _shocks if maxi > 0 and str(impose.get("aie", "")) != "" else "Aïe ! Le client n'apprécie pas", 1.5)
 	_prev_v = v

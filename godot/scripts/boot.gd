@@ -24,6 +24,11 @@ var _barre: ProgressBar
 var _passer: Button
 
 func _ready() -> void:
+	# police du jeu (Pixelify Sans) : sa ligature « fi » est dessinée comme un « A » (« La Anale », « DifAcile »,
+	# « défA ») ; ligatures coupées pour tout le jeu (la police du thème reste chargée, le réglage la suit)
+	var fonte := load("res://assets/ui/pixel.ttf") as FontFile
+	if fonte:
+		fonte.opentype_feature_overrides = {TextServerManager.get_primary_interface().name_to_tag("liga"): 0}
 	if FileAccess.file_exists("res://data/base.json"):
 		var j = JSON.parse_string(FileAccess.get_file_as_string("res://data/base.json"))
 		if typeof(j) == TYPE_DICTIONARY:

@@ -5,6 +5,7 @@
 extends Control
 
 const UI := preload("res://scripts/ui.gd")
+const Voitures := preload("res://scripts/voitures.gd")
 const ONGLETS := ["Épreuves", "Course libre", "Taxi", "Chasse au lieu", "Garage", "Multijoueur", "Carrière"]
 const ORDRE := [6, 0, 1, 2, 3, 4, 5]          # ordre d'affichage des onglets (indices de ONGLETS : la carrière en tête)
 
@@ -291,12 +292,14 @@ func _multi() -> void:
 		+ ("\n%d joueur(s) dans la partie." % net.joueurs.size() if net and net.en_ligne() else ""))
 	_bouton(v, "Ouvrir le multijoueur", act._net_menu)
 
-# ---------------------------------------------------------------- carrière (#120)
+# ---------------------------------------------------------------- carrière (#120, #131)
 class Jauge extends Control:
-	## Jauge de réputation : barre dorée sur fond sombre, valeur au milieu.
+	## Jauge de réputation : barre dorée sur fond sombre, valeur (ou texte donné) au milieu.
 	var valeur := 0.0
-	func _init(v: float) -> void:
+	var txt := ""
+	func _init(v: float, t := "") -> void:
 		valeur = v
+		txt = t if t != "" else "Réputation %d / 100" % int(v)
 		custom_minimum_size = Vector2(420, 46)
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 	func _draw() -> void:
@@ -306,15 +309,21 @@ class Jauge extends Control:
 		draw_rect(Rect2(Vector2(3, 3), Vector2((size.x - 6) * f, size.y - 6)), Color(1.0, 0.72, 0.2).lerp(Color(0.35, 0.9, 0.4), f))
 		draw_rect(r, Color(1, 1, 1, 0.6), false, 2.0)
 		var fnt := get_theme_default_font()
-		var txt := "Réputation %d / 100" % int(valeur)
 		var w := fnt.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
 		draw_string_outline(fnt, Vector2((size.x - w) / 2, size.y / 2 + 9), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, 6, Color.BLACK)
 		draw_string(fnt, Vector2((size.x - w) / 2, size.y / 2 + 9), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
+
+var chap_vu := -1                    # chapitre affiché dans l'onglet Carrière (-1 : le chapitre en cours)
 
 func _carriere() -> void:
 	var ca = act.main.get("carriere")
 	if ca == null:
 		return
+	if chap_vu < 0 or not ca.ouvert(chap_vu):
+		chap_vu = ca.courant()
+	var k: int = chap_vu
+	var ch: Dictionary = ca.CHAPITRES[k]
+	var championnat: bool = String(ch.missions[0].genre) == "manche"
 	var sc := ScrollContainer.new()
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_corps.add_child(sc)
@@ -322,17 +331,33 @@ func _carriere() -> void:
 	v.add_theme_constant_override("separation", 12)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sc.add_child(v)
+	# chapitres : finis (✔), ouvert, fermés tant que le précédent n'est pas à 100
+	var hc := HBoxContainer.new()
+	hc.add_theme_constant_override("separation", 8)
+	v.add_child(hc)
+	for j in ca.CHAPITRES.size():
+		var t := "%s%d. %s" % ["✔ " if ca.fini(j) else "", j + 1, ca.CHAPITRES[j].titre]
+		var b := _bouton(hc, t, func(): chap_vu = j; _aller(6), 0.0, 24)
+		b.toggle_mode = true
+		b.set_pressed_no_signal(j == k)
+		b.disabled = not ca.ouvert(j)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if not ca.ouvert(j):
+			b.tooltip_text = "Termine le chapitre %d pour l'ouvrir" % j
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 24)
 	v.add_child(h)
-	var ti := _texte(h, "Chapitre 1 : Le village", 34, Color(1.0, 0.85, 0.45))
+	var ti := _texte(h, "Chapitre %d : %s" % [k + 1, ch.titre], 34, Color(1.0, 0.85, 0.45))
 	ti.autowrap_mode = TextServer.AUTOWRAP_OFF
 	ti.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	h.add_child(Jauge.new(float(ca.rep)))
-	_texte(v, "De Rochetoirin à la Nationale : fais-toi un nom au village. Chaque mission rapporte 25 points de réputation ; "
-		+ "les médailles et les clients contents en rapportent aussi, le décor cassé en mission et le KA-BOOM en coûtent.", 22,
-		Color(1, 1, 1, 0.7))
-	for m in ca.MISSIONS:
+	if championnat:
+		var mc := int(ca.champ.manche)
+		var etat := "Champion !" if ca.fini(k) else ("Championnat perdu" if mc >= 5 else "Manche %d / 5" % (mc + 1))
+		h.add_child(Jauge.new(100.0 if ca.fini(k) else mc * 20.0, etat))
+	else:
+		h.add_child(Jauge.new(float(ca.reps[k])))
+	_texte(v, "%s  (%s)" % [ch.intro, ch.lieux], 22, Color(1, 1, 1, 0.7))
+	for m in ch.missions:
 		var faite: bool = ca.faites.has(m.id)
 		var pc := PanelContainer.new()
 		pc.add_theme_stylebox_override("panel", UI.panel(18, 10))
@@ -349,17 +374,55 @@ func _carriere() -> void:
 		r.add_child(t)
 		_texte(t, str(m.titre), 28)
 		_texte(t, str(m.texte), 20, Color(1, 1, 1, 0.75))
-		var gain := "+%d réputation" % int(m.rep) + (" · %d €" % int(m.prime) if float(m.prime) > 0.0 else "")
-		if m.id == "duel":
-			gain += " · duels : %d gagné(s), %d perdu(s)" % [int(ca.victoires), int(ca.defaites)]
-		_texte(t, ("Réussie" if faite else gain), 20, Color(1.0, 0.9, 0.6))
+		var id := String(m.id)
+		var gain := ""
+		if String(m.genre) == "manche":
+			var n := int(m.n)
+			if n <= ca.champ.resultats.size():
+				var o: Array = ca.champ.resultats[n - 1]
+				gain = "Arrivé %s" % act._rang(o.find("joueur") + 1)
+			else:
+				gain = "Points : 10 / 6 / 4 / 3"
+		else:
+			gain = "+%d réputation" % int(m.rep) + (" · %d €" % int(m.prime) if float(m.prime) > 0.0 else "")
+			if String(m.genre) == "duel":
+				var bi: Array = ca.duel_bilan(String(m.rival))
+				gain += " · duels : %d gagné(s), %d perdu(s)" % [int(bi[0]), int(bi[1])]
+			if faite:
+				gain = "Réussie"
+		_texte(t, gain, 20, Color(1.0, 0.9, 0.6))
 		var bv := VBoxContainer.new()
 		bv.add_theme_constant_override("separation", 8)
 		r.add_child(bv)
-		var id := String(m.id)
-		_bouton(bv, "Itinéraire" if not faite else "Rejouer", func(): ca.lancer(id, false), 230.0, 24)
-		_bouton(bv, "Y aller", func(): ca.lancer(id, true), 230.0, 24)
-	var riv := _texte(v, "Rival : %s, au volant de sa Pijo 106 : « le roi du village »." % ca.RIVAL.nom, 22, Color(1.0, 0.6, 0.5))
-	riv.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	if ca.chapitre_fini():
-		_texte(v, "Chapitre 1 terminé ! Chapitre 2 : « La vallée » : bientôt.", 26, Color(0.5, 1.0, 0.6))
+		var jouable := true
+		if String(m.genre) == "manche" and not ca.carriere_finie():
+			jouable = int(m.n) == int(ca.champ.manche) + 1 or (int(ca.champ.manche) >= 5 and int(m.n) == 1)
+		if jouable:
+			_bouton(bv, "Itinéraire" if not faite else "Rejouer", func(): ca.lancer(id, false), 230.0, 24)
+			_bouton(bv, "Y aller", func(): ca.lancer(id, true), 230.0, 24)
+	if not championnat and not ca.fini(k) and ch.missions.all(func(m): return ca.faites.has(m.id)):
+		_texte(v, "Toutes les missions sont réussies ! Il manque %d point(s) : gagne-les avec des médailles d'épreuves ou des clients de taxi contents." % int(ceil(100.0 - float(ca.reps[k]))),
+			24, Color(1.0, 0.85, 0.45))
+	for rid in ch.rivaux:
+		var rv: Dictionary = ca.RIVAUX[rid]
+		var riv := _texte(v, "Rival : %s, au volant de sa %s : « %s »." % [rv.nom, Voitures.CATALOGUE[rv.voiture].nom, rv.titre], 22, Color(1.0, 0.6, 0.5))
+		riv.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if championnat:
+		var cl: Array = ca.classement()
+		var tab := PanelContainer.new()
+		tab.add_theme_stylebox_override("panel", UI.panel(18, 10))
+		v.add_child(tab)
+		var tv := VBoxContainer.new()
+		tab.add_child(tv)
+		_texte(tv, "Classement du championnat (après %d manche(s))" % int(ca.champ.manche), 26, Color(1.0, 0.85, 0.45))
+		for j in cl.size():
+			_texte(tv, "%s   %s   %d pts" % [act._rang(j + 1), ca.nom_court(cl[j][0]), int(cl[j][1])], 24,
+				Color(0.5, 1.0, 0.6) if cl[j][0] == "joueur" else Color(1, 1, 1, 0.85))
+		if int(ca.champ.manche) > 0 and not ca.carriere_finie():
+			_bouton(v, "Recommencer le championnat", func(): ca.recommencer_championnat(); _aller(6), 0.0, 24)
+	if ca.fini(k):
+		var cad := String(ch.cadeau)
+		var nom: String = Voitures.CATALOGUE[cad].nom if cad != "" else ""
+		var fin := "Carrière terminée : champion du Nord-Isère !" if ca.carriere_finie() and k == ca.CHAPITRES.size() - 1 \
+			else "Chapitre %d terminé !" % (k + 1)
+		_texte(v, fin + ("  Cadeau : %s." % nom if nom != "" else ""), 26, Color(0.5, 1.0, 0.6))

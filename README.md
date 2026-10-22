@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.83.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.83/RochetoirinSimulator-v6.83.apk)**
+**[RochetoirinSimulator-v6.84.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.84/RochetoirinSimulator-v6.84.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,14 +16,15 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.83 :
-- **Courses contre 3 concurrents** : chaque épreuve se court maintenant contre 3 vraies voitures du garage, pilotées
-  par le jeu (bouton « Course contre 3 voitures », ou « Contre-la-montre » comme avant). Elles freinent avant les
-  virages, se doublent et se poussent. Leur niveau dépend de la difficulté de l'épreuve.
-- **On peut les détruire** : un gros choc les fait exploser (prime « Détruit ! ») ; elles reviennent 4 s plus tard,
-  un peu derrière. Ta place s'affiche pendant la course (« 2e / 4 »), avec une prime en plus si tu finis 1er ou 2e.
-- **Kévin Turbot en vrai** : dans le duel de la carrière, ce n'est plus un fantôme mais une vraie Pijo 106 qu'on peut
-  pousser… ou faire sauter.
+Nouveautés de la v6.84 :
+- **La carrière va jusqu'au bout** : après « Le village », trois nouveaux chapitres : **La vallée** (œufs fragiles,
+  colis perdu sans GPS, mariée en retard, duel contre Sandrine Dérapage), **La ville** (bébé pressé, train à attraper,
+  service de taxi de nuit, course en ville, duel contre Didier Klaxon) et **La finale** : un championnat en 5 manches
+  contre les trois rivaux.
+- **Une voiture offerte à la fin de chaque chapitre**, jusqu'à la Porc'Che 119 GT3 RS du champion du Nord-Isère.
+- Onglet Carrière refait : chapitres, missions, rivaux et classement du championnat.
+- Corrigé : les « fi » s'affichaient comme des « A » (« DifAcile », « La Anale ») ; la proposition d'épreuve ne reste
+  plus affichée par-dessus une mission.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

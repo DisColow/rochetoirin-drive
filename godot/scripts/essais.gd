@@ -851,6 +851,9 @@ func _physics_process(_dt: float) -> void:
 	if OS.get_cmdline_user_args().has("--carriere-test"):
 		_carriere_test(t)
 		return
+	if OS.get_cmdline_user_args().has("--carriere2-test"):
+		_carriere2_test(t)
+		return
 	if OS.get_cmdline_user_args().has("--rails-test"):
 		_rails_test(t)
 		return
@@ -2010,8 +2013,7 @@ func _carriere_test(t: int) -> void:
 	match etape:
 		0:
 			Engine.time_scale = 4.0
-			DirAccess.remove_absolute(ProjectSettings.globalize_path("user://carriere.cfg"))
-			ca.rep = 0.0; ca.faites = {}; ca.message_vu = false; ca.commencee = false; ca.victoires = 0; ca.defaites = 0
+			ca.effacer()
 			act.open_menu(6)
 			get_tree().paused = false
 			suite.call()
@@ -2019,7 +2021,7 @@ func _carriere_test(t: int) -> void:
 			if dt >= 60:
 				shot.call("menu")
 				var bs: Array = act._menu.find_children("*", "Button", true, false) if act._menu else []
-				print("  [carrière] onglet : %d boutons, réputation %d" % [bs.size(), int(ca.rep)])
+				print("  [carrière] onglet : %d boutons, réputation %d" % [bs.size(), int(ca.reps[0])])
 				ca.lancer("duel", true)
 				suite.call()
 		2:
@@ -2050,7 +2052,7 @@ func _carriere_test(t: int) -> void:
 				suite.call()
 		6:
 			if ca.faites.has("duel"):
-				print("  [carrière] duel gagné : réputation %d, victoires %d" % [int(ca.rep), ca.victoires])
+				print("  [carrière] duel gagné : réputation %d, victoires %d" % [int(ca.reps[0]), int(ca.duel_bilan("kevin")[0])])
 				ca.lancer("pain", true)
 				set_meta("c_k", 0)
 				suite.call()
@@ -2063,7 +2065,7 @@ func _carriere_test(t: int) -> void:
 		8:
 			var k: int = get_meta("c_k", 0)
 			if ca.faites.has("pain"):
-				print("  [carrière] livraison réussie : réputation %d, chocs %d, temps %.0f s" % [int(ca.rep), ca._chocs, ca._t])
+				print("  [carrière] livraison réussie : réputation %d, chocs %d, temps %.0f s" % [int(ca.reps[0]), ca._chocs, ca._t])
 				suite.call()
 			elif ca._phase == "livre" and ca._k > k:
 				set_meta("c_k", ca._k)
@@ -2074,7 +2076,7 @@ func _carriere_test(t: int) -> void:
 				print("  [carrière] ÉCHEC : livraison ratée (chocs %d)" % ca._chocs)
 				get_tree().quit()
 		9:
-			if dt >= 60 and ca.rep >= 50.0:
+			if dt >= 60 and ca.reps[0] >= 50.0:
 				ca.lancer("maire", true)
 				suite.call()
 		10:
@@ -2089,18 +2091,317 @@ func _carriere_test(t: int) -> void:
 				suite.call()
 		12:
 			if ca.faites.has("maire"):
-				print("  [carrière] maire déposé : réputation %d" % int(ca.rep))
+				print("  [carrière] maire déposé : réputation %d" % int(ca.reps[0]))
 				ca.epreuve_finie(14, 200.0, "bronze", "")
 				suite.call()
 		13:
-			if ca.message_vu and ca._bulle != null:
+			if ca.fins_vues.has(0) and ca._bulle != null:
 				suite.call()
 		14:
 			if dt >= 40:
 				shot.call("message")
-				print("  [carrière] fin : réputation %d, missions %s, message de fin %s\n%s" % [int(ca.rep), str(ca.faites.keys()),
-					ca.message_vu, FileAccess.get_file_as_string("user://carriere.cfg")])
+				print("  [carrière] fin : réputation %d, missions %s, message de fin %s\n%s" % [int(ca.reps[0]), str(ca.faites.keys()),
+					ca.fins_vues.has(0), FileAccess.get_file_as_string("user://carriere.cfg")])
 				get_tree().quit()
+
+# ---------------------------------------------------------------- essai : --carriere2-test (#131)
+## Chapitres 2 à 4, étape par étape (chaque étape attend l'état du jeu, 1 200 pas au plus) : message de fin du
+## chapitre 1 (voiture offerte), onglet, œufs (voiture posée à chaque arrêt), colis perdu (posée près du lieu), chrono
+## (arrivée simulée), mariée (prise en charge, dépôt), duel contre Sandrine (arrivée simulée), bébé (3 chocs simulés :
+## raté ; puis réussi), train, service de nuit (3 vraies courses de taxi : voiture posée chez le client puis à
+## destination), course de la ville (arrivée simulée 1re), duel contre Didier, les 5 manches du championnat (arrivées
+## simulées ; Didier devant à la 2e), message de fin, rechargement de la sauvegarde. Temps du jeu ×4. Captures
+## user://shots/carriere2_*.png, journal « [carrière2] ». Lancer avec --drive-test --carriere2-test --taxi-sorte=normale.
+func _carriere2_test(t: int) -> void:
+	var ca = carriere
+	var act = activities
+	car.touch_throttle = 0.0
+	car.touch_steer = 0.0
+	car.touch_brake = 1.0
+	if t < 240:
+		return
+	var etape: int = get_meta("c_etape", 0)
+	var t0: int = get_meta("c_t0", 240)
+	var dt := t - t0
+	var suite := func(n := -1):
+		set_meta("c_etape", etape + 1 if n < 0 else n)
+		set_meta("c_t0", t)
+	var shot := func(n: String):
+		DirAccess.make_dir_recursive_absolute("user://shots")
+		get_viewport().get_texture().get_image().save_png("user://shots/carriere2_%s.png" % n)
+	var poser := func(i: int, vers: Vector2):
+		var s: Array = act._start_at(i, vers)
+		get_node("HUD").teleport.emit(s[0], s[1])
+	var dire := func(x: String): print("  [carrière2] " + x)
+	var repondre := func(k: int) -> bool:          # touche la réponse k de la bulle ouverte
+		if ca._bulle == null:
+			return false
+		var b: Array = ca._bulle.find_children("*", "Button", true, false)
+		if b.size() <= k:
+			return false
+		b[k].pressed.emit()
+		return true
+	var bulle := func() -> String:
+		if ca._bulle == null:
+			return ""
+		var l: Array = ca._bulle.find_children("*", "Label", true, false)
+		return " | ".join(PackedStringArray(l.map(func(x): return x.text.replace("\n", " / "))))
+	if dt > 1200:
+		dire.call("ÉCHEC : étape %d bloquée (mission « %s », phase « %s », activité %s/%s)" % [etape, ca.en_cours, ca._phase, act.mode, act._phase])
+		get_tree().quit()
+		return
+	var n: int = get_meta("c_manche", 1)
+	match etape:
+		0:
+			Engine.time_scale = 4.0
+			ca.effacer()
+			ca.reps[0] = 100.0
+			ca.commencee = true
+			ca.sauver()
+			set_meta("deuche", main_garage_a("deuche"))
+			for nom in ca.lieux_des_missions():
+				var nm: String = nom.get_slice("|", 0)
+				var com: String = nom.get_slice("|", 1) if nom.contains("|") else ""
+				var n_l: int = act.places.filter(func(p): return str(p.n) == nm and (com == "" or str(p.c) == com)).size()
+				if n_l != 1:
+					dire.call("ERREUR : lieu « %s » trouvé %d fois" % [nom, n_l])
+			dire.call("lieux des missions contrôlés : %d" % ca.lieux_des_missions().size())
+			ca._verifier_fins()
+			suite.call()
+		1:
+			if ca.fins_vues.has(0) and ca._bulle != null and dt >= 20:
+				dire.call("fin du chapitre 1 : %s" % bulle.call())
+				dire.call("Deuche au garage : %s (avant : %s)" % [main_garage_a("deuche"), get_meta("deuche")])
+				shot.call("fin1")
+				repondre.call(0)
+				act.open_menu(6)
+				get_tree().paused = false
+				suite.call()
+		2:
+			if dt >= 40:
+				shot.call("menu2")
+				var bs: Array = act._menu.find_children("*", "Button", true, false) if act._menu else []
+				dire.call("onglet : chapitre affiché %d, %d boutons, chapitres ouverts %s" % [act._menu.chap_vu + 1, bs.size(),
+					str([ca.ouvert(0), ca.ouvert(1), ca.ouvert(2), ca.ouvert(3)])])
+				ca.lancer("oeufs", true)
+				set_meta("c_k", 0)
+				suite.call()
+		3:
+			if ca._phase == "livre":
+				dire.call("œufs : chargement pris, %d arrêts, limite %.0f s" % [ca._arrets.size(), ca._limite])
+				shot.call("oeufs")
+				poser.call(int(ca._arrets[0].i), act._rp(int(ca._arrets[0].i)) + Vector2(50, 0))
+				suite.call()
+		4:
+			var k: int = get_meta("c_k", 0)
+			if ca.faites.has("oeufs"):
+				dire.call("œufs livrés : réputation %d, chocs %d, temps %.0f s" % [int(ca.reps[1]), ca._chocs, ca._t])
+				suite.call()
+			elif ca._phase == "livre" and ca._k > k:
+				set_meta("c_k", ca._k)
+				set_meta("c_t0", t)
+				dire.call("livré : %s" % ca._arrets[k].nom)
+				poser.call(int(ca._arrets[ca._k].i), act._rp(int(ca._arrets[ca._k].i)) + Vector2(50, 0))
+			elif ca._phase == "" and dt > 30:
+				dire.call("ÉCHEC : œufs ratés (chocs %d)" % ca._chocs)
+				get_tree().quit()
+		5:
+			if dt >= 40:
+				ca.lancer("colis", true)
+				suite.call()
+		6:
+			if act.mode == "chasse" and ca._phase == "chasse" and dt >= 20:
+				var i: int = act._nearest(act._target)
+				dire.call("colis : à trouver %s, limite %.0f s, route la plus proche à %.0f m (rayon %.0f m)" % [act._target_name,
+					ca._limite, act._rp(i).distance_to(act._target), act._found_r])
+				shot.call("colis")
+				poser.call(i, act._target)
+				suite.call()
+		7:
+			if ca.faites.has("colis"):
+				dire.call("colis trouvé : réputation %d" % int(ca.reps[1]))
+				ca.epreuve_finie(17, 100.0, "argent", "")
+				suite.call()
+			elif ca._phase == "" and dt > 60:
+				dire.call("ÉCHEC : colis pas trouvé (voiture à %.0f m)" % act._car2().distance_to(act._target))
+				get_tree().quit()
+		8:
+			if ca.faites.has("chrono2") and dt >= 20:
+				dire.call("chrono de la Cassole : réputation %d" % int(ca.reps[1]))
+				ca.lancer("mariee", true)
+				suite.call()
+		9, 19, 22, 25:
+			if not act.impose.is_empty() and dt >= 40:
+				poser.call(int(act.impose.pick), act._rp(int(act.impose.dest)))
+				suite.call()
+		10, 20, 23, 26:
+			if act.mode == "taxi" and act._phase == "course":
+				dire.call("%s : client monté (%s), bulle « %s », limite %.0f s" % [ca.en_cours, act._cl_nom, act._talk._name.text, float(act.impose.limite)])
+				shot.call(ca.en_cours)
+				if etape == 20:
+					suite.call(40)                     # le bébé : 3 chocs d'abord
+				else:
+					poser.call(int(act.impose.dest), Vector2.ZERO)
+					suite.call()
+		11:
+			if ca.faites.has("mariee"):
+				dire.call("mariée déposée : réputation %d" % int(ca.reps[1]))
+				ca.lancer("duel2", true)
+				suite.call()
+		12, 32:
+			if ca._bulle != null:
+				shot.call("defi_" + ca.en_cours)
+				dire.call("défi : %s" % bulle.call())
+				repondre.call(0)
+				suite.call()
+		13, 33:
+			if act._phase == "course" and ca._rival != null and ca._rival.pret:
+				var f = ca._rival
+				dire.call("duel lancé : %s en %s, tracé %.0f m, temps visé %.1f s" % [f.nom, f.modele, f.longueur, f.temps_cible])
+				suite.call()
+		14, 34:
+			if dt >= 30:
+				shot.call("course_" + ca.en_cours)
+				var f = ca._rival
+				var m: Dictionary = ca.mission(ca.en_cours)
+				dire.call("course t=%.1f s : %s à %.0f m, %.0f m parcourus" % [act._t, f.nom, f.voiture.global_position.distance_to(car.global_position), f.s])
+				ca.epreuve_finie(int(m.epreuve), f.temps_cible - 5.0, "or", "")
+				act._stop()
+				suite.call()
+		15, 35:
+			var ch := 1 if etape == 15 else 2
+			if ca.fins_vues.has(ch) and ca._bulle != null and dt >= 20:
+				dire.call("fin du chapitre %d : réputation %d, duels %s ; %s" % [ch + 1, int(ca.reps[ch]), str(ca.duels), bulle.call()])
+				dire.call("cadeau %s au garage : %s" % [ca.CHAPITRES[ch].cadeau, main_garage_a(String(ca.CHAPITRES[ch].cadeau))])
+				shot.call("fin%d" % (ch + 1))
+				repondre.call(0)
+				if etape == 15:
+					ca.lancer("bebe", true)
+					suite.call(19)
+				else:
+					suite.call(50)
+		40:
+			# trois chocs simulés (saut de vitesse vu par la détection des chocs du taxi) : mission ratée
+			if act.mode == "taxi" and dt % 150 == 75:
+				act._prev_v = car.linear_velocity + Vector3(30.0, 0.0, 0.0)
+				dire.call("choc simulé (%d)" % (act._shocks + 1))
+			elif act.mode == "" and ca.en_cours == "" and not ca.faites.has("bebe"):
+				dire.call("bébé : mission ratée après %d chocs (attendu : 3)" % act._shocks)
+				suite.call()
+		41:
+			if dt >= 40:
+				ca.lancer("bebe", true)
+				suite.call(22)
+		24:
+			if ca.faites.has("bebe"):
+				dire.call("bébé à l'hôpital : réputation %d" % int(ca.reps[2]))
+				ca.lancer("train", true)
+				suite.call()
+		27:
+			if ca.faites.has("train"):
+				dire.call("train attrapé : réputation %d" % int(ca.reps[2]))
+				ca.lancer("nuit", true)
+				suite.call()
+		28:
+			if act.mode == "taxi" and act._phase == "attente" and time_of_day == 3 and dt >= 40:
+				dire.call("service de nuit : heure %d, taxi lancé" % time_of_day)
+				shot.call("nuit")
+				suite.call()
+		29:
+			var cle := "%s:%s" % [act._phase, str(act._cl_pos)]
+			if ca.faites.has("nuit"):
+				dire.call("service de nuit réussi : %d courses, %d étoiles, réputation %d" % [ca._courses, ca._etoiles, int(ca.reps[2])])
+				suite.call()
+			elif ca.en_cours == "":
+				dire.call("ÉCHEC : service de nuit raté (%d courses, %d étoiles)" % [ca._courses, ca._etoiles])
+				get_tree().quit()
+			elif cle != str(get_meta("c_pose", "")) and dt >= 30:
+				if act._phase == "attente":
+					set_meta("c_pose", cle)
+					set_meta("c_t0", t)
+					poser.call(act._nearest(act._cl_pos), act._cl_pos + Vector2(0, 40))
+				elif act._phase == "course":
+					set_meta("c_pose", cle)
+					set_meta("c_t0", t)
+					dire.call("course de nuit vers %s" % act._dest_name)
+					poser.call(act._dest, Vector2.ZERO)
+			elif dt >= 400 and act._phase == "attente":
+				dire.call("voiture coincée loin du client (%.0f m, %d km/h) : montée forcée" % [act._car2().distance_to(act._cl_pos), int(car.kmh())])
+				set_meta("c_t0", t)
+				act._embarquer()
+			elif dt >= 400 and act._phase == "course":
+				dire.call("voiture coincée loin de la destination (%.0f m) : dépose forcée" % act._car2().distance_to(act._rp(act._dest)))
+				set_meta("c_t0", t)
+				act._taxi_drop()
+		30:
+			if dt >= 60:
+				dire.call("après le service : heure %d" % time_of_day)
+				ca.lancer("ville", true)
+				suite.call()
+		31:
+			if act._phase == "course" and act.concurrents.size() == 3 and act.concurrents[0].pret and dt >= 30:
+				shot.call("ville")
+				dire.call("course de la ville : 3 concurrents, place affichée %d" % act._place())
+				ca.epreuve_finie(24, 120.0, "or", "", 1)
+				act._stop()
+				ca.lancer("duel3", true)
+				suite.call()
+		50:
+			if dt >= 20:
+				ca.lancer("manche%d" % n, true)
+				suite.call()
+		51:
+			if ca._bulle != null:
+				dire.call("manche %d, défi : %s" % [n, bulle.call()])
+				if n == 1:
+					shot.call("defi_manche")
+				repondre.call(0)
+				suite.call()
+		52:
+			if act._phase == "course" and ca._concs.size() == 3 and ca._concs.values().all(func(c): return c.pret) and dt >= 20:
+				var d := PackedStringArray()
+				for c in ca._concs.values():
+					d.append("%s (%s, %.0f s)" % [c.nom, c.modele, c.temps_cible])
+				dire.call("manche %d lancée : %s" % [n, ", ".join(d)])
+				if n == 1:
+					shot.call("manche")
+				if n == 2:
+					ca._concs["didier"].fini = true
+					ca._concs["didier"].t_arrivee = 50.0
+				var m: Dictionary = ca.mission("manche%d" % n)
+				ca.epreuve_finie(int(m.epreuve), 60.0, "or", "", 1)
+				act._stop()
+				suite.call()
+		53:
+			if ca._bulle != null and ca.faites.has("manche%d" % n):
+				dire.call("manche %d finie : %s" % [n, bulle.call()])
+				if n < 5:
+					repondre.call(0)
+					set_meta("c_manche", n + 1)
+					suite.call(50)
+				else:
+					shot.call("manche5")
+					suite.call()
+		54:
+			if ca.fins_vues.has(3) and ca._bulle != null and dt >= 20:
+				dire.call("fin de la carrière : chapitre 4 %d, champion %s ; %s" % [int(ca.reps[3]), ca.carriere_finie(), bulle.call()])
+				dire.call("cadeau gt3 au garage : %s" % main_garage_a("gt3"))
+				shot.call("fin4")
+				repondre.call(0)
+				act.open_menu(6)
+				get_tree().paused = false
+				suite.call()
+		55:
+			if dt >= 40:
+				shot.call("menu4")
+				var avant: Array = ca.reps.duplicate()
+				ca.charger()
+				dire.call("sauvegarde relue : réputations %s -> %s, missions %d, championnat %s" % [str(avant), str(ca.reps), ca.faites.size(), str(ca.champ.points)])
+				dire.call("FIN : tout est passé")
+				get_tree().quit()
+
+func main_garage_a(id: String) -> bool:
+	return garage != null and garage.a_voiture(id)
 
 # ---------------------------------------------------------------- essai : --rails-test (#125)
 ## Voie ferrée en terrain plat (x -8624, z 1519, entre Bourgoin et La Tour-du-Pin) : la voiture roule 4 s le long de

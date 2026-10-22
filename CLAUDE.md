@@ -146,12 +146,18 @@
   (`pipeline/fetch_explosions.py` -> `assets/fx/`). En vue conducteur ou capot, `camera_rig.gd` passe en poursuite
   le temps de l'explosion (`_mode_avant`) et recule en plan large (`_boum`, 30 m, 9 m de haut). Essais
   `--drive-test --explosion-test [--explosion-styles=a,b]`, `--drive-test --boum-camera-test`.
-- **Mode carrière** (v6.74, #120, `scripts/carriere.gd`, onglet « Carrière » en tête du menu
-  Activités) : chapitre 1 « Le village » validé par l'utilisateur (carte jamais verrouillée hors mission, rival qui
-  roule en même temps : vrai concurrent depuis #128, plus de fantôme) ; réputation 0-100 et 4 missions (livraison,
-  taxi imposé `activities.impose`, premier chrono, duel), progression dans `user://carriere.cfg`. Essai
-  `-- --drive-test --carriere-test --sans-voix` (~20 min ici ; `--sans-voix` : pas de synthèse vocale,
-  speech-dispatcher fige le jeu sous Linux).
+- **Mode carrière** (v6.74, #120 ; chapitres 2 à 4 en v6.84, #131, `scripts/carriere.gd`, onglet « Carrière » en tête
+  du menu Activités) : scénario en 4 chapitres validé par l'utilisateur (carte jamais verrouillée hors mission, rivaux
+  qui roulent vraiment : concurrent.gd). Tout est dans les données `CHAPITRES` (missions, intro, message de fin,
+  voiture offerte `cadeau`) et `RIVAUX` (Kévin p106, Sandrine p206, Didier p306 : répliques, voix, allure au
+  championnat). Genres de missions : livraison, taxi (`activities.impose` : client nommé, sexe/âge du modèle, `dit`,
+  `chocs_max`), chrono, chasse (`activities.chasse_limite`, crochet `chasse_finie`), course (place à tenir), nuit
+  (taxi de nuit, `main.set_time(3)` puis heure rendue), duel, manche (championnat du chapitre 4, `champ`, points
+  `POINTS`). Lieux par nom de places.json, « nom|commune » s'il y a des homonymes (l'essai contrôle l'unicité).
+  Réputation 0-100 par chapitre (`reps`), chapitre ouvert quand le précédent est à 100 ; ancienne sauvegarde du
+  chapitre 1 relue. Progression dans `user://carriere.cfg`. Essais `-- --drive-test --carriere-test --sans-voix`
+  (chapitre 1, ~20 min ici) et `-- --drive-test --carriere2-test --taxi-sorte=normale --sans-voix` (chapitres 2 à
+  4, ~1 h 15 ici) ; `--sans-voix` : pas de synthèse vocale, speech-dispatcher fige le jeu sous Linux.
 - **Concurrents** (#128, `scripts/concurrent.gd`, choix de l'utilisateur : 3 par course, un concurrent détruit revient
   4 s après, Kévin réel) : vraie voiture du garage (`car.gd` avec `ia = true` : commandes dans `touch_*` seulement, pas
   d'aide à la voie, de nitro, de volant 3D ni de remise automatique) pilotée par `concurrent.gd` : tracé `itineraire.gd`

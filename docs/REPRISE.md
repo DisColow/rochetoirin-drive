@@ -3,9 +3,25 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 22/10/2026, 15 h (v6.83 livrée : #128 ; plus rien en cours)
+## État au 22/10/2026, 17 h (v6.84 livrée : #131 ; en cours : #132 circulation)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip` (pousser `godot/` déclenche l'APK).
+- **Objectif de l'utilisateur (22/10, /goal)** : « poursuivre sur ta lancée, compléter / améliorer / peaufiner / ajouter
+  jusqu'à un produit fini de haute qualité ; prends des initiatives ». Initiatives choisies : carrière complète (#131,
+  scénario déjà validé dans #120), puis circulation (#132), puis (idées) son de moteur propre à chaque voiture,
+  piétons sur les trottoirs, feux tricolores respectés par la circulation.
+- **v6.84 (#131, `à tester`)** : carrière en 4 chapitres (voir CLAUDE.md « Mode carrière »). Essai
+  `--carriere2-test` (chapitres 2 à 4) : toutes les missions, le chemin « 3 chocs = raté », le service de nuit en vraies
+  courses de taxi, les 5 manches et la fin. Piège trouvé : lieux homonymes (« Église de l'Assomption » existe aussi à
+  Bourgoin) -> « nom|commune », contrôlé par l'essai. Corrigés en route : ligature « fi » de Pixelify Sans dessinée
+  comme un « A » (`boot.gd` coupe `liga` de `assets/ui/pixel.ttf`), proposition d'épreuve restée affichée par-dessus
+  une mission lancée par « Y aller » (`activities._fermer_offre`).
+- **#132 circulation (en cours, rien de poussé dans le jeu)** : `pipeline/build_trafic.py` -> `world/trafic.bin` (fait,
+  à publier sur `donnees` SEULEMENT ce fichier + `assets/sfx/klaxon.ogg(.import)` : partir de l'arbre de `donnees`,
+  `git read-tree FETCH_HEAD` dans un index temporaire puis `git add -f` de ces fichiers, pour ne pas republier l'état
+  local du conteneur), `scripts/circulation.gd` + `circulation.gdshader` (écrits), klaxon de synthèse
+  (`build_sfx.py klaxon()`), intégration prête : `scratchpad/integrer_circulation.py` (main, hud, chargement,
+  essais) ; essai `--fixed-fps 8 -- --drive-test --circulation-test --drive-from=-10859.8,238.5,-920.6,0`.
 - **v6.83 (#128, `à tester`)** : concurrents pilotés par le jeu (`scripts/concurrent.gd`, voir CLAUDE.md
   « Concurrents ») : course contre 3 voitures par défaut dans les épreuves, Kévin réel dans le duel de la carrière
   (`fantome.gd` retiré). Mesures : course complète en Extrême, concurrents à 1-3 s du temps visé, pilote à 0,8-1 m
