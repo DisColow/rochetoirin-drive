@@ -15,6 +15,13 @@ for f in scripts/*.gd tools/*.gd; do
   fi
 done
 
+echo "== fichiers importés"
+# modèles sans .import (tuiles régénérées puis import interrompu) : le jeu ne les charge pas (« No loader found »)
+manque=$(find world assets -name "*.glb" | while read -r g; do [ -f "$g.import" ] || echo "$g"; done)
+if [ -n "$manque" ]; then
+  echo "ERREUR $(echo "$manque" | wc -l) modèles sans .import, par exemple :"; echo "$manque" | head -3; ERR=1
+fi
+
 if [ "$1" = "--complet" ]; then
   essai() {   # nom, arguments du jeu
     local n=$1; shift
@@ -22,7 +29,7 @@ if [ "$1" = "--complet" ]; then
     NIVEAU=1 timeout 1500 xvfb-run -a -s "-screen 0 960x540x24" godot --path . --resolution 960x540 -- "$@" > "$J/$n.log" 2>&1
     local c=$?
     local e
-    e=$(grep -a -E "SCRIPT ERROR|Invalid (call|access|get|set)|Nonexistent function" -A2 "$J/$n.log" | head -12)
+    e=$(grep -a -E "SCRIPT ERROR|Invalid (call|access|get|set)|Nonexistent function|No loader found" -A2 "$J/$n.log" | head -12)
     if [ $c -ne 0 ] || [ -n "$e" ]; then
       echo "ERREUR essai $n (code $c)"; echo "$e"; ERR=1
     else

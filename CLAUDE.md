@@ -322,6 +322,9 @@
   **Import d'un seul fichier** : un `godot --headless --import` du projet ré-importe aussi les tuiles de bâtiments
   (13,8 Go, tué) ; importer le fichier dans un petit projet temporaire (même chemin `res://`, même `.import`) et copier
   son `.godot/imported/<fichier>-<hash>.scn/.md5` dans le projet.
+  **`.import` manquants** (22/10 : 1 634 tuiles de routes depuis le 16/10, essais sans routes 3D, « No loader
+  found ») : le jeu ne charge pas un modèle sans son `.import`, même si `.godot/imported` le contient. `verifier.sh` le
+  signale ; les refaire d'après un `.import` voisin (nom du cache = `<fichier>-<md5 du chemin res://>.scn`, sans `uid`).
   **Niveaux de détail ratés** (v6.79, #130) : ceux que Godot fabrique à l'import déchirent les modèles faits de pièces
   séparées (la 2CV) ; ils apparaissent vite sur téléphone (petite résolution). Voitures du garage en pleine définition
   (`lod_bias`) ; contrôle : `--voitures-revue --lod-seuil=60 --resolution 800x360`.
@@ -359,6 +362,14 @@
   `poles.couper_fils`) basculent et restent couchés. Gros arbres, pylônes, monuments et symboles religieux solides
   (choix de l'utilisateur). Essai : `--casse-genres=poteau,arbre,muret` (vue sur les morceaux `casse_<genre>_3.png`,
   débris restants après 20 s).
+  **#123 (v6.82)** : objets posés par lots de `sport.gd` et `autoroute.gd` (`RENVERSABLES`, `objets[case]` = {nm, m, xf,
+  cs, pts | a, b}, `casser_objet(o)` cache l'exemplaire et coupe ses boîtes) ; `casse.OBJETS` : comportement
+  (« repousse », « couche », « segment » : travée de glissière ou de séparateur, défoncée seulement si la vitesse
+  perpendiculaire dépasse le minimum), rayon, masse, matière. Détection des grands objets (banc de touche : 4 m) au
+  point de leur boîte le plus proche de la voiture (`_pres`). Débris au modèle de l'objet (`_corps_objet`, posé un peu
+  au-dessus de sa place). Essai : `--casse-genres=objet:glissiere,objet:gba,objet:borne_sos` (autoroute :
+  `--drive-from=-11240,241,-1610,0`), `objet:banc_touche,objet:mat_eclairage,objet:but_foot` (stade :
+  `--drive-from=150,447,500,0`).
 - **Écran de chargement** (v6.14, `scripts/chargement.gd`) : `main._ready` construit le monde par **étapes nommées**
   (`await _etape("Routes")`…), une image dessinée entre chaque ; le voile (`voile_demarrage.gd`, posé aussi sur PC)
   affiche l'étape et une barre calée sur la durée de chaque étape mesurée au lancement précédent

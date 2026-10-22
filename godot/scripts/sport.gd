@@ -30,6 +30,10 @@ var tiles := {}
 var loaded := {}
 var grillages := {}         # tuile -> PackedVector3Array (travées de grillage a, b ; casse.gd, v6.55 #85)
 var _g_cs := {}            # tuile -> Array des CollisionShape3D de ces travées (même ordre)
+# #123 (v6.82) : équipements renversables (buts, poteaux, filets de tennis, paniers, mâts, bancs) : tuile -> Array de
+# {nm, m, xf, cs (CollisionShape3D), pts (pieds des boîtes)} ; casse.gd les détecte, casser_objet les cache
+const RENVERSABLES := ["but_foot", "poteaux_rugby", "filet_tennis", "panier_basket", "mat_eclairage", "banc_touche"]
+var objets := {}
 var meshes := []
 var pitch_mat: ShaderMaterial
 var _t := 0.0
@@ -115,6 +119,7 @@ func _process_corps(dt: float) -> void:
 			loaded.erase(k)
 			grillages.erase(k)
 			_g_cs.erase(k)
+			objets.erase(k)
 
 func _h(x: float, z: float, fb: float) -> float:
 	if terrain and terrain.data:
@@ -216,6 +221,7 @@ func _add(k: Vector2i) -> void:
 			by[m] = []
 		by[m].append(xf)
 		var nm: String = MODELS[m]
+		var obj := {"nm": nm, "m": m, "xf": xf, "cs": [], "pts": PackedVector3Array()}
 		if COLL.has(nm):
 			for c in COLL[nm]:
 				var cs := CollisionShape3D.new()
@@ -224,18 +230,27 @@ func _add(k: Vector2i) -> void:
 				cs.shape = bs
 				cs.transform = Transform3D(b.orthonormalized(), xf.origin) * Transform3D(Basis.IDENTITY, c[0])
 				body.add_child(cs)
+				obj.cs.append(cs)
+				obj.pts.append(cs.transform.origin - Vector3(0, bs.size.y * 0.5, 0))
 				if nm == "grillage":            # travée défonçable (#85)
 					if not grillages.has(k):
 						grillages[k] = PackedVector3Array(); _g_cs[k] = []
 					grillages[k].append(xf * Vector3(-c[1].x * 0.5, 0.0, 0.0))
 					grillages[k].append(xf * Vector3(c[1].x * 0.5, 0.0, 0.0))
 					_g_cs[k].append(cs)
+		if nm in RENVERSABLES:
+			if (obj.pts as PackedVector3Array).is_empty():
+				obj.pts.append(xf.origin)
+			if not objets.has(k):
+				objets[k] = []
+			objets[k].append(obj)
 	for m in by:
 		var l := []
 		for xf in by[m]:
 			l.append([xf])
-		Cells.add(root, meshes[m], l, 600.0 if MODELS[m] == "mat_eclairage" else 320.0,
-			MODELS[m] == "mat_eclairage" and OS.get_environment("RS_SKIP").contains("ombres"))   # #124 étape 2 : sans ombre
+		for mmi in Cells.add(root, meshes[m], l, 600.0 if MODELS[m] == "mat_eclairage" else 320.0,
+				MODELS[m] == "mat_eclairage" and OS.get_environment("RS_SKIP").contains("ombres")):   # #124 étape 2 : sans ombre
+			mmi.set_meta("modele", m)
 	add_child(root)
 	loaded[k] = root
 
@@ -254,3 +269,16 @@ func breche(p: Vector3, r: float) -> void:
 			var cs: CollisionShape3D = _g_cs[k][i / 2]
 			if is_instance_valid(cs):
 				cs.set_deferred("disabled", true)
+
+## #123 : équipement renversé (casse.gd) : exemplaire caché, collisions coupées ; renvoie son modèle pour le débris.
+func casser_objet(o: Dictionary) -> Mesh:
+	var xf: Transform3D = o.xf
+	var k := Vector2i(floori(xf.origin.x / TILE), floori(xf.origin.z / TILE))
+	if loaded.has(k):
+		Cells.cacher(loaded[k], int(o.m), xf.origin)
+	for cs in o.cs:
+		if is_instance_valid(cs):
+			(cs as CollisionShape3D).set_deferred("disabled", true)
+	if objets.has(k):
+		objets[k].erase(o)
+	return meshes[int(o.m)]

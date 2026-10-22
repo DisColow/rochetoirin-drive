@@ -37,6 +37,23 @@ const LIGNES := ["cloture", "haie", "muret", "pilier"]      # fences.genres
 const MATIERE := {"panneau": "metal", "lampadaire": "metal", "arbre": "bois", "cloture": "bois", "haie": "haie", "muret": "dur", "pilier": "dur", "grillage": "metal", "barriere": "metal", "poteau": "bois"}
 # genres qui basculent et se couchent au sol (#123) ; les autres éclatent
 const COUCHES := ["arbre", "lampadaire", "poteau"]
+# #123 (v6.82) : objets des terrains de sport (sport.gd) et de l'autoroute (autoroute.gd) : comportement (« repousse »,
+# « couche », « segment » = travée de glissière ou de séparateur, défoncée seulement par un choc de face), rayon de
+# détection (m), masse (kg), matière (son), vitesse minimale (m/s ; segments : vitesse perpendiculaire à la travée)
+const OBJETS := {
+	"but_foot": ["repousse", 0.2, 110.0, "metal", 0.0],
+	"poteaux_rugby": ["repousse", 0.25, 160.0, "metal", 0.0],
+	"filet_tennis": ["repousse", 0.15, 25.0, "metal", 0.0],
+	"panier_basket": ["couche", 0.3, 180.0, "metal", 0.0],
+	"mat_eclairage": ["couche", 0.35, 700.0, "metal", 3.0],
+	"banc_touche": ["repousse", 0.4, 90.0, "metal", 0.0],
+	"borne_sos": ["repousse", 0.3, 60.0, "metal", 0.0],
+	"panneau_bleu": ["repousse", 0.3, 45.0, "metal", 0.0],
+	"chevron": ["repousse", 0.12, 8.0, "metal", 0.0],
+	"rond": ["repousse", 0.1, 8.0, "metal", 0.0],
+	"glissiere": ["segment", 0.2, 70.0, "metal", 5.0],
+	"gba": ["segment", 0.3, 900.0, "dur", 8.0],
+}
 
 var main: Node
 var car: VehicleBody3D
@@ -96,6 +113,28 @@ func _pas_corps(dt: float) -> void:
 	var inv := car.global_transform.affine_inverse()
 	for it in _proches:
 		match it[0]:
+			"objet":
+				var spec: Array = OBJETS.get(String(it[3].nm), ["repousse", 0.2, 50.0, "metal", 0.0])
+				var p: Vector3 = it[1]
+				var cs: Array = it[3].cs
+				if int(it[4]) < cs.size():                      # grands objets (banc de touche : 4 m) : point de leur boîte le plus proche
+					p = _pres(cs[int(it[4])], car.global_position, p.y)
+				if v.length() >= float(spec[4]) and _touche(inv, p, float(spec[1])) and not _deja(it[1], 0.5):
+					_casser("objet", p, it)
+					return
+			"objet_seg":
+				var spec: Array = OBJETS.get(String(it[4].nm), ["segment", 0.2, 50.0, "metal", 5.0])
+				var a: Vector3 = it[1]; var b: Vector3 = it[2]
+				var ab := Vector2(b.x - a.x, b.z - a.z)
+				var nrm := Vector2(-ab.y, ab.x).normalized()
+				if absf(Vector2(v.x, v.z).dot(nrm)) < float(spec[4]):
+					continue                                  # on longe la glissière : elle tient (choc de face seulement)
+				var c := car.global_position
+				var tt := clampf(Vector2(c.x - a.x, c.z - a.z).dot(ab) / maxf(ab.length_squared(), 1e-6), 0.0, 1.0)
+				var q := a.lerp(b, tt)
+				if _touche(inv, q, float(spec[1])) and not _deja(q, 1.5):
+					_casser("objet_seg", q, it)
+					return
 			"cloture", "haie", "muret", "pilier", "grillage", "barriere":
 				if v.length() < float(KINDS[it[0]][3]):
 					continue
@@ -116,6 +155,13 @@ func _pas_corps(dt: float) -> void:
 func _touche(inv: Transform3D, p: Vector3, r: float) -> bool:
 	var l := inv * p
 	return absf(l.x) < _hw + r and absf(l.z) < _hl + r and l.y > -2.0 and l.y < 2.5
+
+## Point de l'empreinte au sol d'une boîte de collision (BoxShape3D) le plus proche de c, à la hauteur y.
+func _pres(cs: CollisionShape3D, c: Vector3, y: float) -> Vector3:
+	var h: Vector3 = (cs.shape as BoxShape3D).size * 0.5
+	var l := cs.transform.affine_inverse() * c
+	var q := cs.transform * Vector3(clampf(l.x, -h.x, h.x), 0.0, clampf(l.z, -h.z, h.z))
+	return Vector3(q.x, y, q.z)
 
 func _deja(p: Vector3, r: float) -> bool:
 	for q in _casses:
@@ -185,6 +231,20 @@ func _relever() -> void:
 			for i in range(0, GB.size() - 1, 2):
 				if GB[i].y > -900.0 and Vector2(GB[i].x - c.x, GB[i].z - c.z).length_squared() < R2:
 					_proches.append(["barriere", GB[i], GB[i + 1]])
+		# #123 : équipements de sport, bornes, balises, glissières et séparateurs de l'autoroute
+		for sys in [sp, au]:
+			if sys == null or not sys.get("objets") or not sys.objets.has(k):
+				continue
+			for o: Dictionary in sys.objets[k]:
+				if o.has("a"):
+					var oa: Vector3 = o.a; var ob: Vector3 = o.b
+					if Vector2((oa.x + ob.x) * 0.5 - c.x, (oa.z + ob.z) * 0.5 - c.z).length_squared() < R2:
+						_proches.append(["objet_seg", oa, ob, sys, o])
+				else:
+					for i in (o.pts as PackedVector3Array).size():
+						var q: Vector3 = o.pts[i]
+						if Vector2(q.x - c.x, q.z - c.z).length_squared() < R2:
+							_proches.append(["objet", q, sys, o, i])           # i : boîte de collision de ce pied
 		if vegetation and vegetation.data.has(k):
 			var g: Dictionary = _grille_arbres(k)
 			var a: PackedFloat32Array = vegetation.data[k]
@@ -258,6 +318,8 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 	var spd := v.length()
 	var dir := v / maxf(spd, 0.01)
 	var corps: Array = []                # débris (RigidBody3D) : un seul, ou plusieurs morceaux quand l'objet éclate
+	var couche_obj := false              # objet de sport ou d'autoroute qui se couche (mât, panier)
+	var matiere_obj := ""
 	var seg := Vector3.RIGHT              # clôtures : direction de la ligne (morceaux répartis le long)
 	if it.size() > 2 and it[2] is Vector3:
 		seg = ((it[2] as Vector3) - (it[1] as Vector3)).normalized()
@@ -331,6 +393,22 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 				var c := _corps_bloc("bloc", Vector3(0.4, 0.45, 0.4), 80.0)
 				c.global_position = p + Vector3(0, 0.5 + i * 0.5, 0)
 				corps.append(c)
+		"objet", "objet_seg":
+			var sys = it[2] if genre == "objet" else it[3]
+			var o: Dictionary = it[3] if genre == "objet" else it[4]
+			var spec: Array = OBJETS.get(String(o.nm), ["repousse", 0.2, 50.0, "metal", 0.0])
+			var m: Mesh = sys.casser_objet(o)
+			for q: Vector3 in o.get("pts", PackedVector3Array()):
+				_casses.append(q)                            # les autres pieds du même objet : pas deux fois
+			if String(o.nm) == "gba":
+				for i in 3:                                       # le séparateur en béton éclate en blocs
+					var c := _corps_bloc("bloc", Vector3(0.9, 0.45, 0.35), 200.0)
+					c.global_position = p + seg * (i - 1) * 1.2 + Vector3(0, 0.5 + (i % 2) * 0.3, 0)
+					corps.append(c)
+			elif m:
+				corps.append(_corps_objet(m, o.xf, float(spec[2])))
+			couche_obj = String(spec[0]) == "couche"
+			matiere_obj = String(spec[3])
 		"muret":
 			_effacer(Vector4(p.x, p.z, 1.9, p.y - 0.3))
 			fences.breche(p, 2.1)
@@ -342,13 +420,17 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 	# #105 : la voiture ne bronche pas (plus aucune perte de vitesse, KINDS[…][0] n'est plus utilisé)
 	for c: RigidBody3D in corps:
 		car.add_collision_exception_with(c)
-		if genre in COUCHES:
+		if genre in COUCHES or couche_obj:
 			# #123 : bascule autour du pied dans le sens du choc et se couche (centre de masse bas : le pied glisse peu)
 			var h: float = ((c.get_child(3) as CollisionShape3D).shape as BoxShape3D).size.y
 			c.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 			c.center_of_mass = Vector3(0, -h * 0.3, 0)
 			c.linear_velocity = dir * minf(spd, 14.0) * randf_range(0.15, 0.3) + Vector3(0, 0.4, 0)
 			c.angular_velocity = Vector3.UP.cross(dir).normalized() * randf_range(1.0, 1.8) * clampf(spd / 8.0, 0.6, 1.4)
+		elif genre == "objet" or (genre == "objet_seg" and matiere_obj == "metal"):
+			# #123 : repoussé (but, banc, borne, glissière…) : glisse et roule dans le sens du choc, sans s'envoler
+			c.linear_velocity = dir * spd * randf_range(0.45, 0.65) + Vector3(0, randf_range(0.6, 1.4), 0)
+			c.angular_velocity = Vector3(randf_range(-1.5, 1.5), randf_range(-1.0, 1.0), randf_range(-1.5, 1.5))
 		else:
 			# éclats : chaque morceau part dans le sens du choc, écarté des autres
 			c.linear_velocity = dir * spd * randf_range(0.5, 1.0) + Vector3(randf_range(-2.0, 2.0), randf_range(1.5, 4.5), randf_range(-2.0, 2.0))
@@ -357,7 +439,7 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 	while _debris.size() > MAX_DEBRIS:
 		_rendre(_debris.pop_front()[0])
 	if main and main.get("sound") and main.sound.has_method("impact"):
-		main.sound.impact(MATIERE.get(genre, "dur"), maxf(spd, 3.0), p + Vector3(0, 1, 0), true)
+		main.sound.impact(matiere_obj if matiere_obj != "" else MATIERE.get(genre, "dur"), maxf(spd, 3.0), p + Vector3(0, 1, 0), true)
 	if main and main.get("dust"):
 		var D = main.dust
 		var mat: Dictionary = D.MATIERES.get("poussiere", {})
@@ -492,6 +574,22 @@ func _corps_panneau(h: float) -> RigidBody3D:
 	inner.position = face.position + Vector3(0, 0, 0.002)
 	return rb
 
+## #123 : débris au modèle d'un objet posé par lots (équipement de sport, borne, glissière…) : boîte de collision à sa
+## taille (boîte englobante du modèle, à l'échelle de l'exemplaire), posé exactement à la place de l'exemplaire caché.
+func _corps_objet(m: Mesh, xf: Transform3D, masse: float) -> RigidBody3D:
+	var ab := m.get_aabb()
+	var S := Vector3(xf.basis.x.length(), xf.basis.y.length(), xf.basis.z.length())
+	var c := ab.get_center()
+	var rb := _prendre(masse, (ab.size * S).max(Vector3(0.1, 0.1, 0.1)))
+	var mi: MeshInstance3D = rb.get_child(0)
+	mi.mesh = m
+	mi.transform = Transform3D(Basis.from_scale(S), -c * S)
+	mi.set_meta("e", 1.0)
+	# posé un peu au-dessus de sa place : sur un talus, la boîte enfoncée dans le relief était éjectée vers l'aval
+	var lev := maxf(0.12, 0.15 * maxf(ab.size.x * S.x, ab.size.z * S.z))
+	rb.global_transform = Transform3D(xf.basis.orthonormalized(), xf * c + Vector3(0, lev, 0))
+	return rb
+
 ## Panneau de clôture arraché ; part < 1 : morceau (#123 : la clôture éclate en deux).
 func _corps_cloture(part := 1.0) -> RigidBody3D:
 	var rb := _prendre(30.0 * part, Vector3(1.9 * part, 1.3, 0.1))
@@ -559,6 +657,7 @@ func essai() -> void:
 		var c := car.global_position
 		var best := Vector3.INF
 		var bd := INF
+		var boite: CollisionShape3D = null
 		match genre:
 			"panneau":
 				for k in _panneaux:
@@ -608,13 +707,42 @@ func essai() -> void:
 						var d := Vector2(m.x - c.x, m.z - c.z).length()
 						if d < bd and d > 3.0 and L[i].distance_to(L[i + 1]) > (3.0 if genre == "cloture" else (0.3 if genre == "pilier" else 1.5)):
 							bd = d; best = m; perp = (L[i + 1] - L[i]).cross(Vector3.UP).normalized()
+		if genre.begins_with("objet:"):                 # #123 : objet de sport ou d'autoroute du modèle donné
+			var nom: String = String(genre).trim_prefix("objet:")
+			for sys in [main.get("sport"), main.get("autoroute")]:
+				if sys == null:
+					continue
+				for k in sys.objets:
+					for o: Dictionary in sys.objets[k]:
+						if String(o.nm) != nom:
+							continue
+						var q: Vector3 = ((o.a as Vector3) + (o.b as Vector3)) * 0.5 if o.has("a") else (o.pts as PackedVector3Array)[0]
+						var d := Vector2(q.x - c.x, q.z - c.z).length()
+						if d < bd and d > 3.0:
+							bd = d; best = q
+							perp = ((o.b as Vector3) - (o.a as Vector3)).cross(Vector3.UP).normalized() if o.has("a") else Vector3.ZERO
+							boite = o.cs[0] if not o.has("a") and not (o.cs as Array).is_empty() else null
 		if best == Vector3.INF:
 			print("[casse] essai ", genre, " : aucun objet chargé")
 			continue
-		# élan court (3,6 m) depuis l'ouest : peu de chances de buter sur autre chose avant l'objet
-		var f := Vector3(1, 0, 0) if perp == Vector3.ZERO else perp
-		var start := best - f * (_hl + 1.0)
-		start.y = best.y + 0.8
+		# élan court (hors de la boîte des grands objets : banc de touche, 4 m) ; objets sans sens imposé : de celui des
+		# quatre côtés où le sol est le plus à niveau (les terrains de sport sont bordés de talus)
+		var R := preload("res://scripts/relief.gd")
+		var f := perp
+		var start := Vector3.INF
+		var ecart := INF
+		for g: Vector3 in ([perp] if perp != Vector3.ZERO else [Vector3.RIGHT, Vector3.LEFT, Vector3.BACK, Vector3.FORWARD]):
+			var ext := 0.0
+			if boite:
+				var hb: Vector3 = (boite.shape as BoxShape3D).size * 0.5
+				var bb := boite.global_basis.orthonormalized()
+				ext = absf(g.dot(bb.x)) * hb.x + absf(g.dot(bb.z)) * hb.z
+			var st := best - g * (_hl + 1.0 + ext)
+			var hs: float = R.hauteur(st)
+			var e := absf(hs - best.y) if is_finite(hs) else 0.0
+			if e < ecart - 0.05:
+				ecart = e; f = g; start = st
+				start.y = (maxf(hs, best.y) if is_finite(hs) else best.y) + 0.8
 		car.place(start, 180.0 - rad_to_deg(atan2(f.x, f.z)))
 		car.hold(0.3)
 		for i in 40:

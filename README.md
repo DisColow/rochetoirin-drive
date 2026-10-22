@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.81.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.81/RochetoirinSimulator-v6.81.apk)**
+**[RochetoirinSimulator-v6.82.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.82/RochetoirinSimulator-v6.82.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,11 +16,11 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.81 :
-- **Décor qui vole en éclats** : clôtures, grillages, haies et murets explosent en plusieurs morceaux.
-- **Arbres, lampadaires et poteaux qui tombent** : ils basculent et restent couchés au sol ; les fils des poteaux
-  électriques sont coupés.
-- **Les débris restent** tant que tu restes dans le coin (avant : ils disparaissaient au bout de 15 s).
+Nouveautés de la v6.82 :
+- **Glissières et séparateurs en béton de l'autoroute défonçables** quand on les prend de face (en les longeant, ils
+  tiennent toujours) ; bornes d'appel d'urgence, balises et panneaux bleus renversés.
+- **Terrains de sport** : buts, poteaux de rugby, filets de tennis et bancs de touche repoussés ; paniers de basket
+  et mâts d'éclairage qui se couchent.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

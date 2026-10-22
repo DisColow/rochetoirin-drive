@@ -38,6 +38,10 @@ var _bip: AudioStreamPlayer
 var tiles := {}
 var loaded := {}
 var grillages := {}                # tuile -> PackedVector3Array (travées du grillage d'emprise : a, b ; casse.gd, #76)
+# #123 (v6.82) : objets défonçables (bornes, panneaux bleus, balises, glissières, séparateurs en béton) : tuile ->
+# Array de {nm, m, xf, cs, pts | a, b} ; casse.gd les détecte, casser_objet les cache (péage et portiques : solides)
+const RENVERSABLES := ["borne_sos", "panneau_bleu", "chevron", "rond", "glissiere", "gba"]
+var objets := {}
 const SPAN := 4.0                  # longueur d'une travée de modèle (build_autoroute.py SPAN)
 var meshes := []
 var _t := 0.0
@@ -127,6 +131,7 @@ func _process_corps(dt: float) -> void:
 			loaded.erase(k)
 			arms.erase(k)
 			grillages.erase(k)
+			objets.erase(k)
 
 func _add(k: Vector2i) -> void:
 	if loaded.has(k):
@@ -191,12 +196,23 @@ func _add(k: Vector2i) -> void:
 				cs.transform = xf * Transform3D(Basis.IDENTITY, Vector3(0, bs.size.y / 2, 0))
 		cs.shape = bs
 		body.add_child(cs)
+		if nm in RENVERSABLES:
+			var obj := {"nm": nm, "m": m, "xf": xf, "cs": [cs]}
+			if nm == "glissiere" or nm == "gba":
+				obj["a"] = xf.origin                          # travée de 4 m le long de l'axe x du modèle
+				obj["b"] = xf * Vector3(SPAN, 0.0, 0.0)
+			else:
+				obj["pts"] = PackedVector3Array([cs.transform.origin - Vector3(0, bs.size.y * 0.5, 0)])
+			if not objets.has(k):
+				objets[k] = []
+			objets[k].append(obj)
 	for m in by:
 		if by[m].is_empty():
 			continue
 		# #124 étape 2 : ombre pour les grandes structures seulement (péage, portiques), pas pour les panneaux et bornes
 		var ombre: bool = MODELS[m] in ["peage", "pile_peage", "potence", "panneau_haut"] or (OS.get_environment("RS_SKIP").contains("ombres") and not MODELS[m] in ["glissiere", "grillage", "gba"])
-		Cells.add(root, meshes[m], by[m], RANGE.get(MODELS[m], 700.0), ombre)
+		for mmi in Cells.add(root, meshes[m], by[m], RANGE.get(MODELS[m], 700.0), ombre):
+			mmi.set_meta("modele", m)
 	add_child(root)
 	loaded[k] = root
 
@@ -242,3 +258,16 @@ func _passage(b: Dictionary, now: float) -> void:
 		hud.toast(msg)
 	if _bip:
 		_bip.play()
+
+## #123 : objet défoncé (casse.gd) : exemplaire caché, collision coupée ; renvoie son modèle pour le débris.
+func casser_objet(o: Dictionary) -> Mesh:
+	var xf: Transform3D = o.xf
+	var k := Vector2i(floori(xf.origin.x / TILE), floori(xf.origin.z / TILE))
+	if loaded.has(k):
+		Cells.cacher(loaded[k], int(o.m), xf.origin)
+	for cs in o.cs:
+		if is_instance_valid(cs):
+			(cs as CollisionShape3D).set_deferred("disabled", true)
+	if objets.has(k):
+		objets[k].erase(o)
+	return meshes[int(o.m)]

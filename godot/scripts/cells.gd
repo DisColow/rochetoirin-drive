@@ -97,3 +97,13 @@ static func add(parent: Node, mesh: Mesh, items: Array, far: float, shadow: bool
 		parent.add_child(mi)
 		out.append(mi)
 	return out
+
+## #123 : cache l'exemplaire du modèle n° m (méta « modele » des MultiMeshInstance3D) posé en p, sous root.
+static func cacher(root: Node, m: int, p: Vector3) -> void:
+	for mi in root.find_children("*", "MultiMeshInstance3D", true, false):
+		if int(mi.get_meta("modele", -1)) != m or not mi.has_meta("origines"):
+			continue
+		var org: PackedVector3Array = mi.get_meta("origines")
+		for i in org.size():
+			if org[i].distance_squared_to(p) < 0.01:
+				(mi as MultiMeshInstance3D).multimesh.set_instance_transform(i, Transform3D(Basis.from_scale(Vector3.ONE * 0.001), p - Vector3(0, 60, 0)))
