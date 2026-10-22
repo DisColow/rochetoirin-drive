@@ -9,6 +9,17 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - **v6.78** (#124 étape 2) : `pipeline/alleger_pano.py` -> `world/far/pano.glb` 173 000 -> 30 000 triangles (silhouette
   à 2 px près, 0,32 % des pixels changent au plus) ; Économie au village 1 004 k -> 718 k triangles. Données publiées.
   Le panorama complet d'origine : `scratchpad/pano_complet.glb` (non versionné) ou l'historique de la branche `donnees`.
+- **À FAIRE ENSUITE (#124, validé par l'utilisateur : étapes 2 et 3 « dans l'ordre », pas pressé)** :
+  1. Étape 2, point 9 : bâtiments sur mesure regroupés par tuile (`sur_mesure.gd` : un modèle + un atlas par bâtiment,
+     28 appels au village, 60 au centre de Bourgoin ; il faut un atlas commun par tuile ou un Texture2DArray).
+  2. Étape 2, point 11 : villes lointaines simplifiées (bâtiments génériques `buildings.gd` : 121 appels et 553 000
+     triangles au centre de Bourgoin ; au-delà de ~400 m, une version « blocs sans fenêtres » de chaque tuile, faite
+     par `build_buildings.py`, à importer sans `godot --import` complet : voir « Import d'un seul fichier » de CLAUDE.md).
+  3. Étape 3 : relief « cuit » en Économie (une texture au lieu du mélange de Terrain3D ; bâtiments sans relief de
+     texture ni intérieurs de vitrines), à-coups des tuiles (routes posées en plusieurs images, rayon réduit en Économie).
+  Mesures : `--perf-breakdown` (NIVEAU=0/1, `--drive-from=-10859.8,238.5,-920.6,0` pour Bourgoin), avant/après dans la
+  même version par un interrupteur `RS_SKIP=…`. Repères v6.78 : village Équilibré 630 appels, Économie 405 appels /
+  718 k triangles, Bourgoin Équilibré 694 appels / ~1,9 M triangles.
 - **v6.77** (#124 étape 2, validée par l'utilisateur : « fait dans l'ordre ») : voitures garées, tracteurs, poubelles
   et commerces fusionnés en une surface par modèle (`_fusionner` de `props.gd` / `shops.gd`, voir CLAUDE.md),
   petits objets sans ombre. Village Équilibré 1 023 -> 630 appels, Économie 586 -> 405, Bourgoin 1 354 -> 694.
