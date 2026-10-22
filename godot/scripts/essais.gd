@@ -480,6 +480,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_circulation_test()
 		return
+	if OS.get_cmdline_user_args().has("--pietons-test"):
+		if t == 300:
+			_pietons_test()
+		return
 	if OS.get_cmdline_user_args().has("--succes-test"):
 		if t == 300:
 			_succes_test()
@@ -2904,3 +2908,144 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Passants (v6.88) : -- --drive-test --pietons-test [--drive-from=…] (--fixed-fps 8 conseillé) : passants en scène
+## autour du joueur (lignes : trottoirs, rues piétonnes, bords de rue), capture d'un passant de près et de la rue, puis
+## la voiture lancée à 40 km/h droit sur un passant (il doit s'écarter d'un bond), et une voiture qui le frôle de trop
+## près (« pouf »). Coût par pas de physique.
+func _pietons_test() -> void:
+	var pi = pietons
+	var dire := func(x: String): print("  [piétons] " + x)
+	var shot := func(n: String):
+		get_viewport().get_texture().get_image().save_png("user://shots/pietons_%s.png" % n)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	if pi == null or not pi.ok:
+		dire.call("ÉCHEC : pas de passants (world/pietons.bin ou modèles absents)")
+		get_tree().quit()
+		return
+	pi.set_densite(3)
+	dire.call("réseau : %d lignes ; niveau %d, densité %d : %d passants voulus" % [pi._p0.size(), pi.niveau, pi.densite, pi.voulu()])
+	var arretes := {}                    # voitures de la circulation arrêtées devant un passant qui traverse
+	var pas := func(n: int):
+		for i in n:
+			car.hold(0.5)
+			await get_tree().physics_frame
+			if circulation:
+				for v in circulation.voitures:
+					if String(v.leader) == "passant" and float(v.v) < 1.0:
+						arretes[int(v.id)] = true
+	var releve := func(tag: String):
+		var genres := [0, 0, 0, 0, 0]
+		var marche := 0
+		var dmin := INF
+		for c in pi.passants:
+			genres[pi._genre[int(c.l)]] += 1
+			if float(c.pause) <= 0.0:
+				marche += 1
+			dmin = minf(dmin, (c.n as Node3D).global_position.distance_to(car.global_position))
+		var prets: int = pi._modeles.filter(func(m): return m[1] != null).size()
+		var e = PerfMon._sys.get("pietons", [0, 0, 1])
+		dire.call("%s : %d passants (trottoirs %d, rues piétonnes %d, bords de rue %d, passages piétons %d, arrêts de bus %d), %d en marche, le plus proche à %.0f m ; modèles chargés %d/%d ; traversées %d, voitures arrêtées pour un passant %d ; coût %.2f ms/pas (pire %.2f)" % [tag,
+			pi.passants.size(), genres[0], genres[1], genres[2], genres[3], genres[4], marche, dmin, prets, pi._modeles.size(),
+			pi.traversees, arretes.size(), float(e[0]) / maxf(float(e[2]), 1.0) / 1000.0, float(e[1]) / 1000.0])
+	for k in 15:
+		await pas.call(240)
+		releve.call("t=%d s" % ((k + 1) * 2))
+	# un passant de près : caméra libre devant lui
+	var c = null
+	for o in pi.passants:
+		if float(o.pause) <= 0.0 and (c == null or (o.n as Node3D).global_position.distance_to(car.global_position) < (c.n as Node3D).global_position.distance_to(car.global_position)):
+			c = o
+	if c == null:
+		dire.call("ÉCHEC : aucun passant en marche")
+		get_tree().quit()
+		return
+	var cam := Camera3D.new()
+	add_child(cam)
+	var cam0 := get_viewport().get_camera_3d()
+	var pp: Vector3 = (c.n as Node3D).global_position
+	var dv: Vector3 = pi.tangente(int(c.l), float(c.s)) * float(c.sens)
+	cam.global_position = pp + dv * 4.5 + Vector3(-dv.z, 0, dv.x) * 1.5 + Vector3.UP * 1.6
+	cam.look_at(pp + Vector3.UP * 1.0)
+	cam.current = true
+	for f in 3:
+		await get_tree().process_frame
+	shot.call("pres")
+	cam.global_position = pp + dv * 16.0 + Vector3(-dv.z, 0, dv.x) * 5.0 + Vector3.UP * 4.0
+	cam.look_at(pp + Vector3.UP * 1.0)
+	for f in 3:
+		await get_tree().process_frame
+	shot.call("rue")
+	dire.call("captures : passant (ligne %d, genre %d) à (%.0f, %.0f)" % [int(c.l), pi._genre[int(c.l)], pp.x, pp.z])
+	# voiture lancée droit sur un passant à 40 km/h
+	for essai in 2:
+		var cible = null
+		for o in pi.passants:
+			if (cible == null or (o.n as Node3D).global_position.distance_to(car.global_position) < (cible.n as Node3D).global_position.distance_to(car.global_position)):
+				cible = o
+		if cible == null:
+			break
+		var vise := 11.0
+		var depart := 30.0 if essai == 0 else 4.0               # 2e essai : la voiture surgit à 4 m (trop près)
+		var p0: Vector3 = (cible.n as Node3D).global_position
+		var tg: Vector3 = pi.tangente(int(cible.l), float(cible.s))
+		var dir := Vector3(-tg.z, 0, tg.x) if essai == 0 else tg          # en travers du trottoir, puis le long
+		var b0: int = pi.bonds
+		var f0: int = pi.poufs
+		car.hold(0.0)
+		car.place(p0 - dir * depart + Vector3(0, 0.6, 0), rad_to_deg(atan2(dir.x, -dir.z)))
+		cam_rig.snap()
+		cam0.current = true
+		var dmin := INF
+		var vu_bond := false
+		for i in int(2.6 * 120):
+			car.linear_velocity = Vector3(dir.x * vise, car.linear_velocity.y, dir.z * vise)
+			await get_tree().physics_frame
+			if not pi.passants.has(cible):
+				break
+			var q: Vector3 = (cible.n as Node3D).global_position
+			var l: Vector3 = car.global_transform.affine_inverse() * q
+			dmin = minf(dmin, Vector2(maxf(absf(l.x) - 1.0, 0.0), maxf(absf(l.z) - 2.4, 0.0)).length())
+			if not vu_bond and pi.bonds > b0:
+				vu_bond = true
+				for f in 3:
+					await get_tree().process_frame
+				shot.call("bond_%d" % essai)
+		car.linear_velocity = Vector3.ZERO
+		dire.call("voiture sur un passant (%s) : bond %s, pouf %s, distance minimale à la carrosserie %.1f m" % [
+			"de 30 m, en travers" if essai == 0 else "à 4 m, le long", str(pi.bonds > b0), str(pi.poufs > f0), dmin])
+		await pas.call(240)
+	# klaxon : voiture arrêtée à 12 m d'un passant en marche, tournée vers lui
+	var cible_k = null
+	for o in pi.passants:
+		if float(o.pause) <= 0.0 and pi._genre[int(o.l)] != 3 and (cible_k == null or (o.n as Node3D).global_position.distance_to(car.global_position) < (cible_k.n as Node3D).global_position.distance_to(car.global_position)):
+			cible_k = o
+	if cible_k:
+		var q0: Vector3 = (cible_k.n as Node3D).global_position
+		var tg2: Vector3 = pi.tangente(int(cible_k.l), float(cible_k.s))
+		var vers := Vector3(-tg2.z, 0, tg2.x)
+		car.hold(0.0)
+		car.place(q0 - vers * 12.0 + Vector3(0, 0.6, 0), rad_to_deg(atan2(vers.x, -vers.z)))
+		cam_rig.snap()
+		await pas.call(30)
+		var s0: int = pi.sursauts
+		var b0: int = pi.bonds
+		klaxon.klaxonner()
+		await pas.call(60)
+		var q1: Vector3 = (cible_k.n as Node3D).global_position
+		var regarde: Vector3 = (cible_k.n as Node3D).global_transform.basis.z
+		var vers_auto: Vector3 = car.global_position - q1
+		vers_auto.y = 0.0
+		dire.call("klaxon : %d coup(s), %d passant(s) ont sursauté, %d bond(s) ; le passant visé : à l'arrêt %s, tourné vers la voiture %s (%.0f°), déplacé de %.1f m" % [
+			klaxon.coups, pi.sursauts - s0, pi.bonds - b0, str(float(cible_k.pause) > 0.0 or float(cible_k.bond_t) > 0.0),
+			str(rad_to_deg(regarde.angle_to(vers_auto.normalized())) < 30.0), rad_to_deg(regarde.angle_to(vers_auto.normalized())), q1.distance_to(q0)])
+		for f in 3:
+			await get_tree().process_frame
+		shot.call("klaxon")
+	releve.call("fin")
+	cam.queue_free()
+	dire.call("FIN")
+	get_tree().quit()

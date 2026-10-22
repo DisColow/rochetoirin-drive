@@ -23,6 +23,7 @@ const TOUCHES := {
 	"frein_main": [KEY_SPACE, JOY_BUTTON_A],
 	"frein_parking": [KEY_P, JOY_BUTTON_DPAD_DOWN],
 	"nitro": [KEY_SHIFT, JOY_BUTTON_B],                 # #98
+	"klaxon": [KEY_H, JOY_BUTTON_LEFT_STICK],           # v6.88
 }
 
 func _ready() -> void:

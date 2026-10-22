@@ -187,6 +187,25 @@
   (`dep` = [s0, s1, s2, s3, écart], `_ecart(c, s)` ajouté par `_pos`). Concurrents : `concurrent._piloter` évite aussi
   les voitures de la circulation (`evites` : voitures contournées). Essais `--circulation-feux`, `--circulation-depasse` (avec
   `--circulation-test`), `--course-ia-test --densite=3`.
+- **Passants** (v6.88, #135, initiative de Claude, `scripts/pietons.gd`) : piétons qui marchent sur les trottoirs
+  d'OSM, les rues piétonnes et, en ville (bâti de `world/ambiance.bin` ≥ `BATI`, rues à 50 km/h au plus), le bord des
+  rues sans trottoir. Lignes `world/pietons.bin` de `pipeline/build_pietons.py` (après `build_roads.py` et
+  `build_ambiance.py` : coupées sur les chaussées, bouts réunis en nœuds, poids selon le bâti et les lieux publics ;
+  genres 0 trottoir, 1 rue piétonne, 2 bord de rue, 3 passage piéton, 4 arrêt de bus). Passages piétons (zébras de
+  `furniture.markings` d'une rue qui a des passants des deux côtés) : le passant attend que rien n'arrive (`_libre`),
+  puis traverse ; la circulation s'arrête devant lui (`sur_passage()` dans les obstacles de `circulation.gd`, meneur
+  « passant », sans dépassement ni klaxon). Arrêts de bus (nœuds `bus_stop` sur une voie, comme le panneau de
+  `furniture.signs`) : il attend sur place, face à la route.
+  Modèles des clients du taxi (`assets/clients/mh_*.glb`, chargés en arrière-plan, animations de `pieton.gd` d'après
+  `vitesse`) ; textures compressées depuis la v6.88 (`compress/mode=2`, normales `normal_map=1`). Nombre :
+  `NOMBRE[niveau]` × `DENSITES[⚙ > Conduite > Circulation et passants]` (même réglage que la circulation), × `NUIT` la
+  nuit ; réserve de passants cachés (pas de new/free en jeu). Voiture pilotée qui fonce sur un passant : bond de côté ;
+  touché quand même : « pouf » (`activities._teleport_fx`), il disparaît (personne n'est blessé, aucun compteur).
+  `vider()` à la téléportation. **Klaxon du joueur** (`scripts/klaxon.gd`, bouton KLAXON au-dessus des flèches, touche H,
+  L3 : action `klaxon` de `nav_physique.TOUCHES`) : `klaxon.ogg` de la circulation, plus grave pour une voiture lourde ;
+  `pietons.klaxon()` : les passants à 30 m se tournent vers la voiture, ceux devant elle s'écartent, ceux d'un passage
+  piéton pressent le pas. Essai `--fixed-fps 8 -- --drive-test --pietons-test --drive-from=-10461.9,241.5,-498.6,105`
+  (centre de Bourgoin, 17 passages piétons à 100 m).
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
   `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,
