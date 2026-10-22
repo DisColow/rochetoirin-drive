@@ -566,6 +566,8 @@ func exploser() -> void:
 		return
 	if get_parent().get("carriere"):
 		get_parent().carriere.explosion()                # carrière (#120) : le KA-BOOM coûte de la réputation
+	if not ia and get_parent().get("succes"):
+		get_parent().succes.noter("explosions")          # succès (#133)
 	var fx = preload("res://scripts/explosion.gd").new()
 	fx.style = style_explosion
 	fx.position = global_position - Vector3(0, 0.3, 0)       # avant add_child : _ready lit le sol sous ce point

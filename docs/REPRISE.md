@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 22/10/2026, 18 h (v6.84 #131 et v6.85 #132 livrées ; plus rien en cours)
+## État au 22/10/2026, 19 h (v6.84 #131, v6.85 #132, v6.86 #133 livrées ; plus rien en cours)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip` (pousser `godot/` déclenche l'APK).
 - **Objectif de l'utilisateur (22/10, /goal)** : « poursuivre sur ta lancée, compléter / améliorer / peaufiner / ajouter
@@ -22,6 +22,10 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   par `pipeline/publier_fichiers.sh` (trafic.bin, klaxon). Idées de suite : feux tricolores respectés (11 feux, cycle
   dans `signal_light.gdshader` : 60 s, phase selon la case de 60 m et l'axe), dépassement d'une voiture arrêtée,
   piétons sur les trottoirs, son de moteur propre à chaque voiture du garage.
+- **v6.86 (#133, `à tester`)** : succès et statistiques (onglet « Succès », voir CLAUDE.md) et écran d'accueil du premier
+  lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
+  primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
+  de `_ready`) : `main.get_node("HUD")`.
 - **v6.83 (#128, `à tester`)** : concurrents pilotés par le jeu (`scripts/concurrent.gd`, voir CLAUDE.md
   « Concurrents ») : course contre 3 voitures par défaut dans les épreuves, Kévin réel dans le duel de la carrière
   (`fantome.gd` retiré). Mesures : course complète en Extrême, concurrents à 1-3 s du temps visé, pilote à 0,8-1 m

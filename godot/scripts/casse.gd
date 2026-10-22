@@ -311,6 +311,10 @@ func _grille_arbres(k: Vector2i) -> Dictionary:
 func _casser(genre: String, p: Vector3, it: Array) -> void:
 	if main and main.get("carriere"):
 		main.carriere.decor_casse()                   # carrière (#120) : décor cassé pendant une mission
+	if main and main.get("succes"):                  # succès (#133)
+		main.succes.noter("casse")
+		if genre == "arbre":
+			main.succes.noter("arbres")
 	_casses.append(p)
 	if _casses.size() > 200:
 		_casses.pop_front()

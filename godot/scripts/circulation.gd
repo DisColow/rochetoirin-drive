@@ -781,6 +781,8 @@ func _accident(i: int, par: Node3D) -> void:
 	epaves.append({"rb": rb, "t": 0.0})
 	voitures.remove_at(i)
 	accidents += 1
+	if par == _joueur() and main.get("succes"):
+		main.succes.noter("circulation")              # succès (#133)
 	if _debug:
 		print("[circulation] choc : voiture %d devient une épave (%.0f km/h, percutée par %s)" % [int(c.id), float(c.v) * 3.6, par.name])
 

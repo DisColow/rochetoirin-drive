@@ -112,6 +112,8 @@ func gagner(somme: float) -> void:
 	argent += somme
 	sauver()
 	change.emit()
+	if get_parent() and get_parent().get("succes"):
+		get_parent().succes.noter("argent", somme)    # succès (#133)
 
 static func euros(v: float) -> String:
 	return ("%.0f €" % v) if absf(v - roundf(v)) < 0.005 else ("%.2f €" % v).replace(".", ",")

@@ -1,13 +1,13 @@
 ## Menu des activités en plein écran (#119) : un onglet par activité (Carrière, Épreuves, Course libre, Taxi, Chasse
-## au lieu, Garage, Multijoueur). Onglet Carrière (#120) : chapitre, jauge de réputation, missions, rival (carriere.gd). Onglet Épreuves (#112) : liste avec l'icône de la médaille gagnée, et pour l'épreuve
+## au lieu, Garage, Multijoueur, Succès). Onglet Carrière (#120) : chapitre, jauge de réputation, missions, rival (carriere.gd). Onglet Épreuves (#112) : liste avec l'icône de la médaille gagnée, et pour l'épreuve
 ## touchée, la carte du tracé (carte_trace.gd), le meilleur temps, les temps des médailles, Lancer et Retour.
 ## Les actions appellent celles d'activities.gd (act).
 extends Control
 
 const UI := preload("res://scripts/ui.gd")
 const Voitures := preload("res://scripts/voitures.gd")
-const ONGLETS := ["Épreuves", "Course libre", "Taxi", "Chasse au lieu", "Garage", "Multijoueur", "Carrière"]
-const ORDRE := [6, 0, 1, 2, 3, 4, 5]          # ordre d'affichage des onglets (indices de ONGLETS : la carrière en tête)
+const ONGLETS := ["Épreuves", "Course libre", "Taxi", "Chasse au lieu", "Garage", "Multijoueur", "Carrière", "Succès"]
+const ORDRE := [6, 0, 1, 2, 3, 4, 5, 7]       # ordre d'affichage des onglets (indices de ONGLETS : la carrière en tête)
 
 var act: Node
 var onglet := 0
@@ -120,6 +120,7 @@ func _aller(i: int) -> void:
 		4: _garage()
 		5: _multi()
 		6: _carriere()
+		7: _succes()
 
 func _colonne() -> VBoxContainer:
 	var v := VBoxContainer.new()
@@ -426,3 +427,79 @@ func _carriere() -> void:
 		var fin := "Carrière terminée : champion du Nord-Isère !" if ca.carriere_finie() and k == ca.CHAPITRES.size() - 1 \
 			else "Chapitre %d terminé !" % (k + 1)
 		_texte(v, fin + ("  Cadeau : %s." % nom if nom != "" else ""), 26, Color(0.5, 1.0, 0.6))
+
+# ---------------------------------------------------------------- succès (#133)
+## Nombre lisible : entier avec espaces des milliers, sinon une décimale (0,4 km).
+static func _nombre(x: float) -> String:
+	if absf(x - roundf(x)) > 0.05 and x < 100.0:
+		return ("%.1f" % x).replace(".", ",")
+	var t := str(int(roundf(x)))
+	var o := ""
+	while t.length() > 3:
+		o = " " + t.right(3) + o
+		t = t.left(t.length() - 3)
+	return t + o
+
+func _succes() -> void:
+	var su = act.main.get("succes")
+	if su == null:
+		return
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 20)
+	_corps.add_child(h)
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.size_flags_stretch_ratio = 1.6
+	h.add_child(sc)
+	var v := VBoxContainer.new()
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.add_theme_constant_override("separation", 8)
+	sc.add_child(v)
+	var n := 0
+	for s in su.SUCCES:
+		if su.obtenu(String(s.id)):
+			n += 1
+	_texte(v, "%d succès sur %d" % [n, su.SUCCES.size()], 30, Color(1.0, 0.85, 0.45))
+	for s in su.SUCCES:
+		var ok: bool = su.obtenu(String(s.id))
+		var pc := PanelContainer.new()
+		pc.add_theme_stylebox_override("panel", UI.panel(14, 8))
+		v.add_child(pc)
+		var r := HBoxContainer.new()
+		r.add_theme_constant_override("separation", 14)
+		pc.add_child(r)
+		var ic := _texte(r, "★" if ok else "☆", 40, Color(1.0, 0.8, 0.2) if ok else Color(1, 1, 1, 0.35))
+		ic.autowrap_mode = TextServer.AUTOWRAP_OFF
+		ic.custom_minimum_size = Vector2(48, 0)
+		var t := VBoxContainer.new()
+		t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		t.add_theme_constant_override("separation", 2)
+		r.add_child(t)
+		_texte(t, str(s.titre), 26, Color(1, 1, 1) if ok else Color(1, 1, 1, 0.8))
+		_texte(t, str(s.texte), 20, Color(1, 1, 1, 0.6))
+		if ok:
+			_texte(t, "Obtenu le %s  ·  +%d €" % [str(su.obtenus[s.id]), int(s.prime)], 20, Color(0.5, 1.0, 0.6))
+		else:
+			var b: float = su.but(s)
+			var val: float = minf(su.valeur(String(s.stat)), b)
+			var j := Jauge.new(100.0 * val / b, "%s / %s" % [_nombre(val), _nombre(b)])
+			j.custom_minimum_size = Vector2(380, 34)
+			t.add_child(j)
+			_texte(t, "Prime : %d €" % int(s.prime), 18, Color(1.0, 0.9, 0.6))
+	var pc2 := PanelContainer.new()
+	pc2.add_theme_stylebox_override("panel", UI.panel(18, 12))
+	pc2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pc2.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	h.add_child(pc2)
+	var sv := VBoxContainer.new()
+	sv.add_theme_constant_override("separation", 6)
+	pc2.add_child(sv)
+	_texte(sv, "Statistiques", 30, Color(1.0, 0.85, 0.45))
+	for st in su.STATS:
+		var row := HBoxContainer.new()
+		sv.add_child(row)
+		var a := _texte(row, str(st[1]), 22, Color(1, 1, 1, 0.75))
+		a.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var b := _texte(row, su.texte_stat(String(st[0]), String(st[2])), 22)
+		b.autowrap_mode = TextServer.AUTOWRAP_OFF

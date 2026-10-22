@@ -480,6 +480,21 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_circulation_test()
 		return
+	if OS.get_cmdline_user_args().has("--succes-test"):
+		if t == 300:
+			_succes_test()
+		return
+	if OS.get_cmdline_user_args().has("--accueil-test"):
+		if t == 300:
+			while not Chargement.fini:
+				await get_tree().process_frame
+			for i in 240:
+				await get_tree().process_frame
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/accueil.png")
+			print("  [accueil] capture faite")
+			get_tree().quit()
+		return
 	var dur := 3000 if OS.get_cmdline_user_args().has("--long") else 1200
 	car.touch_throttle = 1.0 if t < dur else 0.0
 	car.touch_brake = 1.0 if t >= dur else 0.0
@@ -2596,6 +2611,65 @@ func _circulation_gros_plans(ci, shot: Callable, dire: Callable, pas: Callable) 
 	set_time(heure)
 	cam0.current = true
 	cam.queue_free()
+
+# ---------------------------------------------------------------- essai : --succes-test (#133)
+## Succès et statistiques : compteurs remis à zéro ; 20 s de vraie conduite plein gaz (distance, vitesse maximale,
+## temps) ; argent gagné au garage (crochet) ; compteurs poussés pour débloquer des succès (primes, annonces une par
+## une) ; onglet Succès (capture) ; sauvegarde relue. Lancer avec --fixed-fps 8 -- --drive-test --succes-test
+## --drive-from=-8410.95,221,-7187.25,45.2 (longue ligne droite). Captures user://shots/succes_*.png.
+func _succes_test() -> void:
+	var su = succes
+	var dire := func(x: String): print("  [succès] " + x)
+	var shot := func(n: String):
+		DirAccess.make_dir_recursive_absolute("user://shots")
+		get_viewport().get_texture().get_image().save_png("user://shots/succes_%s.png" % n)
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	su.effacer()
+	su.verifier()
+	dire.call("au départ (état déjà sauvegardé : médailles, voitures, carrière) : %d succès %s" % [su.obtenus.size(), str(su.obtenus.keys())])
+	var argent0: float = garage.argent
+	car.touch_brake = 0.0
+	car.touch_throttle = 1.0
+	car.aide_voie = true
+	var t0 := Time.get_ticks_msec()
+	for i in 15 * 8 * 20:
+		await get_tree().physics_frame
+	car.touch_throttle = 0.0
+	car.touch_brake = 1.0
+	dire.call("après 20 s de conduite : %s, vitesse maximale %s, temps %s, communes %d" % [su.texte_stat("km", "km"),
+		su.texte_stat("vmax", "km/h"), su.texte_stat("temps", "temps"), int(su.valeur("communes"))])
+	var a0: float = su.valeur("argent")
+	garage.gagner(1000.0)
+	dire.call("argent gagné : %.0f -> %.0f (crochet du garage)" % [a0, su.valeur("argent")])
+	su.noter("explosions")
+	su.noter("taxi", 1.0)
+	su.noter("km", 1.0)
+	for i in 30:
+		await get_tree().process_frame
+	su.verifier()
+	dire.call("débloqués : %s ; argent du garage %.0f -> %.0f (primes comprises)" % [str(su.obtenus.keys()), argent0, garage.argent])
+	# annonces une par une (3,5 s chacune)
+	for i in 15 * 8 * 4:
+		await get_tree().physics_frame
+	shot.call("annonce")
+	var toast = get_node("HUD").get("_toast")
+	dire.call("annonces restantes : %d, bandeau affiché : %s" % [su._annonces.size(),
+		(toast.visible and toast.find_children("*", "Label", true, false).any(func(l): return l.text.contains("Succès"))) if toast else false])
+	activities.open_menu(7)
+	get_tree().paused = false
+	for i in 20:
+		await get_tree().process_frame
+	shot.call("onglet")
+	var bs: Array = activities._menu.find_children("*", "Label", true, false) if activities._menu else []
+	dire.call("onglet Succès : %d étiquettes" % bs.size())
+	var avant: Dictionary = su.obtenus.duplicate()
+	su.sauver()
+	su.charger()
+	dire.call("sauvegarde relue : %d succès (avant %d), km %.2f" % [su.obtenus.size(), avant.size(), su.valeur("km")])
+	dire.call("FIN")
+	get_tree().quit()
 
 # ---------------------------------------------------------------- essai : --rails-test (#125)
 ## Voie ferrée en terrain plat (x -8624, z 1519, entre Bourgoin et La Tour-du-Pin) : la voiture roule 4 s le long de

@@ -873,6 +873,8 @@ func concurrent_detruit(c: Node) -> void:
 	if mode != "course" or not c in concurrents:
 		return
 	_detruits += 1
+	if main.get("succes"):
+		main.succes.noter("concurrents")              # succès (#133)
 	var p := roundf(PRIME_DETRUIT * float(NIVEAUX_EP[niveau_ep][2]))
 	if main.garage:
 		main.garage.gagner(p)
@@ -1013,6 +1015,8 @@ func _hunt_process(dt: float) -> void:
 		mode = ""
 		map.locked = false
 		chasse_limite = INF
+		if main.get("succes"):
+			main.succes.noter("chasses")              # succès (#133)
 		if main.get("carriere") and main.carriere.en_cours != "":
 			main.carriere.chasse_finie(_t)
 
@@ -1350,6 +1354,10 @@ func _taxi_drop() -> void:
 		_compteur.arreter()
 	var stars := _stars()
 	var talk: Dictionary = _talk.end_ride(stars)
+	if main.get("succes"):                          # succès (#133)
+		main.succes.noter("taxi")
+		if stars >= 5:
+			main.succes.noter("taxi5")
 	if not _rappel.is_empty():
 		if (_rappel.client as Dictionary).is_empty():
 			_rappel.client = _talk.client.duplicate()          # le même client, plus tard (#53)

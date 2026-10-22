@@ -38,6 +38,8 @@ func suivre(n: Node3D) -> void:
 		terrain.set("collision_target", n)
 var garage: Node            # argent et pièces achetées (#43, garage.gd)
 var carriere: Node          # mode carrière (#120, carriere.gd)
+var succes: Node            # succès et statistiques (#133, succes.gd)
+var nouveau_joueur := false # aucune partie sauvegardée au lancement : écran d'accueil (accueil.gd)
 var tuning: Node            # pièces montées sur la voiture (tuning.gd)
 var net: Node
 var shops: Node3D
@@ -111,8 +113,14 @@ func _fermer_voile() -> void:
 	var v := get_tree().root.get_node_or_null("VoileDemarrage")
 	if v and v.has_method("fermer"):
 		v.fermer()
+	# premier lancement d'un nouveau joueur (jamais pendant les essais, lancés avec des options) : écran d'accueil
+	var A := preload("res://scripts/accueil.gd")
+	var args := OS.get_cmdline_user_args()
+	if args.has("--accueil-test") or (nouveau_joueur and args.is_empty() and not A.deja_vu()):
+		get_tree().create_timer(1.5).timeout.connect(A.montrer.bind(self))
 
 func _ready() -> void:
+	nouveau_joueur = not FileAccess.file_exists("user://garage.cfg") and not FileAccess.file_exists("user://carriere.cfg")
 	safe_mode = FileAccess.file_exists(BOOT_FLAG)
 	var bf := FileAccess.open(BOOT_FLAG, FileAccess.WRITE)
 	if bf:
@@ -376,6 +384,10 @@ func _ready() -> void:
 	carriere.name = "Carriere"
 	carriere.main = self; carriere.act = activities; carriere.hud = hud; carriere.car = car
 	add_child(carriere)
+	succes = preload("res://scripts/succes.gd").new()         # succès et statistiques (#133)
+	succes.name = "Succes"
+	succes.main = self
+	add_child(succes)
 	var sv = preload("res://scripts/sauvegarde.gd").new()
 	sv.name = "Sauvegarde"
 	sv.car = car

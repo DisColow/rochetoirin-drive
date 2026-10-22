@@ -175,6 +175,16 @@
   **Piège des essais** : FREIN tenu à l'arrêt = marche arrière ; pour immobiliser la voiture du joueur, `car.hold()`.
   Publication des données : `pipeline/publier_fichiers.sh <fichiers>` (seulement ces fichiers sur `donnees`,
   `A_BLANC=1` pour voir les différences d'abord) plutôt que `publier_donnees.sh` quand le conteneur n'a pas tout.
+- **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
+  Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
+  `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,
+  chasses, concurrents détruits), circulation.gd (voitures percutées par le joueur), garage.gd `gagner` (argent) ;
+  distance, nuit, à pied, vitesse maximale, temps et communes suivis ici ; médailles, voitures et chapitres relus de
+  leur sauvegarde (`valeur`). Annonces une par une (bandeau du HUD : `main.get_node("HUD")`, main n'a pas de variable
+  `hud`). Sauvegarde `user://succes.cfg`. Essai `--fixed-fps 8 -- --drive-test --succes-test --drive-from=…`.
+- **Accueil** (v6.86, `scripts/accueil.gd`) : premier lancement d'un nouveau joueur (ni garage.cfg ni carriere.cfg au
+  lancement), jamais avec des options de ligne de commande (essais) ; une fois (reglages.cfg accueil/vu). Capture
+  `-- --drive-test --accueil-test`.
 - **Concurrents** (#128, `scripts/concurrent.gd`, choix de l'utilisateur : 3 par course, un concurrent détruit revient
   4 s après, Kévin réel) : vraie voiture du garage (`car.gd` avec `ia = true` : commandes dans `touch_*` seulement, pas
   d'aide à la voie, de nitro, de volant 3D ni de remise automatique) pilotée par `concurrent.gd` : tracé `itineraire.gd`
