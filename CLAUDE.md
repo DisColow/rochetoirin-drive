@@ -175,6 +175,21 @@
   **Piège des essais** : FREIN tenu à l'arrêt = marche arrière ; pour immobiliser la voiture du joueur, `car.hold()`.
   Publication des données : `pipeline/publier_fichiers.sh <fichiers>` (seulement ces fichiers sur `donnees`,
   `A_BLANC=1` pour voir les différences d'abord) plutôt que `publier_donnees.sh` quand le conteneur n'a pas tout.
+  **Feux tricolores** (v6.87, #134) : arcs coupés aux nœuds `traffic_signals` ; pour chaque arrivée, phase et axe de la
+  tête de feu calculés dans `build_trafic.py` comme `furniture.signs` la pose (champs `feu_b`/`feu_a` de trafic.bin,
+  9 champs par arc ; l'ancien format à 7 champs reste lu, sans feux). `signal_light.gdshader` : phase =
+  (17 cx + 31 cz) mod 60 (case de 60 m de l'ampoule), horloge `t_feux` donnée par roads.gd (`Env.temps_feux()`,
+  temps de jeu avancé par roads.gd, pas l'heure réelle : à `--fixed-fps 8` le jeu tourne 30 fois moins vite que la
+  montre) : **ne pas revenir à `TIME` ni à un hachage `fract(sin())`** (irreproductible côté jeu). Contrôle des têtes
+  dessinées contre `build_trafic.py` : 198 ampoules sur 198 concordantes (v6.87). Arrêt à `ARRET_FEU` m du nœud,
+  pas de réservation du carrefour pendant le rouge. **Dépassement** : obstacle immobile (épave, joueur, concurrent)
+  après `ATTENTE` s : autre file d'un sens unique (raccord `dec`), sinon voie d'en face libre sur `DEGAGE` m
+  (`dep` = [s0, s1, s2, s3, écart], `_ecart(c, s)` ajouté par `_pos`). Concurrents : `concurrent._piloter` évite aussi
+  les voitures de la circulation (`evites` : voitures contournées). **Course contre des concurrents** : tracé dégagé
+  sur `COURSE_MARGE` m (`_route_course`, d'après `concurrents[0]._chemin` : voitures et épaves retirées au départ,
+  aucune apparition ensuite) ; sans cela, en circulation dense, le peloton s'empilait sur les épaves dans les rues
+  étroites (essai : bloqué à 150 m du départ, 13 épaves en 45 s). Essais `--circulation-feux`, `--circulation-depasse` (avec
+  `--circulation-test`), `--course-ia-test --densite=3`.
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
   `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,

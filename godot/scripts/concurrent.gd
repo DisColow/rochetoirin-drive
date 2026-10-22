@@ -45,6 +45,7 @@ var s := 0.0                        # progression sur le tracé (m)
 var longueur := 0.0
 var detruit := 0                    # explosions
 var fige := false                   # loin du joueur : sans physique
+var evites := {}                    # voitures de la circulation contournées (essais : id -> vrai)
 
 var _propre := false                # voiture créée ici (rendue à la fin)
 var _itin
@@ -271,17 +272,28 @@ func _piloter(dt: float) -> void:
 	# voiture à côté : on s'écarte (3 m entre les deux) ; voiture devant sur notre trajectoire et plus lente : on se
 	# décale du côté libre pour la doubler
 	var gene := false
+	# voitures à éviter : celles de la course, et celles de la circulation proches (#134 : position, vitesse)
+	var vus := []
 	for o in autres:
 		if o == voiture or not is_instance_valid(o) or o.blown:
 			continue
-		var l: Vector3 = xf.affine_inverse() * (o as Node3D).global_position
+		vus.append([(o as Node3D).global_position, (o as RigidBody3D).linear_velocity, -1])
+	var circ = main.get("circulation") if main else null
+	if circ:
+		for tc in circ.voitures:
+			if ((tc.pos as Vector3) - xf.origin).length_squared() < 45.0 * 45.0:
+				vus.append([tc.pos, (tc.dir as Vector3) * float(tc.v), int(tc.id)])
+	for e in vus:
+		var l: Vector3 = xf.affine_inverse() * (e[0] as Vector3)
 		if absf(l.x) < 3.0 and l.z > -5.0 and l.z < 4.5:
 			gene = true
 			_off_but = clampf(_off - signf(l.x) * (3.0 - absf(l.x)), -VOIE, VOIE)
 		elif l.z >= 4.5 and l.z < 16.0 + v * 0.8 and absf(l.x) < 2.3:
-			var vo: float = (o as RigidBody3D).linear_velocity.dot(xf.basis.z)
+			var vo: float = (e[1] as Vector3).dot(xf.basis.z)
 			if vo < v - 0.5 or l.z < 7.0:
 				gene = true
+				if int(e[2]) >= 0:
+					evites[int(e[2])] = true
 				_off_but = clampf(_off + (-VOIE if l.x > 0.0 else VOIE), -VOIE, VOIE)
 				if l.z < 6.0 + v * 0.3 and absf(l.x) < 1.6:
 					v_cible = minf(v_cible, maxf(vo - 1.0, 3.0))   # arrêtée devant : on avance au pas et on la pousse

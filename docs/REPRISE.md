@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 22/10/2026, 19 h (v6.84 #131, v6.85 #132, v6.86 #133 livrées ; plus rien en cours)
+## État au 22/10/2026, 21 h (v6.84 #131 à v6.87 #134 livrées ; plus rien en cours)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip` (pousser `godot/` déclenche l'APK).
 - **Objectif de l'utilisateur (22/10, /goal)** : « poursuivre sur ta lancée, compléter / améliorer / peaufiner / ajouter
@@ -26,6 +26,19 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v6.87 (#134, `à tester`)** : feux tricolores respectés par la circulation, dépassement d'un obstacle immobile par la
+  voie d'en face, concurrents qui évitent la circulation (voir CLAUDE.md « Circulation »). `trafic.bin` passe à 9 champs
+  par arc (publié ; l'ancien format reste lu). Essais `--circulation-test --circulation-feux` (90 s de jeu : passages
+  aux feux, aucun au rouge, capture caméra libre d'une voiture arrêtée) et `--circulation-depasse` (écart, klaxon,
+  retour dans sa voie) ; `--course-ia-test --densite=3` compte les voitures contournées par les concurrents. Trouvé par
+  cet essai : en circulation dense, le peloton s'empilait sur les épaves dans les rues étroites (bloqué à 150 m du
+  départ ; sans circulation : 350 m en 40 s) -> tracé de la course dégagé (`circulation._route_course`). Pièges :
+  le shader des feux avait une phase `fract(sin())` irreproductible côté jeu et `TIME` (horloge du rendu) : remplacés
+  par (17 cx + 31 cz) mod 60 et `Env.temps_feux()` (temps de jeu : à `--fixed-fps 8`, l'heure réelle défilait 30 fois
+  trop vite pour les voitures) ; 198 têtes de feux dessinées sur 198 concordent avec `build_trafic.py` ; deux voitures
+  qui se croisent à 2,5 m l'une de l'autre devenaient épaves (marge de choc ronde) : marges par axe. **Piège du
+  conteneur** : `git worktree add` télécharge les APK par Git LFS et remplit le disque (le faire avec
+  `GIT_LFS_SKIP_SMUDGE=1`, ou s'en passer).
 - **v6.83 (#128, `à tester`)** : concurrents pilotés par le jeu (`scripts/concurrent.gd`, voir CLAUDE.md
   « Concurrents ») : course contre 3 voitures par défaut dans les épreuves, Kévin réel dans le duel de la carrière
   (`fantome.gd` retiré). Mesures : course complète en Extrême, concurrents à 1-3 s du temps visé, pilote à 0,8-1 m
