@@ -159,6 +159,8 @@ void fragment() {
 	var body: Node3D = load(dossier + "/body.glb").instantiate()
 	body.rotation.y = PI                    # modèle : avant vers -Z ; voiture du jeu : avant vers +Z
 	_modele.add_child(body)
+	for mi in body.find_children("*", "MeshInstance3D", true, false):
+		(mi as MeshInstance3D).lod_bias = 64.0   # #130 : niveaux de détail de l'import déchirés (voir car.gd)
 	_r_roue = float(meta.radius)
 	_y_roue = _r_roue + 0.035 - 0.1         # centre des roues de car.gd, suspension tassée
 	var wb := float(meta.wheelbase); var tr := float(meta.track)

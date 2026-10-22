@@ -490,6 +490,9 @@ func _materials(root: Node) -> void:
 	var by_name := {"cover": cover, "hubcap": hub, "paint": paint, "beige": beige, "orange": orange, "fog": fog, "glass": glass, "chrome": chrome, "rubber": rubber, "plastic": plastic,
 		"lamp": lamp, "tail": tail, "interior": vcol, "plate_front": vcol, "plate_rear": vcol}
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
+		# #130 : toujours en pleine définition. Les niveaux de détail faits à l'import déchirent les modèles en pièces
+		# séparées (2CV « toute pétée » en Économie, image calculée en petite résolution) ; la voiture est toujours près
+		mi.lod_bias = 64.0
 		for s in mi.mesh.get_surface_count():
 			var m: Material = mi.mesh.surface_get_material(s)
 			var nm := m.resource_name if m else ""

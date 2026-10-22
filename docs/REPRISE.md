@@ -3,9 +3,13 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 22/10/2026, 4 h 30 (v6.78 : horizon allégé)
+## État au 22/10/2026, 9 h (v6.79 : #130, 2CV « toute pétée »)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip` (pousser `godot/` déclenche l'APK).
+- **v6.79** (#130) : les niveaux de détail faits à l'import déchirent les modèles en pièces séparées (2CV) ; voitures du
+  garage toujours en pleine définition (`lod_bias = 64` dans `car._materials`, `fantome.gd`). Essai
+  `--voitures-revue --lod-seuil=N` (seuil forcé, petite résolution : `--resolution 800x360`). À surveiller : d'autres
+  modèles posés par lots (voitures garées, commerces) pourraient avoir le même défaut au loin.
 - **v6.78** (#124 étape 2) : `pipeline/alleger_pano.py` -> `world/far/pano.glb` 173 000 -> 30 000 triangles (silhouette
   à 2 px près, 0,32 % des pixels changent au plus) ; Économie au village 1 004 k -> 718 k triangles. Données publiées.
   Le panorama complet d'origine : `scratchpad/pano_complet.glb` (non versionné) ou l'historique de la branche `donnees`.

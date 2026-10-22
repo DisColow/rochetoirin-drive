@@ -1619,6 +1619,10 @@ func _voitures_revue() -> void:
 			ids = Array(a.get_slice("=", 1).split(","))
 	perf_auto = false
 	car.aide_voie = false
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--lod-seuil="):      # #130 : simplification des modèles forcée (seuil en pixels, Économie : 8)
+			get_viewport().mesh_lod_threshold = float(a.get_slice("=", 1))
+			print("  [revue] seuil des niveaux de détail : %.1f px" % get_viewport().mesh_lod_threshold)
 	var depart: Transform3D = get_meta("depart0")
 	DirAccess.make_dir_recursive_absolute("user://shots")
 	for id in ids:

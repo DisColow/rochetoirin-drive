@@ -320,6 +320,9 @@
   **Import d'un seul fichier** : un `godot --headless --import` du projet ré-importe aussi les tuiles de bâtiments
   (13,8 Go, tué) ; importer le fichier dans un petit projet temporaire (même chemin `res://`, même `.import`) et copier
   son `.godot/imported/<fichier>-<hash>.scn/.md5` dans le projet.
+  **Niveaux de détail ratés** (v6.79, #130) : ceux que Godot fabrique à l'import déchirent les modèles faits de pièces
+  séparées (la 2CV) ; ils apparaissent vite sur téléphone (petite résolution). Voitures du garage en pleine définition
+  (`lod_bias`) ; contrôle : `--voitures-revue --lod-seuil=60 --resolution 800x360`.
 - **Cultures fauchées** (v6.36, #131 : les tiges explosent en éclats de la couleur de la culture, `dust.eclats()`, couleurs `ECLATS` de `trample.gd` ; les bandes sont rasées à 10-20 cm dans la trace ; essai `-- --drive-test --champ-test [--champ-type=0-3]`, captures `user://shots/champ_N.png`). Ancien fonctionnement (v6.5, refait en v6.9 : issue #8, couchées à 90°) (`scripts/trample.gd`) : carte des passages
   de 96 m qui suit la voiture (256 px, R/V = sens, B = écrasement, A = ligne de l'atlas des cultures + 1 sur 8), peinte
   **seulement dans les champs** (`crops.field_at`), lue par `crops.gdshader` (`trample_tex`, `trample_zone`) au sommet

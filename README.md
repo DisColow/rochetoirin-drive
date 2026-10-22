@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.78.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.78/RochetoirinSimulator-v6.78.apk)**
+**[RochetoirinSimulator-v6.79.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.79/RochetoirinSimulator-v6.79.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,9 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.78 :
-- **Horizon lointain allégé** : le relief jusqu'à 75 km (Alpes comprises) est dessiné avec six fois moins de
-  triangles, sans changement visible de la silhouette des montagnes. Plus fluide sur les petits téléphones.
+Nouveautés de la v6.79 :
+- **2CV réparée** (et les autres voitures du garage) : sur téléphone, surtout en mode Économie, le modèle pouvait
+  s'afficher déchiqueté (version simplifiée ratée) ; les voitures sont maintenant toujours dessinées en pleine
+  définition.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
