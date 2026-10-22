@@ -309,6 +309,12 @@
   sol ou de mur : `EMISSION += ALBEDO * env_phares_lum(wp)`). **Le frein des roues de Godot est une impulsion par pas
   de physique** : `car.gd` le met à l'échelle (`k_pas`) ; tout effet réglé par pas doit faire de même.
   **Essais en parallèle** : chacun son `XDG_DATA_HOME` (sinon `demarrage.flag` met l'autre en mode sûr).
+  **Fusion des modèles** (v6.77, #124 étape 2) : `props.gd` et `shops.gd` `_fusionner` mettent tous les matériaux d'un
+  modèle en une surface (un appel de dessin par case au lieu d'un par matériau) ; le matériau de chaque sommet passe
+  dans UV/UV2 (`props.gdshader`, `shop.gdshader` « fusion ») — **jamais dans COLOR** : dans une MultiMesh sans couleur
+  par exemplaire, Compatibility la multiplie par zéro (tout noir) ; niveaux de détail refaits par
+  `ImporterMesh.generate_lods` (`RenderingServer.mesh_get_surface` ne rend pas ceux de l'import en 4.4). Petits objets
+  sans ombre (clôtures, panneaux, enseignes, bornes). Essais avant/après : `RS_SKIP=fusion,ombres`.
 - **Cultures fauchées** (v6.36, #131 : les tiges explosent en éclats de la couleur de la culture, `dust.eclats()`, couleurs `ECLATS` de `trample.gd` ; les bandes sont rasées à 10-20 cm dans la trace ; essai `-- --drive-test --champ-test [--champ-type=0-3]`, captures `user://shots/champ_N.png`). Ancien fonctionnement (v6.5, refait en v6.9 : issue #8, couchées à 90°) (`scripts/trample.gd`) : carte des passages
   de 96 m qui suit la voiture (256 px, R/V = sens, B = écrasement, A = ligne de l'atlas des cultures + 1 sur 8), peinte
   **seulement dans les champs** (`crops.field_at`), lue par `crops.gdshader` (`trample_tex`, `trample_zone`) au sommet

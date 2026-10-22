@@ -194,7 +194,9 @@ func _add(k: Vector2i) -> void:
 	for m in by:
 		if by[m].is_empty():
 			continue
-		Cells.add(root, meshes[m], by[m], RANGE.get(MODELS[m], 700.0), not MODELS[m] in ["glissiere", "grillage", "gba"])
+		# #124 étape 2 : ombre pour les grandes structures seulement (péage, portiques), pas pour les panneaux et bornes
+		var ombre: bool = MODELS[m] in ["peage", "pile_peage", "potence", "panneau_haut"] or (OS.get_environment("RS_SKIP").contains("ombres") and not MODELS[m] in ["glissiere", "grillage", "gba"])
+		Cells.add(root, meshes[m], by[m], RANGE.get(MODELS[m], 700.0), ombre)
 	add_child(root)
 	loaded[k] = root
 

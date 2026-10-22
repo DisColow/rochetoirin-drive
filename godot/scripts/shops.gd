@@ -54,6 +54,13 @@ func _ready() -> void:
 	var atlas2: Texture2D = load("res://assets/shops/enseignes2.png") if ResourceLoader.exists("res://assets/shops/enseignes2.png") else atlas
 	var atlas3: Texture2D = load("res://assets/shops/enseignes3.png") if ResourceLoader.exists("res://assets/shops/enseignes3.png") else atlas
 	var cache := {}
+	var fusion := ShaderMaterial.new()
+	fusion.shader = preload("res://scripts/shop.gdshader")
+	fusion.set_shader_parameter("fusion", true)
+	fusion.set_shader_parameter("atlas", atlas)
+	fusion.set_shader_parameter("atlas2", atlas2)
+	fusion.set_shader_parameter("atlas3", atlas3)
+	preload("res://scripts/env.gd").add(fusion)
 	for n in MODELS:
 		var sc: PackedScene = load("res://assets/shops/%s.glb" % n)
 		var mi: MeshInstance3D = sc.instantiate().find_children("*", "MeshInstance3D", true, false)[0]
@@ -79,7 +86,68 @@ func _ready() -> void:
 				preload("res://scripts/env.gd").add(sm)
 				cache[nm] = sm
 			mesh.surface_set_material(s, cache[nm])
-		meshes.append(mesh)
+		meshes.append(_fusionner(mesh, fusion))
+
+## #124 étape 2 : chaque modèle (jusqu'à 9 matériaux) devient une seule surface : un appel de dessin par case au lieu
+## d'un par matériau (153 appels au centre de Bourgoin). Le matériau de chaque sommet passe dans UV2 (shop.gdshader,
+## « fusion ») : x = couleur (r × 65536 + v × 256 + b, entiers 0-255, exacts en flottant 32 bits) ; y = genre × 16384 +
+## rugosité × 128 + métal (sur 127), ou −(lueur + 1) pour les lumineux (genre 5 : rugosité 0,3, sans métal). UV et
+## tangentes gardés (atlas des enseignes, rayures, vitrines en Interior Mapping). Niveaux de détail refaits.
+func _fusionner(mesh: Mesh, fusion: Material) -> Mesh:
+	if mesh.get_surface_count() < 2 or OS.get_environment("RS_SKIP").contains("fusion"):   # essais : avant / après
+		return mesh
+	var octet := func(c: Color) -> float:
+		return float(roundi(clampf(c.r, 0, 1) * 255.0) * 65536 + roundi(clampf(c.g, 0, 1) * 255.0) * 256 + roundi(clampf(c.b, 0, 1) * 255.0))
+	var P := PackedVector3Array()
+	var N := PackedVector3Array()
+	var T := PackedFloat32Array()
+	var U := PackedVector2Array()
+	var U2 := PackedVector2Array()
+	var I := PackedInt32Array()
+	for s in mesh.get_surface_count():
+		var m := mesh.surface_get_material(s) as ShaderMaterial
+		if m == null:
+			return mesh
+		var kind := int(m.get_shader_parameter("kind"))
+		var code := Vector2(octet.call(m.get_shader_parameter("albedo")), 0.0)
+		if kind == 5:
+			code.y = -(octet.call(m.get_shader_parameter("glow")) + 1.0)
+		else:
+			code.y = kind * 16384 + roundi(clampf(float(m.get_shader_parameter("rough")), 0, 1) * 127.0) * 128 + roundi(clampf(float(m.get_shader_parameter("metal")), 0, 1) * 127.0)
+		var a := mesh.surface_get_arrays(s)
+		var base := P.size()
+		var v: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+		P.append_array(v)
+		N.append_array(a[Mesh.ARRAY_NORMAL])
+		var t = a[Mesh.ARRAY_TANGENT]
+		if t is PackedFloat32Array and (t as PackedFloat32Array).size() == v.size() * 4:
+			T.append_array(t)
+		else:
+			for i in v.size():
+				T.append_array([1.0, 0.0, 0.0, 1.0])
+		var uv = a[Mesh.ARRAY_TEX_UV]
+		if uv is PackedVector2Array and (uv as PackedVector2Array).size() == v.size():
+			U.append_array(uv)
+		else:
+			for i in v.size():
+				U.append(Vector2.ZERO)
+		for i in v.size():
+			U2.append(code)
+		var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX]
+		for i in idx:
+			I.append(i + base)
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = P
+	arr[Mesh.ARRAY_NORMAL] = N
+	arr[Mesh.ARRAY_TANGENT] = T
+	arr[Mesh.ARRAY_TEX_UV] = U
+	arr[Mesh.ARRAY_TEX_UV2] = U2
+	arr[Mesh.ARRAY_INDEX] = I
+	var im := ImporterMesh.new()
+	im.add_surface(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, fusion)
+	im.generate_lods(25.0, 60.0, [])
+	return im.get_mesh()
 
 func _d(k: Vector2i, c: Vector3) -> float:
 	return Vector2((k.x + 0.5) * TILE - c.x, (k.y + 0.5) * TILE - c.z).length()
@@ -154,6 +222,8 @@ func _add(k: Vector2i) -> void:
 	for m in by:
 		var big: bool = MODELS[m] in ["totem", "ombriere", "enseigne", "auvent", "bardage", "porte_sectionnelle",
 			"boutique_station", "lavage", "panneau_prix", "affiche", "marquise"]
-		Cells.add(root, meshes[m], by[m], 550.0 if big else 300.0, big)
+		# #124 étape 2 : ombre seulement pour les structures qui en portent une vraie (enseignes, affiches, totems : non)
+		var ombre: bool = MODELS[m] in ["ombriere", "auvent", "marquise", "boutique_station", "lavage"] or (big and OS.get_environment("RS_SKIP").contains("ombres"))
+		Cells.add(root, meshes[m], by[m], 550.0 if big else 300.0, ombre)
 	add_child(root)
 	loaded[k] = root

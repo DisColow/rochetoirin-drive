@@ -172,7 +172,8 @@ func _finish(k: Vector2i) -> void:
 		var mi := MeshInstance3D.new()
 		mi.mesh = m
 		mi.material_override = mat_cut if j == 1 else mat
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if j == 1 else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		# #124 étape 2 : plus d'ombre (petits objets : la passe des ombres ne redessine que bâtiments, arbres, voitures)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if OS.get_environment("RS_SKIP").contains("ombres") and j != 1 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mi.visibility_range_end = (VIEW_CUT if j == 1 else VIEW) + m.get_aabb().size.length() * 0.5 + 10.0
 		mi.visibility_range_end_margin = 10.0
 		root.add_child(mi)

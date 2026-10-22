@@ -3,9 +3,15 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 22/10/2026, 1 h 30 (v6.76 livrée : godot d64778b65, données 86eb702e1)
+## État au 22/10/2026, 3 h (v6.77 : #124 étape 2, première partie)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip` (pousser `godot/` déclenche l'APK).
+- **v6.77** (#124 étape 2, validée par l'utilisateur : « fait dans l'ordre ») : voitures garées, tracteurs, poubelles
+  et commerces fusionnés en une surface par modèle (`_fusionner` de `props.gd` / `shops.gd`, voir CLAUDE.md),
+  petits objets sans ombre. Village Équilibré 1 023 -> 630 appels, Économie 586 -> 405, Bourgoin 1 354 -> 694.
+  **Reste de l'étape 2** : bâtiments sur mesure regroupés par tuile (un atlas par bâtiment : il faudra un
+  Texture2DArray ou un atlas de tuile ; 28-60 appels), villes lointaines simplifiées (point 11), panorama allégé
+  (`pano`, 173 k triangles). Puis étape 3 (relief cuit en Économie, à-coups des tuiles).
 - **v6.76** : #124 étape 1 (vrai mode Économie), #127 argent (3 niveaux par épreuve), #126 revue des voitures, #129
   explosions (3 styles au choix dans ⚙ > Conduite, défaut « mini », **choix de l'utilisateur attendu**, `pending`).
   - #124 : `main.gd` `NIVEAUX[0]` (pas d'ombres, `res_auto` 50-80 %, 30 img/s ou `eco_60`, physique 60 pas/s, brume),

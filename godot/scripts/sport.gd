@@ -234,7 +234,8 @@ func _add(k: Vector2i) -> void:
 		var l := []
 		for xf in by[m]:
 			l.append([xf])
-		Cells.add(root, meshes[m], l, 600.0 if MODELS[m] == "mat_eclairage" else 320.0, MODELS[m] == "mat_eclairage")
+		Cells.add(root, meshes[m], l, 600.0 if MODELS[m] == "mat_eclairage" else 320.0,
+			MODELS[m] == "mat_eclairage" and OS.get_environment("RS_SKIP").contains("ombres"))   # #124 étape 2 : sans ombre
 	add_child(root)
 	loaded[k] = root
 

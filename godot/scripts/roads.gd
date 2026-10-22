@@ -179,7 +179,8 @@ func _add(k: Vector2i, sc: PackedScene) -> void:
 					mi.set_surface_override_material(s, Cells.material(sm, DETAIL))
 			mi.visibility_range_end = DETAIL + mesh.get_aabb().size.length() * 0.5 + 10.0
 			mi.visibility_range_end_margin = 10.0
-			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			# #124 étape 2 : petits objets sans ombre
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if OS.get_environment("RS_SKIP").contains("ombres") else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		else:
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(n)

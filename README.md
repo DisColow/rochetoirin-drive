@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.76.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.76/RochetoirinSimulator-v6.76.apk)**
+**[RochetoirinSimulator-v6.77.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.77/RochetoirinSimulator-v6.77.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,13 +16,12 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.76 :
-- **Mode Économie bien plus léger** pour les téléphones modestes : ni arbres, ni herbe, ni plantations, pas d'ombres,
-  30 images/s régulières, phares et lampadaires dessinés sans vraies lampes, nuit plus claire.
-- **On gagne de l'argent beaucoup plus vite** : chaque épreuve se joue en Normal, Difficile ou Extrême (primes jusqu'à
-  6 fois plus fortes), refaire une épreuve paie, taxi, chasse au lieu et carrière rapportent trois à quatre fois plus.
-- **Explosions refaites** : trois styles au choix dans ⚙ > Conduite (film, mini-champignon, champignon atomique).
-- **Voitures du garage** : posées juste sur leurs roues, phares au bon endroit et halos la nuit.
+Nouveautés de la v6.77 :
+- **Plus fluide partout, sans rien changer à l'image** : voitures garées, tracteurs, poubelles et devantures des
+  commerces dessinés d'un seul coup chacun, au lieu d'une fois par matière.
+- **Moins d'ombres inutiles** : clôtures, panneaux, enseignes et bornes n'en projettent plus (bâtiments, arbres,
+  voitures et grandes structures gardent les leurs).
+- Au village, chaque image demande environ un tiers de travail de dessin en moins.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

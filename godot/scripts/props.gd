@@ -50,6 +50,10 @@ func _ready() -> void:
 		"plate": _m(Color(0.92, 0.92, 0.9), 0.4),
 		"lid": _m(Color(0.88, 0.72, 0.1), 0.6),
 	}
+	var fusion := ShaderMaterial.new()
+	fusion.shader = preload("res://scripts/props.gdshader")
+	preload("res://scripts/env.gd").add(fusion)
+	preload("res://scripts/env.gd").phares_sur(fusion)
 	for t in MODELS:
 		var sc: PackedScene = load("res://assets/props/%s.glb" % MODELS[t])
 		var mi: MeshInstance3D = sc.instantiate().find_children("*", "MeshInstance3D", true, false)[0]
@@ -59,7 +63,56 @@ func _ready() -> void:
 			var nm := m.resource_name if m else ""
 			if mats.has(nm):
 				mesh.surface_set_material(s, mats[nm])
-		meshes[t] = mesh
+		meshes[t] = _fusionner(mesh, paint, fusion)
+
+## #124 étape 2 : un modèle sans texture (voitures 1 et 3 : 12 matériaux, tracteur 6, poubelle 3) devient une seule
+## surface : un appel de dessin par case au lieu d'un par matériau, ombres comprises (au village, 346 appels pour les
+## voitures garées). Couleur de chaque matériau dans UV (r, v) et UV2.x (b), UV2.y = métal × 10 (entier) + rugosité, ou
+## −1 pour la carrosserie teintée par instance ; shader props.gdshader. (Pas la couleur des sommets : dans une MultiMesh
+## sans couleur par exemplaire, le rendu Compatibility la multiplie par zéro, tout sortait noir.) Niveaux de détail refaits comme à l'import (ImporterMesh : ceux de
+## l'import ne se relisent pas, mesh_get_surface les renvoie vides en 4.4). Modèle texturé ou d'une seule surface : inchangé.
+func _fusionner(mesh: Mesh, paint: Material, fusion: Material) -> Mesh:
+	if mesh.get_surface_count() < 2 or OS.get_environment("RS_SKIP").contains("fusion"):   # essais : avant / après
+		return mesh
+	var parts := []
+	for s in mesh.get_surface_count():
+		var m := mesh.surface_get_material(s)
+		if m == paint:
+			parts.append([s, Vector2(1, 1), Vector2(1, -1)])
+		elif m is StandardMaterial3D and (m as StandardMaterial3D).albedo_texture == null:
+			var sm := m as StandardMaterial3D
+			parts.append([s, Vector2(sm.albedo_color.r, sm.albedo_color.g),
+				Vector2(sm.albedo_color.b, roundf(sm.metallic * 10.0) + clampf(sm.roughness, 0.0, 0.99))])
+		else:
+			return mesh
+	var P := PackedVector3Array()
+	var N := PackedVector3Array()
+	var U := PackedVector2Array()
+	var U2 := PackedVector2Array()
+	var I := PackedInt32Array()
+	for pa in parts:
+		var a := mesh.surface_get_arrays(pa[0])
+		var base := P.size()
+		var v: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+		P.append_array(v)
+		N.append_array(a[Mesh.ARRAY_NORMAL])
+		for i in v.size():
+			U.append(pa[1])
+			U2.append(pa[2])
+		var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX]
+		for i in idx:
+			I.append(i + base)
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = P
+	arr[Mesh.ARRAY_NORMAL] = N
+	arr[Mesh.ARRAY_TEX_UV] = U
+	arr[Mesh.ARRAY_TEX_UV2] = U2
+	arr[Mesh.ARRAY_INDEX] = I
+	var im := ImporterMesh.new()
+	im.add_surface(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, fusion)
+	im.generate_lods(25.0, 60.0, [])
+	return im.get_mesh()
 
 func _m(c: Color, rough: float, metal := 0.0) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()

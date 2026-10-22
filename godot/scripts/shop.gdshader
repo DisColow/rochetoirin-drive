@@ -2,6 +2,7 @@
 // 0 uni, 1 enseigne (case de l'atlas en INSTANCE_CUSTOM, éclairée la nuit), 2 toile rayée (couleur d'instance),
 // 3 couleur d'instance (bandeaux, auvents), 4 intérieur de boutique (rayons, éclairé la nuit), 5 lumineux (croix,
 // carotte, ampoules), 6 verre opaque à intérieur simulé (Interior Mapping, v6.19) ; plus l'ambiance (ombre des nuages, pluie).
+// « fusion » (#124 étape 2, shops.gd _fusionner) : tous les matériaux d'un modèle en une surface, chacun lu dans UV2.
 shader_type spatial;
 render_mode cull_disabled;
 #include "res://scripts/env.gdshaderinc"
@@ -13,16 +14,44 @@ uniform float metal = 0.0;
 uniform vec3 glow : source_color = vec3(0.0);
 uniform float night = 0.0;
 uniform float grid = 0.0;            // filets et grillages : maille (m), trous découpés
+uniform bool fusion = false;         // matériau de chaque sommet dans UV2 (genre, couleur, rugosité, métal ou lueur)
 uniform sampler2D atlas : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D atlas2 : source_color, filter_linear_mipmap_anisotropic, repeat_disable;   // 2e page (x + 10)
 uniform sampler2D atlas3 : source_color, filter_linear_mipmap_anisotropic, repeat_disable;   // 3e page (x + 20)
 
 varying vec4 v_c;
 varying vec3 v_wp;
+varying flat int v_kind;
+varying vec3 v_alb;
+varying vec3 v_glow;
+varying vec2 v_rm;
+
+vec3 octets(float a) {
+	float r = floor(a / 65536.0);
+	float g = floor((a - r * 65536.0) / 256.0);
+	return vec3(r, g, a - r * 65536.0 - g * 256.0) / 255.0;
+}
 
 void vertex() {
 	v_c = INSTANCE_CUSTOM;
 	v_wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	v_kind = kind;
+	v_alb = albedo;
+	v_glow = glow;
+	v_rm = vec2(rough, metal);
+	if (fusion) {
+		v_alb = octets(UV2.x);
+		if (UV2.y < 0.0) {
+			v_kind = 5;
+			v_glow = octets(-UV2.y - 1.0);
+			v_rm = vec2(0.3, 0.0);
+		} else {
+			float k = floor(UV2.y / 16384.0);
+			float r = floor((UV2.y - k * 16384.0) / 128.0);
+			v_kind = int(k + 0.5);
+			v_rm = vec2(r, UV2.y - k * 16384.0 - r * 128.0) / 127.0;
+		}
+	}
 }
 
 void fragment() {
@@ -30,10 +59,11 @@ void fragment() {
 		discard;
 	}
 	float sh = env_cloud(v_wp.xz);
-	vec3 c = albedo;
-	float r = rough;
+	vec3 c = v_alb;
+	float r = v_rm.x;
+	int kd = v_kind;
 	vec3 e = vec3(0.0);
-	if (kind == 1) {
+	if (kd == 1) {
 		vec2 cu = clamp(vec2(UV.x, 1.0 - UV.y), 0.004, 0.996) * v_c.zw;
 		if (v_c.x >= 15.0) {
 			c = texture(atlas3, vec2(v_c.x - 20.0, v_c.y) + cu).rgb;
@@ -44,28 +74,28 @@ void fragment() {
 		}
 		e = c * night * 0.9;
 		r = 0.3;
-	} else if (kind == 2) {
+	} else if (kd == 2) {
 		float st = step(0.5, fract(UV.x * 4.0));
 		c = mix(v_c.rgb, vec3(0.93, 0.9, 0.82), st * 0.85);
-	} else if (kind == 3) {
-		c = v_c.a > 0.0 ? v_c.rgb : albedo;
-	} else if (kind == 4) {
+	} else if (kd == 3) {
+		c = v_c.a > 0.0 ? v_c.rgb : v_alb;
+	} else if (kd == 4) {
 		float shelf = step(0.75, fract(UV.y * 5.0)) * 0.35;
 		float prod = step(0.5, fract(UV.x * 7.0 + floor(UV.y * 5.0) * 0.37)) * 0.25;
-		c = albedo * (0.75 + prod - shelf);
+		c = v_alb * (0.75 + prod - shelf);
 		e = vec3(1.0, 0.86, 0.62) * c * (0.25 + 0.9 * night);
-	} else if (kind == 5) {
-		e = glow * (0.35 + 2.2 * night);
-	} else if (kind == 8) {
+	} else if (kd == 5) {
+		e = v_glow * (0.35 + 2.2 * night);
+	} else if (kd == 8) {
 		// balise à chevrons bleus sur fond blanc
 		float ch = step(0.5, fract(UV.x * 2.5 + abs(UV.y - 0.5) * 2.5));
 		c = mix(vec3(0.95), vec3(0.08, 0.22, 0.58), ch);
-	} else if (kind == 7) {
+	} else if (kd == 7) {
 		vec2 g = fract(UV / grid);
 		if (g.x > 0.18 && g.y > 0.18) {
 			discard;
 		}
-	} else if (kind == 6) {
+	} else if (kd == 6) {
 		// v6.19 : vitrine opaque à « Interior Mapping » : chaque vitre (case UV 0…1) cache une pièce de 1 de profondeur ;
 		// le rayon de vue, ramené dans le repère de la vitre (TANGENT, BINORMAL, -NORMAL), touche le fond (rayons et
 		// produits), les côtés, le sol ou le plafond (lampe). Aucun mélange : la vitre est un aplat opaque, le
@@ -98,6 +128,6 @@ void fragment() {
 	}
 	ALBEDO = c * sh * (1.0 - 0.15 * wet);
 	ROUGHNESS = mix(r, 0.08, wet * 0.6);
-	METALLIC = kind == 6 ? 0.25 : metal;
+	METALLIC = kd == 6 ? 0.25 : v_rm.y;
 	EMISSION = e;
 }

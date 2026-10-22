@@ -32,6 +32,8 @@ static func material(mt: Material, far: float) -> Material:
 	if mt is ShaderMaterial and (mt as ShaderMaterial).shader.code.contains("env_fade_keep"):
 		out = mt.duplicate()
 		Env.add(out)
+		if Env.phare_mats.has(mt):
+			Env.phares_sur(out)            # phares factices (Économie) aussi sur la copie fondue
 	elif mt is StandardMaterial3D:
 		var sm := mt as StandardMaterial3D
 		var scissor := sm.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
