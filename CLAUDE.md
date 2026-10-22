@@ -315,6 +315,11 @@
   par exemplaire, Compatibility la multiplie par zéro (tout noir) ; niveaux de détail refaits par
   `ImporterMesh.generate_lods` (`RenderingServer.mesh_get_surface` ne rend pas ceux de l'import en 4.4). Petits objets
   sans ombre (clôtures, panneaux, enseignes, bornes). Essais avant/après : `RS_SKIP=fusion,ombres`.
+  **Horizon lointain** (v6.78) : `pipeline/alleger_pano.py` simplifie `world/far/pano.glb` (173 000 -> 30 000
+  triangles, erreur jugée en angle vu de la zone de jeu, silhouette à 2 px près) : à relancer après `build_assets.py`.
+  **Import d'un seul fichier** : un `godot --headless --import` du projet ré-importe aussi les tuiles de bâtiments
+  (13,8 Go, tué) ; importer le fichier dans un petit projet temporaire (même chemin `res://`, même `.import`) et copier
+  son `.godot/imported/<fichier>-<hash>.scn/.md5` dans le projet.
 - **Cultures fauchées** (v6.36, #131 : les tiges explosent en éclats de la couleur de la culture, `dust.eclats()`, couleurs `ECLATS` de `trample.gd` ; les bandes sont rasées à 10-20 cm dans la trace ; essai `-- --drive-test --champ-test [--champ-type=0-3]`, captures `user://shots/champ_N.png`). Ancien fonctionnement (v6.5, refait en v6.9 : issue #8, couchées à 90°) (`scripts/trample.gd`) : carte des passages
   de 96 m qui suit la voiture (256 px, R/V = sens, B = écrasement, A = ligne de l'atlas des cultures + 1 sur 8), peinte
   **seulement dans les champs** (`crops.field_at`), lue par `crops.gdshader` (`trample_tex`, `trample_zone`) au sommet

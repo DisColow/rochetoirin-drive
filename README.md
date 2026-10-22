@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.77.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.77/RochetoirinSimulator-v6.77.apk)**
+**[RochetoirinSimulator-v6.78.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.78/RochetoirinSimulator-v6.78.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,12 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.77 :
-- **Plus fluide partout, sans rien changer à l'image** : voitures garées, tracteurs, poubelles et devantures des
-  commerces dessinés d'un seul coup chacun, au lieu d'une fois par matière.
-- **Moins d'ombres inutiles** : clôtures, panneaux, enseignes et bornes n'en projettent plus (bâtiments, arbres,
-  voitures et grandes structures gardent les leurs).
-- Au village, chaque image demande environ un tiers de travail de dessin en moins.
+Nouveautés de la v6.78 :
+- **Horizon lointain allégé** : le relief jusqu'à 75 km (Alpes comprises) est dessiné avec six fois moins de
+  triangles, sans changement visible de la silhouette des montagnes. Plus fluide sur les petits téléphones.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
