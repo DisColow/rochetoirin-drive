@@ -1926,6 +1926,18 @@ func _course_ia_test() -> void:
 				l.append("%s %.0f/%.0f m %d km/h%s%s" % [c.nom, c.s, c.longueur, int(c.voiture.kmh()), " figé" if c.fige else "",
 					" BOUM" if c.voiture.blown else ""])
 			print("  [course-ia] t=%.0f s : joueur %.0f m %d km/h, %s / 4 ; %s" % [tt, pj.s, int(car.kmh()), act._rang(act._place()), " ; ".join(l)])
+			if circulation:                  # circulation autour des pilotes lents (blocages)
+				for c in cs + [pj]:
+					var vv: VehicleBody3D = c.voiture
+					if vv.kmh() > 5.0:
+						continue
+					var proches := []
+					for tc in circulation.voitures:
+						var d: float = (tc.pos as Vector3).distance_to(vv.global_position)
+						if d < 25.0:
+							proches.append("%.0f m %d km/h %s" % [d, int(float(tc.v) * 3.6), tc.leader])
+					print("  [course-ia]   %s lent à (%.0f, %.0f) : %d voiture(s) de la circulation à 25 m : %s ; épaves %d" % [c.nom,
+						vv.global_position.x, vv.global_position.z, proches.size(), ", ".join(proches), circulation.epaves.size()])
 			if int(tt) == 10:
 				shot.call("3_peloton")
 		if act.mode != "course":
