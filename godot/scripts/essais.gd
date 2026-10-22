@@ -1824,6 +1824,8 @@ func _course_ia_test() -> void:
 			niv = int(a.get_slice("=", 1))
 		elif a.begins_with("--joueur="):
 			tj = float(a.get_slice("=", 1))
+		elif a.begins_with("--densite=") and circulation:
+			circulation.set_densite(int(a.get_slice("=", 1)))
 	DirAccess.make_dir_recursive_absolute("user://shots")
 	var shot := func(n: String):
 		get_viewport().get_texture().get_image().save_png("user://shots/course_ia_%s.png" % n)
@@ -1867,6 +1869,7 @@ func _course_ia_test() -> void:
 	var traces := {}                     # trajectoires (essai) : nom -> [[x, z, km/h, s, figé, volant, gaz, frein]…]
 	var chemins := {}                    # tracés suivis : nom -> [[x, z]…] (relevés tant que les concurrents existent)
 	var t_trace := 0.0
+	var ev_par := {}                     # voitures de la circulation contournées, par concurrent
 	while act._t < duree:
 		await get_tree().physics_frame
 		var tt: float = act._t
@@ -1887,6 +1890,7 @@ func _course_ia_test() -> void:
 		for c in cs:
 			if not is_instance_valid(c):
 				continue
+			ev_par[c.nom] = c.evites.size()
 			if c.fige != etat.get(c.nom, false):
 				bascules[c.nom] = bascules.get(c.nom, 0) + 1
 				etat[c.nom] = c.fige
@@ -1935,6 +1939,11 @@ func _course_ia_test() -> void:
 	fj.store_string(JSON.stringify({"traces": traces, "chemins": chemins}))
 	fj.close()
 	print("  [course-ia] bilan : %d/3 concurrents arrivés, passages physique <-> figé : %s, détruits payés : %d" % [fin.size(), bascules, act._detruits])
+	if circulation:
+		var ev := 0
+		for k in ev_par:
+			ev += int(ev_par[k])
+		print("  [course-ia] circulation : %d voitures, %d contournées par les concurrents, %d devenues épaves" % [circulation.voitures.size(), ev, circulation.accidents])
 	pj.queue_free()
 	car.aide_voie = aide
 	get_tree().quit()
@@ -2478,6 +2487,15 @@ func _circulation_test() -> void:
 		await _circulation_gros_plans(ci, shot, dire, pas)
 		get_tree().quit()
 		return
+	if OS.get_cmdline_user_args().has("--circulation-feux"):
+		await _circulation_feux(ci, shot, dire, pas)
+	if OS.get_cmdline_user_args().has("--circulation-depasse"):
+		await _circulation_depasse(ci, shot, dire, pas)
+	if OS.get_cmdline_user_args().has("--circulation-feux") or OS.get_cmdline_user_args().has("--circulation-depasse"):
+		releve.call("fin")
+		dire.call("FIN")
+		get_tree().quit()
+		return
 	for k in 3:
 		await pas.call(600)
 		releve.call("t+%d s" % ((k + 1) * 10))
@@ -2575,6 +2593,100 @@ func _circulation_test() -> void:
 	dire.call("FIN")
 	get_tree().quit()
 
+## Feux tricolores (#134) : 90 s d'observation ; chaque passage d'un carrefour à feu est noté avec l'état du feu à ce
+## moment (au rouge à plus de 3 m/s : infraction) ; capture d'une voiture arrêtée au feu, caméra libre derrière elle.
+func _circulation_feux(ci, shot: Callable, dire: Callable, pas: Callable) -> void:
+	var avant := {}                      # voiture -> [voie, feu, état] au pas précédent
+	var passages := 0
+	var au_rouge := 0
+	var arrets := 0
+	var capture := false
+	var cam := Camera3D.new()
+	add_child(cam)
+	var cam0 := get_viewport().get_camera_3d()
+	for i in 15 * 8 * 90:
+		await get_tree().physics_frame
+		for c in ci.voitures:
+			var k := int(c.voie) >> 1
+			var feu: int = ci._feu_b[k] if int(c.voie) & 1 == 0 else ci._feu_a[k]
+			var p = avant.get(int(c.id))
+			if p != null and int(p[0]) != int(c.voie) and int(p[1]) >= 0:
+				passages += 1
+				if int(p[2]) == 2 and float(c.v) > 3.0:
+					au_rouge += 1
+					dire.call("au rouge : voiture %d à %d km/h" % [int(c.id), int(float(c.v) * 3.6)])
+			avant[int(c.id)] = [int(c.voie), feu, ci._etat_feu(feu) if feu >= 0 and int(c.engage) != int(c.voie) else -1]
+			if String(c.leader) == "feu" and float(c.v) < 0.3:
+				arrets += 1
+				if not capture and float(c.L) - float(c.s) < 12.0:
+					capture = true
+					var d: Vector3 = c.dir
+					cam.global_position = (c.pos as Vector3) - d * 9.0 + Vector3(-d.z, 0.0, d.x) * 2.5 + Vector3.UP * 2.6
+					cam.look_at((c.pos as Vector3) + d * 12.0 + Vector3.UP * 1.5)
+					cam.current = true
+					for f in 3:
+						await get_tree().process_frame       # une vraie image avec la caméra libre (--fixed-fps)
+					shot.call("feu_rouge")
+					dire.call("capture : voiture %d arrêtée à %.1f m du carrefour, feu %d" % [int(c.id), float(c.L) - float(c.s), ci._etat_feu(feu)])
+					cam0.current = true
+		if i % (15 * 8 * 15) == 0:
+			dire.call("feux t=%d s : %d passages de carrefours à feu, %d au rouge, %d pas d'arrêt au feu" % [i / 120, passages, au_rouge, arrets])
+	dire.call("feux : %d passages de carrefours à feu, %d au rouge (à plus de 3 m/s), %d pas d'arrêt au feu" % [passages, au_rouge, arrets])
+	cam.queue_free()
+
+## Dépassement (#134) : la voiture du joueur tenue arrêtée sur une voie à double sens, 30 m devant une voiture qui arrive ;
+## relevé de la voiture : arrêt, klaxon, écart de dépassement, passage du joueur, retour dans sa voie.
+func _circulation_depasse(ci, shot: Callable, dire: Callable, pas: Callable) -> void:
+	for essai in 4:
+		var c = null
+		for o in ci.voitures:
+			var k := int(o.voie) >> 1
+			if float(o.v) > 4.0 and not (ci._fl[k] & 1) and float(o.L) - float(o.s) > 75.0 and (c == null
+					or (o.pos as Vector3).distance_to(car.global_position) < (c.pos as Vector3).distance_to(car.global_position)):
+				c = o
+		dire.call("dépassement, essai %d : %s" % [essai + 1, "voiture %d choisie" % int(c.id) if c else "aucune voiture candidate"])
+		if c == null:
+			await pas.call(240)
+			continue
+		var g: Array = ci._geo(int(c.voie), float(c.s) + 30.0, int(c.rang))
+		var t: Vector2 = g[1]
+		car.touch_brake = 0.0
+		car.place((g[0] as Vector3) + Vector3(0, 0.4, 0), rad_to_deg(atan2(t.x, -t.y)))
+		cam_rig.snap()
+		var id := int(c.id)
+		var ecart_max := 0.0
+		var klaxon := false
+		var depasse := false
+		var revenu := false
+		for k in 40:
+			car.hold(0.6)
+			await pas.call(60)
+			var vu = null
+			for o in ci.voitures:
+				if int(o.id) == id:
+					vu = o
+			if vu == null:
+				dire.call("dépassement : voiture %d disparue (accidents %d)" % [id, ci.accidents])
+				break
+			var e: float = ci._ecart(vu, float(vu.s))
+			ecart_max = maxf(ecart_max, e)
+			if k % 2 == 0:
+				dire.call("  dépassement +%d s : voiture %d à %d km/h, gêne « %s », attente %.1f s, écart %.1f m, dep %s" % [k / 2 + 1,
+					id, int(float(vu.v) * 3.6), vu.leader, float(vu.attente), e, str(vu.dep)])
+			klaxon = klaxon or float(vu.klaxon) > 0.0
+			var devant: float = (car.global_position - (vu.pos as Vector3)).dot(vu.dir)
+			if e > 1.0 and absf(devant) < 2.0 and not depasse:
+				depasse = true
+				shot.call("depasse")
+			if depasse and devant < -8.0 and e < 0.2:
+				revenu = true
+				break
+		car.touch_brake = 1.0
+		dire.call("dépassement : écart maximal %.1f m, klaxon %s, à hauteur du joueur %s, revenu dans sa voie %s" % [ecart_max,
+			klaxon, depasse, revenu])
+		if revenu:
+			return
+
 ## Gros plans d'une voiture de la circulation (--circulation-gros-plans) : caméra libre posée à côté d'elle, de jour
 ## (de préférence une voiture qui met son clignotant), puis devant elle de nuit (phares). Captures gros_plan_*.png.
 func _circulation_gros_plans(ci, shot: Callable, dire: Callable, pas: Callable) -> void:
@@ -2603,7 +2715,8 @@ func _circulation_gros_plans(ci, shot: Callable, dire: Callable, pas: Callable) 
 			var r := Vector3(-d.z, 0.0, d.x)
 			cam.global_position = p + d * (10.0 if nuit else 2.0) + r * (2.5 if nuit else 5.5) + Vector3.UP * 1.3
 			cam.look_at(p + Vector3.UP * 0.6)
-			await pas.call(3)
+			for f in 3:
+				await get_tree().process_frame
 			dire.call("gros plan %s %d : %d km/h, clignotant %d, freine %s, gêne « %s »" % ["nuit" if nuit else "jour", k,
 				int(float(c.v) * 3.6), int(c.clign), c.frein, c.leader])
 			shot.call("gros_plan_%s_%d" % ["nuit" if nuit else "jour", k])

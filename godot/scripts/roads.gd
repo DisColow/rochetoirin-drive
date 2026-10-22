@@ -123,6 +123,12 @@ func _process(dt: float) -> void:
 	PerfMon.note("roads", Time.get_ticks_usec() - t0_perf)
 
 func _process_corps(dt: float) -> void:
+	# feux tricolores (#134) : horloge commune avec la circulation (Env.temps_feux), un paramètre par couleur
+	preload("res://scripts/env.gd").avancer_feux(dt)
+	var tf: float = preload("res://scripts/env.gd").temps_feux()
+	for k in ["light_red", "light_amber", "light_green"]:
+		if mats.has(k):
+			(mats[k] as ShaderMaterial).set_shader_parameter("t_feux", tf)
 	if target == null:
 		return
 	# tuiles lues en arrière-plan (scripts/chargeur.gd), posées une par image au plus (pas d'à-coup)

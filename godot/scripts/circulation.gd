@@ -7,7 +7,10 @@
 ##   une autre), vitesse autorisée × `perso` (0,85 à 1,02), ralentit avant les virages (A_LAT) ; garde ses distances
 ##   avec ce qui la précède dans sa voie : autres voitures, joueur (en voiture ou à pied), concurrents, épaves ; klaxonne
 ##   quand le joueur la bloque ; un seul véhicule à la fois dans un carrefour (réservation du nœud) ; raccord lissé d'une
-##   voie à l'autre (décalage qui s'estompe sur RACCORD m).
+##   voie à l'autre (décalage qui s'estompe sur RACCORD m). v6.87 (#134) : feux tricolores respectés (phase de chaque
+##   arrivée dans trafic.bin, même calcul que signal_light.gdshader, horloge Env.temps_feux()) ; obstacle immobile
+##   (épave, joueur arrêté) dépassé après ATTENTE s : autre file d'un sens unique, ou voie d'en face si elle est libre
+##   (écart `dep` progressif le long de la voie, donc la voiture braque).
 ## - Autour du joueur : NOMBRE voitures selon le niveau de performances × réglage ⚙ > Conduite > Circulation ;
 ##   apparition hors de vue (ou au loin, dans le fondu), disparition au-delà de R_LOIN ; tout est replacé après une
 ##   téléportation (vider()).
@@ -46,6 +49,9 @@ const LARGEUR_VOIE := 3.5
 const EPAVE := 40.0
 const RAYON_ROUE := 0.3
 const CLASSE_POIDS := [1.0, 0.6, 1.0, 0.7, 0.9, 0.6, 0.75, 0.6, 0.45, 0.35, 0.15]   # chance d'apparaître (CLASSES)
+const ARRET_FEU := 5.0                         # arrêt à cette distance du nœud d'un feu (m)
+const ATTENTE := 3.0                           # s derrière un obstacle immobile avant de le dépasser
+const DEGAGE := 85.0                           # voie d'en face libre sur cette longueur pour dépasser (m)
 
 var target: Node3D
 var main: Node
@@ -67,6 +73,8 @@ var _np := PackedInt32Array()
 var _fl := PackedInt32Array()
 var _v := PackedFloat32Array()
 var _dl := PackedFloat32Array()
+var _feu_b := PackedInt32Array()               # feu à l'arrivée en b dans le sens de l'arc (phase × 2 + axe, -1 : aucun)
+var _feu_a := PackedInt32Array()               # feu à l'arrivée en a à contresens
 var _P := PackedFloat32Array()                 # x, y, z
 var _sort_debut := PackedInt32Array()          # voies sortant de chaque nœud (CSR) : (arc << 1) | sens
 var _sort := PackedInt32Array()
@@ -124,15 +132,20 @@ func _charger() -> bool:
 	for i in nn:
 		_nx[i] = xz[i * 2]; _nz[i] = xz[i * 2 + 1]
 	var na := b.decode_s32(o); o += 4
-	var raw := b.slice(o, o + na * 28); o += na * 28
+	# 9 champs par arc depuis la v6.87 (feux), 7 avant : reconnu à la taille du fichier
+	var champs := 9 if o + na * 36 + 4 <= b.size() and b.size() == o + na * 36 + 4 + b.decode_s32(o + na * 36) * 12 else 7
+	var raw := b.slice(o, o + na * champs * 4); o += na * champs * 4
 	var ints := raw.to_int32_array()
 	var flts := raw.to_float32_array()
-	for t in [_a, _b, _p0, _np, _fl, _v, _dl]:
+	for t in [_a, _b, _p0, _np, _fl, _v, _dl, _feu_b, _feu_a]:
 		t.resize(na)
 	var nsort := PackedInt32Array(); nsort.resize(nn + 1)
 	for k in na:
-		_a[k] = ints[k * 7]; _b[k] = ints[k * 7 + 1]; _p0[k] = ints[k * 7 + 2]; _np[k] = ints[k * 7 + 3]
-		_fl[k] = ints[k * 7 + 4]; _v[k] = flts[k * 7 + 5]; _dl[k] = flts[k * 7 + 6]
+		var j := k * champs
+		_a[k] = ints[j]; _b[k] = ints[j + 1]; _p0[k] = ints[j + 2]; _np[k] = ints[j + 3]
+		_fl[k] = ints[j + 4]; _v[k] = flts[j + 5]; _dl[k] = flts[j + 6]
+		_feu_b[k] = ints[j + 7] if champs == 9 else -1
+		_feu_a[k] = ints[j + 8] if champs == 9 else -1
 		if not (_fl[k] & 1):
 			_dl[k] = maxf(_dl[k], 1.25)          # double sens étroit : les voitures se croisent sans se toucher
 		_deg[_a[k]] += 1; _deg[_b[k]] += 1
@@ -403,7 +416,7 @@ func _apparaitre(p: Vector3, partout: bool) -> void:
 	var c := {"id": _id, "m": m, "col": COULEURS[randi() % COULEURS.size()], "voie": voie, "s": s, "L": L, "rang": rang,
 		"v": _v[k] * 0.7, "perso": randf_range(0.85, 1.02), "suite": -1, "dec": Vector3.ZERO, "dec_s": -100.0,
 		"pos": pos, "dir": Vector3(g[1].x, 0.0, g[1].y), "frein": false, "roue": 0.0, "resa": -1, "bloque": 0.0,
-		"klaxon": 0.0, "impasse": false, "leader": "", "clign": 0}
+		"klaxon": 0.0, "impasse": false, "leader": "", "clign": 0, "dep": [], "attente": 0.0, "engage": -1}
 	_id += 1
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -443,11 +456,23 @@ func _liberer(c: Dictionary) -> void:
 	c.resa = -1
 
 # ================================================================ conduite
-## Position affichée à s m sur la voie de la voiture (décalage du raccord compris).
+## Position affichée à s m sur la voie de la voiture (décalage du raccord et écart de dépassement compris).
 func _pos(c: Dictionary, s: float) -> Vector3:
 	var g := _geo(int(c.voie), s, int(c.rang))
 	var k := 1.0 - smoothstep(float(c.dec_s), float(c.dec_s) + RACCORD, s)
-	return (g[0] as Vector3) + (c.dec as Vector3) * k
+	var p: Vector3 = (g[0] as Vector3) + (c.dec as Vector3) * k
+	var e := _ecart(c, s)
+	if e != 0.0:
+		var t: Vector2 = g[1]
+		p += Vector3(t.y, 0.0, -t.x) * e            # vers la gauche du sens de marche
+	return p
+
+## Écart de dépassement à s (m, vers la gauche) : monte de dep[0] à dep[1], tenu jusqu'à dep[2], redescend à dep[3].
+func _ecart(c: Dictionary, s: float) -> float:
+	var d: Array = c.dep
+	if d.is_empty():
+		return 0.0
+	return float(d[4]) * smoothstep(float(d[0]), float(d[1]), s) * (1.0 - smoothstep(float(d[2]), float(d[3]), s))
 
 func _placer(c: Dictionary) -> void:
 	var s: float = c.s
@@ -579,17 +604,44 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 	var gap: float = dv[0]
 	var vl: float = dv[1]
 	c.leader = dv[2]
-	# carrefour : un seul véhicule à la fois ; sinon arrêt avant le nœud
 	var reste: float = float(c.L) - float(c.s)
 	var n := _noeud_fin(int(c.voie))
 	var horizon := maxf(18.0, float(c.v) * float(c.v) / 6.0 + 8.0)
-	if _deg[n] >= 3 and reste < horizon and int(c.resa) != n:
+	# feu tricolore (#134) : arrêt au rouge, et à l'orange si l'arrêt est confortable ; pas de réservation du carrefour
+	# pendant l'attente (les voitures qui ont le vert passent)
+	var rouge := false
+	var feu := _feu_b[k] if int(c.voie) & 1 == 0 else _feu_a[k]
+	if feu >= 0 and reste < 90.0 and int(c.engage) != int(c.voie):
+		var etat := _etat_feu(feu)
+		if etat != 0:
+			# orange ou rouge : arrêt si on peut encore freiner ; sinon on est engagé et on passe (même s'il passe au
+			# rouge pendant qu'on franchit la ligne), comme un vrai conducteur
+			var freinage := float(c.v) * float(c.v) / (2.0 * maxf(reste - ARRET_FEU, 0.01))
+			if reste > ARRET_FEU - 0.5 and freinage < (3.5 if etat == 1 else 7.0):
+				rouge = true
+				if reste - ARRET_FEU < gap:
+					gap = reste - ARRET_FEU; vl = 0.0; c.leader = "feu"
+			else:
+				c.engage = int(c.voie)
+	# carrefour : un seul véhicule à la fois ; sinon arrêt avant le nœud
+	if not rouge and _deg[n] >= 3 and reste < horizon and int(c.resa) != n:
 		if not _reserver(n, c):
 			var g2 := reste - 6.0
 			if g2 < gap:
 				gap = g2; vl = 0.0; c.leader = "carrefour"
 	if int(c.suite) < 0 and _deg[n] <= 1 and reste < gap:
 		gap = reste - 2.0; vl = 0.0; c.leader = "impasse"
+	# obstacle immobile devant (épave, joueur arrêté, concurrent) : on le dépasse après ATTENTE s
+	if (c.dep as Array).is_empty() and String(c.leader) in ["joueur", "épave", "concurrent"] and float(c.v) < 0.5 \
+			and vl < 0.3 and gap < 12.0:
+		c.attente = float(c.attente) + dt
+		if float(c.attente) > ATTENTE:
+			c.attente = 0.0
+			_depasser(c, gap)
+	elif float(c.v) > 1.0:
+		c.attente = 0.0
+	if _ecart(c, float(c.s)) > 0.3:
+		v0 = minf(v0, 8.0)                     # au pas sur la voie d'en face
 	var v: float = c.v
 	var s_et := IDM_S0 + maxf(0.0, v * IDM_T + v * (v - vl) / (2.0 * sqrt(IDM_A * IDM_B)))
 	var acc := IDM_A * (1.0 - pow(v / maxf(v0, 0.5), 4.0) - pow(s_et / maxf(gap, 0.2), 2.0))
@@ -625,6 +677,7 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 		c.s = minf(s_neuf, float(c.L))
 		var kv := int(c.voie) >> 1
 		c.rang = mini(int(c.rang), _voies(kv) - 1) if _fl[kv] & 1 else 0
+		c.dep = []
 		c.dec = Vector3.ZERO
 		c.dec = avant - _pos(c, 0.0)
 		c.dec_s = 0.0
@@ -632,10 +685,49 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 			c.dec_s = -RACCORD * 0.5          # demi-tour (impasse) : raccord plus court
 	if int(c.resa) >= 0 and int(c.resa) != _noeud_fin(int(c.voie)) and float(c.s) > 12.0:
 		_liberer(c)
+	if not (c.dep as Array).is_empty() and float(c.s) > float(c.dep[3]):
+		c.dep = []
 	# clignotant : à moins de 45 m du carrefour où elle tourne, éteint 10 m après
 	if int(c.clign) != 0 and int(c.suite) < 0 and float(c.s) > 10.0:
 		c.clign = 0
 	_placer(c)
+
+## État d'un feu (phase × 2 + axe de trafic.bin) : 0 vert, 1 orange, 2 rouge ; même calcul que signal_light.gdshader.
+func _etat_feu(feu: int) -> int:
+	var t := fposmod(Env.temps_feux() + float(feu >> 1) + (30.0 if feu & 1 else 0.0), 60.0)
+	return 0 if t < 27.0 else (1 if t < 30.0 else 2)
+
+## Dépassement d'un obstacle immobile à `gap` m : autre file d'un sens unique à plusieurs voies (raccord lissé), ou
+## voie d'en face si elle est libre sur DEGAGE m et que la manœuvre finit avant le bout de la voie.
+func _depasser(c: Dictionary, gap: float) -> void:
+	var k := int(c.voie) >> 1
+	var s: float = c.s
+	if _fl[k] & 1:
+		if _voies(k) < 2:
+			return
+		var r2 := int(c.rang) + 1 if int(c.rang) + 1 < _voies(k) else int(c.rang) - 1
+		for o in voitures:
+			if int(o.id) != int(c.id) and int(o.voie) == int(c.voie) and int(o.rang) == r2 and absf(float(o.s) - s) < 25.0:
+				return
+		var avant := _pos(c, s)
+		c.rang = r2
+		c.dec = Vector3.ZERO
+		c.dec = avant - _pos(c, s)
+		c.dec_s = s
+		return
+	var fin: float = s + gap + BOITES[int(c.m)].z + 7.0
+	if fin + 12.0 > float(c.L):
+		return
+	var rev := int(c.voie) ^ 1
+	for o in voitures:
+		if int(o.voie) == rev:
+			var d_o := (float(c.L) - float(o.s)) - s     # distance de la voiture d'en face devant nous
+			if d_o > -10.0 and d_o < DEGAGE:
+				return
+	c.dep = [s + 0.5, s + 7.0, fin, fin + 10.0, 2.0 * _dl[k]]
+	if _debug:
+		print("[circulation] voiture %d dépasse un obstacle (%s) à %.1f m : écart %.1f m de %.0f à %.0f m" % [int(c.id),
+			c.leader, gap, 2.0 * _dl[k], s, fin])
 
 ## Clignotant pour passer de la voie `de` à la voie `vers` : 0 tout droit, 1 à gauche, 2 à droite (plus de 30°).
 func _clignotant(de: int, vers: int) -> int:
@@ -698,6 +790,9 @@ func _obstacles() -> Array:
 		var vel := b.linear_velocity
 		vel.y = 0.0
 		l.append([b.global_position, vel, 2.4, "joueur" if b == _joueur() else "concurrent"])
+	for c in voitures:                                  # voiture qui dépasse, sur la voie d'en face
+		if not (c.dep as Array).is_empty():
+			l.append([c.pos, (c.dir as Vector3) * float(c.v), BOITES[int(c.m)].z / 2.0, "circulation"])
 	if target and target != _joueur():                 # à pied (#66) : le piéton
 		l.append([target.global_position, Vector3.ZERO, 0.5, "joueur"])
 	for e in epaves:
@@ -737,10 +832,14 @@ func _chocs() -> void:
 			var proche := -rel.dot(d.normalized())
 			if proche < 1.5:
 				continue
+			# marge propre à chaque axe, selon la vitesse de rapprochement sur cet axe (une voiture qui en croise une
+			# autre à 2,5 m de côté ne se rapproche pas latéralement : pas de choc)
 			var loc: Vector3 = (c.basis as Basis).inverse() * d
-			var marge := 0.35 + proche * 0.12
+			var rl: Vector3 = (c.basis as Basis).inverse() * rel
+			var mx := 0.3 + maxf(0.0, -signf(loc.x) * rl.x) * 0.12
+			var mz := 0.3 + maxf(0.0, -signf(loc.z) * rl.z) * 0.12
 			var bx: Vector3 = BOITES[int(c.m)]
-			if absf(loc.x) - (bx.x / 2.0 + 1.0) < marge and absf(loc.z) - (bx.z / 2.0 + 2.3) < marge:
+			if absf(loc.x) - (bx.x / 2.0 + 1.0) < mx and absf(loc.z) - (bx.z / 2.0 + 2.3) < mz:
 				if _debug:
 					print("[circulation] choc prévu : voiture %d, rapprochement %.1f m/s, repère de la voiture %s, vitesse du pilote %s" % [
 						int(c.id), proche, loc.snapped(Vector3.ONE * 0.1), b.linear_velocity.snapped(Vector3.ONE * 0.1)])

@@ -65,3 +65,14 @@ static func set_cam(p: Vector3) -> void:
 	cam = p
 	for m in cam_mats:
 		m.set_shader_parameter("env_cam", p)
+
+## Horloge des feux tricolores (s) : signal_light.gdshader (paramètre t_feux, roads.gd) et circulation.gd (#134).
+## Temps de jeu (avancé par roads.gd à chaque image), pas l'heure réelle : les essais à --fixed-fps font tourner le jeu
+## bien plus lentement que la montre, et les feux doivent suivre les voitures.
+static var _t_feux := 0.0
+
+static func avancer_feux(dt: float) -> void:
+	_t_feux = fmod(_t_feux + dt, 600.0)
+
+static func temps_feux() -> float:
+	return _t_feux

@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.86.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.86/RochetoirinSimulator-v6.86.apk)**
+**[RochetoirinSimulator-v6.87.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.87/RochetoirinSimulator-v6.87.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,12 +16,13 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.86 :
-- **Succès** : 26 défis à relever (menu Activités > onglet **Succès**), de « Premiers tours de roue » à « Champion du Nord-Isère »,
-  en passant par « Plein pot », « Bûcheron » ou « Chauffard » ; chacun rapporte une prime au garage.
-- **Tes statistiques** dans le même onglet : distance (de jour, de nuit, à pied), vitesse maximale, temps de jeu,
-  explosions, décor cassé, courses de taxi, communes traversées, argent gagné…
-- **Accueil** : au tout premier lancement, une fenêtre explique où aller (carrière, jeu libre, commandes).
+Nouveautés de la v6.87 :
+- **Feux tricolores** : les voitures de la circulation s'arrêtent au rouge (et à l'orange quand elles ont le temps),
+  aux 113 carrefours à feux de la carte, en phase avec les feux que tu vois.
+- **Dépassements** : bloquée derrière une épave ou ta voiture arrêtée, une voiture klaxonne puis te contourne par la voie
+  d'en face quand elle est libre.
+- **Courses** : les concurrents voient la circulation et la doublent au lieu de la percuter.
+- Corrigé : une voiture qui en croisait une autre de près pouvait devenir une épave sans choc.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
