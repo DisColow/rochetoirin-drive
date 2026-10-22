@@ -158,6 +158,23 @@
   chapitre 1 relue. Progression dans `user://carriere.cfg`. Essais `-- --drive-test --carriere-test --sans-voix`
   (chapitre 1, ~20 min ici) et `-- --drive-test --carriere2-test --taxi-sorte=normale --sans-voix` (chapitres 2 à
   4, ~1 h 15 ici) ; `--sans-voix` : pas de synthèse vocale, speech-dispatcher fige le jeu sous Linux.
+- **Circulation** (v6.85, #132, initiative de Claude, `scripts/circulation.gd` + `circulation.gdshader`) : voitures qui
+  roulent toutes seules. Réseau `world/trafic.bin` de `pipeline/build_trafic.py` (après `build_roads.py` : voies
+  carrossables d'OSM d'un carrefour à l'autre, sans service/chemins/piétons ; altitude de la chaussée, vitesse autorisée,
+  sens unique, nombre de voies, décalage de la voie de droite). Modèles `assets/props/car1` et `car3` (habitacle
+  retiré, roues à part qui tournent, une MultiMesh d'un exemplaire par voiture pour ses niveaux de détail), feux stop et
+  phares dans le shader (UV2.y −2/−3, INSTANCE_CUSTOM.a). Conduite IDM (`IDM_*`), virages (`A_LAT`), réservation des
+  carrefours (`_resa`), raccord lissé (`RACCORD`), klaxon (`assets/sfx/klaxon.ogg`, synthèse de `build_sfx.py`
+  `klaxon()`) quand le joueur bloque. Nombre : `NOMBRE[niveau]` × `DENSITES[⚙ > Conduite > Circulation]`
+  (`conduite/circulation` de reglages.cfg). Choc : `AnimatableBody3D` qui suit chaque voiture ; juste avant qu'une
+  voiture pilotée la percute (`_chocs`), elle devient une épave `RigidBody3D` (meta « matiere » metal). `vider()` à la
+  téléportation. Essai `--fixed-fps 8 -- --drive-test --circulation-test [--densite=0-3] [--drive-from=…]`.
+  Obstacles : voitures de la circulation le long des voies (même voie devant, voie suivante) ; joueur, concurrents,
+  piéton et épaves projetés sur le chemin (`_chemin`, un point tous les 3 m : en ligne droite, un obstacle à 30 m dans
+  une rue qui tourne était manqué). Clignotants (UV2.y −4, côté d'après VERTEX.x) avant un virage de plus de 30°.
+  **Piège des essais** : FREIN tenu à l'arrêt = marche arrière ; pour immobiliser la voiture du joueur, `car.hold()`.
+  Publication des données : `pipeline/publier_fichiers.sh <fichiers>` (seulement ces fichiers sur `donnees`,
+  `A_BLANC=1` pour voir les différences d'abord) plutôt que `publier_donnees.sh` quand le conteneur n'a pas tout.
 - **Concurrents** (#128, `scripts/concurrent.gd`, choix de l'utilisateur : 3 par course, un concurrent détruit revient
   4 s après, Kévin réel) : vraie voiture du garage (`car.gd` avec `ia = true` : commandes dans `touch_*` seulement, pas
   d'aide à la voie, de nitro, de volant 3D ni de remise automatique) pilotée par `concurrent.gd` : tracé `itineraire.gd`

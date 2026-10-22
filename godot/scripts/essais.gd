@@ -476,6 +476,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_course_ia_test()                  # commandes de la voiture : son pilote (concurrent.gd)
 		return
+	if OS.get_cmdline_user_args().has("--circulation-test"):
+		if t == 300:
+			_circulation_test()
+		return
 	var dur := 3000 if OS.get_cmdline_user_args().has("--long") else 1200
 	car.touch_throttle = 1.0 if t < dur else 0.0
 	car.touch_brake = 1.0 if t >= dur else 0.0
@@ -2402,6 +2406,196 @@ func _carriere2_test(t: int) -> void:
 
 func main_garage_a(id: String) -> bool:
 	return garage != null and garage.a_voiture(id)
+
+# ---------------------------------------------------------------- essai : --circulation-test (#132)
+## Circulation autour du joueur (lancer avec --fixed-fps 8 : temps de jeu indépendant de la lenteur du rendu ;
+## --drive-from=<x,y,z,cap> : le lieu ; --densite=0-3, défaut 3) : relevé toutes les 10 s (voitures, vitesses, ce qui
+## les arrête, plus petite distance entre deux voitures de même sens, hauteur par rapport à la route, coût par image) ;
+## captures derrière une voiture qui roule ; voiture du joueur arrêtée devant une voiture qui arrive (elle doit
+## s'arrêter derrière et klaxonner) ; voiture du joueur lancée contre une voiture qui arrive (elle doit devenir une
+## épave). Captures user://shots/circulation_*.png, journal « [circulation] ».
+func _circulation_test() -> void:
+	var ci = circulation
+	var dens := 3
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--densite="):
+			dens = int(a.get_slice("=", 1))
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	var shot := func(n: String):
+		get_viewport().get_texture().get_image().save_png("user://shots/circulation_%s.png" % n)
+	var dire := func(x: String): print("  [circulation] " + x)
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	ci.set_densite(dens)
+	dire.call("réseau : %d carrefours, %d arcs ; niveau %d, densité %d : %d voitures voulues" % [ci._nx.size(), ci._a.size(),
+		ci.niveau, ci.densite, ci.voulu()])
+	var pas := func(n: int):
+		for i in n:
+			await get_tree().physics_frame
+	var releve := func(tag: String):
+		var vs := []
+		var raisons := {}
+		var dmin := INF
+		var hmax := 0.0
+		for c in ci.voitures:
+			vs.append(float(c.v) * 3.6)
+			raisons[String(c.leader)] = int(raisons.get(String(c.leader), 0)) + 1
+			for o in ci.voitures:
+				if o != c and (o.dir as Vector3).dot(c.dir) > 0.5:
+					dmin = minf(dmin, (o.pos as Vector3).distance_to(c.pos))
+		var moy := 0.0
+		for v in vs:
+			moy += v
+		moy /= maxf(vs.size(), 1)
+		var e = PerfMon._sys.get("circulation", [0, 0, 1])
+		dire.call("%s : %d voitures, %.0f km/h en moyenne (%s), arrêtées %d, gênes %s, plus petite distance de même sens %.1f m, épaves %d, coût %.2f ms/pas (pire %.2f)" % [tag,
+			ci.voitures.size(), moy, ", ".join(PackedStringArray(vs.map(func(x): return str(int(x))))), vs.filter(func(x): return x < 2.0).size(),
+			str(raisons), dmin, ci.epaves.size(), float(e[0]) / maxf(float(e[2]), 1.0) / 1000.0, float(e[1]) / 1000.0])
+	car.touch_throttle = 0.0
+	car.touch_brake = 1.0
+	car.touch_steer = 0.0
+	car.aide_voie = false
+	await pas.call(120)
+	releve.call("départ")
+	shot.call("0_depart")
+	if OS.get_cmdline_user_args().has("--circulation-gros-plans"):
+		await _circulation_gros_plans(ci, shot, dire, pas)
+		get_tree().quit()
+		return
+	for k in 3:
+		await pas.call(600)
+		releve.call("t+%d s" % ((k + 1) * 10))
+	# derrière la voiture qui roule la plus proche : la voiture du joueur posée 14 m derrière, immobile, caméra de poursuite
+	var c = null
+	for o in ci.voitures:
+		if float(o.v) > 5.0 and (c == null or (o.pos as Vector3).distance_to(car.global_position) < (c.pos as Vector3).distance_to(car.global_position)):
+			c = o
+	if c:
+		for k in 4:
+			var d: Vector3 = c.dir
+			var p: Vector3 = (c.pos as Vector3) - d * (14.0 + float(c.v) * 0.5)
+			car.place(p + Vector3(0, 0.3, 0), rad_to_deg(atan2(d.x, -d.z)))
+			car.hold(0.3)
+			cam_rig.snap()
+			await pas.call(30)
+			if not is_instance_valid(c.mi):
+				break
+			dire.call("suivie : %d km/h, voie %d, %.2f m au-dessus de l'axe de la route, gêne « %s »" % [int(float(c.v) * 3.6), int(c.voie), (c.pos as Vector3).y - ci._geo(int(c.voie), float(c.s), 0)[0].y, c.leader])
+			shot.call("1_suivie_%d" % k)
+			await pas.call(90)
+	# blocage, de nuit : la voiture du joueur arrêtée sur la voie, 35 m devant une voiture qui arrive, tournée vers elle
+	# (phares, clignotant si elle tourne au prochain carrefour)
+	var heure: int = time_of_day
+	set_time(3)
+	c = null
+	for o in ci.voitures:
+		if float(o.v) > 6.0 and float(o.L) - float(o.s) > 60.0:
+			c = o
+			break
+	if c:
+		var g: Array = ci._geo(int(c.voie), float(c.s) + 35.0, int(c.rang))
+		var t: Vector2 = g[1]
+		car.place((g[0] as Vector3) + Vector3(0, 0.4, 0), rad_to_deg(atan2(-t.x, t.y)))
+		car.hold(2.0)
+		cam_rig.snap()
+		var id := int(c.id)
+		var v0 := float(c.v)
+		var acc0: int = ci.accidents
+		var vu = c
+		car.touch_brake = 0.0                     # FREIN tenu à l'arrêt = marche arrière : voiture tenue à sa place
+		for k in 16:
+			car.hold(0.6)
+			await pas.call(60)
+			vu = null
+			for o in ci.voitures:
+				if int(o.id) == id:
+					vu = o
+			if vu == null:
+				break
+			var dj: Vector3 = car.global_position - (vu.pos as Vector3)
+			var fv: Vector3 = vu.dir
+			dire.call("  blocage +%.1f s : %d km/h, à %.1f m du joueur (devant %.1f, côté %.1f, haut %.1f), gêne « %s », freine %s" % [(k + 1) * 0.5,
+				int(float(vu.v) * 3.6), dj.length(), dj.dot(fv), dj.dot(Vector3(-fv.z, 0.0, fv.x)), dj.y, vu.leader, vu.frein])
+		if vu:
+			var gap: float = (vu.pos as Vector3).distance_to(car.global_position) - 2.4 - ci.BOITES[int(vu.m)].z / 2.0
+			car.touch_brake = 1.0
+			dire.call("blocage : voiture %d arrivée à %.0f km/h, maintenant %.1f km/h, %.1f m derrière le joueur, gêne « %s », klaxon %s" % [id,
+				v0 * 3.6, float(vu.v) * 3.6, gap, vu.leader, "oui" if float(vu.klaxon) > 0.0 else "non"])
+			shot.call("2_blocage_nuit")
+		else:
+			dire.call("blocage : voiture %d disparue (accidents %d -> %d)" % [id, acc0, ci.accidents])
+	set_time(heure)
+	# choc : la voiture du joueur lancée de face contre une voiture qui arrive
+	c = null
+	for o in ci.voitures:
+		if float(o.v) > 6.0 and float(o.L) - float(o.s) > 80.0:
+			c = o
+			break
+	if c:
+		var g: Array = ci._geo(int(c.voie), float(c.s) + 45.0, int(c.rang))
+		var t: Vector2 = g[1]
+		car.place((g[0] as Vector3) + Vector3(0, 0.4, 0), rad_to_deg(atan2(-t.x, t.y)))
+		car.hold(0.2)
+		var n_ep: int = ci.accidents
+		car.touch_brake = 0.0
+		car.touch_throttle = 1.0
+		for i in 15 * 8 * 6:
+			await get_tree().physics_frame
+			if ci.accidents > n_ep:
+				break
+		await pas.call(30)
+		cam_rig.snap()
+		shot.call("3_choc")
+		car.touch_throttle = 0.0
+		car.touch_brake = 1.0
+		dire.call("choc : accidents %d -> %d, voiture du joueur à %d km/h%s" % [n_ep, ci.accidents, int(car.kmh()),
+			"" if ci.accidents > n_ep else " (ÉCHEC : pas d'épave)"])
+		if ci.accidents > n_ep:
+			var rb: RigidBody3D = ci.epaves[ci.epaves.size() - 1].rb
+			await pas.call(240)
+			dire.call("épave : %.1f m/s, inclinaison %.0f°" % [rb.linear_velocity.length(), rad_to_deg(rb.global_transform.basis.y.angle_to(Vector3.UP))])
+			shot.call("4_epave")
+	releve.call("fin")
+	dire.call("FIN")
+	get_tree().quit()
+
+## Gros plans d'une voiture de la circulation (--circulation-gros-plans) : caméra libre posée à côté d'elle, de jour
+## (de préférence une voiture qui met son clignotant), puis devant elle de nuit (phares). Captures gros_plan_*.png.
+func _circulation_gros_plans(ci, shot: Callable, dire: Callable, pas: Callable) -> void:
+	var cam := Camera3D.new()
+	cam.fov = 55.0
+	add_child(cam)
+	var cam0 := get_viewport().get_camera_3d()
+	var heure: int = time_of_day
+	for nuit in [false, true]:
+		set_time(3 if nuit else heure)
+		await pas.call(30)
+		var c = null
+		for o in ci.voitures:
+			if float(o.v) > 3.0 and (c == null or int(o.clign) > int(c.clign) or (int(o.clign) == int(c.clign)
+					and (o.pos as Vector3).distance_to(car.global_position) < (c.pos as Vector3).distance_to(car.global_position))):
+				c = o
+		if c == null:
+			dire.call("gros plan : aucune voiture qui roule")
+			continue
+		cam.current = true
+		for k in 4:
+			if not is_instance_valid(c.mi):
+				break
+			var p: Vector3 = c.pos
+			var d: Vector3 = c.dir
+			var r := Vector3(-d.z, 0.0, d.x)
+			cam.global_position = p + d * (10.0 if nuit else 2.0) + r * (2.5 if nuit else 5.5) + Vector3.UP * 1.3
+			cam.look_at(p + Vector3.UP * 0.6)
+			await pas.call(3)
+			dire.call("gros plan %s %d : %d km/h, clignotant %d, freine %s, gêne « %s »" % ["nuit" if nuit else "jour", k,
+				int(float(c.v) * 3.6), int(c.clign), c.frein, c.leader])
+			shot.call("gros_plan_%s_%d" % ["nuit" if nuit else "jour", k])
+			await pas.call(25)
+	set_time(heure)
+	cam0.current = true
+	cam.queue_free()
 
 # ---------------------------------------------------------------- essai : --rails-test (#125)
 ## Voie ferrée en terrain plat (x -8624, z 1519, entre Bourgoin et La Tour-du-Pin) : la voiture roule 4 s le long de

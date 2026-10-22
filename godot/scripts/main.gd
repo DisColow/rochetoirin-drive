@@ -29,7 +29,7 @@ var pied: Node                     # a_pied.gd (#66)
 
 ## Tout ce qui se charge et se calcule autour du joueur suit ce nœud : la voiture, ou le piéton quand on marche (#66).
 func suivre(n: Node3D) -> void:
-	for s in [roads, buildings, fences, water, vegetation, crops, grass, poles, props, pools, shops, sport, rails, animaux, autoroute, birds, ciel]:
+	for s in [roads, buildings, fences, water, vegetation, crops, grass, poles, props, pools, shops, sport, rails, animaux, autoroute, birds, ciel, circulation]:
 		if s and "target" in s:
 			s.target = n
 	if relief and "cible" in relief:
@@ -45,6 +45,7 @@ var sport: Node3D
 var rails: Node3D           # voies ferrées et passages à niveau (#125, rails.gd)
 var animaux: Node3D
 var autoroute: Node3D
+var circulation: Node3D       # voitures qui roulent (#132, circulation.gd)
 var dust: Node3D
 var _trample: Node                 # cultures fauchées (trample.gd)
 var rain: Node3D
@@ -254,6 +255,13 @@ func _ready() -> void:
 	add_child(autoroute)
 	autoroute.target = car
 	autoroute.update_now()
+	await _etape("Circulation")
+	circulation = preload("res://scripts/circulation.gd").new()
+	circulation.main = self
+	circulation.target = car
+	circulation.set_densite(int(cfg.get_value("conduite", "circulation", 2)))
+	circulation.set_niveau(int(Engine.get_meta("niveau_perf", 1)))
+	add_child(circulation)
 	poles.set_night(1.0 if time_of_day == 3 else (0.35 if time_of_day == 2 else 0.0))
 	await _etape("Voiture, sons et radio")
 	# gardien des limites de la carte
@@ -428,6 +436,8 @@ func _teleport(p: Vector3, heading: float) -> void:
 	shops.update_now()
 	sport.update_now()
 	rails.update_now()
+	if circulation:
+		circulation.vider()
 	animaux.update_now()
 	autoroute.update_now()
 	vegetation.update_now()
@@ -527,6 +537,8 @@ func set_post(level: int) -> void:
 	Engine.max_physics_steps_per_frame = 8 if Engine.physics_ticks_per_second >= 120 else 4
 	if _sun:
 		_sun.shadow_enabled = N.ombre > 0.0
+	if circulation:
+		circulation.set_niveau(level)
 	if _sun and N.ombre > 0.0:
 		_sun.directional_shadow_max_distance = N.ombre
 		_sun.directional_shadow_split_1 = 45.0 / N.ombre      # cascade nette toujours sur ~45 m

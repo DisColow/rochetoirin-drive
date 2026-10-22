@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 22/10/2026, 17 h (v6.84 livrée : #131 ; en cours : #132 circulation)
+## État au 22/10/2026, 18 h (v6.84 #131 et v6.85 #132 livrées ; plus rien en cours)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip` (pousser `godot/` déclenche l'APK).
 - **Objectif de l'utilisateur (22/10, /goal)** : « poursuivre sur ta lancée, compléter / améliorer / peaufiner / ajouter
@@ -16,12 +16,12 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   Bourgoin) -> « nom|commune », contrôlé par l'essai. Corrigés en route : ligature « fi » de Pixelify Sans dessinée
   comme un « A » (`boot.gd` coupe `liga` de `assets/ui/pixel.ttf`), proposition d'épreuve restée affichée par-dessus
   une mission lancée par « Y aller » (`activities._fermer_offre`).
-- **#132 circulation (en cours, rien de poussé dans le jeu)** : `pipeline/build_trafic.py` -> `world/trafic.bin` (fait,
-  à publier sur `donnees` SEULEMENT ce fichier + `assets/sfx/klaxon.ogg(.import)` : partir de l'arbre de `donnees`,
-  `git read-tree FETCH_HEAD` dans un index temporaire puis `git add -f` de ces fichiers, pour ne pas republier l'état
-  local du conteneur), `scripts/circulation.gd` + `circulation.gdshader` (écrits), klaxon de synthèse
-  (`build_sfx.py klaxon()`), intégration prête : `scratchpad/integrer_circulation.py` (main, hud, chargement,
-  essais) ; essai `--fixed-fps 8 -- --drive-test --circulation-test --drive-from=-10859.8,238.5,-920.6,0`.
+- **v6.85 (#132, `à tester`)** : circulation (voir CLAUDE.md « Circulation »). Essais `--circulation-test` (Bourgoin et
+  autoroute : 13 voitures, aucune collision entre elles, arrêt à ~3 m derrière le joueur + klaxon, épave au choc,
+  0,7-1,2 ms par pas ici) et `--circulation-gros-plans` (caméra libre : roues, clignotants, phares). Données publiées
+  par `pipeline/publier_fichiers.sh` (trafic.bin, klaxon). Idées de suite : feux tricolores respectés (11 feux, cycle
+  dans `signal_light.gdshader` : 60 s, phase selon la case de 60 m et l'axe), dépassement d'une voiture arrêtée,
+  piétons sur les trottoirs, son de moteur propre à chaque voiture du garage.
 - **v6.83 (#128, `à tester`)** : concurrents pilotés par le jeu (`scripts/concurrent.gd`, voir CLAUDE.md
   « Concurrents ») : course contre 3 voitures par défaut dans les épreuves, Kévin réel dans le duel de la carrière
   (`fantome.gd` retiré). Mesures : course complète en Extrême, concurrents à 1-3 s du temps visé, pilote à 0,8-1 m

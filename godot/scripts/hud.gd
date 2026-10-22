@@ -269,6 +269,26 @@ func _open_settings() -> void:
 		var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
 		cfg.set_value("conduite", "aide_voie", on); cfg.save("user://reglages.cfg"))
 	v.add_child(b_voie)
+	# circulation (#132) : nombre de voitures qui roulent autour du joueur
+	var circ = get_parent().get("circulation")
+	if circ:
+		var hc := HBoxContainer.new(); hc.add_theme_constant_override("separation", 16); v.add_child(hc)
+		var lci := Label.new(); lci.text = "Circulation"; lci.add_theme_font_size_override("font_size", 28); hc.add_child(lci)
+		for i in circ.NOMS_DENSITES.size():
+			var b := Button.new()
+			b.text = circ.NOMS_DENSITES[i]
+			b.toggle_mode = true
+			b.button_pressed = i == circ.densite
+			b.custom_minimum_size = Vector2(190, 70)
+			b.add_theme_font_size_override("font_size", 28)
+			b.pressed.connect(func():
+				circ.set_densite(i)
+				var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+				cfg.set_value("conduite", "circulation", i); cfg.save("user://reglages.cfg")
+				for c in hc.get_children():
+					if c is Button:
+						c.button_pressed = c == b)
+			hc.add_child(b)
 	# son : volumes de l'ambiance, des effets (voiture, voix) et de la musique (radio), de 0 à 150 %
 	var ls := Label.new(); ls.text = "Son"; ls.add_theme_font_size_override("font_size", 30); v.add_child(ls)
 	var hs := HBoxContainer.new(); hs.add_theme_constant_override("separation", 24); v.add_child(hs)

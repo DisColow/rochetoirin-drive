@@ -11,7 +11,7 @@ const DEFAUT := {
 	"Ciel et lumière": 0.3, "Relief": 1.0, "Horizon": 0.5, "Routes": 2.5, "Bâtiments": 3.0,
 	"Clôtures et haies": 1.5, "Rivières et étangs": 0.3, "Arbres": 2.0, "Champs et herbe": 1.0,
 	"Poteaux et lampadaires": 0.6, "Voitures garées et mobilier": 0.8, "Commerces": 0.8, "Terrains de sport": 0.4,
-	"Animaux": 0.5, "Autoroutes": 0.8, "Voiture, sons et radio": 1.0, "Interface": 0.8,
+	"Animaux": 0.5, "Autoroutes": 0.8, "Circulation": 0.4, "Voiture, sons et radio": 1.0, "Interface": 0.8,
 	"Préparation des effets": 2.0,
 }
 

@@ -1,7 +1,8 @@
 """Sons de synthèse -> ../godot/assets/sfx/*.wav (mono 22 kHz, 16 bits) ; les sons d'après enregistrements réels
 (soucoupe, voiture, ambiances) sont faits par build_sons.py.
  - pluie.wav  : pluie sur la carrosserie, en boucle (bruissement + gouttes) ; pluie.ogg : d'après pluie_orage.mp3
- - bip.wav    : bip de péage et d'activités"""
+ - bip.wav    : bip de péage et d'activités
+ - klaxon.ogg : klaxon de voiture à deux tons (voitures de la circulation, #132)"""
 import os, wave
 import numpy as np
 
@@ -47,6 +48,7 @@ def main():
     env = lambda tt: np.minimum(1, tt * 400) * np.minimum(1, (tt[-1] - tt) * 300)
     b = np.r_[np.sin(2 * np.pi * 1046 * t1) * env(t1), np.zeros(int(SR * 0.05)), np.sin(2 * np.pi * 1568 * t2) * env(t2)]
     save("bip", b * 0.5)
+    klaxon()
     print("sons :", os.listdir(OUT))
 
 
@@ -68,6 +70,35 @@ def pluie_orage(src="sources/pluie_orage.mp3", T=90.0, F=6.0):
     w.writeframes(np.clip(a, -32768, 32767).astype("<i2").tobytes()); w.close()
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", tmp, "-c:a", "libvorbis", "-q:a", "4", OUT + "/pluie.ogg"], check=True)
     os.remove(tmp)
+
+
+def klaxon():
+    """Klaxon électrique à deux tons (≈ 410 et 510 Hz, comme les avertisseurs à disque des voitures européennes) :
+    membrane qui vibre (onde riche en harmoniques, écrêtage doux), pavillon (résonance vers 2,4 kHz), attaque qui
+    monte en hauteur sur 20 ms ; « tut-tuuut » (0,22 s, 0,1 s de silence, 0,5 s) -> klaxon.ogg."""
+    import subprocess
+
+    def coup(T):
+        n = int(SR * T); t = np.arange(n) / SR
+        x = np.zeros(n)
+        for f0, a0 in ((410.0, 1.0), (512.0, 0.8)):
+            f = f0 * (1.0 - 0.035 * np.exp(-t * 120))            # attaque un peu basse, se cale en 20 ms
+            ph = 2 * np.pi * np.cumsum(f) / SR + rng.uniform(0, 6)
+            for k in range(1, 12):
+                fk = f0 * k
+                if fk > 6000:
+                    break
+                res = 1.0 + 1.6 * np.exp(-((fk - 2400.0) / 700.0) ** 2)    # pavillon
+                x += a0 * np.sin(k * ph) * res / k ** 0.75
+        x = np.tanh(x * 0.9) + rng.normal(0, 0.015, n)
+        env = np.minimum(1, t / 0.008) * np.minimum(1, (T - t) / 0.025)
+        return x * env
+
+    y = np.r_[coup(0.22), np.zeros(int(SR * 0.1)), coup(0.5)]
+    save("_klaxon", y * 0.8)
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", OUT + "/_klaxon.wav", "-c:a", "libvorbis", "-q:a", "5",
+                    OUT + "/klaxon.ogg"], check=True)
+    os.remove(OUT + "/_klaxon.wav")
 
 
 if __name__ == "__main__":

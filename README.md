@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.84.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.84/RochetoirinSimulator-v6.84.apk)**
+**[RochetoirinSimulator-v6.85.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.85/RochetoirinSimulator-v6.85.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,15 +16,12 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.84 :
-- **La carrière va jusqu'au bout** : après « Le village », trois nouveaux chapitres : **La vallée** (œufs fragiles,
-  colis perdu sans GPS, mariée en retard, duel contre Sandrine Dérapage), **La ville** (bébé pressé, train à attraper,
-  service de taxi de nuit, course en ville, duel contre Didier Klaxon) et **La finale** : un championnat en 5 manches
-  contre les trois rivaux.
-- **Une voiture offerte à la fin de chaque chapitre**, jusqu'à la Porc'Che 119 GT3 RS du champion du Nord-Isère.
-- Onglet Carrière refait : chapitres, missions, rivaux et classement du championnat.
-- Corrigé : les « fi » s'affichaient comme des « A » (« DifAcile », « La Anale ») ; la proposition d'épreuve ne reste
-  plus affichée par-dessus une mission.
+Nouveautés de la v6.85 :
+- **La circulation** : des voitures roulent maintenant sur les routes, de la rue du village à l'autoroute. Elles
+  tiennent leur droite, respectent les sens uniques et les limitations, ralentissent aux virages et aux carrefours,
+  mettent leur clignotant, allument leurs feux stop et leurs phares la nuit.
+- Bloque-leur la route : elles s'arrêtent derrière toi… et klaxonnent. Percute-les : elles valsent (KA-BOOM possible).
+- Réglage ⚙ > Conduite > **Circulation** : Aucune, Peu, Normale ou Dense (en Économie : quelques voitures seulement).
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
