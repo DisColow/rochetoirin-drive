@@ -15,6 +15,9 @@ var tiles := {}
 var loaded := {}           # Vector2i -> Node3D
 var lamps := {}            # Vector2i -> PackedVector3Array (têtes de lampadaires)
 var pieds := {}            # Vector2i -> PackedVector3Array (pieds des lampadaires : décor destructible, casse.gd)
+var poteaux := {}          # Vector2i -> PackedVector3Array (pieds des poteaux bois et béton, #123 : ils tombent)
+var poteaux_t := {}        # Vector2i -> PackedByteArray (type 2 bois, 3 béton)
+var _fils := {}            # Vector2i -> [portées (PackedVector3Array), MeshInstance3D] : fils coupés (#123)
 var meshes := {}           # type -> Mesh
 var wire_mat: StandardMaterial3D
 var head_mat: StandardMaterial3D
@@ -177,6 +180,9 @@ func _process_corps(dt: float) -> void:
 				loaded.erase(k)
 				lamps.erase(k)
 				pieds.erase(k)
+				poteaux.erase(k)
+				poteaux_t.erase(k)
+				_fils.erase(k)
 		_night_lights()
 
 func _add(k: Vector2i) -> void:
@@ -189,6 +195,8 @@ func _add(k: Vector2i) -> void:
 	var by := {}
 	var heads := PackedVector3Array()
 	var feet := PackedVector3Array()
+	var pt := PackedVector3Array()
+	var ptt := PackedByteArray()
 	for i in ns:
 		var t := int(sp.get_float()); var x := sp.get_float(); var y := sp.get_float(); var z := sp.get_float(); var cap := sp.get_float()
 		var b := Basis(Vector3.UP, PI - deg_to_rad(cap))
@@ -198,47 +206,81 @@ func _add(k: Vector2i) -> void:
 		if t == 1:
 			heads.append(Vector3(x, y, z) + b * HEAD)
 			feet.append(Vector3(x, y, z))
+		elif t == 2 or t == 3:
+			pt.append(Vector3(x, y, z)); ptt.append(t)
 	for t in by:
 		var l := []
 		for xf in by[t]:
 			l.append([xf])
 		# par cases de 64 m (et non par tuile entière) ; matériaux d'origine (têtes de lampadaires allumées la nuit)
 		Cells.add(root, meshes[t], l, VIEW if t == 4 else 450.0, t == 4, false)
-	# fils : rubans fins croisés (visibles sous tous les angles)
+	# fils : rubans fins croisés (visibles sous tous les angles) ; portées gardées pour les couper (#123)
 	var nw := sp.get_32()
-	if nw > 0:
-		var st := SurfaceTool.new(); st.begin(Mesh.PRIMITIVE_TRIANGLES)
-		for i in nw:
-			var n := sp.get_32()
-			var prev := Vector3.ZERO
-			for j in n:
-				var p := Vector3(sp.get_float(), sp.get_float(), sp.get_float())
-				if j > 0:
-					var d := (p - prev).normalized()
-					var side := d.cross(Vector3.UP).normalized() * 0.025
-					var up := Vector3(0, 0.025, 0)
-					for o in [side, up]:
-						for q in [prev - o, p - o, p + o, prev - o, p + o, prev + o]:
-							st.set_normal(Vector3.UP); st.add_vertex(q)
-				prev = p
-		var wm := st.commit()
-		wm.surface_set_material(0, wire_mat)
-		var wi := MeshInstance3D.new()
-		wi.mesh = wm
-		wi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		wi.visibility_range_end = 500.0
-		root.add_child(wi)
+	var portees := []
+	for i in nw:
+		var n := sp.get_32()
+		var pts := PackedVector3Array()
+		for j in n:
+			pts.append(Vector3(sp.get_float(), sp.get_float(), sp.get_float()))
+		portees.append(pts)
+	var wi := MeshInstance3D.new()
+	wi.mesh = _fils_mesh(portees)
+	wi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	wi.visibility_range_end = 500.0
+	root.add_child(wi)
+	_fils[k] = [portees, wi]
 	add_child(root)
 	loaded[k] = root
 	lamps[k] = heads
 	pieds[k] = feet
+	poteaux[k] = pt
+	poteaux_t[k] = ptt
 
-## Lampadaire renversé (casse.gd) : exemplaire caché, plus de lumière ; renvoie le modèle pour le débris.
-func casser(pied: Vector3) -> Mesh:
+func _fils_mesh(portees: Array) -> Mesh:
+	if portees.is_empty():
+		return null
+	var st := SurfaceTool.new(); st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for pts: PackedVector3Array in portees:
+		for j in range(1, pts.size()):
+			var prev := pts[j - 1]; var p := pts[j]
+			var d := (p - prev).normalized()
+			var side := d.cross(Vector3.UP).normalized() * 0.025
+			var up := Vector3(0, 0.025, 0)
+			for o in [side, up]:
+				for q in [prev - o, p - o, p + o, prev - o, p + o, prev + o]:
+					st.set_normal(Vector3.UP); st.add_vertex(q)
+	var wm := st.commit()
+	if wm.get_surface_count() > 0:
+		wm.surface_set_material(0, wire_mat)
+	return wm
+
+## #123 : poteau tombé : les portées de fils accrochées à ce poteau (un bout à moins de 2,5 m de son axe) disparaissent,
+## dans sa tuile et les voisines (une portée appartient à la tuile de son milieu).
+func couper_fils(pied: Vector3) -> void:
+	var kc := Vector2i(floori(pied.x / TILE), floori(pied.z / TILE))
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			var k := kc + Vector2i(dx, dz)
+			if not _fils.has(k):
+				continue
+			var portees: Array = _fils[k][0]
+			var garde := []
+			for pts: PackedVector3Array in portees:
+				var a := pts[0]; var b := pts[pts.size() - 1]
+				if Vector2(a.x - pied.x, a.z - pied.z).length() < 2.5 or Vector2(b.x - pied.x, b.z - pied.z).length() < 2.5:
+					continue
+				garde.append(pts)
+			if garde.size() != portees.size():
+				_fils[k][0] = garde
+				(_fils[k][1] as MeshInstance3D).mesh = _fils_mesh(garde)
+
+## Lampadaire (t = 1) ou poteau (2 bois, 3 béton, #123) renversé (casse.gd) : exemplaire caché, plus de lumière ;
+## renvoie le modèle pour le débris.
+func casser(pied: Vector3, t := 1) -> Mesh:
 	var k := Vector2i(floori(pied.x / TILE), floori(pied.z / TILE))
 	if loaded.has(k):
 		for mi in loaded[k].find_children("*", "MultiMeshInstance3D", true, false):
-			if not mi.has_meta("origines") or (mi as MultiMeshInstance3D).multimesh.mesh != meshes[1]:
+			if not mi.has_meta("origines") or (mi as MultiMeshInstance3D).multimesh.mesh != meshes[t]:
 				continue
 			var org: PackedVector3Array = mi.get_meta("origines")
 			for i in org.size():
@@ -251,7 +293,14 @@ func casser(pied: Vector3) -> Mesh:
 			if f[i].distance_squared_to(pied) < 0.05:
 				f.remove_at(i); h.remove_at(i)
 		pieds[k] = f; lamps[k] = h
-	return meshes[1]
+	if t != 1 and poteaux.has(k):
+		var f2: PackedVector3Array = poteaux[k]
+		var t2: PackedByteArray = poteaux_t[k]
+		for i in range(f2.size() - 1, -1, -1):
+			if f2[i].distance_squared_to(pied) < 0.05:
+				f2.remove_at(i); t2.remove_at(i)
+		poteaux[k] = f2; poteaux_t[k] = t2
+	return meshes[t]
 
 ## Nuit : têtes lumineuses et lumières réelles sur les lampadaires les plus proches de la voiture.
 func set_night(n: float) -> void:

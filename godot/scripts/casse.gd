@@ -4,16 +4,19 @@
 ## - Détection avant le contact : boîte de la voiture (meta.json) élargie du rayon de l'objet ; candidats proches
 ##   relevés toutes les 0,2 s (panneaux : world/panneaux.bin de build_casse.py ; lampadaires : poles.pieds ;
 ##   arbres : vegetation.data ; clôtures : fences.lignes), testés à chaque pas de physique.
-## - L'objet disparaît de son lot (exemplaire caché, ou sommets effacés par le shader : env_casse, uniform casse_pts) et
-##   un débris physique part dans le sens du choc, roule, puis s'efface au bout de 15 s.
+## - L'objet disparaît de son lot (exemplaire caché, ou sommets effacés par le shader : env_casse, uniform casse_pts).
+##   #123 (v6.81) : clôtures, grillages, haies, murets et piliers éclatent en plusieurs morceaux ; petits arbres,
+##   lampadaires et poteaux électriques ou téléphoniques (fils coupés) basculent et se couchent. Les débris restent
+##   au sol (figés une fois immobiles) tant que la voiture ne s'éloigne pas à plus de LOIN m.
 ## - La voiture perd un peu de vitesse selon l'objet ; son du choc selon la matière ; poussière et éclats (dust.gd).
 ## Tout réapparaît quand la tuile est rechargée (on revient plus tard).
 extends Node3D
 
 const Env := preload("res://scripts/env.gd")
 const PerfMon := preload("res://scripts/perf_monitor.gd")
-const VIE := 15.0                 # durée de vie d'un débris (s)
-const MAX_DEBRIS := 10
+const LOIN := 220.0               # #123 : débris rendus à la réserve quand la voiture s'en éloigne à plus de LOIN m
+const POSE := 1.5                 # immobile depuis POSE s : figé sur place (plus de calcul physique)
+const MAX_DEBRIS := 32
 const ARBRE_MAX := 9.0            # hauteur maximale d'un arbre cassable (m)
 const GRILLE := 16.0
 # perte de vitesse (part, inutilisée depuis #105), son, rayon de l'objet (m), vitesse minimale pour casser (m/s)
@@ -27,10 +30,13 @@ const KINDS := {
 	"pilier": [0.3, "choc_dur_%d", 0.25, 2.5],          # piliers de portail (#85)
 	"grillage": [0.08, "choc_leger_%d", 0.1, 0.0],       # clôture d'emprise de l'autoroute (#76), grillages des terrains de sport (#85)
 	"barriere": [0.05, "choc_leger_%d", 0.12, 0.0],      # bras des barrières de passage à niveau (#125, rails.gd)
+	"poteau": [0.2, "choc_bois_%d", 0.18, 2.0],          # poteaux électriques et téléphoniques (#123, poles.gd)
 }
 const LIGNES := ["cloture", "haie", "muret", "pilier"]      # fences.genres
 # matière de chaque genre pour les sons de choc (audio.impact, issue #28)
-const MATIERE := {"panneau": "metal", "lampadaire": "metal", "arbre": "bois", "cloture": "bois", "haie": "haie", "muret": "dur", "pilier": "dur", "grillage": "metal", "barriere": "metal"}
+const MATIERE := {"panneau": "metal", "lampadaire": "metal", "arbre": "bois", "cloture": "bois", "haie": "haie", "muret": "dur", "pilier": "dur", "grillage": "metal", "barriere": "metal", "poteau": "bois"}
+# genres qui basculent et se couchent au sol (#123) ; les autres éclatent
+const COUCHES := ["arbre", "lampadaire", "poteau"]
 
 var main: Node
 var car: VehicleBody3D
@@ -45,7 +51,7 @@ var _proches: Array = []          # [genre, données…] relevés toutes les 0,2
 var _t := 0.0
 var _casses: Array = []           # points déjà cassés (Vector3) : pas deux fois
 var _pts: Array = []              # points effacés par le shader (Vector4), 16 au plus
-var _debris: Array = []           # [RigidBody3D, âge]
+var _debris: Array = []           # [RigidBody3D, âge, temps immobile]
 var _pas := 0
 
 func _ready() -> void:
@@ -140,6 +146,12 @@ func _relever() -> void:
 			for p: Vector3 in poles.pieds[k]:
 				if Vector2(p.x - c.x, p.z - c.z).length_squared() < R2:
 					_proches.append(["lampadaire", p])
+		if poles and poles.poteaux.has(k):
+			var PT: PackedVector3Array = poles.poteaux[k]
+			var TT: PackedByteArray = poles.poteaux_t[k]
+			for i in PT.size():
+				if Vector2(PT[i].x - c.x, PT[i].z - c.z).length_squared() < R2:
+					_proches.append(["poteau", PT[i], TT[i]])
 		if fences and fences.lignes.has(k):
 			var L: PackedVector3Array = fences.lignes[k]
 			var G: PackedByteArray = fences.genres.get(k, PackedByteArray())
@@ -245,84 +257,121 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 	var v := car.linear_velocity
 	var spd := v.length()
 	var dir := v / maxf(spd, 0.01)
-	var corps: RigidBody3D = null
+	var corps: Array = []                # débris (RigidBody3D) : un seul, ou plusieurs morceaux quand l'objet éclate
+	var seg := Vector3.RIGHT              # clôtures : direction de la ligne (morceaux répartis le long)
+	if it.size() > 2 and it[2] is Vector3:
+		seg = ((it[2] as Vector3) - (it[1] as Vector3)).normalized()
 	match genre:
 		"panneau":
 			var h: float = it[2]
 			_effacer(Vector4(p.x, p.z, 0.75, p.y + 0.5))
-			corps = _corps_panneau(h)
-			corps.global_position = p + Vector3(0, h * 0.5 + 0.35, 0)
+			var c := _corps_panneau(h)
+			c.global_position = p + Vector3(0, h * 0.5 + 0.35, 0)
+			corps.append(c)
 		"lampadaire":
 			var m: Mesh = poles.casser(p)
-			corps = _corps_modele(m, 4.05, 0.16, 140.0)
-			corps.global_position = p + Vector3(0, 2.0, 0)
+			var c := _corps_modele(m, 4.05, 0.16, 140.0)
+			c.global_position = p + Vector3(0, 2.0, 0)
+			corps.append(c)
+		"poteau":
+			var t: int = it[2]
+			var h := 9.0 if t == 2 else 10.0
+			var m: Mesh = poles.casser(p, t)
+			poles.couper_fils(p)
+			var c := _corps_modele(m, h, 0.15, 180.0 if t == 2 else 420.0)
+			c.global_position = p + Vector3(0, h * 0.5, 0)
+			corps.append(c)
 		"arbre":
 			var r: Array = vegetation.casser(it[2], it[3])
 			if r.is_empty():
 				return
 			var h: float = r[1]
-			corps = _corps_modele(r[0], h, clampf(h * 0.018, 0.08, 0.16), 40.0 + h * 25.0, h)
-			corps.global_position = p + Vector3(0, h * 0.5, 0)
-			corps.rotation.y = r[2]
+			var c := _corps_modele(r[0], h, clampf(h * 0.018, 0.08, 0.16), 40.0 + h * 25.0, h)
+			c.global_position = p + Vector3(0, h * 0.5, 0)
+			c.rotation.y = r[2]
+			corps.append(c)
 		"cloture":
 			_effacer(Vector4(p.x, p.z, 1.7, p.y - 0.3))
 			fences.breche(p, 1.9)
-			corps = _corps_cloture()
-			corps.global_position = p + Vector3(0, 0.7, 0)
+			for i in 2:                                       # deux demi-panneaux arrachés
+				var c := _corps_cloture(0.5)
+				c.global_position = p + seg * (i - 0.5) * 0.95 + Vector3(0, 0.7, 0)
+				c.rotation.y = atan2(seg.x, seg.z) - PI * 0.5
+				corps.append(c)
 		"grillage":
 			_effacer(Vector4(p.x, p.z, 2.4, p.y - 0.3))
 			var sp = main.get("sport") if main else null
 			if sp:
 				sp.breche(p, 2.2)
-			corps = _corps_cloture()
-			corps.global_position = p + Vector3(0, 0.9, 0)
+			for i in 2:
+				var c := _corps_cloture(0.5)
+				c.global_position = p + seg * (i - 0.5) * 1.0 + Vector3(0, 0.9, 0)
+				c.rotation.y = atan2(seg.x, seg.z) - PI * 0.5
+				corps.append(c)
 		"barriere":
 			var rl = main.get("rails") if main else null
 			var r: Array = rl.casser(p) if rl else []
 			if r.is_empty():
 				return
-			corps = _prendre(12.0, Vector3(float(r[1]), 0.1, 0.1))
-			(corps.get_child(0) as MeshInstance3D).mesh = r[0]
-			corps.global_transform = r[2]
+			var c := _prendre(12.0, Vector3(float(r[1]), 0.1, 0.1))
+			(c.get_child(0) as MeshInstance3D).mesh = r[0]
+			c.global_transform = r[2]
+			corps.append(c)
 		"haie":
 			_effacer(Vector4(p.x, p.z, 2.1, p.y - 0.3))
 			fences.breche(p, 2.3)
-			corps = _corps_bloc("buisson", Vector3(1.2, 1.0, 0.9), 25.0)
-			corps.global_position = p + Vector3(0, 0.9, 0)
+			for i in 2:                                       # touffes arrachées
+				var c := _corps_bloc("buisson", Vector3(1.0, 0.9, 0.8), 18.0)
+				c.global_position = p + seg * (i - 0.5) * 1.1 + Vector3(0, 0.9, 0)
+				corps.append(c)
 		"pilier":
 			_effacer(Vector4(p.x, p.z, 0.8, p.y - 0.5))
 			fences.breche(p, 1.0)
-			corps = _corps_bloc("bloc", Vector3(0.4, 0.9, 0.4), 160.0)
-			corps.global_position = p + Vector3(0, 0.8, 0)
+			for i in 2:
+				var c := _corps_bloc("bloc", Vector3(0.4, 0.45, 0.4), 80.0)
+				c.global_position = p + Vector3(0, 0.5 + i * 0.5, 0)
+				corps.append(c)
 		"muret":
 			_effacer(Vector4(p.x, p.z, 1.9, p.y - 0.3))
 			fences.breche(p, 2.1)
-			corps = _corps_bloc("bloc", Vector3(0.9, 0.45, 0.35), 180.0)
-			corps.global_position = p + Vector3(0, 0.6, 0)
+			for i in 3:                                       # le muret éclate en blocs de pierre
+				var c := _corps_bloc("bloc", Vector3(0.9, 0.45, 0.35), 90.0)
+				c.global_position = p + seg * (i - 1) * 0.65 + Vector3(0, 0.4 + (i % 2) * 0.3, 0)
+				c.rotation.y = atan2(seg.x, seg.z) + randf_range(-0.6, 0.6)
+				corps.append(c)
 	# #105 : la voiture ne bronche pas (plus aucune perte de vitesse, KINDS[…][0] n'est plus utilisé)
-	if corps:
-		car.add_collision_exception_with(corps)
-		corps.linear_velocity = dir * spd * randf_range(0.75, 1.0) + Vector3(0, randf_range(1.5, 3.5), 0)
-		corps.angular_velocity = dir.cross(Vector3.UP) * -randf_range(2.0, 4.0) + Vector3(0, randf_range(-1.5, 1.5), 0)
-		_debris.append([corps, 0.0])
-		while _debris.size() > MAX_DEBRIS:
-			_rendre(_debris.pop_front()[0])
+	for c: RigidBody3D in corps:
+		car.add_collision_exception_with(c)
+		if genre in COUCHES:
+			# #123 : bascule autour du pied dans le sens du choc et se couche (centre de masse bas : le pied glisse peu)
+			var h: float = ((c.get_child(3) as CollisionShape3D).shape as BoxShape3D).size.y
+			c.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
+			c.center_of_mass = Vector3(0, -h * 0.3, 0)
+			c.linear_velocity = dir * minf(spd, 14.0) * randf_range(0.15, 0.3) + Vector3(0, 0.4, 0)
+			c.angular_velocity = Vector3.UP.cross(dir).normalized() * randf_range(1.0, 1.8) * clampf(spd / 8.0, 0.6, 1.4)
+		else:
+			# éclats : chaque morceau part dans le sens du choc, écarté des autres
+			c.linear_velocity = dir * spd * randf_range(0.5, 1.0) + Vector3(randf_range(-2.0, 2.0), randf_range(1.5, 4.5), randf_range(-2.0, 2.0))
+			c.angular_velocity = dir.cross(Vector3.UP) * -randf_range(2.0, 5.0) + Vector3(randf_range(-2, 2), randf_range(-2, 2), randf_range(-2, 2))
+		_debris.append([c, 0.0, 0.0])
+	while _debris.size() > MAX_DEBRIS:
+		_rendre(_debris.pop_front()[0])
 	if main and main.get("sound") and main.sound.has_method("impact"):
 		main.sound.impact(MATIERE.get(genre, "dur"), maxf(spd, 3.0), p + Vector3(0, 1, 0), true)
 	if main and main.get("dust"):
 		var D = main.dust
 		var mat: Dictionary = D.MATIERES.get("poussiere", {})
-		for i in 5:
+		for i in (9 if not genre in COUCHES else 5):             # #123 : nuage plus gros quand l'objet éclate
 			if not mat.is_empty():
 				D._nuage(mat, p + Vector3(randf_range(-0.6, 0.6), randf_range(0.2, 1.0), randf_range(-0.6, 0.6)), dir * spd * 0.2 + Vector3(0, 0.5, 0), 0.8)
-		var col := Color(0.35, 0.27, 0.18) if genre == "arbre" or genre == "cloture" else Color(0.55, 0.56, 0.58)
+		var col := Color(0.35, 0.27, 0.18) if genre in ["arbre", "cloture", "poteau"] else Color(0.55, 0.56, 0.58)
 		if genre == "haie":
 			col = Color(0.2, 0.36, 0.14)
 		elif genre == "barriere":
 			col = Color(0.85, 0.1, 0.08)
 		elif genre == "muret" or genre == "pilier":
 			col = Color(0.62, 0.58, 0.5)
-		for i in (16 if genre == "haie" or genre == "muret" or genre == "pilier" else 8):
+		for i in (24 if genre == "haie" or genre == "muret" or genre == "pilier" else (14 if genre in ["cloture", "grillage"] else 8)):
 			D._debris(p + Vector3(randf_range(-0.4, 0.4), randf_range(0.3, 1.5), randf_range(-0.4, 0.4)),
 				dir * spd * randf_range(0.3, 0.8) + Vector3(randf_range(-2, 2), randf_range(2, 5), randf_range(-2, 2)),
 				p.y, Vector3(randf_range(0.04, 0.15), randf_range(0.02, 0.06), randf_range(0.04, 0.2)), col)
@@ -333,7 +382,14 @@ func _casser(genre: String, p: Vector3, it: Array) -> void:
 func _effacer(c: Vector4) -> void:
 	_pts.append(c)
 	if _pts.size() > 16:
-		_pts.pop_front()
+		# #123 : les débris restent ; on rend d'abord l'objet effacé le plus loin de la voiture (plus le plus ancien)
+		var loin := 0
+		var dl := -1.0
+		for i in _pts.size() - 1:
+			var d := Vector2(_pts[i].x - car.global_position.x, _pts[i].y - car.global_position.z).length() if car else 0.0
+			if d > dl:
+				dl = d; loin = i
+		_pts.remove_at(loin)
 	var arr := []
 	for q in _pts:
 		arr.append(q)
@@ -402,6 +458,7 @@ func _prendre(masse: float, boite: Vector3) -> RigidBody3D:
 	(cs.shape as BoxShape3D).size = boite
 	cs.disabled = false
 	rb.rotation = Vector3.ZERO
+	rb.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_AUTO
 	rb.linear_velocity = Vector3.ZERO
 	rb.angular_velocity = Vector3.ZERO
 	rb.visible = true
@@ -435,12 +492,15 @@ func _corps_panneau(h: float) -> RigidBody3D:
 	inner.position = face.position + Vector3(0, 0, 0.002)
 	return rb
 
-func _corps_cloture() -> RigidBody3D:
-	var rb := _prendre(30.0, Vector3(1.9, 1.3, 0.1))
+## Panneau de clôture arraché ; part < 1 : morceau (#123 : la clôture éclate en deux).
+func _corps_cloture(part := 1.0) -> RigidBody3D:
+	var rb := _prendre(30.0 * part, Vector3(1.9 * part, 1.3, 0.1))
 	for i in 3:
 		var mi: MeshInstance3D = rb.get_child(i)
 		mi.mesh = _mailles.poteau if i < 2 else _mailles.grille
-		mi.position = Vector3(-0.9 + i * 1.8, 0, 0) if i < 2 else Vector3.ZERO
+		mi.position = Vector3((-0.9 + i * 1.8) * part, 0, 0) if i < 2 else Vector3.ZERO
+		mi.scale = Vector3(part, 1, 1) if i == 2 else Vector3.ONE
+		mi.set_meta("e", 1.0)
 	return rb
 
 ## Haie (touffe arrachée, trois boules) ou muret (trois blocs de pierre).
@@ -459,7 +519,9 @@ func _corps_bloc(nom: String, boite: Vector3, masse: float) -> RigidBody3D:
 		mi.set_meta("e", mi.scale.x)
 	return rb
 
-## Débris : rétrécissent pendant la dernière seconde puis disparaissent.
+## Débris (#123) : restent au sol ; figés une fois immobiles depuis POSE s (plus de calcul physique, la voiture
+## les traverse toujours) ; rendus à la réserve quand la voiture est à plus de LOIN m (la tuile remet l'objet en
+## place quand on revient) ou quand la réserve est vide (le plus ancien).
 func _vieillir(dt: float) -> void:
 	for i in range(_debris.size() - 1, -1, -1):
 		var d: Array = _debris[i]
@@ -468,12 +530,14 @@ func _vieillir(dt: float) -> void:
 			_debris.remove_at(i)
 			continue
 		d[1] += dt
-		if d[1] > VIE - 1.0:
-			var s := clampf(VIE - d[1], 0.01, 1.0)
-			for ch in rb.get_children():
-				if ch is MeshInstance3D:
-					ch.scale = Vector3.ONE * s * (ch.get_meta("e", 1.0) as float)
-		if d[1] > VIE or rb.global_position.y < -500.0:
+		if not rb.freeze:
+			if d[1] > 1.0 and rb.linear_velocity.length() < 0.2 and rb.angular_velocity.length() < 0.3:
+				d[2] += dt
+				if d[2] > POSE:
+					rb.freeze = true
+			else:
+				d[2] = 0.0
+		if rb.global_position.y < -500.0 or (car and rb.global_position.distance_to(car.global_position) > LOIN):
 			_rendre(rb)
 			_debris.remove_at(i)
 
@@ -486,7 +550,7 @@ func essai() -> void:
 	for i in 120:
 		await get_tree().physics_frame
 	DirAccess.make_dir_recursive_absolute("user://shots")
-	var genres := ["panneau", "lampadaire", "arbre", "cloture", "haie", "muret"]
+	var genres := ["panneau", "lampadaire", "poteau", "arbre", "cloture", "haie", "muret"]
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--casse-genres="):
 			genres = Array(a.trim_prefix("--casse-genres=").split(","))
@@ -505,6 +569,12 @@ func essai() -> void:
 			"lampadaire":
 				for k in poles.pieds:
 					for p: Vector3 in poles.pieds[k]:
+						var d := Vector2(p.x - c.x, p.z - c.z).length()
+						if d < bd and d > 3.0:
+							bd = d; best = p
+			"poteau":
+				for k in poles.poteaux:
+					for p: Vector3 in poles.poteaux[k]:
 						var d := Vector2(p.x - c.x, p.z - c.z).length()
 						if d < bd and d > 3.0:
 							bd = d; best = p
@@ -579,5 +649,41 @@ func essai() -> void:
 		if img_ok:
 			get_viewport().get_texture().get_image().save_png("user://shots/casse_%s_2.png" % genre)
 		if not _debris.is_empty() and is_instance_valid(_debris[-1][0]):
-			print("[casse]    2 s plus tard : débris en ", _debris[-1][0].global_position, " (posé : ", _debris[-1][0].sleeping or _debris[-1][0].linear_velocity.length() < 0.5, ")")
+			var rb: RigidBody3D = _debris[-1][0]
+			var n_morceaux := 0
+			for d in _debris:
+				if d[1] < 3.0:
+					n_morceaux += 1
+			print("[casse]    2 s plus tard : %d morceau(x), dernier en %s, posé %s, incliné de %.0f° (couché si > 60°)" % [
+				n_morceaux, rb.global_position.snapped(Vector3.ONE * 0.1), rb.freeze or rb.linear_velocity.length() < 0.5,
+				rad_to_deg(acos(clampf(rb.global_basis.y.normalized().dot(Vector3.UP), -1.0, 1.0)))])
+			if img_ok and main and main.get("cam_rig"):
+				# vue sur les morceaux (preuve) : caméra posée de côté, au-dessus du point de casse
+				var rig = main.cam_rig
+				rig.set_process(false)
+				var cm: Camera3D = rig.cam
+				var cote := f.cross(Vector3.UP).normalized()
+				cm.global_position = best + cote * 7.0 - f * 3.0 + Vector3(0, 4.5, 0)
+				cm.look_at(best + f * 2.0 + Vector3(0, 0.5, 0), Vector3.UP)
+				for i in 4:
+					await get_tree().process_frame
+				get_viewport().get_texture().get_image().save_png("user://shots/casse_%s_3.png" % genre)
+				rig.set_process(true)
+	# #123 : les débris restent (avant : effacés au bout de 15 s) ; 20 s de jeu plus tard, voiture arrêtée à côté
+	car.linear_velocity = Vector3.ZERO
+	car.hold(30.0)
+	Engine.time_scale = 4.0
+	var t0 := Time.get_ticks_msec()
+	var tt := 0.0
+	while tt < 20.0:
+		await get_tree().physics_frame
+		tt += 1.0 / Engine.physics_ticks_per_second * Engine.time_scale
+	Engine.time_scale = 1.0
+	var vis := 0
+	var fig := 0
+	for d in _debris:
+		if is_instance_valid(d[0]) and (d[0] as RigidBody3D).visible:
+			vis += 1
+			fig += 1 if (d[0] as RigidBody3D).freeze else 0
+	print("[casse] 20 s plus tard : %d débris toujours au sol, dont %d figés (%.0f s réelles)" % [vis, fig, (Time.get_ticks_msec() - t0) / 1000.0])
 	get_tree().quit()

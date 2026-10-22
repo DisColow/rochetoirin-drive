@@ -353,6 +353,12 @@
   points, simple/fence), débris physique 15 s, poussière et éclats (`dust.gd`), son selon la matière, vitesse réduite
   selon l'objet. Tout réapparaît au rechargement de la tuile. Essai : `-- --casse-test [--casse-debug]` (captures
   `user://shots/casse_*.png`).
+  **#123 (v6.81)** : débris persistants (figés au repos, rendus au-delà de `LOIN` 220 m, réserve de 32 corps ; le
+  point effacé le plus loin part en premier) ; clôtures, grillages, haies, piliers et murets éclatent en 2-3 morceaux ;
+  `COUCHES` (petits arbres, lampadaires, poteaux bois et béton : `poles.poteaux`, `poles.casser(p, t)`,
+  `poles.couper_fils`) basculent et restent couchés. Gros arbres, pylônes, monuments et symboles religieux solides
+  (choix de l'utilisateur). Essai : `--casse-genres=poteau,arbre,muret` (vue sur les morceaux `casse_<genre>_3.png`,
+  débris restants après 20 s).
 - **Écran de chargement** (v6.14, `scripts/chargement.gd`) : `main._ready` construit le monde par **étapes nommées**
   (`await _etape("Routes")`…), une image dessinée entre chaque ; le voile (`voile_demarrage.gd`, posé aussi sur PC)
   affiche l'étape et une barre calée sur la durée de chaque étape mesurée au lancement précédent

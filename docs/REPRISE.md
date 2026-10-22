@@ -3,9 +3,20 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 22/10/2026, 9 h (v6.79 : #130, 2CV « toute pétée »)
+## État au 22/10/2026, 11 h (v6.80 livrée ; #123 en cours)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip` (pousser `godot/` déclenche l'APK).
+- **v6.80** (#129) : champignon atomique seul (plus de choix dans ⚙), caméra extérieure en plan large pendant
+  l'explosion (`camera_rig.gd` `_mode_avant`, `_boum`). Essai `--boum-camera-test`.
+- **#123 en cours** (réponses de l'utilisateur du 22/10 : gros arbres NON, glissières/séparateurs d'autoroute OUI,
+  monuments et symboles religieux NON, durée OK ; supposé : pylônes solides). Découpage :
+  - v6.81 (code sur `zone-wip`) : `casse.gd` débris persistants (figés au repos, rendus à plus de `LOIN` 220 m,
+    réserve de 32), éclats (clôtures, grillages, haies en 2 morceaux, piliers 2, murets 3), petits arbres,
+    lampadaires et poteaux (nouveau genre « poteau », `poles.poteaux`, `poles.couper_fils`) basculent et se couchent
+    (`COUCHES`). Essai `--drive-test --casse-test` (morceaux, inclinaison, débris après 20 s).
+  - v6.82 : repoussés (buts, paniers, poteaux de rugby, bancs : `sport.gd` ; bornes SOS, balises : `autoroute.gd`),
+    glissières et séparateurs béton défonçables (`autoroute.gd`), mâts d'éclairage des stades couchés.
+- **Puis #128** (concurrents physiques : 3 par course, reviennent 4 s après destruction, Kévin devient réel).
 - **v6.79** (#130) : les niveaux de détail faits à l'import déchirent les modèles en pièces séparées (2CV) ; voitures du
   garage toujours en pleine définition (`lod_bias = 64` dans `car._materials`, `fantome.gd`). Essai
   `--voitures-revue --lod-seuil=N` (seuil forcé, petite résolution : `--resolution 800x360`). À surveiller : d'autres
