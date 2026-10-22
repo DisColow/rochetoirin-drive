@@ -101,7 +101,9 @@ func _ready() -> void:
 	add_child(_lampe)
 	var m := get_parent()
 	if m and m.get("cam_rig") and auto:
-		m.cam_rig.shake = maxf(float(m.cam_rig.shake), _secousse)
+		# #128 : explosion d'un concurrent au loin : secousse moindre (pleine jusqu'à 30 m, nulle à 230 m)
+		var d: float = (m.cam_rig.cam as Camera3D).global_position.distance_to(global_position) if m.cam_rig.get("cam") else 0.0
+		m.cam_rig.shake = maxf(float(m.cam_rig.shake), _secousse * clampf(1.0 - (d - 30.0) / 200.0, 0.0, 1.0))
 	regler(0.0)
 
 func _process(dt: float) -> void:

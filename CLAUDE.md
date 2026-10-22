@@ -146,11 +146,25 @@
   (`pipeline/fetch_explosions.py` -> `assets/fx/`). En vue conducteur ou capot, `camera_rig.gd` passe en poursuite
   le temps de l'explosion (`_mode_avant`) et recule en plan large (`_boum`, 30 m, 9 m de haut). Essais
   `--drive-test --explosion-test [--explosion-styles=a,b]`, `--drive-test --boum-camera-test`.
-- **Mode carrière** (v6.74, #120, `scripts/carriere.gd` + `scripts/fantome.gd`, onglet « Carrière » en tête du menu
-  Activités) : chapitre 1 « Le village » validé par l'utilisateur (carte jamais verrouillée hors mission, rival en
-  fantôme qui roule en même temps) ; réputation 0-100 et 4 missions (livraison, taxi imposé `activities.impose`,
-  premier chrono, duel), progression dans `user://carriere.cfg`. Essai `-- --drive-test --carriere-test --sans-voix`
-  (~20 min ici ; `--sans-voix` : pas de synthèse vocale, speech-dispatcher fige le jeu sous Linux).
+- **Mode carrière** (v6.74, #120, `scripts/carriere.gd`, onglet « Carrière » en tête du menu
+  Activités) : chapitre 1 « Le village » validé par l'utilisateur (carte jamais verrouillée hors mission, rival qui
+  roule en même temps : vrai concurrent depuis #128, plus de fantôme) ; réputation 0-100 et 4 missions (livraison,
+  taxi imposé `activities.impose`, premier chrono, duel), progression dans `user://carriere.cfg`. Essai
+  `-- --drive-test --carriere-test --sans-voix` (~20 min ici ; `--sans-voix` : pas de synthèse vocale,
+  speech-dispatcher fige le jeu sous Linux).
+- **Concurrents** (#128, `scripts/concurrent.gd`, choix de l'utilisateur : 3 par course, un concurrent détruit revient
+  4 s après, Kévin réel) : vraie voiture du garage (`car.gd` avec `ia = true` : commandes dans `touch_*` seulement, pas
+  d'aide à la voie, de nitro, de volant 3D ni de remise automatique) pilotée par `concurrent.gd` : tracé `itineraire.gd`
+  jambe par jambe, profil de vitesse (virages `a_lat`, accélération, freinage) mis à l'échelle du temps visé, horaire
+  corrigé en route (`_allure`), poursuite d'un point devant (`_piloter`), décalage pour doubler (`autres`), KA-BOOM
+  au-delà de `VITESSE_BOUM` perdus d'un coup en touchant quelque chose, retour `RETOUR` s après `RECUL` m derrière,
+  remise sur le tracé si bloquée, retournée ou perdue ; à plus de `LOIN` m du joueur, figée (cinématique) et glissée
+  sur le tracé (le relief n'a de collisions qu'à 96 m de la caméra). `activities.gd` : `CONCURRENTS` (modèles et temps
+  visés par niveau), `avec_concurrents` (choix « Contre-la-montre / Course contre 3 voitures »), `ajouter_concurrent`
+  (grille), `_place`, `BONUS_PLACE`, `concurrent_detruit` (prime), `_fin_concurrents`. Essai
+  `--fixed-fps 8 -- --drive-test --course-ia-test [--ep=N] [--niv=0-2] [--joueur=<s>] [--sans-boum]` (la voiture du
+  joueur pilotée par un `concurrent.gd` sans voiture propre ; `--fixed-fps` : temps de jeu indépendant de la lenteur
+  du rendu ici, 15 pas de physique par image).
 - **Voies ferrées** (v6.75, #125 : rouler dessus sans partir en vrille, passages à niveau aux barrières défonçables, pas
   de train) : `pipeline/fetch_rails.py` (OSM) + `build_rails.py` (après `build_roads.py` ; voies posées sur le relief
   terrassé, ponts et tunnels sautés, nœuds de passage d'une même route regroupés) -> `world/rails/rl_tx_tz.bin`, avant

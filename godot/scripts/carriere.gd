@@ -1,10 +1,10 @@
 ## Mode carrière (#120, chapitre 1 « Le village », validé par l'utilisateur le 21/10 : chapitre 1 seul, carte libre,
-## rival en fantôme qui roule en même temps).
+## rival qui roule en même temps ; #128 : une vraie voiture, plus un fantôme).
 ## - Onglet « Carrière » du menu Activités (menu_activites.gd) : jauge de réputation, missions, rival ; chaque mission
 ##   se lance de là (itinéraire GPS jusqu'à son départ, ou « Y aller » : la voiture y est posée).
 ## - Missions : livraison (boulangerie, chargement fragile, temps limité, ici), taxi imposé (le maire : la course de
-##   taxi d'activities.gd avec `impose`), premier chrono (médaille sur une épreuve), duel (épreuve contre le fantôme du
-##   rival, fantome.gd).
+##   taxi d'activities.gd avec `impose`), premier chrono (médaille sur une épreuve), duel (épreuve contre le rival, vrai
+##   concurrent piloté par le jeu : concurrent.gd, activities.ajouter_concurrent ; il gagne s'il passe la ligne avant).
 ## - Réputation (0 à 100) : 25 par mission ; bonus du jeu libre (médailles d'épreuves, clients contents) ; pertes
 ##   (décor cassé pendant une mission, client mécontent, KA-BOOM). À 100 : message d'un personnage (suite à venir).
 ## - Progression gardée dans user://carriere.cfg ; le jeu libre ne change pas.
@@ -62,7 +62,7 @@ var _prev_v := Vector3.ZERO
 var _choc_cd := 0.0
 var _stop_t := 0.0
 var _depart := -1                  # point de route du départ de la mission (GPS)
-var _fantome: Node3D
+var _rival: Node                 # concurrent.gd du duel (#128)
 var _bulle: Control
 var _voix := {}
 
@@ -174,9 +174,7 @@ func _balise(i: int, col: Color, txt: String) -> void:
 
 ## Fin de mission (réussie, ratée, ou arrêtée par le bouton ■ d'activities.gd).
 func arreter(annonce := true) -> void:
-	if _fantome and is_instance_valid(_fantome):
-		_fantome.queue_free()
-	_fantome = null
+	_rival = null                      # retiré par activities.gd (_fin_concurrents)
 	_fermer_bulle()
 	if en_cours != "" and annonce and hud:
 		hud.toast("Mission arrêtée.", 2.5)
@@ -338,28 +336,18 @@ func _lancer_duel() -> void:
 	var id := int(m.epreuve)
 	var e: Dictionary = act.epreuves[id]
 	act.mode = ""
-	act._epreuve_depart(id)                       # pose la voiture, 3-2-1 ; le fantôme part au « Partez ! »
-	_fantome = preload("res://scripts/fantome.gd").new()
-	var pts := []
-	for i in act._route:
-		pts.append(act._rp(i))
-	pts[0] = act._car2()                          # départ à côté de la voiture du joueur (déjà posée)
-	_fantome.points = pts
-	_fantome.temps_cible = float(e["or"]) * float(m.allure)
-	_fantome.voiture = String(RIVAL.voiture)
-	_fantome.nom = String(RIVAL.court)
-	main.add_child(_fantome)
+	act._epreuve_depart(id, 0, false)             # pose la voiture, 3-2-1 ; le rival part au « Partez ! »
+	_rival = act.ajouter_concurrent(String(RIVAL.voiture), String(RIVAL.court), float(e["or"]) * float(m.allure), 1)
 	en_cours = "duel"
 	_phase = "course"
 
 func _duel_process() -> void:
-	if _fantome == null or not is_instance_valid(_fantome):
+	if _rival == null or not is_instance_valid(_rival):
 		return
 	if act.mode == "course" and act._phase == "course":
-		_fantome.t = act._t
-		if act._t > _fantome.temps_cible and _phase == "course":
+		if _rival.fini and _phase == "course":
 			_phase = "rival_arrive"
-			hud.toast("%s a franchi la ligne en %s !" % [RIVAL.court, act._fmt(_fantome.temps_cible)], 4.0)
+			hud.toast("%s a franchi la ligne en %s !" % [RIVAL.court, act._fmt(_rival.t_arrivee)], 4.0)
 	elif act.mode == "" and _phase in ["course", "rival_arrive"]:
 		arreter()                                   # course arrêtée (■)
 
@@ -373,8 +361,8 @@ func epreuve_finie(id: int, t: float, med: String, avant: String) -> void:
 		var b := float(BONUS[med]) - (float(BONUS[avant]) if avant != "" else 0.0)
 		if b > 0.0:
 			gagner(b, "médaille de %s" % med)
-	if en_cours == "duel" and _fantome and is_instance_valid(_fantome):
-		var tr: float = _fantome.temps_cible
+	if en_cours == "duel" and _rival and is_instance_valid(_rival):
+		var tr: float = _rival.t_arrivee if _rival.fini else INF
 		var gagne := t < tr
 		var m := mission("duel")
 		if gagne:
@@ -382,11 +370,7 @@ func epreuve_finie(id: int, t: float, med: String, avant: String) -> void:
 		else:
 			defaites += 1
 		sauver()
-		var f := _fantome
-		_fantome = null
-		get_tree().create_timer(6.0).timeout.connect(func():
-			if is_instance_valid(f):
-				f.queue_free())
+		_rival = null
 		en_cours = ""
 		_phase = ""
 		get_tree().create_timer(2.5).timeout.connect(func():
@@ -394,7 +378,7 @@ func epreuve_finie(id: int, t: float, med: String, avant: String) -> void:
 			_dire(ligne)
 			_bulle_choix(str(RIVAL.nom), ligne, ["OK"], func(_r: int): pass)
 			if gagne:
-				_reussir(m, "\nVous : %s · %s : %s" % [act._fmt(t), RIVAL.court, act._fmt(tr)])
+				_reussir(m, "\nVous : %s · %s : %s" % [act._fmt(t), RIVAL.court, act._fmt(tr) if tr < INF else "pas encore arrivé"])
 			else:
 				_rater(m, "%s a gagné de %s." % [RIVAL.court, act._fmt(t - tr)]))
 

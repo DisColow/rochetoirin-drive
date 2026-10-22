@@ -235,6 +235,15 @@ func _fiche(h: Control, e: Dictionary) -> void:
 		_texte(tc, act._fmt(act.temps_medaille(e, m, niv)), 23).autowrap_mode = TextServer.AUTOWRAP_OFF
 		_texte(tc, act._euros(act.prime_medaille(e, m, niv)), 19, Color(0.6, 1.0, 0.6)).autowrap_mode = TextServer.AUTOWRAP_OFF
 	_texte(v, "%.1f km · %d point(s) de passage" % [float(e.km), e.etapes.size()], 21, Color(1, 1, 1, 0.65))
+	# #128 : seul contre le chrono, ou course contre 3 concurrents (vraies voitures pilotées par le jeu)
+	var hm := HBoxContainer.new()
+	hm.add_theme_constant_override("separation", 8)
+	v.add_child(hm)
+	for k in 2:
+		var bm := _bouton(hm, ["Contre-la-montre", "Course contre 3 voitures"][k], func(): act.avec_concurrents = k == 1; _aller(0), 0.0, 22)
+		bm.toggle_mode = true
+		bm.button_pressed = act.avec_concurrents == (k == 1)
+		bm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 12)
 	v.add_child(hb)

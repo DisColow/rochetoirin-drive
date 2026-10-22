@@ -472,6 +472,10 @@ func _physics_process(_dt: float) -> void:
 		get_node("HUD").appliquer_niveau(int(OS.get_environment("NIVEAU")))
 		print("niveau imposé %d : physique %d pas/s, %d img/s au plus" % [int(OS.get_environment("NIVEAU")),
 			Engine.physics_ticks_per_second, Engine.max_fps])
+	if OS.get_cmdline_user_args().has("--course-ia-test"):
+		if t == 300:
+			_course_ia_test()                  # commandes de la voiture : son pilote (concurrent.gd)
+		return
 	var dur := 3000 if OS.get_cmdline_user_args().has("--long") else 1200
 	car.touch_throttle = 1.0 if t < dur else 0.0
 	car.touch_brake = 1.0 if t >= dur else 0.0
@@ -885,6 +889,8 @@ func _physics_process(_dt: float) -> void:
 			var e: Dictionary = act.epreuves[act._epreuve] if act._epreuve >= 0 else {}
 			var d := Vector2(car.global_position.x, car.global_position.z).distance_to(Vector2(e.a[0], e.a[1])) if not e.is_empty() else -1.0
 			print("  [épreuves] activité « %s », épreuve %s, voiture déplacée de %.0f m, à %.0f m du départ" % [act.mode, e.get("nom", "?"), car.global_position.distance_to(get_meta("p0")), d])
+			print("  [épreuves] #128 : %d concurrent(s) %s" % [act.concurrents.size(), act.concurrents.map(func(c): return "%s (%s, %.0f s, à %.0f m)" % [c.nom, c.modele,
+				c.temps_cible, c.voiture.global_position.distance_to(car.global_position)])])
 			if not e.is_empty():
 				print("  [épreuves] niveau %s : or en %s (Normal : %s), prime de l'or %s" % [act.NIVEAUX_EP[act.niveau_ep][0],
 					act._fmt(act.temps_medaille(e, "or", act.niveau_ep)), act._fmt(float(e["or"])), act._euros(act.prime_medaille(e, "or", act.niveau_ep))])
@@ -1007,6 +1013,11 @@ func _physics_process(_dt: float) -> void:
 		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0
 		if t == 300:
 			_boum_camera_test()
+		return
+	if OS.get_cmdline_user_args().has("--virage-test"):
+		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0
+		if t == 300:
+			_virage_test()
 		return
 	if OS.get_cmdline_user_args().has("--explosion-test"):
 		car.touch_steer = 0.0; car.touch_throttle = 0.0; car.touch_brake = 1.0
@@ -1720,6 +1731,192 @@ func _boum_camera_test() -> void:
 			break
 	get_tree().quit()
 
+## #128 : tenue de route en virage des voitures du garage pilotées par le jeu : sur un terrain plat (stade :
+## --drive-from=185,447,495,90), vitesse tenue (--vitesses=20,35 km/h), braquage --braquage=1 ; virage établi :
+## vitesse de lacet et accélération latérale (réglage de concurrent.a_lat). --fixed-fps 8.
+func _virage_test() -> void:
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	var vits := [20.0, 35.0]
+	var br := 1.0
+	var mods := ["ranger", "p106", "clio", "r5", "p206", "p306", "gt3"]
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--vitesses="):
+			vits = Array(a.get_slice("=", 1).split(",")).map(func(x): return float(x))
+		elif a.begins_with("--braquage="):
+			br = float(a.get_slice("=", 1))
+		elif a.begins_with("--modeles="):
+			mods = Array(a.get_slice("=", 1).split(","))
+	var p0 := car.global_position
+	car.global_position = p0 + Vector3(0, 0, 60)          # la voiture du joueur à l'écart
+	car.hold(9999.0)
+	for m in mods:
+		for vk: float in vits:
+			var v := VehicleBody3D.new()
+			v.set_script(preload("res://scripts/car.gd"))
+			v.ia = true
+			v.voiture = m
+			add_child(v)
+			v.place(p0 + Vector3(0, 0.3, 0), 90.0)
+			v.hold(0.5)
+			var mes := []
+			for i in int(7.0 * Engine.physics_ticks_per_second):
+				await get_tree().physics_frame
+				var tt := float(i) / Engine.physics_ticks_per_second
+				var vf: float = v.forward_speed()
+				var e := vk / 3.6 - vf
+				v.touch_throttle = clampf(e * 0.5 + 0.15, 0.0, 1.0) if e > 0.0 else 0.0
+				v.touch_brake = clampf(-e * 0.3, 0.0, 1.0) if e < -0.5 else 0.0
+				v.touch_steer = br if tt > 3.0 else 0.0
+				if tt > 5.5:
+					mes.append([vf, v.angular_velocity.y])
+			var vm := 0.0
+			var wm := 0.0
+			for q in mes:
+				vm += q[0] / mes.size(); wm += q[1] / mes.size()
+			print("  [virage] %-7s visé %3d km/h : %4.1f km/h, lacet %.2f rad/s, rayon %5.1f m, latéral %.1f m/s², braquage %.2f rad" % [m, int(vk),
+				vm * 3.6, wm, vm / maxf(absf(wm), 0.01), absf(vm * wm), v.steering])
+			v.queue_free()
+			await get_tree().physics_frame
+	get_tree().quit()
+
+## #128 : course contre 3 concurrents sur une épreuve (--ep=N, défaut 14 : départ au village ; --niv=0-2). La voiture
+## du joueur est pilotée comme un concurrent (même pilote, temps visé --joueur=<s>, défaut : celui du concurrent du
+## milieu, pour rouler avec eux) ; relevé toutes les 10 s (progression, vitesse, physique ou figé, place), explosion
+## forcée d'un concurrent à 25 s (--sans-boum : non) pour voir son retour 4 s après, 30 m derrière ; arrivées et temps
+## comparés aux temps visés. Captures user://shots/course_ia_<n>.png. Temps de jeu indépendant de la lenteur du rendu :
+## lancer avec --fixed-fps 8 (15 pas de physique par image) : -- --drive-test --course-ia-test.
+func _course_ia_test() -> void:
+	var act = activities
+	var id := 14
+	var niv := 0
+	var tj := -1.0
+	var duree := 600.0
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--duree="):
+			duree = float(a.get_slice("=", 1))
+		elif a.begins_with("--ep="):
+			id = int(a.get_slice("=", 1))
+		elif a.begins_with("--niv="):
+			niv = int(a.get_slice("=", 1))
+		elif a.begins_with("--joueur="):
+			tj = float(a.get_slice("=", 1))
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	var shot := func(n: String):
+		get_viewport().get_texture().get_image().save_png("user://shots/course_ia_%s.png" % n)
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	act._epreuve_depart(id, niv, true)
+	var e: Dictionary = act.epreuves[id]
+	var cs: Array = act.concurrents.duplicate()
+	var pj = preload("res://scripts/concurrent.gd").new()
+	pj.main = self
+	pj.voiture = car
+	pj.nom = "joueur"
+	pj.temps_cible = tj if tj > 0.0 else float(cs[1].temps_cible)
+	var g0: Vector3 = act._grille[0]                  # tracé depuis la place de départ (comme les concurrents)
+	var pts2 := [Vector2(g0.x, g0.z)]
+	for i in range(1, act._route.size()):
+		pts2.append(act._rp(act._route[i]))
+	pj.points = pts2
+	var aide: bool = car.aide_voie
+	car.aide_voie = false                             # l'aide au maintien dans la voie contrarierait le pilote
+	car.reversing = false
+	pj.autres = cs[0].autres
+	add_child(pj)
+	print("  [course-ia] épreuve %d « %s », %s ; temps visés : %s ; joueur %.0f s" % [id, e.nom, act.NIVEAUX_EP[niv][0],
+		", ".join(cs.map(func(c): return "%s (%s) %.0f s" % [c.nom, c.modele, c.temps_cible])), pj.temps_cible])
+	for i in 24:
+		await get_tree().physics_frame
+	shot.call("0_grille")
+	while act._phase == "depart":
+		await get_tree().physics_frame
+	pj.parti = true
+	var fin := {}
+	var bascules := {}
+	var etat := {}
+	var boum := not OS.get_cmdline_user_args().has("--sans-boum")
+	var t_releve := 0.0
+	var vu_boum := -1.0
+	var boum_c = null
+	var n_shot := 1
+	var traces := {}                     # trajectoires (essai) : nom -> [[x, z, km/h, s, figé, volant, gaz, frein]…]
+	var chemins := {}                    # tracés suivis : nom -> [[x, z]…] (relevés tant que les concurrents existent)
+	var t_trace := 0.0
+	while act._t < duree:
+		await get_tree().physics_frame
+		var tt: float = act._t
+		if tt >= t_trace:
+			t_trace += 0.25
+			for c in cs + [pj]:
+				if is_instance_valid(c) and c.pret and not chemins.has(c.nom):
+					var lc := []
+					for q: Vector2 in c._chemin:
+						lc.append([snappedf(q.x, 0.1), snappedf(q.y, 0.1)])
+					chemins[c.nom] = lc
+				if is_instance_valid(c):
+					var vv: VehicleBody3D = c.voiture
+					if not traces.has(c.nom):
+						traces[c.nom] = []
+					traces[c.nom].append([snappedf(vv.global_position.x, 0.1), snappedf(vv.global_position.z, 0.1), int(vv.kmh()), int(c.s),
+						c.fige, snappedf(vv.touch_steer, 0.01), snappedf(vv.touch_throttle, 0.01), snappedf(vv.touch_brake, 0.01)])
+		for c in cs:
+			if not is_instance_valid(c):
+				continue
+			if c.fige != etat.get(c.nom, false):
+				bascules[c.nom] = bascules.get(c.nom, 0) + 1
+				etat[c.nom] = c.fige
+			if c.fini and not fin.has(c.nom):
+				fin[c.nom] = c.t_arrivee
+				print("  [course-ia] %s arrivé en %.1f s (visé %.0f s, %d explosion(s))" % [c.nom, c.t_arrivee, c.temps_cible, c.detruit])
+		if boum and tt > 25.0 and vu_boum < 0.0:
+			var c = cs[0]                                # le plus proche de la voiture du joueur (physique de préférence)
+			for o in cs:
+				if o.voiture.global_position.distance_to(car.global_position) < c.voiture.global_position.distance_to(car.global_position):
+					c = o
+			boum_c = c
+			print("  [course-ia] explosion forcée de %s à %.0f m du départ (%s)" % [c.nom, c.s, "figé" if c.fige else "physique"])
+			c.exploser()
+			vu_boum = tt
+		if vu_boum > 0.0 and tt > vu_boum + 0.6 and n_shot == 1:
+			shot.call("1_boum")
+			n_shot = 2
+		if vu_boum > 0.0 and tt > vu_boum + 4.5 and n_shot == 2:
+			var c = boum_c
+			print("  [course-ia] retour de %s : %s, à %.0f m du départ, %.0f m de la voiture du joueur" % [c.nom,
+				"revenu" if not c.voiture.blown else "TOUJOURS DÉTRUIT", c.s, c.voiture.global_position.distance_to(car.global_position)])
+			shot.call("2_retour")
+			n_shot = 3
+		if tt >= t_releve:
+			t_releve += 10.0
+			var l := []
+			for c in cs:
+				l.append("%s %.0f/%.0f m %d km/h%s%s" % [c.nom, c.s, c.longueur, int(c.voiture.kmh()), " figé" if c.fige else "",
+					" BOUM" if c.voiture.blown else ""])
+			print("  [course-ia] t=%.0f s : joueur %.0f m %d km/h, %s / 4 ; %s" % [tt, pj.s, int(car.kmh()), act._rang(act._place()), " ; ".join(l)])
+			if int(tt) == 10:
+				shot.call("3_peloton")
+		if act.mode != "course":
+			print("  [course-ia] joueur arrivé en %.1f s (visé %.0f s)" % [tt, pj.temps_cible])
+			shot.call("4_arrivee")
+			break
+	# les concurrents encore en course : jusqu'à leur retrait (8 s après l'arrivée du joueur)
+	for i in 8 * Engine.physics_ticks_per_second:
+		await get_tree().physics_frame
+		for c in cs:
+			if is_instance_valid(c) and c.fini and not fin.has(c.nom):
+				fin[c.nom] = c.t_arrivee
+				print("  [course-ia] %s arrivé en %.1f s (visé %.0f s, %d explosion(s))" % [c.nom, c.t_arrivee, c.temps_cible, c.detruit])
+	var fj := FileAccess.open("user://course_ia.json", FileAccess.WRITE)
+	fj.store_string(JSON.stringify({"traces": traces, "chemins": chemins}))
+	fj.close()
+	print("  [course-ia] bilan : %d/3 concurrents arrivés, passages physique <-> figé : %s, détruits payés : %d" % [fin.size(), bascules, act._detruits])
+	pj.queue_free()
+	car.aide_voie = aide
+	get_tree().quit()
+
 ## #129 : explosions candidates (et le champignon actuel pour comparer) photographiées aux mêmes instants, temps de
 ## l'effet réglé à la main (indépendant de la vitesse du rendu). Voiture cachée comme au moment de l'explosion, caméra
 ## fixe reculée selon la taille de l'effet. Captures user://shots/boum_<style>_<n>.png ; --explosion-styles=a,b,…
@@ -1833,21 +2030,21 @@ func _carriere_test(t: int) -> void:
 				b[0].pressed.emit()
 				suite.call()
 		3:
-			if act._phase == "course" and ca._fantome != null and ca._fantome.pret:
-				var f = ca._fantome
-				print("  [carrière] duel lancé : tracé du rival %.0f m, temps visé %.1f s, fantôme à %.0f m de la voiture" % [f.longueur,
-					f.temps_cible, f.global_position.distance_to(car.global_position)])
+			if act._phase == "course" and ca._rival != null and ca._rival.pret:
+				var f = ca._rival
+				print("  [carrière] duel lancé : tracé du rival %.0f m, temps visé %.1f s, rival à %.0f m de la voiture" % [f.longueur,
+					f.temps_cible, f.voiture.global_position.distance_to(car.global_position)])
 				suite.call()
 		4:
 			if dt >= 30:
-				shot.call("fantome")
+				shot.call("rival")
 				suite.call()
 		5:
 			if dt >= 240:
-				var f = ca._fantome
-				print("  [carrière] course t=%.1f s : fantôme à %.0f m de la voiture (temps de passage %.1f s à 100 m)" % [act._t,
-					f.global_position.distance_to(car.global_position), f.temps_a(100.0)])
-				shot.call("fantome_loin")
+				var f = ca._rival
+				print("  [carrière] course t=%.1f s : rival à %.0f m de la voiture, %.0f m parcourus, %s" % [act._t,
+					f.voiture.global_position.distance_to(car.global_position), f.s, "sans physique (loin)" if f.fige else "physique"])
+				shot.call("rival_loin")
 				ca.epreuve_finie(0, f.temps_cible - 5.0, "or", "")
 				act._stop()
 				suite.call()

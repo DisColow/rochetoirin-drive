@@ -314,11 +314,14 @@ func _physics_process(dt: float) -> void:
 				boum()
 				car.exploser()
 
-## Détonation du champignon atomique (#121) : chocs sourds très graves superposés.
-func boum() -> void:
+## Détonation du champignon atomique (#121) : chocs sourds très graves superposés ; en p (concurrent détruit, #128),
+## sinon sur la voiture du joueur.
+func boum(p := Vector3.INF) -> void:
+	if not p.is_finite():
+		p = car.global_position
 	for i in 3:
-		_one_shot("choc_dur_%d" % i, car.global_position, 1.0, 0.35 + 0.08 * i)
-	_one_shot("debris_0", car.global_position, 0.8, 0.6)
+		_one_shot("choc_dur_%d" % i, p, 1.0, 0.35 + 0.08 * i)
+	_one_shot("debris_0", p, 0.8, 0.6)
 
 var _fr: Array = []
 func _fracas(hard: float) -> void:

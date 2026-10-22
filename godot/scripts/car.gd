@@ -41,6 +41,8 @@ var touch_steer := 0.0
 var touch_frein_main := 0.0       # bouton du frein à main (#64)
 var frein_parking := false        # frein de parking (#64) : voiture immobilisée, moteur coupé
 var controle := true              # false : le joueur est à pied (#66), la voiture ne lit plus les commandes
+var ia := false                  # #128 : concurrent piloté par le jeu (concurrent.gd) : pédales et volant dans touch_*
+                                 # seulement (ni clavier ni manette), pas d'aide à la voie, de nitro ni de remise auto
 var frein_main_in := 0.0          # frein à main lu à ce pas (son, témoin)
 var aide_voie := true            # aide au maintien dans la voie (v6.25, ⚙ > Conduite)
 var voie = preload("res://scripts/voie.gd").new()
@@ -85,7 +87,9 @@ func _ready() -> void:
 	blob.position = Vector3(0, 0.05, 0)
 	add_child(blob)
 	_blob = blob
-	construire(preload("res://scripts/voitures.gd").actuelle())
+	if ia:
+		aide_voie = false
+	construire(voiture if ia else preload("res://scripts/voitures.gd").actuelle())
 
 ## Voiture du joueur (#95) : caisse, roues, boîte de collision, volant et réglages de la voiture « id » du catalogue
 ## (voitures.gd) ; appelée au démarrage et quand on change de voiture au garage (l'ancienne est retirée).
@@ -201,7 +205,8 @@ func construire(id: String) -> void:
 		wheels.append(w)
 	for n in body.find_children("*", "MeshInstance3D", true, false):
 		n.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	_steering_wheel(meta)
+	if not ia:
+		_steering_wheel(meta)
 	(_blob.mesh as PlaneMesh).size = Vector2(gabarit.x * 1.15, gabarit.z * 0.91)
 	if tuning:
 		tuning.lier()
@@ -747,15 +752,15 @@ func _physics_process(dt: float) -> void:
 		return
 	# gâchettes de manette : zone morte de 15 % (#65 : une gâchette d'accélérateur qui ne revient pas tout à fait à
 	# zéro empêchait la marche arrière)
-	var thr := clampf(pedale("accelerer") + touch_throttle, 0.0, 1.0)
-	var brk := clampf(pedale("freiner") + touch_brake, 0.0, 1.0)
-	if Input.is_action_just_pressed("frein_parking") and not preload("res://scripts/ui.gd").saisie_active():
+	var thr := clampf((0.0 if ia else pedale("accelerer")) + touch_throttle, 0.0, 1.0)
+	var brk := clampf((0.0 if ia else pedale("freiner")) + touch_brake, 0.0, 1.0)
+	if not ia and Input.is_action_just_pressed("frein_parking") and not preload("res://scripts/ui.gd").saisie_active():
 		frein_parking = not frein_parking
 	if frein_parking and thr > 0.5 and absf(forward_speed()) < 0.3:
 		frein_parking = false                       # on accélère franchement : le frein de parking se desserre
-	var fm := clampf(Input.get_action_strength("frein_main") + touch_frein_main, 0.0, 1.0)
+	var fm := clampf((0.0 if ia else Input.get_action_strength("frein_main")) + touch_frein_main, 0.0, 1.0)
 	frein_main_in = fm
-	var st := clampf(Input.get_action_strength("gauche") - Input.get_action_strength("droite") + touch_steer, -1.0, 1.0)
+	var st := clampf((0.0 if ia else Input.get_action_strength("gauche") - Input.get_action_strength("droite")) + touch_steer, -1.0, 1.0)
 	if not controle:
 		thr = 0.0; brk = 0.0; st = 0.0; fm = 0.0
 		frein_parking = true
@@ -836,7 +841,8 @@ func _physics_process(dt: float) -> void:
 	var lat := linear_velocity.dot(side)
 	apply_central_force(-side * lat * mass * 0.6 * 0.5 * 0.05)    # (0,5 = dt × 60 à 120 pas/s : même effet à 60 pas/s)
 	_anti_roll()
-	_recovery(dt)
+	if not ia:
+		_recovery(dt)
 
 ## #106 : accélérer contre un mur ne laisse plus la voiture plantée : elle pivote pour longer le mur et glisse vers la
 ## gauche ou la droite (côté où le nez est déjà tourné, sinon côté du volant, sinon au hasard, gardé tant qu'on pousse).
@@ -1013,7 +1019,7 @@ func _nitro(dt: float, thr: float, v: float, spd: float) -> void:
 	if nitro_niveau <= 0 or not controle:
 		nitro_actif = false
 		return
-	var veut := (Input.is_action_pressed("nitro") and not preload("res://scripts/ui.gd").saisie_active()) or touch_nitro > 0.5
+	var veut := (not ia and Input.is_action_pressed("nitro") and not preload("res://scripts/ui.gd").saisie_active()) or touch_nitro > 0.5
 	nitro_actif = veut and nitro_jauge > 0.0 and not reversing and v > -0.5 and spd < vmax + 50.0 \
 		and wheels.any(func(w): return w.is_in_contact())
 	_flamme_nitro()

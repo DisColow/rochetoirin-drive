@@ -41,6 +41,24 @@ const PART_MEDAILLE := {"or": 1.0, "argent": 0.6, "bronze": 0.35}
 const REJOUER := 0.25
 var niveau_ep := 0                   # niveau de l'épreuve en cours
 var niveau_menu := 0                 # niveau choisi dans le menu des épreuves
+# #128 : course contre 3 concurrents pilotés par le jeu (concurrent.gd), vraies voitures du garage. Par niveau : modèle,
+# temps de médaille (du niveau Normal) et facteur du temps visé : Normal entre argent et bronze, Difficile entre or et
+# argent, Extrême au-delà de l'or (proposition validée par l'utilisateur, #128). La médaille reste au chrono ; la place
+# à l'arrivée ajoute une part de la prime (BONUS_PLACE), chaque concurrent détruit rapporte PRIME_DETRUIT.
+const CONCURRENTS := [
+	[["p106", "argent", 1.0], ["clio", "argent", 1.12], ["r5", "bronze", 1.0]],
+	[["p206", "or", 1.0], ["clio", "or", 1.12], ["p306", "argent", 1.0]],
+	[["gt3", "or", 0.9], ["p306", "or", 0.95], ["p206", "or", 1.0]],
+]
+const NOMS_CONC := ["Josiane", "Gégé", "Momo", "Bernadette", "Dédé", "Jacky", "Nadine", "Riton"]
+const COUL_CONC := [Color(0.85, 0.12, 0.08), Color(0.1, 0.32, 0.85), Color(0.95, 0.72, 0.08)]
+const PRIME_DETRUIT := 40.0                # × multiplicateur des primes du niveau
+const BONUS_PLACE := [0.5, 0.2, 0.0, 0.0]  # part de la prime ajoutée selon la place (1er, 2e…)
+var avec_concurrents := true         # mode choisi : course contre 3 concurrents (sinon contre-la-montre)
+var concurrents: Array = []          # concurrent.gd de la course en cours
+var _course_ia := false              # course de l'épreuve en cours contre 3 concurrents
+var _grille := []                    # départ de la course : [position, cap]
+var _detruits := 0
 const COUL_MEDAILLE := {"or": Color(1.0, 0.8, 0.15), "argent": Color(0.8, 0.82, 0.86), "bronze": Color(0.8, 0.5, 0.25)}
 
 var _menu: Control
@@ -295,6 +313,8 @@ func _clear_world() -> void:
 	join_marks = false
 
 func _stop() -> void:
+	_fin_concurrents(0.0)
+	_course_ia = false
 	if main.net and main.net.armes:
 		main.net.armes.arreter()
 	impose = {}
@@ -535,6 +555,8 @@ func _course_start(rang := -1) -> void:
 		p.y = _ground(p.x, p.z, p.y) + (s[0].y - _ground(s[0].x, s[0].z, s[0].y))
 		s[0] = p
 	hud.teleport.emit(s[0], s[1])
+	_grille = [s[0], s[1]]
+	_detruits = 0
 	if rang < 0 and main.net and main.net.hote():
 		main.net.lancer_course(_route)
 	_next = 1
@@ -586,6 +608,8 @@ func _course_process(dt: float) -> void:
 		if _count <= 0.0:
 			_phase = "course"
 			_bip.play()
+			for c in concurrents:
+				c.parti = true
 		return
 	if _phase != "course":
 		return
@@ -594,7 +618,8 @@ func _course_process(dt: float) -> void:
 	_itineraire(dt, target)                 # #107 : tracé GPS jusqu'au prochain point de passage
 	var d := _car2().distance_to(target)
 	var lab := "arrivée" if _next == _route.size() - 1 else "étape %d / %d" % [_next, _route.size() - 2]
-	_set_status("%s\nprochain point : %s, %d m" % [_fmt(_t), lab, int(d)])
+	var pl := "" if concurrents.is_empty() else "   ·   %s / %d" % [_rang(_place()), concurrents.size() + 1]
+	_set_status("%s%s\nprochain point : %s, %d m" % [_fmt(_t), pl, lab, int(d)])
 	if d < CHECK_R:
 		_bip.play()
 		_splits.append(_t)
@@ -610,17 +635,26 @@ func _course_process(dt: float) -> void:
 			var med := ""
 			var id_ep := _epreuve
 			var avant := _medaille(_epreuve, niveau_ep) if _epreuve >= 0 else ""
+			var place := _place()
 			if _epreuve >= 0:
 				var r := _epreuve_fin(_t)
 				med = r[0]; prime = r[1]
+				if _course_ia:
+					prime = roundf(prime * (1.0 + float(BONUS_PLACE[mini(place - 1, BONUS_PLACE.size() - 1)])))
 				if main.get("carriere"):
 					main.carriere.epreuve_finie(id_ep, _t, med, avant)
 			if main.garage:
 				main.garage.gagner(prime)
+			var classe := ""
+			if _course_ia:
+				classe = "%s / %d — " % [_rang(place), concurrents.size() + 1]
 			if _epreuve >= 0:
-				hud.toast("Arrivée ! %s — %s\nPrime : %s" % [_fmt(_t), {"or": "médaille d'or", "argent": "médaille d'argent", "bronze": "médaille de bronze"}.get(med, "pas de médaille"), _euros(prime)], 7.0)
+				hud.toast("Arrivée ! %s%s — %s\nPrime : %s%s" % [classe, _fmt(_t), {"or": "médaille d'or", "argent": "médaille d'argent", "bronze": "médaille de bronze"}.get(med, "pas de médaille"), _euros(prime),
+					("  (+%d %% pour la place)" % int(BONUS_PLACE[place - 1] * 100.0)) if _course_ia and place <= 2 else ""], 7.0)
 			else:
 				hud.toast("Arrivée ! %s%s\nPrime : %s" % [_fmt(_t), "  — record !" if rec else "  (record %s)" % _fmt(_best), _euros(prime)], 6.0)
+			_fin_concurrents(8.0)
+			_course_ia = false
 			_epreuve = -1
 			if main.net:
 				main.net.arrivee_course(_t)
@@ -741,6 +775,13 @@ func _epreuve_proche() -> void:
 		("   ·   votre médaille : " + med) if med != "" else ""], 22, true)
 	_text(v, "Or : %s en Normal, %s en Difficile, %s en Extrême" % [_euros(prime_medaille(e, "or", 0)),
 		_euros(prime_medaille(e, "or", 1)), _euros(prime_medaille(e, "or", 2))], 22, true)
+	var hm := HBoxContainer.new(); hm.add_theme_constant_override("separation", 12); v.add_child(hm)
+	var grp := ButtonGroup.new()
+	for k in 2:                                        # #128 : seul contre le chrono, ou contre 3 concurrents
+		var bm := _btn(hm, ["Contre-la-montre", "Course contre 3 voitures"][k], func(): avec_concurrents = k == 1, 300)
+		bm.toggle_mode = true
+		bm.button_group = grp
+		bm.button_pressed = avec_concurrents == (k == 1)
 	var h := HBoxContainer.new(); h.add_theme_constant_override("separation", 12); v.add_child(h)
 	for niv in NIVEAUX_EP.size():
 		_btn(h, NIVEAUX_EP[niv][0], func(): _offre.queue_free(); _epreuve_depart(ici, niv), 200)
@@ -749,7 +790,7 @@ func _epreuve_proche() -> void:
 	_offre.reset_size()
 	_offre.position = Vector2((_vs().x - _offre.size.x) / 2, _vs().y - _offre.size.y - 260)
 
-func _epreuve_depart(id: int, niv := 0) -> void:
+func _epreuve_depart(id: int, niv := 0, course := avec_concurrents) -> void:
 	var e: Dictionary = epreuves[id]
 	niveau_ep = clampi(niv, 0, NIVEAUX_EP.size() - 1)
 	_route = [_nearest(Vector2(e.a[0], e.a[1]))]
@@ -758,8 +799,74 @@ func _epreuve_depart(id: int, niv := 0) -> void:
 	_route.append(_nearest(Vector2(e.b[0], e.b[1])))
 	_course_start()
 	_epreuve = id
-	hud.toast("%s — %s\nOr %s · Argent %s · Bronze %s" % [e.nom, NIVEAUX_EP[niveau_ep][0], _fmt(temps_medaille(e, "or", niveau_ep)),
+	if course and mode == "course":
+		_course_ia = true
+		for k in 3:
+			var d: Array = CONCURRENTS[niveau_ep][k]
+			ajouter_concurrent(String(d[0]), NOMS_CONC[(id + k * 3) % NOMS_CONC.size()], float(e[d[1]]) * float(d[2]), k + 1, COUL_CONC[k])
+	hud.toast("%s — %s%s\nOr %s · Argent %s · Bronze %s" % [e.nom, NIVEAUX_EP[niveau_ep][0], " — course contre 3 concurrents" if _course_ia else "", _fmt(temps_medaille(e, "or", niveau_ep)),
 		_fmt(temps_medaille(e, "argent", niveau_ep)), _fmt(temps_medaille(e, "bronze", niveau_ep))], 6.0)
+
+## #128 : concurrent piloté par le jeu sur le tracé de la course en cours, sur la grille (rang 1 : à droite du joueur ;
+## 2 et 3 : 8 m derrière). Il part au « Partez ! » ; retiré à l'arrêt de la course ou 8 s après l'arrivée du joueur.
+func ajouter_concurrent(modele: String, nom: String, temps: float, rang: int, col := Color(-1, 0, 0)) -> Node:
+	var p: Vector3 = _grille[0]
+	var h := deg_to_rad(float(_grille[1]))
+	var av := Vector3(sin(h), 0.0, -cos(h))            # cap : 0 = Nord (-Z), sens horaire
+	var dr := Vector3(cos(h), 0.0, sin(h))
+	var q := p + dr * (3.2 if rang % 2 == 1 else 0.0) - av * (8.0 * float(rang / 2))
+	var c = preload("res://scripts/concurrent.gd").new()
+	c.main = main
+	c.modele = modele; c.nom = nom; c.temps_cible = temps; c.couleur = col
+	c.depart = Transform3D(Basis(Vector3.UP, PI - h), Vector3(q.x, _ground(q.x, q.z, p.y), q.z))
+	var pts2 := [Vector2(q.x, q.z)]
+	for i in range(1, _route.size()):
+		pts2.append(_rp(_route[i]))
+	c.points = pts2
+	concurrents.append(c)
+	add_child(c)
+	var vs := [car]
+	for o in concurrents:
+		vs.append(o.voiture)
+	for o in concurrents:
+		o.autres = vs
+	return c
+
+## Place du joueur : 1 + concurrents arrivés ou plus près de l'arrivée (distance restante sur leur propre tracé).
+func _place() -> int:
+	if concurrents.is_empty() or not concurrents[0].pret:
+		return 1
+	var reste: float = concurrents[0].longueur - concurrents[0].progression(car.global_position)
+	var n := 1
+	for c in concurrents:
+		if c.fini or (c.pret and c.longueur - c.s < reste):
+			n += 1
+	return n
+
+func _rang(n: int) -> String:
+	return "1er" if n == 1 else "%de" % n
+
+## Concurrents retirés (tout de suite, ou après un délai : ils finissent leur course pendant ce temps).
+func _fin_concurrents(delai: float) -> void:
+	var l := concurrents
+	concurrents = []
+	for c in l:
+		if delai <= 0.0:
+			c.queue_free()
+		else:
+			get_tree().create_timer(delai).timeout.connect(func():
+				if is_instance_valid(c):
+					c.queue_free())
+
+## #128 : concurrent détruit (KA-BOOM, concurrent.gd) : prime « Détruit ! ».
+func concurrent_detruit(c: Node) -> void:
+	if mode != "course" or not c in concurrents:
+		return
+	_detruits += 1
+	var p := roundf(PRIME_DETRUIT * float(NIVEAUX_EP[niveau_ep][2]))
+	if main.garage:
+		main.garage.gagner(p)
+	hud.toast("Détruit ! %s part en fumée : +%s" % [c.nom, _euros(p)], 2.5)
 
 ## Fin d'une épreuve : médaille d'après le temps (au niveau choisi) ; une meilleure médaille paie la différence avec
 ## l'ancienne, une médaille déjà gagnée en paie le quart (#127 : rejouer rapporte), sans médaille 10 €.
