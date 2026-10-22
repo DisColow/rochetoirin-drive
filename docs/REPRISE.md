@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 22/10/2026, 1 h (v6.76 livrée)
+## État au 22/10/2026, 1 h 30 (v6.76 livrée : godot d64778b65, données 86eb702e1)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip` (pousser `godot/` déclenche l'APK).
 - **v6.76** : #124 étape 1 (vrai mode Économie), #127 argent (3 niveaux par épreuve), #126 revue des voitures, #129
@@ -28,6 +28,7 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   chaque essai son dossier : `XDG_DATA_HOME=<dossier>` (copier les `.cfg` de `~/.local/share/godot/app_userdata/
   Rochetoirin Simulator/` dans `<dossier>/godot/app_userdata/Rochetoirin Simulator/`).
 - v6.75 : voies ferrées (#125, `à tester`), v6.74 : carrière (#120, `à tester`).
+- **`gh issue comment/edit` refusés ici (GraphQL)** : passer par l'API REST : `gh api repos/DisColow/rochetoirin-drive/issues/N/comments --input c.json` (`{"body": …}`), étiquettes `gh api -X POST …/issues/N/labels -f 'labels[]=à tester'`.
 - Disque : ~1 Go libre. Les tuiles de routes (1 634) ne sont toujours pas importées ici : captures sans routes.
 - Données générées : branche `donnees` (`pipeline/publier_donnees.sh`). `build_buildings.py` (25 min) EFFACE
   `world/buildings` (`.import` compris) : remettre les `.import` publiés d'un coup :
