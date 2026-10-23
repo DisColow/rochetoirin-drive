@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.88.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.88/RochetoirinSimulator-v6.88.apk)**
+**[RochetoirinSimulator-v6.89.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.89/RochetoirinSimulator-v6.89.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,13 +16,11 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.88 :
-- **Des passants dans les rues** : en ville et dans les villages, des piétons marchent sur les trottoirs et le long des
-  rues, attendent aux arrêts de bus, plus nombreux près des places, des écoles et des mairies (moins la nuit).
-- Ils **traversent aux passages piétons** quand la voie est libre, et les voitures s'arrêtent pour les laisser passer.
-- **Klaxon** (bouton au-dessus des flèches, touche H) : les passants se retournent, ou s'écartent s'ils sont devant toi.
-  Fonce sur eux : ils sautent de côté ; trop tard ? « Pouf », ils disparaissent dans un éclair (personne n'est blessé).
-- Réglage ⚙ > Conduite > **Circulation et passants** : un seul réglage pour les voitures et les piétons.
+Nouveautés de la v6.89 :
+- **La circulation double les véhicules lents** : sur les routes de campagne, si tu traînes (ou une autre voiture),
+  les voitures derrière toi te doublent par la voie d'en face, seulement en ligne droite et quand elle est libre,
+  clignotant à gauche puis à droite.
+- Chaque voiture tient sa voie un peu à sa façon : la circulation paraît moins « sur des rails ».
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
