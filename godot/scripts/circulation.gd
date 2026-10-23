@@ -10,7 +10,8 @@
 ##   voie à l'autre (décalage qui s'estompe sur RACCORD m). v6.87 (#134) : feux tricolores respectés (phase de chaque
 ##   arrivée dans trafic.bin, même calcul que signal_light.gdshader, horloge Env.temps_feux()) ; obstacle immobile
 ##   (épave, joueur arrêté) dépassé après ATTENTE s : autre file d'un sens unique, ou voie d'en face si elle est libre
-##   (écart `dep` progressif le long de la voie, donc la voiture braque).
+##   (écart `dep` progressif le long de la voie, donc la voiture braque), clignotant à gauche puis à droite. v6.89 : véhicule
+##   lent (joueur, autre voiture) doublé sur route rapide (_doubler) ; chaque voiture tient sa voie à sa façon (derive).
 ##   Course contre des concurrents : leur tracé est dégagé et barré (_route_course, _sur_trace).
 ## - Autour du joueur : NOMBRE voitures selon le niveau de performances × réglage ⚙ > Conduite > Circulation ;
 ##   apparition hors de vue (ou au loin, dans le fondu), disparition au-delà de R_LOIN ; tout est replacé après une
@@ -433,7 +434,8 @@ func _apparaitre(p: Vector3, partout: bool) -> void:
 	var c := {"id": _id, "m": m, "col": COULEURS[randi() % COULEURS.size()], "voie": voie, "s": s, "L": L, "rang": rang,
 		"v": _v[k] * 0.7, "perso": randf_range(0.85, 1.02), "suite": -1, "dec": Vector3.ZERO, "dec_s": -100.0,
 		"pos": pos, "dir": Vector3(g[1].x, 0.0, g[1].y), "frein": false, "roue": 0.0, "resa": -1, "bloque": 0.0,
-		"klaxon": 0.0, "impasse": false, "leader": "", "clign": 0, "dep": [], "attente": 0.0, "engage": -1, "lent": 0.0}
+		"klaxon": 0.0, "impasse": false, "leader": "", "clign": 0, "dep": [], "attente": 0.0, "engage": -1, "lent": 0.0,
+		"derive": randf_range(-0.3, 0.3)}
 	_id += 1
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -478,7 +480,7 @@ func _pos(c: Dictionary, s: float) -> Vector3:
 	var g := _geo(int(c.voie), s, int(c.rang))
 	var k := 1.0 - smoothstep(float(c.dec_s), float(c.dec_s) + RACCORD, s)
 	var p: Vector3 = (g[0] as Vector3) + (c.dec as Vector3) * k
-	var e := _ecart(c, s)
+	var e := _ecart(c, s) - float(c.derive)       # dérive : chaque conducteur tient sa voie un peu à sa façon
 	if e != 0.0:
 		var t: Vector2 = g[1]
 		p += Vector3(t.y, 0.0, -t.x) * e            # vers la gauche du sens de marche
@@ -724,6 +726,11 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 		_liberer(c)
 	if not (c.dep as Array).is_empty() and float(c.s) > float(c.dep[3]):
 		c.dep = []
+		c.clign = 0
+	# dépassement : clignotant à gauche pour déboîter, à droite pour se rabattre
+	var dp: Array = c.dep
+	if not dp.is_empty():
+		c.clign = 1 if float(c.s) < float(dp[1]) else (2 if float(c.s) > float(dp[2]) - 4.0 else 0)
 	# clignotant : à moins de 45 m du carrefour où elle tourne, éteint 10 m après
 	if int(c.clign) != 0 and int(c.suite) < 0 and float(c.s) > 10.0:
 		c.clign = 0
