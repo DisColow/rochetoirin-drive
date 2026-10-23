@@ -2507,7 +2507,10 @@ func _circulation_test() -> void:
 		await _circulation_feux(ci, shot, dire, pas)
 	if OS.get_cmdline_user_args().has("--circulation-depasse"):
 		await _circulation_depasse(ci, shot, dire, pas)
-	if OS.get_cmdline_user_args().has("--circulation-feux") or OS.get_cmdline_user_args().has("--circulation-depasse"):
+	if OS.get_cmdline_user_args().has("--circulation-double"):
+		await _circulation_double(ci, shot, dire)
+	if OS.get_cmdline_user_args().has("--circulation-feux") or OS.get_cmdline_user_args().has("--circulation-depasse") \
+			or OS.get_cmdline_user_args().has("--circulation-double"):
 		releve.call("fin")
 		dire.call("FIN")
 		get_tree().quit()
@@ -2649,6 +2652,79 @@ func _circulation_feux(ci, shot: Callable, dire: Callable, pas: Callable) -> voi
 			dire.call("feux t=%d s : %d passages de carrefours à feu, %d au rouge, %d pas d'arrêt au feu" % [i / 120, passages, au_rouge, arrets])
 	dire.call("feux : %d passages de carrefours à feu, %d au rouge (à plus de 3 m/s), %d pas d'arrêt au feu" % [passages, au_rouge, arrets])
 	cam.queue_free()
+
+## Véhicule lent (v6.89) : la voiture du joueur roule à 30 km/h sur une route rapide à double sens, 35 m devant une
+## voiture de la circulation ; relevé : voiture qui la double (écart, passage devant, retour dans sa voie), chocs.
+func _circulation_double(ci, shot: Callable, dire: Callable) -> void:
+	for essai in 6:
+		var c = null
+		for o in ci.voitures:
+			var k := int(o.voie) >> 1
+			if float(o.v) > 8.0 and not (ci._fl[k] & 1) and ci._v[k] >= ci.V_RAPIDE and float(o.L) - float(o.s) > 320.0 \
+					and (c == null or (o.pos as Vector3).distance_to(car.global_position) < (c.pos as Vector3).distance_to(car.global_position)):
+				c = o
+		if c == null:
+			dire.call("véhicule lent, essai %d : aucune voiture sur une route rapide assez longue" % (essai + 1))
+			for i in 960:
+				car.hold(0.5)
+				await get_tree().physics_frame
+			continue
+		var voie := int(c.voie)
+		var id := int(c.id)
+		var sj: float = float(c.s) + 35.0
+		var vj := 30.0 / 3.6
+		var a0: int = ci.accidents
+		var ecart_max := 0.0
+		var devant := false
+		var revenu := false
+		var vu := false
+		var cl_g := false
+		var cl_d := false
+		dire.call("véhicule lent, essai %d : voiture %d à %.0f km/h, route limitée à %.0f km/h, joueur 35 m devant à 30 km/h" % [
+			essai + 1, id, float(c.v) * 3.6, ci._v[voie >> 1] * 3.6])
+		for i in 45 * 120:
+			sj += vj / 120.0
+			if sj > float(c.L) - 20.0:
+				break
+			var g: Array = ci._geo(voie, sj, 0)
+			var t: Vector2 = g[1]
+			car.global_transform = Transform3D(Basis(Vector3.UP, PI - atan2(t.x, -t.y)), (g[0] as Vector3) + Vector3(0, 0.35, 0))
+			car.linear_velocity = Vector3(t.x, 0, t.y) * vj
+			await get_tree().physics_frame
+			var o = null
+			for x in ci.voitures:
+				if int(x.id) == id:
+					o = x
+			if o == null or int(o.voie) != voie:
+				break
+			var e: float = ci._ecart(o, float(o.s))
+			ecart_max = maxf(ecart_max, e)
+			var dpo: Array = o.dep
+			if dpo.size() >= 6 and float(o.s) < float(dpo[1]) and int(o.clign) == 1:
+				cl_g = true
+			if dpo.size() >= 6 and float(o.s) > float(dpo[2]) and int(o.clign) == 2:
+				cl_d = true
+			if e > 1.5 and float(o.s) > sj + 6.0:
+				devant = true
+			if devant and e < 0.05:
+				revenu = true
+				break
+			if e > 1.5 and absf(float(o.s) - sj) < 3.0 and not vu:
+				vu = true
+				var cam := Camera3D.new()
+				add_child(cam)
+				var d: Vector3 = o.dir
+				cam.global_position = car.global_position - d * 14.0 + Vector3(d.z, 0, -d.x) * 4.0 + Vector3.UP * 3.5
+				cam.look_at(car.global_position + d * 4.0 + Vector3.UP)
+				cam.current = true
+				for f in 3:
+					await get_tree().process_frame
+				shot.call("double")
+				cam.queue_free()
+		dire.call("véhicule lent : écart maximal %.1f m, passée devant %s, revenue dans sa voie %s, chocs %d, clignotant à gauche en déboîtant %s, à droite en se rabattant %s" % [
+			ecart_max, str(devant), str(revenu), ci.accidents - a0, str(cl_g), str(cl_d)])
+		if revenu:
+			break
 
 ## Dépassement (#134) : la voiture du joueur tenue arrêtée sur une voie à double sens, 30 m devant une voiture qui arrive ;
 ## relevé de la voiture : arrêt, klaxon, écart de dépassement, passage du joueur, retour dans sa voie.

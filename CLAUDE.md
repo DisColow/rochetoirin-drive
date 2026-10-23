@@ -184,7 +184,11 @@
   dessinées contre `build_trafic.py` : 198 ampoules sur 198 concordantes (v6.87). Arrêt à `ARRET_FEU` m du nœud,
   pas de réservation du carrefour pendant le rouge. **Dépassement** : obstacle immobile (épave, joueur, concurrent)
   après `ATTENTE` s : autre file d'un sens unique (raccord `dec`), sinon voie d'en face libre sur `DEGAGE` m
-  (`dep` = [s0, s1, s2, s3, écart], `_ecart(c, s)` ajouté par `_pos`). Concurrents : `concurrent._piloter` évite aussi
+  (`dep` = [s0, s1, s2, s3, écart], `_ecart(c, s)` ajouté par `_pos`). **Véhicule lent** (v6.89) : sur une route
+  rapide à double sens (`V_RAPIDE`), derrière un véhicule à moins de 65 % de la vitesse autorisée (joueur, autre voiture)
+  depuis `LENT` s : `_doubler` (portion presque droite, voie d'en face libre sur toute la longueur du dépassement,
+  voitures qui arrivent comprises ; `dep[5]` = vitesse du dépassement) ; pendant qu'elle déboîte, `_devant` ignore les
+  voitures de sa voie. Essai `--circulation-test --circulation-double --drive-from=-8410.95,221,-7187.25,45.2`. Concurrents : `concurrent._piloter` évite aussi
   les voitures de la circulation (`evites` : voitures contournées). **Course contre des concurrents** : tracé dégagé
   sur `COURSE_MARGE` m (`_route_course`, d'après `concurrents[0]._chemin` : voitures et épaves retirées au départ,
   aucune apparition ensuite) et barré : une voiture ne s'engage plus sur une voie du tracé (`_sur_trace` : à 4,5 m et
