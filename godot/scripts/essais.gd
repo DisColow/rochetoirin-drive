@@ -3202,6 +3202,31 @@ func _pietons_test() -> void:
 			pa.pause = 0.0
 			dire.call("passage piéton : voiture %d à %.0f m, arrêtée %s (meneur %s), au plus près %.1f m du passant, passant toujours là %s" % [
 				int(v.id), d0, str(arret), meneur, dmin, str(pi.passants.has(pa))])
+	# explosion (v6.90) : à 15 m du passant le plus proche ; ceux à moins de 60 m doivent s'enfuir
+	if not pi.passants.is_empty():
+		var cible_e = pi.passants[0]
+		for o in pi.passants:
+			if (o.n as Node3D).global_position.distance_to(car.global_position) < (cible_e.n as Node3D).global_position.distance_to(car.global_position):
+				cible_e = o
+		var pe: Vector3 = (cible_e.n as Node3D).global_position + Vector3(15.0, 0.0, 0.0)
+		var avant := {}
+		for o in pi.passants:
+			avant[o] = (o.n as Node3D).global_position
+		var f0: int = pi.fuites
+		var fx = preload("res://scripts/explosion.gd").new()
+		fx.style = "mini"
+		fx.position = pe
+		add_child(fx)
+		await pas.call(360)
+		var eloignes := 0
+		var proches := 0
+		for o in pi.passants:
+			if avant.has(o) and (avant[o] as Vector3).distance_to(pe) < 60.0:
+				proches += 1
+				if (o.n as Node3D).global_position.distance_to(pe) > (avant[o] as Vector3).distance_to(pe) + 4.0:
+					eloignes += 1
+		dire.call("explosion : %d passant(s) ont fui, %d sur %d à moins de 60 m se sont éloignés de plus de 4 m" % [pi.fuites - f0,
+			eloignes, proches])
 	releve.call("fin")
 	cam.queue_free()
 	dire.call("FIN")

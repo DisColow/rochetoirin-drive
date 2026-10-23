@@ -40,6 +40,7 @@ var poufs := 0                                 # passants touchés (essais)
 var traversees := 0                            # passages piétons empruntés (essais)
 var sursauts := 0                              # passants qui ont entendu le klaxon du joueur (essais)
 var adoptes := 0                               # clients du taxi devenus passants (essais)
+var fuites := 0                                # passants qui ont fui une explosion (essais)
 
 var _p0 := PackedInt32Array()
 var _np := PackedInt32Array()
@@ -478,3 +479,17 @@ func klaxon(p: Vector3, f: Vector3) -> void:
 			c.regard = p
 			c.regard_t = 1.6
 			c.pause = maxf(float(c.pause), 1.2)
+
+## Explosion en p (explosion.gd) : les passants à moins de 60 m s'enfuient en courant, puis restent plantés là.
+func panique(p: Vector3) -> void:
+	for c in passants:
+		var d: Vector3 = (c.n as Node3D).global_position - p
+		d.y = 0.0
+		if d.length() > 60.0:
+			continue
+		var fuite := d.normalized() if d.length() > 0.5 else Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU)
+		c.bond = fuite * randf_range(4.0, 5.0)
+		c.bond_t = randf_range(2.5, 3.5)
+		c.pause = randf_range(2.0, 4.0)
+		c.traverse = -1
+		fuites += 1
