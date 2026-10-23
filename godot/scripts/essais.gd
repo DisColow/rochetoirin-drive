@@ -1335,6 +1335,13 @@ func _physics_process(_dt: float) -> void:
 				car.place(Vector3(cible.x, activities.pts[i + 2] + 1.0, cible.y), activities.pts[i + 3])
 				car.hold(0.4)
 		if t > 300 + 120 * 70 or activities._rides >= 4:
+			if pietons:                      # v6.90 : clients déposés devenus passants (encore en scène ou non)
+				var vus := 0
+				for c in pietons.passants:
+					if c.n.global_position.distance_to(car.global_position) < 40.0:
+						vus += 1
+				print("  [taxi] clients devenus passants : %d sur %d courses ; passants à moins de 40 m : %d" % [pietons.adoptes,
+					activities._rides, vus])
 			get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--garage-test"):
