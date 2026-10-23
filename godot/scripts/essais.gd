@@ -2678,6 +2678,8 @@ func _circulation_double(ci, shot: Callable, dire: Callable) -> void:
 		var devant := false
 		var revenu := false
 		var vu := false
+		var cl_g := false
+		var cl_d := false
 		dire.call("véhicule lent, essai %d : voiture %d à %.0f km/h, route limitée à %.0f km/h, joueur 35 m devant à 30 km/h" % [
 			essai + 1, id, float(c.v) * 3.6, ci._v[voie >> 1] * 3.6])
 		for i in 45 * 120:
@@ -2697,6 +2699,11 @@ func _circulation_double(ci, shot: Callable, dire: Callable) -> void:
 				break
 			var e: float = ci._ecart(o, float(o.s))
 			ecart_max = maxf(ecart_max, e)
+			var dpo: Array = o.dep
+			if dpo.size() >= 6 and float(o.s) < float(dpo[1]) and int(o.clign) == 1:
+				cl_g = true
+			if dpo.size() >= 6 and float(o.s) > float(dpo[2]) and int(o.clign) == 2:
+				cl_d = true
 			if e > 1.5 and float(o.s) > sj + 6.0:
 				devant = true
 			if devant and e < 0.05:
@@ -2714,8 +2721,8 @@ func _circulation_double(ci, shot: Callable, dire: Callable) -> void:
 					await get_tree().process_frame
 				shot.call("double")
 				cam.queue_free()
-		dire.call("véhicule lent : écart maximal %.1f m, passée devant %s, revenue dans sa voie %s, chocs %d" % [ecart_max,
-			str(devant), str(revenu), ci.accidents - a0])
+		dire.call("véhicule lent : écart maximal %.1f m, passée devant %s, revenue dans sa voie %s, chocs %d, clignotant à gauche en déboîtant %s, à droite en se rabattant %s" % [
+			ecart_max, str(devant), str(revenu), ci.accidents - a0, str(cl_g), str(cl_d)])
 		if revenu:
 			break
 
