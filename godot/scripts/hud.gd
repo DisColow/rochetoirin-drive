@@ -73,6 +73,7 @@ const GUIDE := [
 	["Tourner", "← →", "Stick gauche"],
 	["Frein à main", "Espace", "A"],
 	["Frein de parking", "P", "Croix ↓"],
+	["Klaxon", "H", "Clic du stick gauche"],
 	["Caméra", "C", "Clic du stick droit"],
 	["Descendre / monter (à l'arrêt)", "E", "Y"],
 	["Remettre sur la route", "R", "X"],
@@ -269,11 +270,11 @@ func _open_settings() -> void:
 		var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
 		cfg.set_value("conduite", "aide_voie", on); cfg.save("user://reglages.cfg"))
 	v.add_child(b_voie)
-	# circulation (#132) : nombre de voitures qui roulent autour du joueur
+	# circulation (#132) et passants (v6.88, #135) : nombre de voitures et de piétons autour du joueur
 	var circ = get_parent().get("circulation")
 	if circ:
+		var lci := Label.new(); lci.text = "Circulation et passants"; lci.add_theme_font_size_override("font_size", 28); v.add_child(lci)
 		var hc := HBoxContainer.new(); hc.add_theme_constant_override("separation", 16); v.add_child(hc)
-		var lci := Label.new(); lci.text = "Circulation"; lci.add_theme_font_size_override("font_size", 28); hc.add_child(lci)
 		for i in circ.NOMS_DENSITES.size():
 			var b := Button.new()
 			b.text = circ.NOMS_DENSITES[i]
@@ -283,6 +284,9 @@ func _open_settings() -> void:
 			b.add_theme_font_size_override("font_size", 28)
 			b.pressed.connect(func():
 				circ.set_densite(i)
+				var pie = get_parent().get("pietons")
+				if pie:
+					pie.set_densite(i)
 				var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
 				cfg.set_value("conduite", "circulation", i); cfg.save("user://reglages.cfg")
 				for c in hc.get_children():
@@ -649,7 +653,20 @@ var b_frein_main: TouchScreenButton
 var b_parking: Button
 var b_pied: Button
 var b_nitro: TouchScreenButton      # #98 : au-dessus de GAZ, seulement si le nitro est monté
+var b_klaxon: TouchScreenButton     # v6.88 : entre les flèches, au-dessus
 func _freins_tactiles() -> void:
+	b_klaxon = TouchScreenButton.new()
+	b_klaxon.action = "klaxon"
+	b_klaxon.passby_press = true
+	b_klaxon.texture_normal = _disc(38, Color(0.08, 0.09, 0.1, 0.38), Color.WHITE)
+	b_klaxon.texture_pressed = _disc(38, Color(0.9, 0.9, 0.9, 0.45), Color.WHITE)
+	var shk := CircleShape2D.new(); shk.radius = 38
+	b_klaxon.shape = shk; b_klaxon.shape_centered = true
+	var lk := Label.new(); lk.text = "KLAXON"; lk.add_theme_font_size_override("font_size", 15)
+	lk.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; lk.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lk.size = Vector2(76, 76); lk.modulate = Color(1, 1, 1, 0.85)
+	b_klaxon.add_child(lk)
+	add_child(b_klaxon)
 	b_nitro = TouchScreenButton.new()
 	b_nitro.action = "nitro"
 	b_nitro.passby_press = true
@@ -711,6 +728,7 @@ func _layout() -> void:
 		b_pied.position = b_parking.position - Vector2(110 + 10, 0)
 		b_frein_main.position = Vector2(s.x - 470 + 12, s.y - 230 - 100)
 		b_nitro.position = Vector2(s.x - 240 + 48, s.y - 260 - 112)
+		b_klaxon.position = Vector2(229, s.y - 322)
 	pill.position = Vector2(0, 20); pill.size = Vector2(s.x, 90)
 	var pos := [Vector2(60, s.y - 230), Vector2(290, s.y - 230), Vector2(s.x - 470, s.y - 230), Vector2(s.x - 240, s.y - 260),
 		Vector2(214, 22), Vector2(90, 22), Vector2(338, 22), Vector2(462, 22), Vector2(586, 22)]
@@ -773,6 +791,7 @@ func _show_drive(on: bool) -> void:
 	if b_parking:
 		b_parking.visible = on
 		b_frein_main.visible = on
+		b_klaxon.visible = on
 		b_nitro.visible = on and car != null and car.nitro_niveau > 0
 	get_tree().paused = not on
 
@@ -802,6 +821,7 @@ func _process_corps(_dt: float) -> void:
 			# à pied (#80) : plus de ◀ ▶ FREIN GAZ (sticks virtuels), le disque du frein à main devient « SAUT »
 			for i in 4:
 				buttons[i].visible = _conduite and not a_pied
+			b_klaxon.visible = _conduite and not a_pied
 			b_frein_main.visible = _conduite
 			b_nitro.visible = _conduite and not a_pied and car != null and car.nitro_niveau > 0
 			var lb: Label = b_frein_main.get_child(0)
@@ -885,6 +905,7 @@ func _pastilles_manette() -> void:
 	cibles.append([b_parking, "frein_parking"])
 	cibles.append([b_pied, "pied"])
 	cibles.append([b_nitro, "nitro"])
+	cibles.append([b_klaxon, "klaxon"])
 	for c in cibles:
 		var n := touche_manette(c[1])
 		if n == "":

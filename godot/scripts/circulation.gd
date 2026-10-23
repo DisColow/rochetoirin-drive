@@ -18,6 +18,7 @@
 ## - Choc : un corps cinématique (AnimatableBody3D) suit chaque voiture ; juste avant qu'une voiture pilotée (joueur,
 ##   concurrent) la percute, elle devient un corps rigide (comme les voitures garées : meta « matiere » = metal, donc
 ##   KA-BOOM possible) qu'on pousse ou retourne : une épave, rendue au bout de EPAVE s loin ou hors de vue.
+## v6.88 (#135) : s'arrêtent devant les passants qui traversent aux passages piétons (pietons.gd).
 ## Essai : -- --drive-test --circulation-test [--circulation-debug].
 extends Node3D
 
@@ -819,6 +820,10 @@ func _obstacles() -> Array:
 	for e in epaves:
 		if is_instance_valid(e.rb):
 			l.append([(e.rb as Node3D).global_position, Vector3.ZERO, 2.2, "épave"])
+	var pie = main.get("pietons") if main else null
+	if pie and pie.ok:                                  # passants qui traversent (v6.88, #135)
+		for q in pie.sur_passage():
+			l.append([q[0], q[1], 0.5, "passant"])
 	return l
 
 func _joueur() -> Node3D:

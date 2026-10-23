@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 22/10/2026, 21 h (v6.84 #131 à v6.87 #134 livrées ; plus rien en cours)
+## État au 23/10/2026, 1 h (v6.84 #131 à v6.88 #135 livrées ; choix de modèles de tracteur et de bus en attente)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip` (pousser `godot/` déclenche l'APK).
 - **Objectif de l'utilisateur (22/10, /goal)** : « poursuivre sur ta lancée, compléter / améliorer / peaufiner / ajouter
@@ -26,6 +26,14 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v6.88 (#135, `à tester`)** : passants (voir CLAUDE.md « Passants ») : `pipeline/build_pietons.py` ->
+  `world/pietons.bin` (trottoirs d'OSM, rues piétonnes, bords des rues en ville, 981 passages piétons, 123 arrêts de
+  bus), `scripts/pietons.gd` (clients du taxi, réserve de passants, traversées, bonds, « pouf »), klaxon du joueur
+  (`scripts/klaxon.gd`, bouton, H, L3). Textures des clients compressées (76 `.import` publiés ; import local : petit
+  projet temporaire, voir CLAUDE.md « Import d'un seul fichier »). Essai `--pietons-test` (centre de Bourgoin).
+  **Suite proposée (issue `pending`)** : tracteurs et bus dans la circulation, planche `docs/apercus/choix_vehicules.jpg`
+  (modèles Sketchfab CC BY téléchargés dans le scratchpad, pas encore dans le dépôt) ; bus qui s'arrêtent aux arrêts où
+  attendent les passants ; tracteurs lents sur les routes de campagne, dépassés par la circulation.
 - **v6.87 (#134, `à tester`)** : feux tricolores respectés par la circulation, dépassement d'un obstacle immobile par la
   voie d'en face, concurrents qui évitent la circulation (voir CLAUDE.md « Circulation »). `trafic.bin` passe à 9 champs
   par arc (publié ; l'ancien format reste lu). Essais `--circulation-test --circulation-feux` (90 s de jeu : passages

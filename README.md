@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.87.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.87/RochetoirinSimulator-v6.87.apk)**
+**[RochetoirinSimulator-v6.88.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.88/RochetoirinSimulator-v6.88.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,14 +16,13 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.87 :
-- **Feux tricolores** : les voitures de la circulation s'arrêtent au rouge (et à l'orange quand elles ont le temps),
-  aux 113 carrefours à feux de la carte, en phase avec les feux que tu vois.
-- **Dépassements** : bloquée derrière une épave ou ta voiture arrêtée, une voiture klaxonne puis te contourne par la voie
-  d'en face quand elle est libre.
-- **Courses** : pendant une course, la circulation ne s'engage plus sur le tracé (route barrée), et les concurrents
-  évitent les voitures qu'ils croisent.
-- Corrigé : une voiture qui en croisait une autre de près pouvait devenir une épave sans choc.
+Nouveautés de la v6.88 :
+- **Des passants dans les rues** : en ville et dans les villages, des piétons marchent sur les trottoirs et le long des
+  rues, attendent aux arrêts de bus, plus nombreux près des places, des écoles et des mairies (moins la nuit).
+- Ils **traversent aux passages piétons** quand la voie est libre, et les voitures s'arrêtent pour les laisser passer.
+- **Klaxon** (bouton au-dessus des flèches, touche H) : les passants se retournent, ou s'écartent s'ils sont devant toi.
+  Fonce sur eux : ils sautent de côté ; trop tard ? « Pouf », ils disparaissent dans un éclair (personne n'est blessé).
+- Réglage ⚙ > Conduite > **Circulation et passants** : un seul réglage pour les voitures et les piétons.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
