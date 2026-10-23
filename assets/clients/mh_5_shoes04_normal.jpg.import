@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://4kmvkx0akuk"
-path="res://.godot/imported/mh_5_shoes04_normal.jpg-87b3107b255907d2bf73e64926034ba7.ctex"
+path.s3tc="res://.godot/imported/mh_5_shoes04_normal.jpg-87b3107b255907d2bf73e64926034ba7.s3tc.ctex"
+path.etc2="res://.godot/imported/mh_5_shoes04_normal.jpg-87b3107b255907d2bf73e64926034ba7.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "a2905f7f8ad80a7ba89b162017c11386"
@@ -14,15 +16,15 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/clients/mh_5_shoes04_normal.jpg"
-dest_files=["res://.godot/imported/mh_5_shoes04_normal.jpg-87b3107b255907d2bf73e64926034ba7.ctex"]
+dest_files=["res://.godot/imported/mh_5_shoes04_normal.jpg-87b3107b255907d2bf73e64926034ba7.s3tc.ctex", "res://.godot/imported/mh_5_shoes04_normal.jpg-87b3107b255907d2bf73e64926034ba7.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://vadyx6xinohw"
-path="res://.godot/imported/mh_4_shoes05_diffuse.png-202022e3a1ccb2af0e730337b777b29c.ctex"
+path.s3tc="res://.godot/imported/mh_4_shoes05_diffuse.png-202022e3a1ccb2af0e730337b777b29c.s3tc.ctex"
+path.etc2="res://.godot/imported/mh_4_shoes05_diffuse.png-202022e3a1ccb2af0e730337b777b29c.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "2e72eae30754d35f3f5394486247978e"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/clients/mh_4_shoes05_diffuse.png"
-dest_files=["res://.godot/imported/mh_4_shoes05_diffuse.png-202022e3a1ccb2af0e730337b777b29c.ctex"]
+dest_files=["res://.godot/imported/mh_4_shoes05_diffuse.png-202022e3a1ccb2af0e730337b777b29c.s3tc.ctex", "res://.godot/imported/mh_4_shoes05_diffuse.png-202022e3a1ccb2af0e730337b777b29c.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

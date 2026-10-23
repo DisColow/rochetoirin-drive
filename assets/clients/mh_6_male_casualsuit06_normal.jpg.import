@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c02d207tyjimr"
-path="res://.godot/imported/mh_6_male_casualsuit06_normal.jpg-c7deb390979d587b688229ac8f39c103.ctex"
+path.s3tc="res://.godot/imported/mh_6_male_casualsuit06_normal.jpg-c7deb390979d587b688229ac8f39c103.s3tc.ctex"
+path.etc2="res://.godot/imported/mh_6_male_casualsuit06_normal.jpg-c7deb390979d587b688229ac8f39c103.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "448d16a0ab2cb3d39377ac1f809e9e97"
@@ -14,15 +16,15 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/clients/mh_6_male_casualsuit06_normal.jpg"
-dest_files=["res://.godot/imported/mh_6_male_casualsuit06_normal.jpg-c7deb390979d587b688229ac8f39c103.ctex"]
+dest_files=["res://.godot/imported/mh_6_male_casualsuit06_normal.jpg-c7deb390979d587b688229ac8f39c103.s3tc.ctex", "res://.godot/imported/mh_6_male_casualsuit06_normal.jpg-c7deb390979d587b688229ac8f39c103.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1

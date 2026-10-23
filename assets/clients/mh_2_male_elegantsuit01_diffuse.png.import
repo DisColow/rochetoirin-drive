@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dpffy5x3ugj8s"
-path="res://.godot/imported/mh_2_male_elegantsuit01_diffuse.png-9ba2eece7c579dcc6d4a935a603f830d.ctex"
+path.s3tc="res://.godot/imported/mh_2_male_elegantsuit01_diffuse.png-9ba2eece7c579dcc6d4a935a603f830d.s3tc.ctex"
+path.etc2="res://.godot/imported/mh_2_male_elegantsuit01_diffuse.png-9ba2eece7c579dcc6d4a935a603f830d.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "ab8e70a2d7210b793272b63986bc712b"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/clients/mh_2_male_elegantsuit01_diffuse.png"
-dest_files=["res://.godot/imported/mh_2_male_elegantsuit01_diffuse.png-9ba2eece7c579dcc6d4a935a603f830d.ctex"]
+dest_files=["res://.godot/imported/mh_2_male_elegantsuit01_diffuse.png-9ba2eece7c579dcc6d4a935a603f830d.s3tc.ctex", "res://.godot/imported/mh_2_male_elegantsuit01_diffuse.png-9ba2eece7c579dcc6d4a935a603f830d.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

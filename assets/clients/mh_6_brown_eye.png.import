@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://be2hni3odaw28"
-path="res://.godot/imported/mh_6_brown_eye.png-f7772b04498e06702d11d35886488ce9.ctex"
+path.s3tc="res://.godot/imported/mh_6_brown_eye.png-f7772b04498e06702d11d35886488ce9.s3tc.ctex"
+path.etc2="res://.godot/imported/mh_6_brown_eye.png-f7772b04498e06702d11d35886488ce9.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "8aae933827f09fd61ef5a9455101f664"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/clients/mh_6_brown_eye.png"
-dest_files=["res://.godot/imported/mh_6_brown_eye.png-f7772b04498e06702d11d35886488ce9.ctex"]
+dest_files=["res://.godot/imported/mh_6_brown_eye.png-f7772b04498e06702d11d35886488ce9.s3tc.ctex", "res://.godot/imported/mh_6_brown_eye.png-f7772b04498e06702d11d35886488ce9.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1dyluuunbi54"
-path="res://.godot/imported/mh_3_old_lightskinned_female_diffuse.png-81771c97656c5f4050466bf34503b56c.ctex"
+path.s3tc="res://.godot/imported/mh_3_old_lightskinned_female_diffuse.png-81771c97656c5f4050466bf34503b56c.s3tc.ctex"
+path.etc2="res://.godot/imported/mh_3_old_lightskinned_female_diffuse.png-81771c97656c5f4050466bf34503b56c.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "5952aab7c07b6f44d0a7da5ab048f700"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/clients/mh_3_old_lightskinned_female_diffuse.png"
-dest_files=["res://.godot/imported/mh_3_old_lightskinned_female_diffuse.png-81771c97656c5f4050466bf34503b56c.ctex"]
+dest_files=["res://.godot/imported/mh_3_old_lightskinned_female_diffuse.png-81771c97656c5f4050466bf34503b56c.s3tc.ctex", "res://.godot/imported/mh_3_old_lightskinned_female_diffuse.png-81771c97656c5f4050466bf34503b56c.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dgremgag4wfxp"
-path="res://.godot/imported/mh_9_female_casualsuit01_normal.jpg-d6f12911c84d22fc778653a3c6d66bbf.ctex"
+path.s3tc="res://.godot/imported/mh_9_female_casualsuit01_normal.jpg-d6f12911c84d22fc778653a3c6d66bbf.s3tc.ctex"
+path.etc2="res://.godot/imported/mh_9_female_casualsuit01_normal.jpg-d6f12911c84d22fc778653a3c6d66bbf.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "80269b1159495cd2cac865610c445352"
@@ -14,15 +16,15 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/clients/mh_9_female_casualsuit01_normal.jpg"
-dest_files=["res://.godot/imported/mh_9_female_casualsuit01_normal.jpg-d6f12911c84d22fc778653a3c6d66bbf.ctex"]
+dest_files=["res://.godot/imported/mh_9_female_casualsuit01_normal.jpg-d6f12911c84d22fc778653a3c6d66bbf.s3tc.ctex", "res://.godot/imported/mh_9_female_casualsuit01_normal.jpg-d6f12911c84d22fc778653a3c6d66bbf.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1

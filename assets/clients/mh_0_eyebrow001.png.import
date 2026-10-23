@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b6ucgaq66j3gi"
-path="res://.godot/imported/mh_0_eyebrow001.png-cf95c1cdd318d7940e1231ba031f4f7f.ctex"
+path.s3tc="res://.godot/imported/mh_0_eyebrow001.png-cf95c1cdd318d7940e1231ba031f4f7f.s3tc.ctex"
+path.etc2="res://.godot/imported/mh_0_eyebrow001.png-cf95c1cdd318d7940e1231ba031f4f7f.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "67bd4a6045281c2f8aa7f28610223c5c"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/clients/mh_0_eyebrow001.png"
-dest_files=["res://.godot/imported/mh_0_eyebrow001.png-cf95c1cdd318d7940e1231ba031f4f7f.ctex"]
+dest_files=["res://.godot/imported/mh_0_eyebrow001.png-cf95c1cdd318d7940e1231ba031f4f7f.s3tc.ctex", "res://.godot/imported/mh_0_eyebrow001.png-cf95c1cdd318d7940e1231ba031f4f7f.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

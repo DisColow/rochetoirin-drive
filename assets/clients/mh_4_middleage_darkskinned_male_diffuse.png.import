@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dcrilcr4tploo"
-path="res://.godot/imported/mh_4_middleage_darkskinned_male_diffuse.png-8a9588d1e7fd4a3cfd59e8799cbb4e21.ctex"
+path.s3tc="res://.godot/imported/mh_4_middleage_darkskinned_male_diffuse.png-8a9588d1e7fd4a3cfd59e8799cbb4e21.s3tc.ctex"
+path.etc2="res://.godot/imported/mh_4_middleage_darkskinned_male_diffuse.png-8a9588d1e7fd4a3cfd59e8799cbb4e21.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "6138a2f165b8925a26f79c81fd2aef5f"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/clients/mh_4_middleage_darkskinned_male_diffuse.png"
-dest_files=["res://.godot/imported/mh_4_middleage_darkskinned_male_diffuse.png-8a9588d1e7fd4a3cfd59e8799cbb4e21.ctex"]
+dest_files=["res://.godot/imported/mh_4_middleage_darkskinned_male_diffuse.png-8a9588d1e7fd4a3cfd59e8799cbb4e21.s3tc.ctex", "res://.godot/imported/mh_4_middleage_darkskinned_male_diffuse.png-8a9588d1e7fd4a3cfd59e8799cbb4e21.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

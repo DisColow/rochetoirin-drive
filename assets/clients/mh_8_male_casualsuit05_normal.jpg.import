@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bjq68wg2h3b4g"
-path="res://.godot/imported/mh_8_male_casualsuit05_normal.jpg-b5009bfa4d38dfb17f8d9c578f2f60ba.ctex"
+path.s3tc="res://.godot/imported/mh_8_male_casualsuit05_normal.jpg-b5009bfa4d38dfb17f8d9c578f2f60ba.s3tc.ctex"
+path.etc2="res://.godot/imported/mh_8_male_casualsuit05_normal.jpg-b5009bfa4d38dfb17f8d9c578f2f60ba.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e7bc48b645814deff5339742e64e42e6"
@@ -14,15 +16,15 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/clients/mh_8_male_casualsuit05_normal.jpg"
-dest_files=["res://.godot/imported/mh_8_male_casualsuit05_normal.jpg-b5009bfa4d38dfb17f8d9c578f2f60ba.ctex"]
+dest_files=["res://.godot/imported/mh_8_male_casualsuit05_normal.jpg-b5009bfa4d38dfb17f8d9c578f2f60ba.s3tc.ctex", "res://.godot/imported/mh_8_male_casualsuit05_normal.jpg-b5009bfa4d38dfb17f8d9c578f2f60ba.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1

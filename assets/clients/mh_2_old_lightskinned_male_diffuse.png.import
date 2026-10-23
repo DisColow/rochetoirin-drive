@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ba61lhag8fmxg"
-path="res://.godot/imported/mh_2_old_lightskinned_male_diffuse.png-952a34ba6ca5abfe765285b9c23c38cf.ctex"
+path.s3tc="res://.godot/imported/mh_2_old_lightskinned_male_diffuse.png-952a34ba6ca5abfe765285b9c23c38cf.s3tc.ctex"
+path.etc2="res://.godot/imported/mh_2_old_lightskinned_male_diffuse.png-952a34ba6ca5abfe765285b9c23c38cf.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "74ad5493ae9d80052e778de158f0476e"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/clients/mh_2_old_lightskinned_male_diffuse.png"
-dest_files=["res://.godot/imported/mh_2_old_lightskinned_male_diffuse.png-952a34ba6ca5abfe765285b9c23c38cf.ctex"]
+dest_files=["res://.godot/imported/mh_2_old_lightskinned_male_diffuse.png-952a34ba6ca5abfe765285b9c23c38cf.s3tc.ctex", "res://.godot/imported/mh_2_old_lightskinned_male_diffuse.png-952a34ba6ca5abfe765285b9c23c38cf.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

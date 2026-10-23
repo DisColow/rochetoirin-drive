@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bgmro2qitxq1f"
-path="res://.godot/imported/mh_8_fedora_diffuse.png-bc51927022d2e50f01961ff925177bdd.ctex"
+path.s3tc="res://.godot/imported/mh_8_fedora_diffuse.png-bc51927022d2e50f01961ff925177bdd.s3tc.ctex"
+path.etc2="res://.godot/imported/mh_8_fedora_diffuse.png-bc51927022d2e50f01961ff925177bdd.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "733f1cc37c852ea69b8514d42cfb99b7"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/clients/mh_8_fedora_diffuse.png"
-dest_files=["res://.godot/imported/mh_8_fedora_diffuse.png-bc51927022d2e50f01961ff925177bdd.ctex"]
+dest_files=["res://.godot/imported/mh_8_fedora_diffuse.png-bc51927022d2e50f01961ff925177bdd.s3tc.ctex", "res://.godot/imported/mh_8_fedora_diffuse.png-bc51927022d2e50f01961ff925177bdd.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
