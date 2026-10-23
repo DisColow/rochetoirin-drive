@@ -2656,7 +2656,7 @@ func _circulation_feux(ci, shot: Callable, dire: Callable, pas: Callable) -> voi
 ## Véhicule lent (v6.89) : la voiture du joueur roule à 30 km/h sur une route rapide à double sens, 35 m devant une
 ## voiture de la circulation ; relevé : voiture qui la double (écart, passage devant, retour dans sa voie), chocs.
 func _circulation_double(ci, shot: Callable, dire: Callable) -> void:
-	for essai in 3:
+	for essai in 6:
 		var c = null
 		for o in ci.voitures:
 			var k := int(o.voie) >> 1
@@ -2665,7 +2665,7 @@ func _circulation_double(ci, shot: Callable, dire: Callable) -> void:
 				c = o
 		if c == null:
 			dire.call("véhicule lent, essai %d : aucune voiture sur une route rapide assez longue" % (essai + 1))
-			for i in 480:
+			for i in 960:
 				car.hold(0.5)
 				await get_tree().physics_frame
 			continue
