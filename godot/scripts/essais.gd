@@ -3005,6 +3005,14 @@ func _pietons_test() -> void:
 		var p0: Vector3 = (cible.n as Node3D).global_position
 		var tg: Vector3 = pi.tangente(int(cible.l), float(cible.s))
 		var dir := Vector3(-tg.z, 0, tg.x) if essai == 0 else tg          # en travers du trottoir, puis le long
+		var espace := get_world_3d().direct_space_state
+		for sg in [1.0, -1.0]:                       # côté d'où la voiture arrive sans traverser un mur
+			var q0: Vector3 = p0 - dir * sg * depart + Vector3.UP
+			var rq := PhysicsRayQueryParameters3D.create(q0, p0 + Vector3.UP)
+			rq.exclude = [car.get_rid()]
+			if espace.intersect_ray(rq).is_empty():
+				dir *= sg
+				break
 		var b0: int = pi.bonds
 		var f0: int = pi.poufs
 		car.hold(0.0)
@@ -3057,6 +3065,60 @@ func _pietons_test() -> void:
 		for f in 3:
 			await get_tree().process_frame
 		shot.call("klaxon")
+	# passage piéton : un passant posé au milieu d'un passage que va franchir une voiture de la circulation (20-50 m
+	# devant elle) ; elle doit s'arrêter devant lui (meneur « passant »)
+	if circulation and not pi.passants.is_empty():
+		var choix = null
+		for v in circulation.voitures:
+			if float(v.v) < 3.0:
+				continue
+			var ch: PackedVector3Array = circulation._chemin(v)
+			for k in pi._genre.size():
+				if pi._genre[k] != 3:
+					continue
+				var m: Vector3 = pi.point(k, pi.longueur(k) * 0.5)
+				if m.distance_to(v.pos) > 55.0:
+					continue
+				for i in ch.size():
+					if i * 3 >= 20 and Vector2(ch[i].x - m.x, ch[i].z - m.z).length() < 2.0:
+						choix = [v, k]
+						break
+				if choix:
+					break
+			if choix:
+				break
+		if choix == null:
+			dire.call("passage piéton : aucune voiture de la circulation n'approche d'un passage piéton")
+		else:
+			var v = choix[0]
+			var kp: int = choix[1]
+			var pa = pi.passants[0]
+			pa.l = kp; pa.s = pi.longueur(kp) * 0.5; pa.sens = 1; pa.traverse = -1; pa.pause = 8.0; pa.off = Vector3.ZERO
+			pa.bond_t = 0.0
+			var m: Vector3 = pi.point(kp, pi.longueur(kp) * 0.5)
+			var d0: float = m.distance_to(v.pos)
+			var dmin := INF
+			var arret := false
+			var meneur := ""
+			for i in 8 * 120:
+				car.hold(0.5)
+				pa.pause = maxf(float(pa.pause), 1.0)
+				await get_tree().physics_frame
+				if not circulation.voitures.has(v):
+					break
+				dmin = minf(dmin, (v.pos as Vector3).distance_to((pa.n as Node3D).global_position))
+				if float(v.v) < 0.3 and not arret:
+					arret = true
+					meneur = String(v.leader)
+					cam.global_position = (v.pos as Vector3) - (v.dir as Vector3) * 8.0 + Vector3(-v.dir.z, 0, v.dir.x) * 3.0 + Vector3.UP * 2.8
+					cam.look_at((pa.n as Node3D).global_position + Vector3.UP)
+					cam.current = true
+					for f in 3:
+						await get_tree().process_frame
+					shot.call("passage")
+			pa.pause = 0.0
+			dire.call("passage piéton : voiture %d à %.0f m, arrêtée %s (meneur %s), au plus près %.1f m du passant" % [int(v.id), d0,
+				str(arret), meneur, dmin])
 	releve.call("fin")
 	cam.queue_free()
 	dire.call("FIN")
