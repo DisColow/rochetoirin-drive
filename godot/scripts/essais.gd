@@ -2963,7 +2963,7 @@ func _pietons_test() -> void:
 		dire.call("%s : %d passants (trottoirs %d, rues piétonnes %d, bords de rue %d, passages piétons %d, arrêts de bus %d), %d en marche, le plus proche à %.0f m ; modèles chargés %d/%d ; traversées %d, voitures arrêtées pour un passant %d ; coût %.2f ms/pas (pire %.2f)" % [tag,
 			pi.passants.size(), genres[0], genres[1], genres[2], genres[3], genres[4], marche, dmin, prets, pi._modeles.size(),
 			pi.traversees, arretes.size(), float(e[0]) / maxf(float(e[2]), 1.0) / 1000.0, float(e[1]) / 1000.0])
-	for k in 15:
+	for k in 3 if OS.get_cmdline_user_args().has("--pietons-court") else 15:     # --pietons-court : 6 s seulement
 		await pas.call(240)
 		releve.call("t=%d s" % ((k + 1) * 2))
 	# un passant de près : caméra libre devant lui
@@ -3077,7 +3077,7 @@ func _pietons_test() -> void:
 				if pi._genre[k] != 3:
 					continue
 				var m: Vector3 = pi.point(k, pi.longueur(k) * 0.5)
-				if m.distance_to(v.pos) > 55.0:
+				if m.distance_to(v.pos) > 55.0 or m.distance_to(car.global_position) > 100.0:   # passants : 140 m au plus
 					continue
 				for i in ch.size():
 					if i * 3 >= 20 and Vector2(ch[i].x - m.x, ch[i].z - m.z).length() < 2.0:
@@ -3117,8 +3117,8 @@ func _pietons_test() -> void:
 						await get_tree().process_frame
 					shot.call("passage")
 			pa.pause = 0.0
-			dire.call("passage piéton : voiture %d à %.0f m, arrêtée %s (meneur %s), au plus près %.1f m du passant" % [int(v.id), d0,
-				str(arret), meneur, dmin])
+			dire.call("passage piéton : voiture %d à %.0f m, arrêtée %s (meneur %s), au plus près %.1f m du passant, passant toujours là %s" % [
+				int(v.id), d0, str(arret), meneur, dmin, str(pi.passants.has(pa))])
 	releve.call("fin")
 	cam.queue_free()
 	dire.call("FIN")
