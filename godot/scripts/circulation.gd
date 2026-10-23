@@ -727,13 +727,13 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 	if not (c.dep as Array).is_empty() and float(c.s) > float(c.dep[3]):
 		c.dep = []
 		c.clign = 0
+	# clignotant : à moins de 45 m du carrefour où elle tourne, éteint 10 m après
+	if int(c.clign) != 0 and int(c.suite) < 0 and float(c.s) > 10.0:
+		c.clign = 0
 	# dépassement : clignotant à gauche pour déboîter, à droite pour se rabattre
 	var dp: Array = c.dep
 	if not dp.is_empty():
 		c.clign = 1 if float(c.s) < float(dp[1]) else (2 if float(c.s) > float(dp[2]) - 4.0 else 0)
-	# clignotant : à moins de 45 m du carrefour où elle tourne, éteint 10 m après
-	if int(c.clign) != 0 and int(c.suite) < 0 and float(c.s) > 10.0:
-		c.clign = 0
 	_placer(c)
 
 ## État d'un feu (phase × 2 + axe de trafic.bin) : 0 vert, 1 orange, 2 rouge ; même calcul que signal_light.gdshader.
