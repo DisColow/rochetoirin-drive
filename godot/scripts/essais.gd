@@ -3211,7 +3211,7 @@ func _pietons_test() -> void:
 		var pe: Vector3 = (cible_e.n as Node3D).global_position + Vector3(15.0, 0.0, 0.0)
 		var avant := {}
 		for o in pi.passants:
-			avant[o] = (o.n as Node3D).global_position
+			avant[o.n] = (o.n as Node3D).global_position
 		var f0: int = pi.fuites
 		var fx = preload("res://scripts/explosion.gd").new()
 		fx.style = "mini"
@@ -3221,9 +3221,9 @@ func _pietons_test() -> void:
 		var eloignes := 0
 		var proches := 0
 		for o in pi.passants:
-			if avant.has(o) and (avant[o] as Vector3).distance_to(pe) < 60.0:
+			if avant.has(o.n) and (avant[o.n] as Vector3).distance_to(pe) < 60.0:
 				proches += 1
-				if (o.n as Node3D).global_position.distance_to(pe) > (avant[o] as Vector3).distance_to(pe) + 4.0:
+				if (o.n as Node3D).global_position.distance_to(pe) > (avant[o.n] as Vector3).distance_to(pe) + 4.0:
 					eloignes += 1
 		dire.call("explosion : %d passant(s) ont fui, %d sur %d à moins de 60 m se sont éloignés de plus de 4 m" % [pi.fuites - f0,
 			eloignes, proches])
