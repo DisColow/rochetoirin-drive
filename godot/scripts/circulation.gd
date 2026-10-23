@@ -57,6 +57,8 @@ const DEGAGE := 85.0                           # voie d'en face libre sur cette 
 const COURSE_MARGE := 30.0                     # course contre des concurrents : tracé dégagé sur cette largeur (m)
 const COURSE_CASE := 16.0
 const BARRAGE := 12.0                          # course : arrêt à cette distance du carrefour d'une rue du tracé (m)
+const LENT := 4.0                              # s derrière un véhicule lent (route rapide) avant de le doubler
+const V_RAPIDE := 19.0                         # doubler un véhicule lent : routes limitées à ~70 km/h et plus (m/s)
 
 var target: Node3D
 var main: Node
@@ -431,7 +433,7 @@ func _apparaitre(p: Vector3, partout: bool) -> void:
 	var c := {"id": _id, "m": m, "col": COULEURS[randi() % COULEURS.size()], "voie": voie, "s": s, "L": L, "rang": rang,
 		"v": _v[k] * 0.7, "perso": randf_range(0.85, 1.02), "suite": -1, "dec": Vector3.ZERO, "dec_s": -100.0,
 		"pos": pos, "dir": Vector3(g[1].x, 0.0, g[1].y), "frein": false, "roue": 0.0, "resa": -1, "bloque": 0.0,
-		"klaxon": 0.0, "impasse": false, "leader": "", "clign": 0, "dep": [], "attente": 0.0, "engage": -1}
+		"klaxon": 0.0, "impasse": false, "leader": "", "clign": 0, "dep": [], "attente": 0.0, "engage": -1, "lent": 0.0}
 	_id += 1
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -567,8 +569,11 @@ func _devant(c: Dictionary, obstacles: Array) -> Array:
 	var voie := int(c.voie)
 	var suite := int(c.suite)
 	var reste: float = float(c.L) - float(c.s)
+	var deboite := _ecart(c, float(c.s)) > 1.0          # sur la voie d'en face : les voitures de sa voie sont à côté
 	for o in voitures:
 		if int(o.id) == int(c.id):
+			continue
+		if deboite and _ecart(o, float(o.s)) < 0.5:
 			continue
 		var g := INF
 		if int(o.voie) == voie and float(o.s) > float(c.s) and (int(o.rang) == int(c.rang) or not (_fl[voie >> 1] & 1)):
@@ -661,8 +666,19 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 			_depasser(c, gap)
 	elif float(c.v) > 1.0:
 		c.attente = 0.0
+	# véhicule lent devant (joueur qui traîne, autre voiture) sur une route rapide à double sens : on le double quand la
+	# voie d'en face est libre sur toute la longueur du dépassement (v6.89)
+	if (c.dep as Array).is_empty() and String(c.leader) in ["joueur", "circulation"] and not (_fl[k] & 1) \
+			and _v[k] >= V_RAPIDE and gap < 30.0 and vl > 1.5 and vl < 0.65 * _v[k]:
+		c.lent = float(c.lent) + dt
+		if float(c.lent) > LENT:
+			c.lent = 0.0
+			_doubler(c, gap, vl)
+	else:
+		c.lent = 0.0
+	var dep: Array = c.dep
 	if _ecart(c, float(c.s)) > 0.3:
-		v0 = minf(v0, 8.0)                     # au pas sur la voie d'en face
+		v0 = minf(v0, 8.0) if dep.size() < 6 else maxf(v0, float(dep[5]))   # au pas autour d'un obstacle immobile
 	var v: float = c.v
 	var s_et := IDM_S0 + maxf(0.0, v * IDM_T + v * (v - vl) / (2.0 * sqrt(IDM_A * IDM_B)))
 	var acc := IDM_A * (1.0 - pow(v / maxf(v0, 0.5), 4.0) - pow(s_et / maxf(gap, 0.2), 2.0))
@@ -749,6 +765,46 @@ func _depasser(c: Dictionary, gap: float) -> void:
 	if _debug:
 		print("[circulation] voiture %d dépasse un obstacle (%s) à %.1f m : écart %.1f m de %.0f à %.0f m" % [int(c.id),
 			c.leader, gap, 2.0 * _dl[k], s, fin])
+
+## Doubler un véhicule lent (vitesse vl, gap m devant) : à la vitesse autorisée (au plus vl + 9 m/s), si la voie
+## reste presque droite et la voie d'en face libre sur toute la longueur du dépassement (voitures qui arrivent comprises).
+## dep[5] : vitesse du dépassement (au lieu du pas des obstacles immobiles).
+func _doubler(c: Dictionary, gap: float, vl: float) -> void:
+	var k := int(c.voie) >> 1
+	var s: float = c.s
+	var vd := minf(_v[k] * float(c.perso), vl + 9.0)
+	if vd < vl + 4.0:
+		return
+	var long_l: float = BOITES[1].z if String(c.leader) == "circulation" else 5.0
+	var rel: float = gap + long_l + BOITES[int(c.m)].z + 14.0
+	var t := rel / (vd - vl)
+	var dist := vd * t + 8.0
+	var fin := s + dist
+	if fin + 15.0 > float(c.L):
+		return
+	var t0: Vector2 = _geo(int(c.voie), s, 0)[1]
+	for f in [0.5, 1.0]:
+		if absf(t0.angle_to(_geo(int(c.voie), s + dist * f, 0)[1])) > deg_to_rad(18.0):
+			return                                          # virage : pas de visibilité
+	var rev := int(c.voie) ^ 1
+	for o in voitures:
+		if int(o.voie) == rev:
+			var d_o := (float(c.L) - float(o.s)) - s       # voiture d'en face : distance devant nous
+			if d_o > -10.0 and d_o < dist + float(o.v) * (t + 2.0) + 40.0:
+				return
+	# joueur ou concurrent sur la voie d'en face, devant
+	var p: Vector3 = c.pos
+	var fwd: Vector3 = c.dir
+	for o in _pilotes():
+		var d: Vector3 = (o as Node3D).global_position - p
+		var av := d.dot(fwd)
+		var lat := d.dot(Vector3(-fwd.z, 0.0, fwd.x))
+		if av > gap + 3.0 and av < dist + 60.0 and absf(lat + 2.0 * _dl[k]) < 2.5:
+			return
+	c.dep = [s + 1.0, s + 10.0, fin - 14.0, fin, 2.0 * _dl[k], vd]
+	if _debug:
+		print("[circulation] voiture %d double un véhicule lent (%s, %.0f km/h) : de %.0f à %.0f m, à %.0f km/h" % [
+			int(c.id), c.leader, vl * 3.6, s, fin, vd * 3.6])
 
 ## Clignotant pour passer de la voie `de` à la voie `vers` : 0 tout droit, 1 à gauche, 2 à droite (plus de 30°).
 func _clignotant(de: int, vers: int) -> int:
