@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 23/10/2026, 2 h (v6.84 #131 à v6.89 #137 livrées ; choix de modèles de tracteur et de bus en attente, #136)
+## État au 23/10/2026, 2 h (v6.84 #131 à v6.90 #138 livrées ; choix de modèles de tracteur et de bus en attente, #136)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip` (pousser `godot/` déclenche l'APK).
 - **Objectif de l'utilisateur (22/10, /goal)** : « poursuivre sur ta lancée, compléter / améliorer / peaufiner / ajouter
@@ -26,6 +26,9 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v6.90 (#138, `à tester`)** : client du taxi déposé qui devient un passant (`pietons.adopter`), passants qui fuient
+  les explosions (`pietons.panique`). Essais `--taxi-test` (« clients devenus passants : 2 sur 4 courses » : les autres
+  destinations sans trottoir à 25 m) et `--pietons-test --pietons-court`.
 - **v6.89 (#137, `à tester`)** : la circulation double les véhicules lents (`circulation._doubler`, voir CLAUDE.md
   « Véhicule lent »), clignotants pendant les dépassements, dérive latérale propre à chaque voiture (`derive`). Essai
   `--circulation-test --circulation-double --drive-from=-8410.95,221,-7187.25,45.2` (D 522, route à 70-80 km/h).

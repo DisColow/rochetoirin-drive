@@ -213,7 +213,9 @@
   `vider()` à la téléportation. **Klaxon du joueur** (`scripts/klaxon.gd`, bouton KLAXON au-dessus des flèches, touche H,
   L3 : action `klaxon` de `nav_physique.TOUCHES`) : `klaxon.ogg` de la circulation, plus grave pour une voiture lourde ;
   `pietons.klaxon()` : les passants à 30 m se tournent vers la voiture, ceux devant elle s'écartent, ceux d'un passage
-  piéton pressent le pas. Essai `--fixed-fps 8 -- --drive-test --pietons-test --drive-from=-10461.9,241.5,-498.6,105`
+  piéton pressent le pas. v6.90 : client du taxi déposé -> `pietons.adopter(nœud, modèle)` (ligne à 25 m, sinon il
+  s'éloigne et disparaît comme avant) ; explosion -> `pietons.panique(p)` (appelée par `explosion.gd`, fuite à 60 m).
+  Essai `--fixed-fps 8 -- --drive-test --pietons-test [--pietons-court] --drive-from=-10461.9,241.5,-498.6,105`
   (centre de Bourgoin, 17 passages piétons à 100 m).
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
