@@ -330,18 +330,18 @@ def convertir(cid, c):
     poser_logos(b, c)
     w = joindre(av_d, "roue")
     w.data.transform(mathutils.Matrix.Translation(-wc))
-    alleger(w, 2500)
-    # matériaux (ceux de la roue copiés : une jante peut partager le matériau de la caisse)
-    for sl in w.material_slots:
-        if sl.material:
-            sl.material = sl.material.copy()
     if c.get("roue_unie"):                  # bus : texture de roue déformée par l'allègement -> pneu et jante unis,
-        w.data.materials.clear()            # d'après la distance de chaque face à l'axe (x)
+        w.data.materials.clear()            # d'après la distance de chaque face à l'axe (x), avant l'allègement
         w.data.materials.append(materiau("rubber", (0.035, 0.035, 0.04), 0.0, 0.85))
         w.data.materials.append(materiau("hubcap", c["roue_unie"], 0.6, 0.35))
         for f in w.data.polygons:
             q = f.center
             f.material_index = 0 if (q.y ** 2 + q.z ** 2) ** 0.5 > 0.58 * rayon else 1
+    alleger(w, 2500)
+    # matériaux (ceux de la roue copiés : une jante peut partager le matériau de la caisse)
+    for sl in w.material_slots:
+        if sl.material and not c.get("roue_unie"):
+            sl.material = sl.material.copy()
     for o in (b, w):
         for sl in o.material_slots:
             m = sl.material
