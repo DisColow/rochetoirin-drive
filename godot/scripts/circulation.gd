@@ -107,6 +107,7 @@ var _roue: Array = []                          # par modèle : Mesh d'une roue (
 var _pos_roues: Array = []                     # par modèle : 4 centres de roue (avant gauche, avant droite, arrière gauche, arrière droite)
 var _mm_roues: Array = []                      # par modèle : MultiMeshInstance3D de toutes les roues (null : roues fixes)
 var _dispo: Array = []                         # par modèle : présent dans les données
+var _roues_g: Array = []                       # par modèle : roues des lourds [centre, rayon, MultiMeshInstance3D, Mesh, nb]
 var lourds_x := 1.0                            # essais : chance des véhicules lourds multipliée
 var _mat: ShaderMaterial
 var _id := 0
@@ -134,7 +135,7 @@ func _ready() -> void:
 		if _dispo[k]:
 			_preparer_modele(k)
 		else:
-			_corps.append(null); _roue.append(null); _mm_roues.append(null); _pos_roues.append([])
+			_corps.append(null); _roue.append(null); _mm_roues.append(null); _pos_roues.append([]); _roues_g.append([])
 	if ResourceLoader.exists("res://assets/sfx/klaxon.ogg"):
 		_son_klaxon = load("res://assets/sfx/klaxon.ogg")
 	for k in 2:
@@ -291,6 +292,7 @@ func _preparer_modele(m: int) -> void:
 	var mesh: Mesh = (sc.instantiate().find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D).mesh
 	var corps := []
 	var roues := []
+	var roues_g := {}                              # lourds (v7.00) : roue n -> surfaces « roue_<n>_c<couleur> »
 	for s in mesh.get_surface_count():
 		var mt := mesh.surface_get_material(s)
 		var nm := mt.resource_name if mt else ""
@@ -308,9 +310,16 @@ func _preparer_modele(m: int) -> void:
 			"Turn_lights": rm = -4.0; col = Color(0.75, 0.42, 0.08)
 			"glass": col = Color(0.05, 0.06, 0.07); rm = 3.05
 			"rubber": col = Color(0.03, 0.03, 0.035); rm = 0.9
+		if nm.begins_with("roue_"):
+			var g := int(nm.get_slice("_", 1))
+			if not roues_g.has(g):
+				roues_g[g] = []
+			roues_g[g].append([mesh.surface_get_arrays(s), Color(col.r, col.g, col.b, rm)])
+			continue
 		(roues if nm in ROUES else corps).append([mesh.surface_get_arrays(s), Color(col.r, col.g, col.b, rm)])
 	_corps.append(_fusion(corps, true))
-	if roues.is_empty():                           # roues fixes, dans la caisse (tracteur et remorque : tailles différentes)
+	_roues_g.append(_roues_lourd(roues_g))
+	if roues.is_empty():                           # pas de roues « rubber » (lourds : roues par groupe, _roues_g)
 		_roue.append(null); _mm_roues.append(null); _pos_roues.append([])
 		return
 	# roues : les 4 groupes de triangles (avant/arrière × gauche/droite) ; la roue avant gauche sert pour les quatre
@@ -371,6 +380,45 @@ func _preparer_modele(m: int) -> void:
 	mi.custom_aabb = AABB(Vector3(-1e5, -2e3, -1e5), Vector3(2e5, 4e3, 2e5))
 	add_child(mi)
 	_mm_roues.append(mi)
+
+## Roues des véhicules lourds (v7.00, blender_lourds.py) : une par groupe de surfaces « roue_<n>_… », maillage centré
+## sur son axe, rayon (demi-hauteur de sa boîte), toutes les roues n de ce modèle dans une MultiMesh.
+func _roues_lourd(groupes: Dictionary) -> Array:
+	var l := []
+	for g in groupes.keys():
+		var parts: Array = groupes[g]
+		var bb := AABB()
+		var premier := true
+		for p in parts:
+			for v: Vector3 in (p[0][Mesh.ARRAY_VERTEX] as PackedVector3Array):
+				if premier:
+					bb = AABB(v, Vector3.ZERO)
+					premier = false
+				else:
+					bb = bb.expand(v)
+		var centre := bb.get_center()
+		var decale := []
+		for p in parts:
+			var a: Array = (p[0] as Array).duplicate()
+			var vs: PackedVector3Array = (a[Mesh.ARRAY_VERTEX] as PackedVector3Array).duplicate()
+			for i in vs.size():
+				vs[i] -= centre
+			a[Mesh.ARRAY_VERTEX] = vs
+			decale.append([a, p[1]])
+		var am := _fusion(decale, false)
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_custom_data = true
+		mm.mesh = am
+		mm.instance_count = NOMBRE[NOMBRE.size() - 1] * 2
+		mm.visible_instance_count = 0
+		var mi := MultiMeshInstance3D.new()
+		mi.multimesh = mm
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.custom_aabb = AABB(Vector3(-1e5, -2e3, -1e5), Vector3(2e5, 4e3, 2e5))
+		add_child(mi)
+		l.append([centre, maxf(bb.size.y * 0.5, 0.2), mi, am, 0])
+	return l
 
 ## Surfaces [arrays, Color(r, v, b, rm)] en une seule (couleur et aspect de chaque matériau dans UV, UV2 ; voir
 ## circulation.gdshader), niveaux de détail comme à l'import.
@@ -462,7 +510,7 @@ func _apparaitre(p: Vector3, partout: bool) -> void:
 	var m := _tirer_modele(k)
 	var c := {"id": _id, "m": m, "col": COULEURS[randi() % COULEURS.size()], "voie": voie, "s": s, "L": L, "rang": rang,
 		"v": minf(_v[k] * 0.7, LOURD_VMAX[m]), "perso": randf_range(0.85, 1.02), "suite": -1, "dec": Vector3.ZERO, "dec_s": -100.0,
-		"pos": pos, "dir": Vector3(g[1].x, 0.0, g[1].y), "frein": false, "roue": 0.0, "resa": -1, "bloque": 0.0,
+		"pos": pos, "dir": Vector3(g[1].x, 0.0, g[1].y), "frein": false, "roue": 0.0, "dist": 0.0, "resa": -1, "bloque": 0.0,
 		"klaxon": 0.0, "impasse": false, "leader": "", "clign": 0, "dep": [], "attente": 0.0, "engage": -1, "lent": 0.0,
 		"derive": randf_range(-0.3, 0.3)}
 	_id += 1
@@ -728,6 +776,7 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 	# avance, passage d'une voie à l'autre
 	c.s = float(c.s) + v * dt
 	c.roue = fmod(float(c.roue) + v * dt / RAYON_ROUE, TAU)
+	c.dist = float(c.dist) + v * dt                # roues des lourds : angle = distance / rayon de chaque roue
 	while float(c.s) >= float(c.L):
 		if int(c.suite) == -1:
 			c.suite = _suite(int(c.voie))
@@ -985,6 +1034,12 @@ func _accident(i: int, par: Node3D) -> void:
 	remove_child(mi)
 	rb.add_child(mi)
 	mi.transform = Transform3D.IDENTITY
+	for rg in _roues_g[m]:
+		var wl := MeshInstance3D.new()
+		wl.mesh = rg[3]
+		wl.transform = Transform3D(Basis(Vector3.RIGHT, -float(c.dist) / float(rg[1])), rg[0])
+		wl.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		rb.add_child(wl)
 	for g in (4 if _roue[m] != null else 0):
 		var w := MeshInstance3D.new()
 		w.mesh = _roue[m]
@@ -1112,6 +1167,9 @@ func _rendre() -> void:
 	var nb := []
 	nb.resize(MODELES.size())
 	nb.fill(0)
+	for lr in _roues_g:
+		for rg in lr:
+			rg[4] = 0
 	var plus_proches := []
 	for c in voitures:
 		var m := int(c.m)
@@ -1124,6 +1182,12 @@ func _rendre() -> void:
 		mi.multimesh.set_instance_custom_data(0, col)
 		mi.global_transform = xf
 		(c.corps as AnimatableBody3D).global_transform = xf
+		for rg in _roues_g[m]:
+			var mmg: MultiMesh = (rg[2] as MultiMeshInstance3D).multimesh
+			if int(rg[4]) < mmg.instance_count:
+				mmg.set_instance_transform(int(rg[4]), xf * Transform3D(Basis(Vector3.RIGHT, -float(c.dist) / float(rg[1])), rg[0]))
+				mmg.set_instance_custom_data(int(rg[4]), col)
+				rg[4] = int(rg[4]) + 1
 		if _mm_roues[m] == null:
 			plus_proches.append([(c.pos as Vector3).distance_squared_to(target.global_position), c])
 			continue
@@ -1138,6 +1202,8 @@ func _rendre() -> void:
 	for m in MODELES.size():
 		if _mm_roues[m] != null:
 			(_mm_roues[m] as MultiMeshInstance3D).multimesh.visible_instance_count = nb[m]
+		for rg in _roues_g[m]:
+			(rg[2] as MultiMeshInstance3D).multimesh.visible_instance_count = int(rg[4])
 	# bruit de moteur des deux voitures les plus proches
 	plus_proches.sort_custom(func(x, y): return x[0] < y[0])
 	for k in _moteurs.size():
