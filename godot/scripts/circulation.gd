@@ -824,8 +824,8 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 		_arret_bus(c, dt)
 		if float(c.arret_t) > 0.0:
 			gap = 0.0; vl = 0.0; c.leader = "arrêt de bus"
-		elif float(c.arret_d) - 4.0 < gap:
-			gap = maxf(float(c.arret_d) - 4.0, 0.0); vl = 0.0; c.leader = "arrêt de bus"
+		elif float(c.arret_d) - 4.0 + IDM_S0 < gap:      # IDM s'arrête à IDM_S0 : porte avant à hauteur de l'arrêt
+			gap = maxf(float(c.arret_d) - 4.0 + IDM_S0, 0.0); vl = 0.0; c.leader = "arrêt de bus"
 	# obstacle immobile devant (épave, joueur arrêté, concurrent) : on le dépasse après ATTENTE s
 	if (c.dep as Array).is_empty() and String(c.leader) in ["joueur", "épave", "concurrent"] and float(c.v) < 0.5 \
 			and vl < 0.3 and gap < 12.0:
