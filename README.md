@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.91.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.91/RochetoirinSimulator-v6.91.apk)**
+**[RochetoirinSimulator-v6.92.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.92/RochetoirinSimulator-v6.92.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,11 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.91 :
-- **Météo variable** (⚙ > Météo > Variable) : le temps change tout seul pendant la partie. Le ciel se couvre peu à peu,
-  une averse arrive, la route se mouille, puis vient l'éclaircie… parfois du brouillard.
-- **Sous la pluie**, les voitures roulent moins vite et allument leurs phares, et les passants se font rares et pressent
-  le pas.
+Nouveautés de la v6.92 :
+- **Cycle jour et nuit** (⚙ > Heure de la journée > Cycle) : une journée passe en 24 minutes. Aube orangée, midi,
+  soleil couchant, puis la nuit tombe : la lune se lève, fenêtres et lampadaires s'allument peu à peu.
+- L'heure du jeu s'affiche à côté du nom de la commune ; la météo variable de la v6.91 s'y ajoute.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

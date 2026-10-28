@@ -487,6 +487,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_pietons_test()
 		return
+	if OS.get_cmdline_user_args().has("--cycle-test"):
+		if t == 300:
+			_cycle_test()
+		return
 	if OS.get_cmdline_user_args().has("--meteo-test"):
 		if t == 300:
 			_meteo_test()
@@ -3010,6 +3014,141 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Cycle jour et nuit (v6.92) : -- --drive-test --cycle-test [--drive-from=…] (--fixed-fps 8 conseillé) : moments fixes
+## (lumière ambiante « ciel » à part nulle contre l'ancienne « couleur » : même image ?), puis une journée entière en
+## accéléré, luminosité de l'image à chaque image (plus grand saut d'une image à l'autre contre le passage d'un moment
+## fixe à l'autre), relevé et capture à chaque heure repère. Lancer avec RS_CLOUDS=0,1 (sans ombres de nuages : une
+## ombre qui passe assombrit toute l'image). --cycle-sonde : réglages de la lumière à midi, fixe et dans le cycle.
+func _cycle_test() -> void:
+	var dire := func(x: String): print("  [cycle] " + x)
+	var shot := func(n: String):
+		get_viewport().get_texture().get_image().save_png("user://shots/cycle_%s.png" % n)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	var lum := func() -> float:
+		var im := get_viewport().get_texture().get_image()
+		im.resize(96, 54, Image.INTERPOLATE_BILINEAR)
+		var t := 0.0
+		for y in 54:
+			for x in 96:
+				var c := im.get_pixel(x, y)
+				t += 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
+		return t / (96.0 * 54.0) * 255.0
+	var images := func(n: int):
+		for i in n:
+			car.hold(0.5)
+			await get_tree().process_frame
+	set_weather(0)
+	if OS.get_cmdline_user_args().has("--cycle-sonde"):
+		cycle_pas = 1e9
+		var sonde := func(n: String):
+			await images.call(40)
+			dire.call("%s : luminosité %.2f ; ambiance %d %.2f %.2f %s ; brume %.6f aérienne %.2f ; expo %.2f sat %.2f ; soleil %.2f %s %s ; ciel %s gris %s ; nuit %.3f ; nuages %s" % [
+				n, lum.call(), _env.ambient_light_source, _env.ambient_light_energy, _env.ambient_light_sky_contribution,
+				str(_env.ambient_light_color), _env.fog_density, _env.fog_aerial_perspective, _env.tonemap_exposure,
+				_env.adjustment_saturation, _sun.light_energy, str(_sun.rotation), str(_sun.light_color),
+				"photo" if _env.sky.sky_material == _sky_day else "peint", str(_sky_day.get_shader_parameter("gris")), _night,
+				str(preload("res://scripts/env.gd").vals.get("clouds"))])
+		set_time(0)
+		await sonde.call("midi fixe")
+		set_time(CYCLE, 12.0)
+		await sonde.call("cycle 12 h direct")
+		set_time(CYCLE, 9.0)
+		await sonde.call("cycle 9 h")
+		set_time(CYCLE, 12.0)
+		await sonde.call("cycle 12 h après 9 h")
+		set_time(0)
+		await sonde.call("midi fixe après")
+		dire.call("FIN")
+		get_tree().quit()
+		return
+	# moments fixes : lumière ambiante « ciel » (part 0) contre « couleur » (jusqu'à la v6.91)
+	var fixes := []
+	for t in 4:
+		set_time(t)
+		await images.call(30)
+		var l_ciel: float = lum.call()
+		fixes.append(l_ciel)
+		if t >= 2:
+			_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+			await images.call(4)
+			var l_coul: float = lum.call()
+			_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+			dire.call("%s : luminosité %.2f (ambiance « ciel », part 0) contre %.2f (« couleur », avant) : écart %.2f" % [
+				TIMES[t], l_ciel, l_coul, absf(l_ciel - l_coul)])
+		else:
+			dire.call("%s : luminosité %.2f" % [TIMES[t], l_ciel])
+	var saut_fixe := 0.0
+	for t in 3:
+		saut_fixe = maxf(saut_fixe, absf(float(fixes[t + 1]) - float(fixes[t])))
+	dire.call("passage d'un moment fixe au suivant : saut jusqu'à %.1f d'un coup" % saut_fixe)
+	# aube et crépuscule au rythme du jeu : une mise à jour par minute de jeu (ici une par image ; à ces heures la lumière
+	# ambiante ne doit rien au ciel, dont les reflets se recalculent sur plusieurs images)
+	for seg in [[5.0, 6.5, "aube (nuit -> lumière du coucher)"], [19.0, 20.5, "crépuscule (coucher -> nuit)"]]:
+		set_time(CYCLE, float(seg[0]))
+		cycle_pas = 0.0
+		heure_vitesse = (1.0 / 60.0) / 0.125
+		await images.call(3)
+		var p0: float = lum.call()
+		var debut := p0
+		var s_max := 0.0
+		while heure < float(seg[1]):
+			await images.call(1)
+			var l: float = lum.call()
+			s_max = maxf(s_max, absf(l - p0))
+			p0 = l
+		dire.call("%s, une minute de jeu par image : luminosité %.1f -> %.1f, plus grand saut d'une image à l'autre %.2f" % [
+			seg[2], debut, p0, s_max])
+	if OS.get_cmdline_user_args().has("--cycle-lent"):
+		cycle_pas = CYCLE_PAS
+		heure_vitesse = 1.0 / 60.0
+		set_time(0)
+		dire.call("FIN")
+		get_tree().quit()
+		return
+	# une journée en 720 images (2 min d'heure par image), lumière mise à jour toutes les 10 images (le jeu : chaque
+	# seconde, soit une minute d'heure ; les reflets du ciel se recalculent en 8 images)
+	set_time(CYCLE, 0.0)
+	cycle_pas = 1.25
+	heure_vitesse = 24.0 / (720.0 * 0.125)
+	await images.call(2)
+	var prec: float = lum.call()
+	var saut := 0.0
+	var saut_h := 0.0
+	var vues := {}
+	var pv_jour := 0
+	var pv_nuit := 0
+	for i in 720:
+		await images.call(1)
+		var l: float = lum.call()
+		if absf(l - prec) > saut:
+			saut = absf(l - prec)
+			saut_h = heure
+		prec = l
+		var hh := int(floor(heure))
+		if not vues.has(hh):
+			vues[hh] = true
+			if hh % 2 == 1 or hh in [6, 20]:
+				dire.call("%s : moment %s -> %s (%.2f), soleil %.2f, nuit %.2f, ciel photo %.2f, phares %s, luminosité %.1f" % [
+					heure_texte(), TIMES[_heure_de], TIMES[_heure_vers], _heure_f, _sun.light_energy, _night,
+					0.0 if _env.sky.sky_material != _sky_day else 1.0 - float(_sky_day.get_shader_parameter("gris")),
+					str(phares_allumes()), l])
+			if hh in [6, 7, 9, 12, 17, 19, 20, 22]:
+				shot.call("%02d" % hh)
+			if hh == 12 and pietons:
+				pv_jour = pietons.voulu()
+			if hh == 23 and pietons:
+				pv_nuit = pietons.voulu()
+	dire.call("journée entière : plus grand saut d'une image à l'autre %.2f (vers %.1f h), contre %.1f d'un coup entre moments fixes" % [
+		saut, saut_h, saut_fixe])
+	dire.call("passants voulus : %d à midi, %d à 23 h" % [pv_jour, pv_nuit])
+	cycle_pas = CYCLE_PAS
+	heure_vitesse = 1.0 / 60.0
+	set_time(0)
+	dire.call("FIN")
+	get_tree().quit()
 
 ## Météo variable (v6.91) : -- --drive-test --meteo-test [--drive-from=…] (--fixed-fps 8 conseillé) : à midi, fondus
 ## accélérés beau -> couvert -> pluie -> couvert -> brouillard -> beau, luminosité moyenne de l'image à chaque image (le

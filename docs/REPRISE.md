@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 28/10/2026, 6 h (v6.84 #131 à v6.91 #139 livrées ; choix de modèles de tracteur et de bus en attente, #136)
+## État au 28/10/2026, 6 h (v6.84 #131 à v6.92 #140 livrées ; choix de modèles de tracteur et de bus en attente, #136)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -28,6 +28,13 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v6.92 (#140, `à tester`)** : cycle jour et nuit (⚙ > Heure > Cycle ; voir CLAUDE.md « Heure et cycle ») : journée de
+  24 min, départ à 9 h, heure dans la pastille du HUD. `set_time`/`_apply_weather` remplacés par `_lumiere()` (deux
+  moments `_moment()` mêlés, chacun mêlé par la météo). Essai `RS_CLOUDS=0,1 … --cycle-test` (moments fixes inchangés :
+  midi 79,3 ; ambiance « ciel » à part 0 = « couleur » à 0,3 près ; journée entière en 720 images). **Piège** : une
+  ombre de nuage qui passe assombrit toute l'image (midi à 58 au lieu de 79) : essais de luminosité sans ombres de
+  nuages ; `--cycle-sonde` compare les réglages de la lumière. Les reflets du ciel se recalculent sur ~8 images :
+  ne pas reposer le ciel à chaque image (`_ciel_pose`).
 - **v6.91 (#139, `à tester`)** : météo variable (⚙ > Météo > Variable ; voir CLAUDE.md « Météo ») : fondus de 90 s
   (ciel photo de midi grisé puis ciel peint identique, brume, soleil, pluie, sol mouillé qui sèche en 60 s), circulation
   plus lente et phares allumés sous la pluie, passants moins nombreux (×0,4) et plus pressés. Essai `--meteo-test`

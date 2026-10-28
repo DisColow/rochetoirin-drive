@@ -1082,7 +1082,7 @@ func _roue_xf(m: int, g: int, a: float) -> Transform3D:
 	return Transform3D(b, _pos_roues[m][g])
 
 func _rendre() -> void:
-	var phares: bool = main != null and (int(main.get("time_of_day")) >= 2 or bool(main.get("phares_meteo")))
+	var phares: bool = main != null and main.has_method("phares_allumes") and main.phares_allumes()
 	var nb := [0, 0]
 	var plus_proches := []
 	for c in voitures:

@@ -217,6 +217,17 @@
   s'éloigne et disparaît comme avant) ; explosion -> `pietons.panique(p)` (appelée par `explosion.gd`, fuite à 60 m).
   Essai `--fixed-fps 8 -- --drive-test --pietons-test [--pietons-court] --drive-from=-10461.9,241.5,-498.6,105`
   (centre de Bourgoin, 17 passages piétons à 100 m).
+- **Heure et cycle jour et nuit** (`main.gd`, ⚙ > Heure de la journée) : Midi, Après-midi, Coucher, Nuit, ou **Cycle**
+  (v6.92, #140, initiative de Claude : `heure_choix` = réglage, `time_of_day` = moment le plus proche, `heure` = heure
+  du jeu, 24 min par journée, départ `CYCLE_DEPART`). Repères `CYCLE_REPERES` [heure, moment, décalage du soleil] ;
+  entre deux repères, `_lumiere()` mêle deux moments `_moment(t, fm)` (`MOMENTS` : soleil, exposition, ambiance, brume,
+  ciel), chacun déjà mêlé par la météo. Lumière ambiante toujours « ciel » (part 0 au coucher et la nuit = couleur
+  seule, même image à 0,3 près). Du coucher à la nuit, le soleil devient la lune dans un creux d'énergie (`creux`).
+  **Ciel** : ses reflets se recalculent sur ~8 images (mode INCREMENTAL) : mises à jour toutes les `CYCLE_PAS` s au
+  plus, et rien n'est reposé s'il n'a pas changé (`_ciel_pose`), sinon la lumière ambiante reste celle d'un ciel
+  d'avant (midi sombre). `heure_texte()` dans la pastille du HUD ; `phares_allumes()` (voiture, circulation) ; la
+  carrière rend le cycle après le service de nuit (`set_time(choix, heure)`). Essai
+  `--fixed-fps 8 -- --drive-test --cycle-test --drive-from=-8410.95,221,-7187.25,45.2`.
 - **Météo** (`main.gd`, ⚙ > Météo) : Beau temps, Couvert, Pluie, Brouillard, ou **Variable** (v6.91, #139, initiative
   de Claude : `meteo_choix` = réglage, `weather` = temps qu'il fait ou qui arrive). Variable : durées `METEO_DUREES`,
   suites `METEO_SUITES`, fondu de `METEO_FONDU` s (`meteo_vers`, `_meteo_avancer`) où tous les réglages de
