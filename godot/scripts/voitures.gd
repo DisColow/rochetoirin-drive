@@ -53,11 +53,16 @@ const CATALOGUE := {
 		"masse": 1420.0, "kw": 368.0, "vmax": 310.0, "traction": "arriere", "cx": 0.45, "gps": true, "moteur": 1.5,
 		"annee": 2016, "texte": "La sportive ultime : moteur à plat à l'arrière, aileron géant, 310 km/h.",
 		"credit": "« Porsche 911 GT3 RS (991.1) '16 » de Car2022 (CC BY 4.0)"},
+	# bus de l'activité « Ligne de bus » (#148) : pas au garage (service), conduit le temps d'une ligne
+	"bus": {"nom": "Autobus B1", "marque": "", "prix": 0, "dossier": "res://assets/voitures/bus", "service": true,
+		"masse": 11000.0, "kw": 190.0, "force": 30000.0, "vmax": 90.0, "traction": "arriere", "cx": 3.2, "gps": false, "moteur": 0.7,
+		"annee": 1995, "texte": "L'autobus de ville : 11,5 m, 11 tonnes, porte avant à droite.",
+		"credit": "modèle B1 de la circulation (voir Tracteurs et bus)"},
 }
 
-## Ordre d'affichage dans le garage : du moins cher au plus cher.
+## Ordre d'affichage dans le garage : du moins cher au plus cher (sans les véhicules de service).
 static func ordre() -> Array:
-	var l := CATALOGUE.keys()
+	var l := CATALOGUE.keys().filter(func(id): return not CATALOGUE[id].get("service", false))
 	l.sort_custom(func(a, b): return int(CATALOGUE[a].prix) < int(CATALOGUE[b].prix))
 	return l
 
@@ -66,6 +71,6 @@ static func actuelle() -> String:
 	var c := ConfigFile.new()
 	if c.load("user://garage.cfg") == OK:
 		var v := String(c.get_value("garage", "voiture", DEPART))
-		if CATALOGUE.has(v) and ResourceLoader.exists(String(CATALOGUE[v].dossier) + "/body.glb"):
+		if CATALOGUE.has(v) and not CATALOGUE[v].get("service", false) and ResourceLoader.exists(String(CATALOGUE[v].dossier) + "/body.glb"):
 			return v
 	return DEPART

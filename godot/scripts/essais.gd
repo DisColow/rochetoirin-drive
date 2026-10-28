@@ -487,6 +487,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_pietons_test()
 		return
+	if OS.get_cmdline_user_args().has("--ligne-bus-test"):
+		if t == 300:
+			_ligne_bus_test()
+		return
 	if OS.get_cmdline_user_args().has("--bus-test"):
 		if t == 300:
 			_bus_test()
@@ -2884,6 +2888,7 @@ func _succes_test() -> void:
 	su.verifier()
 	dire.call("au départ (état déjà sauvegardé : médailles, voitures, carrière) : %d succès %s" % [su.obtenus.size(), str(su.obtenus.keys())])
 	var argent0: float = garage.argent
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://shots/ligne_bus.png"))
 	if OS.get_cmdline_user_args().has("--succes-meteo"):
 		# v6.95 : à l'aube du cycle, sous la pluie, compteurs juste sous le but
 		set_time(CYCLE, 6.0)
@@ -3062,6 +3067,157 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Ligne de bus du joueur (#148) : -- --drive-test --ligne-bus-test --drive-from=-10975,236,-1100,90 (--fixed-fps 8
+## conseillé) : Activités > « Prendre une ligne de bus » ; le bus accélère 6 s (vitesse relevée) ; puis, arrêt par
+## arrêt : bus posé 40 m en amont sur la voie qui longe l'arrêt, conduit tout seul jusqu'à la porte au poteau
+## (braquage vers la voie, freinage), portes, voyageurs ; capture au 2e arrêt ; au terminus : recette, voiture rendue.
+const PORTE_BUS_Z := 3.9          # ligne_bus.gd PORTE.z : porte avant à 3,9 m devant le milieu du bus
+const LB := preload("res://scripts/ligne_bus.gd")
+func _ligne_bus_test() -> void:
+	var lb = ligne_bus
+	var ci = circulation
+	var dire := func(x: String): print("  [ligne] " + x)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	ci.set_densite(0)
+	pietons.set_densite(2)
+	for k in 120:
+		await get_tree().process_frame
+	var argent0: float = garage.argent
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://shots/ligne_bus.png"))
+	dire.call("voiture avant : %s" % car.voiture)
+	activities._bus_start()
+	if not lb.actif:
+		dire.call("ÉCHEC : ligne non démarrée")
+		get_tree().quit()
+		return
+	dire.call("ligne de %d arrêts : %s" % [lb.arrets.size(), ", ".join(range(lb.arrets.size()).map(func(k): return "%s (%s)" % [lb.noms[k], lb._mmss(lb.horaires[k])]))])
+	dire.call("véhicule : %s, %.0f kg, gabarit %s, %d roues" % [car.voiture, car.mass, str(car.gabarit), car.wheels.size()])
+	# accélération
+	var t := 0.0
+	while t < 6.0:
+		car.touch_throttle = 1.0
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+	dire.call("pleins gaz 6 s : %.0f km/h" % car.kmh())
+	car.touch_throttle = 0.0
+	var cam := Camera3D.new()
+	add_child(cam)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--ligne-arret="):                # essai d'un seul arrêt (numéro de 1 à 6)
+			lb.i = clampi(int(a.get_slice("=", 1)) - 1, 0, lb.arrets.size() - 1)
+			lb._viser()
+	var essais_arret := 0
+	while lb.actif and essais_arret < 10:
+		essais_arret += 1
+		var k: int = lb.i
+		var q: Vector3 = lb.arrets[k]
+		var recul := 40.0
+		var va: Array = ci.voie_arret(q, 45.0)
+		if va.is_empty():                                # arrêt près du début de sa voie : posé plus près
+			recul = 14.0
+			va = ci.voie_arret(q, 18.0)
+		if va.is_empty():
+			dire.call("arrêt %d : aucune voie le long, sauté" % (k + 1))
+			lb.i += 1
+			if lb.i >= lb.arrets.size():
+				lb._fin()
+			else:
+				lb._viser()
+			continue
+		var voie: int = va[0]
+		var sa: float = va[1]
+		var g0: Array = ci._geo(voie, sa - recul, 0)
+		var p0: Vector3 = g0[0]
+		await _teleport(p0 + Vector3.UP * 0.6, rad_to_deg(atan2(g0[1].x, -g0[1].y)))
+		for f in 30:
+			await get_tree().physics_frame
+		lb._peuple = -1                                  # repeuplé après la téléportation (pietons.vider)
+		var t0: float = lb.t
+		t = 0.0
+		var fini := false
+		while t < 60.0 and lb.actif and lb.i == k and lb.phase == "route":
+			var s_vise := sa - PORTE_BUS_Z
+			var gc: Array = ci._geo(voie, s_vise, 0)
+			var cible: Vector3 = gc[0]
+			var fwd := car.global_transform.basis.z
+			var vers := cible - car.global_position
+			vers.y = 0.0
+			var reste := vers.dot(Vector3(gc[1].x, 0.0, gc[1].y))
+			var gp: Array = ci._geo(voie, minf(sa - PORTE_BUS_Z, sa - recul + t * 8.0 + 12.0), 0)
+			var vise: Vector3 = (gp[0] as Vector3) - car.global_position
+			car.touch_steer = clampf(fwd.cross(vise.normalized()).y * 2.5, -1.0, 1.0)
+			var v := car.linear_velocity.length()
+			if reste > v * v / 6.0 + 1.0 and car.kmh() < 22.0:
+				car.touch_throttle = 1.0 if car.kmh() < 8.0 else 0.6; car.touch_brake = 0.0
+			elif car.kmh() > 2.0:
+				car.touch_throttle = 0.0; car.touch_brake = 1.0
+			else:
+				car.touch_throttle = 0.0; car.touch_brake = 0.0
+				car.hold(0.3)
+			await get_tree().physics_frame
+			var t_av := t
+			t += get_physics_process_delta_time()
+			if t >= 8.0 and t_av < 8.0 and reste > recul - PORTE_BUS_Z - 4.0:
+				# bloqué depuis la pose : ce que touche la caisse, puis reposé plus près
+				var q3 := PhysicsShapeQueryParameters3D.new()
+				var bx := BoxShape3D.new()
+				bx.size = Vector3(car.gabarit.x * 0.95, 1.4, car.gabarit.z * 0.95)
+				q3.shape = bx
+				q3.transform = car.global_transform.translated(Vector3.UP * 1.3)
+				q3.exclude = [car.get_rid()]
+				var touches := []
+				for h in get_world_3d().direct_space_state.intersect_shape(q3, 8):
+					var o: Object = h.collider
+					touches.append("%s%s" % [o.name if o is Node else str(o), " (" + str((o as Node).get_meta("matiere")) + ")" if o is Node and (o as Node).has_meta("matiere") else ""])
+				dire.call("  bloqué après 8 s (%.1f m parcourus) ; la caisse touche : %s" % [recul - PORTE_BUS_Z - reste, ", ".join(touches) if touches.size() > 0 else "rien"])
+				var rs := []
+				for w: VehicleWheel3D in car.wheels:
+					rs.append("%s %s, force %.0f" % [w.name, ("au sol %.2f m sous l'axe" % (w.global_position.y - w.get_contact_point().y)) if w.is_in_contact() else "en l'air", w.engine_force])
+				dire.call("  roues : %s ; vitesse %s, endormi %s, figé %s, tenu %.2f s, sol relief %.1f m (caisse %.1f m)" % ["; ".join(rs),
+					str(car.linear_velocity.snapped(Vector3.ONE * 0.01)), car.sleeping, car.freeze, float(car.get("_hold_t")),
+					Relief.hauteur(car.global_position) if relief else -1.0, car.global_position.y])
+			if int(t / 10.0) != int(t_av / 10.0):
+				dire.call("  t=%.0f s : %.1f km/h, reste %.1f m, gaz %.1f, frein %.1f, volant %.2f, position %s" % [t, car.kmh(), reste,
+					car.touch_throttle, car.touch_brake, car.touch_steer, str(car.global_position.snapped(Vector3.ONE * 0.1))])
+		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
+		if lb.phase == "portes" and lb.i == k:
+			var porte: Vector3 = car.global_transform * LB.PORTE
+			dire.call("arrêt %d %s : portes ouvertes en %.1f s, porte à %.1f m du poteau ; %d à bord, recette %.2f €, primes %.2f €" % [
+				k + 1, lb.noms[k], lb.t - t0, Vector2(porte.x - q.x, porte.z - q.z).length(), lb.voyageurs, lb.recette, lb.primes])
+			if not FileAccess.file_exists("user://shots/ligne_bus.png") and k >= 1:
+				var droite := -car.global_transform.basis.x
+				cam.global_position = car.global_position + droite * 9.0 + car.global_transform.basis.z * 9.0 + Vector3.UP * 3.0
+				cam.look_at(car.global_position + car.global_transform.basis.z * 3.5 + Vector3.UP * 1.2)
+				cam.current = true
+				for f in 24:
+					await get_tree().process_frame
+				get_viewport().get_texture().get_image().save_png("user://shots/ligne_bus.png")
+				cam_rig.cam.current = true
+				dire.call("capture ligne_bus.png")
+			while lb.actif and lb.i == k:
+				car.hold(0.3)
+				await get_tree().physics_frame
+			dire.call("  voyageurs montés : %d au total, %d à bord" % [lb.transportes, lb.voyageurs])
+		elif lb.actif:
+			var porte2: Vector3 = car.global_transform * LB.PORTE
+			dire.call("arrêt %d : portes NON ouvertes en 60 s (porte à %.1f m du poteau, %.0f km/h, phase %s)" % [k + 1,
+				Vector2(porte2.x - q.x, porte2.z - q.z).length(), car.kmh(), lb.phase])
+			lb.i += 1
+			if lb.i >= lb.arrets.size():
+				lb._fin()
+			else:
+				lb._viser()
+	for f in 30:
+		await get_tree().physics_frame
+	dire.call("fin : ligne active %s, voiture %s, argent +%.2f €, statut « %s »" % [lb.actif, car.voiture,
+		garage.argent - argent0, activities._status_l.text.replace("\n", " / ") if activities._status_l else ""])
+	dire.call("succès : lignes %d, voyageurs %d" % [int(succes.valeur("lignes_bus")), int(succes.valeur("voyageurs"))])
+	dire.call("FIN")
+	get_tree().quit()
 
 ## Bus aux arrêts (v7.01) : -- --drive-test --bus-test --drive-from=-10975,236,-1100,90 (--fixed-fps 8 conseillé) : à
 ## Bourgoin ; deux passants posés à l'arrêt le plus proche et un bus 70 m en amont (circulation.bus_vers_arret) ; suivi

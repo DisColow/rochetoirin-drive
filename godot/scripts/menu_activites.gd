@@ -275,6 +275,10 @@ func _taxi() -> void:
 	if act._rides > 0:
 		_texte(v, "%d course(s), %s gagnés" % [act._rides, act._euros(act._total)], 26, Color(1.0, 0.9, 0.6))
 	_bouton(v, "Commencer le service", act._taxi_start)
+	# #148 : ligne de bus (ligne_bus.gd)
+	_texte(v, "Ligne de bus : prenez le volant du bus de ville et desservez 6 arrêts. Arrêtez la porte avant au "
+		+ "niveau du poteau, laissez monter les voyageurs, soyez à l'heure.")
+	_bouton(v, "Prendre une ligne de bus", act._bus_start)
 
 func _chasse() -> void:
 	var v := _colonne()

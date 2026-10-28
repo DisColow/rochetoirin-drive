@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 28/10/2026, 17 h (v6.84 #131 à v7.01 livrées)
+## État au 28/10/2026, 21 h (v6.84 #131 à v7.02 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -28,6 +28,11 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v7.02 (#148, `à tester`)** : ligne de bus du joueur (voir CLAUDE.md « Ligne de bus ») : bus jouable
+  (`assets/voitures/bus`, publié sur `donnees`), cockpit `assets/cockpit/bus`, `ligne_bus.gd`. Essai `--ligne-bus-test
+  [--ligne-arret=n]`. Pièges : arrêts sur voie de service inaccessibles (filtrés par `circulation.voie_arret`) ; bus
+  calé dans les rues à 18 % avec la force d'une voiture (`force` du catalogue : 30 kN) ; `_teleport` vide les passants
+  (repeupler après) ; disque presque plein (~500 Mo libres : nettoyer le bloc-notes avant un gros import).
 - **v7.01 (#147, `à tester`)** : le bus s'arrête aux arrêts de bus (`circulation._arret_bus`, porte avant à hauteur :
   l'écart d'arrêt `IDM_S0` est ajouté), les passants qui attendent montent (il attend qu'ils aient marché jusqu'à la
   porte), 1 ou 2 descendent. Essai `--bus-test --drive-from=-10975,236,-1100,90` (bus posé en amont : les lignes

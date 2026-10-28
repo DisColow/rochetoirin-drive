@@ -12,7 +12,8 @@ Chaque voiture a son habitacle, d'après le vrai (couleurs, compteurs, volant, a
   - Renaud Espèce : compteur numérique au centre de la planche, écran GPS escamotable ;
   - Renaud Lagune : deux cadrans, écran GPS au centre, lecteur de carte-clé ;
   - Pijo 306 Maxi : planche de course nue, afficheur de course, interrupteurs à bascule, arceau ;
-  - Porc'Che 119 GT3 RS : cinq cadrans (compte-tours jaune au centre), alcantara, arceau, écran GPS.
+  - Porc'Che 119 GT3 RS : cinq cadrans (compte-tours jaune au centre), alcantara, arceau, écran GPS ;
+  - autobus B1 de la ligne de bus (#148) : planche grise, compteur et manomètre, grand volant à deux branches.
 Les voitures sans GPS n'ont pas d'écran : la mini-carte reste affichée (hud.gd).
 Sorties : ../godot/assets/cockpit/<id>/ ; aperçu : python3 build_cockpits.py --apercu <capture du jeu>."""
 import json, math, os, sys
@@ -100,6 +101,12 @@ STYLES = {
                 aerateurs=[(96, 34, 122, 48, "rect"), (410, 34, 436, 48, "rect")],
                 volant=(3, (hx("#09090b"), hx("#4a4a50")), (250, 205, 30), "porcche"), rayon=70, epaisseur=10,
                 pavillon=(hx("#0c0c0e"), hx("#3e3e44")), arceau=True, boite="auto", portes=(hx("#0b0b0d"), hx("#45454c"))),
+    # autobus de la ligne (#148) : grande planche grise plate, compteur et manomètre d'air, grand volant presque à plat
+    "bus": dict(planche=(hx("#1a1c20"), hx("#7c8088")), dessus=(hx("#202226"), hx("#62666e")), casquette=(168, 312, 8, "rect"),
+                cadrans=[("speed", 214, 44, 18, "noir", 100), ("rpm", 266, 44, 18, "noir", 3000)], numerique=None,
+                centre="radio", aerateurs=[(60, 40, 96, 54, "rect"), (384, 40, 420, 54, "rect")],
+                volant=(2, (hx("#0c0c0e"), hx("#4a4c52")), None, None), rayon=82, epaisseur=9,
+                pavillon=(hx("#6a6c70"), hx("#d8dadc")), arceau=False, boite="auto", portes=(hx("#2c2e33"), hx("#8a8e96"))),
 }
 FONDS = {"noir": ((10, 10, 12), (235, 238, 242), (255, 110, 40)), "blanc": ((228, 228, 222), (20, 20, 24), (230, 60, 30)),
          "creme": ((222, 214, 190), (30, 26, 20), (200, 40, 30)), "noir_jaune": ((250, 205, 40), (10, 10, 12), (220, 30, 20))}
@@ -413,10 +420,11 @@ def volant(st):
     # faux logo sur le moyeu (emblème de faux_logos.py, réduit)
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import faux_logos
-    e = faux_logos.emblème(logo, 16 if nb != 1 else 12)
-    im = Image.fromarray(c.px, "RGBA")
-    im.alpha_composite(e, (cx - e.width // 2, cy - e.height // 2))
-    c.px = np.array(im)
+    if logo:                                # bus : moyeu nu
+        e = faux_logos.emblème(logo, 16 if nb != 1 else 12)
+        im = Image.fromarray(c.px, "RGBA")
+        im.alpha_composite(e, (cx - e.width // 2, cy - e.height // 2))
+        c.px = np.array(im)
     c.save("wheel.png")
     return {"wheel_r": WR, "wheel_t": WT}
 

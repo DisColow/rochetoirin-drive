@@ -51,6 +51,7 @@ var circulation: Node3D       # voitures qui roulent (#132, circulation.gd)
 var pietons: Node3D           # passants (v6.88, pietons.gd)
 var klaxon: Node3D            # klaxon du joueur (v6.88, klaxon.gd)
 var balade: Node3D               # balade : la voiture roule toute seule, caméra de cinéma (v6.98, balade.gd)
+var ligne_bus: Node             # ligne de bus : le joueur conduit le bus d'arrêt en arrêt (#148, ligne_bus.gd)
 var dust: Node3D
 var _trample: Node                 # cultures fauchées (trample.gd)
 var rain: Node3D
@@ -289,6 +290,9 @@ func _ready() -> void:
 	balade = preload("res://scripts/balade.gd").new()
 	balade.main = self
 	add_child(balade)
+	ligne_bus = preload("res://scripts/ligne_bus.gd").new()
+	ligne_bus.main = self
+	add_child(ligne_bus)
 	poles.set_night(_night)
 	await _etape("Voiture, sons et radio")
 	# gardien des limites de la carte

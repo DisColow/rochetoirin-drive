@@ -552,6 +552,22 @@ func _apparaitre(p: Vector3, partout: bool) -> void:
 ## Essais : un bus posé ~`recul` m en amont de l'arrêt `arret`, sur la voie qui le longe à droite ; son numéro, -1 si
 ## aucune voie.
 func bus_vers_arret(arret: Vector3, recul := 70.0) -> int:
+	var best := voie_arret(arret, recul * 0.5)
+	if best.is_empty():
+		return -1
+	var s0: float = maxf(float(best[1]) - recul, 2.0)
+	if voitures.size() >= voulu():                # place faite : la voiture la plus loin de l'arrêt s'en va
+		var loin := 0
+		for i in voitures.size():
+			if (voitures[i].pos as Vector3).distance_to(arret) > (voitures[loin].pos as Vector3).distance_to(arret):
+				loin = i
+		_retirer(loin)
+	_creer(int(best[0]), s0, 0, 3, _geo(int(best[0]), s0, 0))
+	return _id - 1
+
+## Voie qui longe l'arrêt à sa droite (12 m au plus de l'axe), au moins `avant` m après son début : [voie, s au droit
+## de l'arrêt], [] si aucune. Essais (bus posé en amont, ligne de bus du joueur).
+func voie_arret(arret: Vector3, avant := 35.0) -> Array:
 	var vus := {}
 	var best := []
 	var bd := 12.0
@@ -572,21 +588,11 @@ func bus_vers_arret(arret: Vector3, recul := 70.0) -> int:
 						var rel: Vector3 = arret - (g[0] as Vector3)
 						var cote := rel.dot(Vector3(g[1].x, 0.0, g[1].y).cross(Vector3.UP).normalized())
 						var d := Vector2(rel.x, rel.z).length()
-						if d < bd and cote > -1.0 and cote < 8.0 and s > recul * 0.5:
+						if d < bd and cote > -1.0 and cote < 8.0 and s > avant:
 							bd = d
 							best = [voie, s]
 						s += 2.0
-	if best.is_empty():
-		return -1
-	var s0: float = maxf(float(best[1]) - recul, 2.0)
-	if voitures.size() >= voulu():                # place faite : la voiture la plus loin de l'arrêt s'en va
-		var loin := 0
-		for i in voitures.size():
-			if (voitures[i].pos as Vector3).distance_to(arret) > (voitures[loin].pos as Vector3).distance_to(arret):
-				loin = i
-		_retirer(loin)
-	_creer(int(best[0]), s0, 0, 3, _geo(int(best[0]), s0, 0))
-	return _id - 1
+	return best
 
 func _creer(voie: int, s: float, rang: int, m: int, g: Array) -> void:
 	var k := voie >> 1

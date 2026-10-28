@@ -33,6 +33,8 @@ const SUCCES := [
 	{"id": "taxi50", "titre": "Chauffeur de confiance", "texte": "Terminer 50 courses de taxi.", "stat": "taxi", "but": 50.0, "prime": 1500},
 	{"id": "taxi5e", "titre": "Cinq étoiles", "texte": "10 courses de taxi à 5 étoiles.", "stat": "taxi5", "but": 10.0, "prime": 600},
 	{"id": "taxinuit", "titre": "Taxi de nuit", "texte": "5 courses de taxi au tarif de nuit.", "stat": "taxi_nuit", "but": 5.0, "prime": 400},
+	{"id": "bus1", "titre": "Machiniste", "texte": "Terminer une ligne de bus.", "stat": "lignes_bus", "but": 1.0, "prime": 150},
+	{"id": "bus100", "titre": "Ligne fidèle", "texte": "Transporter 100 voyageurs en bus.", "stat": "voyageurs", "but": 100.0, "prime": 800},
 	{"id": "chasse10", "titre": "Détective", "texte": "Réussir 10 chasses au lieu.", "stat": "chasses", "but": 10.0, "prime": 600},
 	{"id": "or1", "titre": "Médaillé", "texte": "Décrocher une médaille d'or.", "stat": "ors", "but": 1.0, "prime": 200},
 	{"id": "or10", "titre": "Collectionneur d'or", "texte": "L'or sur 10 épreuves différentes.", "stat": "ors", "but": 10.0, "prime": 1500},
@@ -50,7 +52,7 @@ const STATS := [["km", "Distance parcourue", "km"], ["km_nuit", "dont de nuit", 
 	["vmax", "Vitesse maximale", "km/h"], ["temps", "Temps de jeu", "temps"], ["communes", "Communes traversées", ""],
 	["explosions", "Explosions", ""], ["casse", "Éléments du décor cassés", ""], ["arbres", "Arbres couchés", ""],
 	["circulation", "Voitures de la circulation percutées", ""], ["taxi", "Courses de taxi", ""],
-	["taxi5", "dont à 5 étoiles", ""], ["taxi_nuit", "dont au tarif de nuit", ""], ["chasses", "Chasses au lieu réussies", ""], ["ors", "Épreuves en or", ""],
+	["taxi5", "dont à 5 étoiles", ""], ["taxi_nuit", "dont au tarif de nuit", ""], ["lignes_bus", "Lignes de bus terminées", ""], ["voyageurs", "Voyageurs transportés en bus", ""], ["chasses", "Chasses au lieu réussies", ""], ["ors", "Épreuves en or", ""],
 	["concurrents", "Concurrents détruits", ""], ["argent", "Argent gagné", "€"]]
 
 var main: Node

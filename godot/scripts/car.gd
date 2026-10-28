@@ -136,6 +136,8 @@ func construire(id: String) -> void:
 	base_puissance = float(fiche.kw) * 1000.0
 	# force au démarrage (limite d'adhérence) d'après le rapport poids/puissance : 2 CV ≈ 2,5 m/s², GT3 ≈ 10 m/s²
 	base_force = ENGINE if ranger else base_masse * (1.2 + 0.035 * base_puissance / base_masse)
+	if fiche.has("force"):              # bus (#148) : première courte, monte les rues à 20 %
+		base_force = float(fiche.force)
 	n_motrices = 4.0 if String(fiche.traction) == "4x4" else 2.0
 	k_frein = base_masse / 2400.0
 	base_vmax = float(fiche.vmax)
