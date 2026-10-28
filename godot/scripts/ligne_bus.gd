@@ -102,7 +102,9 @@ func demarrer() -> bool:
 ## arrêts de la carte (à RACCORD m au plus, longés par une voie), puis, de l'arrêt le plus proche du joueur (R_DEPART)
 ## dans le sens de la ligne, NB_ARRETS arrêts consécutifs (ceux hors de la carte sont sautés) ; vrais noms d'arrêts.
 const RACCORD := 35.0
+const Relief := preload("res://scripts/relief.gd")
 var _lignes = null
+var _pos_ruban: Array = []
 func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
 	if _lignes == null:
 		_lignes = []
@@ -112,10 +114,17 @@ func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
 				_lignes = l
 	var departs := []                                   # [distance au joueur, ligne, rang du premier arrêt]
 	var cartes := []                                    # par ligne : indice de l'arrêt de la carte de chaque arrêt (-1)
+	# chaque arrêt d'OSM : celui de la carte s'il y en a un à RACCORD m (panneau, passants qui attendent), sinon le quai
+	# d'OSM lui-même ; positions communes dans _pos_ruban (indice : clé de _desservis, au-delà des arrêts de la carte)
+	_pos_ruban = Array(tous)
+	var index := {}
 	for li in _lignes.size():
 		var c := PackedInt32Array()
 		for a in _lignes[li].arrets:
 			var q := Vector3(float(a[0]), 0.0, float(a[1]))
+			if absf(q.x - p.x) > 6000.0 or absf(q.z - p.z) > 6000.0:
+				c.append(-1)
+				continue
 			var best := -1
 			var bd := RACCORD
 			for k in tous.size():
@@ -123,9 +132,15 @@ func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
 				if d < bd:
 					bd = d
 					best = k
+			if best < 0:
+				var cle := "%d,%d" % [roundi(q.x), roundi(q.z)]
+				if not index.has(cle):
+					index[cle] = _pos_ruban.size()
+					_pos_ruban.append(Vector3(q.x, Relief.hauteur(q), q.z))
+				best = index[cle]
 			c.append(best)
-			if best >= 0 and tous[best].distance_to(p) < R_DEPART:
-				departs.append([tous[best].distance_to(p), li, c.size() - 1])
+			if (_pos_ruban[best] as Vector3).distance_to(Vector3(p.x, (_pos_ruban[best] as Vector3).y, p.z)) < R_DEPART:
+				departs.append([Vector2(_pos_ruban[best].x - p.x, _pos_ruban[best].z - p.z).length(), li, c.size() - 1])
 		cartes.append(c)
 	departs.sort_custom(func(a, b): return a[0] < b[0])
 	var meilleur := []
@@ -138,10 +153,11 @@ func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
 			var k: int = cartes[li][j]
 			if k < 0 or vus.has(k):
 				continue
-			if not _desservis.has(k):
+			var cle_d: Variant = ("r%d" % k) if k >= tous.size() else k
+			if not _desservis.has(cle_d):
 				var ci = main.get("circulation")
-				_desservis[k] = ci == null or not ci.ok or not ci.voie_arret(tous[k], 0.0).is_empty()
-			if not _desservis[k]:
+				_desservis[cle_d] = ci == null or not ci.ok or not ci.voie_arret(_pos_ruban[k], 0.0).is_empty()
+			if not _desservis[cle_d]:
 				continue
 			vus[k] = true
 			suite.append([k, String(_lignes[li].arrets[j][2])])
@@ -163,7 +179,7 @@ func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
 		return false
 	arrets.clear()
 	for e in meilleur:
-		arrets.append(tous[int(e[0])])
+		arrets.append(_pos_ruban[int(e[0])])
 		noms.append(String(e[1]) if String(e[1]) != "" else "Arrêt %d" % (noms.size() + 1))
 	ligne = "LIGNE %s · %s" % [_lignes[m_li].ref, _lignes[m_li].nom]
 	return true
