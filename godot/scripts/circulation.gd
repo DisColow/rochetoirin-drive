@@ -548,8 +548,9 @@ func _apparaitre(p: Vector3, partout: bool) -> void:
 			return
 	_creer(voie, s, rang, _tirer_modele(k), g)
 
-## Essais : un bus posé ~`recul` m en amont de l'arrêt `arret`, sur la voie qui le longe à droite ; false si aucune.
-func bus_vers_arret(arret: Vector3, recul := 70.0) -> bool:
+## Essais : un bus posé ~`recul` m en amont de l'arrêt `arret`, sur la voie qui le longe à droite ; son numéro, -1 si
+## aucune voie.
+func bus_vers_arret(arret: Vector3, recul := 70.0) -> int:
 	var vus := {}
 	var best := []
 	var bd := 12.0
@@ -575,10 +576,10 @@ func bus_vers_arret(arret: Vector3, recul := 70.0) -> bool:
 							best = [voie, s]
 						s += 2.0
 	if best.is_empty():
-		return false
+		return -1
 	var s0: float = maxf(float(best[1]) - recul, 2.0)
 	_creer(int(best[0]), s0, 0, 3, _geo(int(best[0]), s0, 0))
-	return true
+	return _id - 1
 
 func _creer(voie: int, s: float, rang: int, m: int, g: Array) -> void:
 	var k := voie >> 1

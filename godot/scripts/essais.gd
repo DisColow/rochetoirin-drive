@@ -3082,6 +3082,9 @@ func _bus_test() -> void:
 	var log_t := 0.0
 	var pris := false
 	var pose := false
+	var suivi := -1
+	var suivi_t := 0.0
+	var vise := Vector3.ZERO
 	while t < 90.0:
 		if not pose and t > 3.0 and pietons.ok:
 			# un bus posé en amont de l'arrêt le plus proche de la voiture (les lignes réelles passent rarement par là)
@@ -3092,7 +3095,22 @@ func _bus_test() -> void:
 				if q.distance_to(car.global_position) < bd:
 					bd = q.distance_to(car.global_position)
 					arret = q
-			dire.call("arrêt visé à %.0f m de la voiture %s : bus posé %s" % [bd, str(arret), "oui" if ci.bus_vers_arret(arret) else "NON"])
+			suivi = ci.bus_vers_arret(arret)
+			vise = arret
+			dire.call("arrêt visé à %.0f m de la voiture %s : bus posé n° %d" % [bd, str(arret), suivi])
+		if suivi >= 0 and t >= suivi_t:
+			suivi_t += 4.0
+			var trouve := false
+			for c in ci.voitures:
+				if int(c.id) == suivi:
+					trouve = true
+					var rel: Vector3 = vise - (c.pos as Vector3)
+					var dir: Vector3 = c.dir
+					dire.call("  t=%.0f s bus n° %d : %.0f km/h, arrêt devant %.1f m, côté %.1f m, arret_d %.1f, attente %.1f s, leader « %s »" % [t, suivi,
+						float(c.v) * 3.6, rel.dot(dir), rel.dot(dir.cross(Vector3.UP).normalized()), float(c.arret_d), float(c.arret_t), str(c.leader)])
+			if not trouve:
+				dire.call("  t=%.0f s bus n° %d disparu" % [t, suivi])
+				suivi = -1
 		car.hold(0.5)
 		await get_tree().process_frame
 		t += get_process_delta_time()
