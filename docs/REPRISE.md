@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 28/10/2026, 6 h (v6.84 #131 à v6.95 #143 livrées ; choix de modèles de tracteur et de bus en attente, #136)
+## État au 28/10/2026, 6 h (v6.84 #131 à v6.96 #144 livrées ; choix de modèles de tracteur et de bus en attente, #136)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -28,6 +28,11 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v6.96 (#144, `à tester`)** : arc-en-ciel à la fin d'une averse (météo variable, soleil bas), circulation prudente
+  dans le brouillard, ciel non reposé pendant un éclair. Essai `--arc-test`.
+- **Piège (28/10)** : pousser pendant qu'un build tourne l'annule (`cancel-in-progress` d'`apk.yml` et `desktop.yml`) :
+  la v6.94 n'a pas eu d'APK (la v6.95 la contient). Attendre la fin des builds avant de pousser (boucle sur
+  `gh api repos/DisColow/rochetoirin-drive/actions/runs` jusqu'à ce qu'aucun ne soit en cours).
 - **v6.95 (#143, `à tester`)** : cinq succès météo et nuit (`succes.gd` : orage, eclairs, aube, journee, taxinuit).
   Essai `--succes-test --succes-meteo` (aube du cycle sous la pluie, compteurs posés juste sous le but) : les cinq
   débloqués, primes versées, sauvegarde relue.

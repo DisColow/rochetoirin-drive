@@ -239,6 +239,10 @@
   plus discrets le jour. **Bulletin météo** : `main.bulletin_meteo()` ajouté au flash de Rochetoirin Info (`radio.gd`) ;
   en météo variable, `meteo_suivante` est tirée d'avance (la prévision se réalise). Essai `--orage-test` (textes, calage
   sur une boucle à 30 images/s, lueur image par image à temps ×0,1 ; ici le son avance en temps réel, pas le jeu).
+  **Arc-en-ciel** (v6.96, #144) : `arc` de `ciel_nuages.gdshaderinc` (40,5-42,5° du point opposé au soleil, arc
+  secondaire à 50,5-53,5°, sous l'horizon si le soleil dépasse 42°) ; `main._arc_avancer` : fin d'une averse (fondu
+  depuis la pluie), de jour, une minute puis effacé. Brouillard : `main.brouillard`, circulation prudente comme sous la
+  pluie. Essai `--arc-test` (pixels colorés avec et sans l'arc sur la même image).
 - **Météo** (`main.gd`, ⚙ > Météo) : Beau temps, Couvert, Pluie, Brouillard, ou **Variable** (v6.91, #139, initiative
   de Claude : `meteo_choix` = réglage, `weather` = temps qu'il fait ou qui arrive). Variable : durées `METEO_DUREES`,
   suites `METEO_SUITES`, fondu de `METEO_FONDU` s (`meteo_vers`, `_meteo_avancer`) où tous les réglages de

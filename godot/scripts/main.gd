@@ -829,12 +829,15 @@ const METEO_REGLAGES := {
 	"sat": [1.08, 0.92, 0.86, 0.8], "vent": [0.55, 0.65, 0.9, 0.12], "mouille": [0.0, 0.0, 1.0, 0.3],
 	"soleil": [1.0, 0.32, 0.2, 0.28], "ombre": [1.0, 0.45, 0.3, 0.35], "brume": [0.0, 0.00012, 0.0011, 0.011],
 	"brume_ciel": [0.0, 0.0, 0.3, 0.85], "gris": [0.0, 1.0, 1.0, 1.0], "pluie": [0.0, 0.0, 1.0, 0.0],
-	"phares": [0.0, 0.0, 1.0, 1.0]}
+	"phares": [0.0, 0.0, 1.0, 1.0], "brouillard": [0.0, 0.0, 0.0, 1.0]}
 var weather := 0                 # temps qu'il fait (0-3) ; pendant un fondu, celui qui arrive
 var meteo_choix := 0             # réglage ⚙ > Météo (VARIABLE : le temps change tout seul)
 var meteo_vitesse := 1.0         # essais : le temps passe plus vite
 var pluie := 0.0                 # 0-1, fondu compris : gouttes, sons, essuie-glaces, circulation, passants
 var phares_meteo := false        # pluie ou brouillard : phares allumés en plein jour (voiture, circulation)
+var brouillard := 0.0            # 0-1 (circulation prudente, v6.96)
+var arc_en_ciel := 0.0           # 0-1 : arc-en-ciel à la fin d'une averse (v6.96)
+var _arc_t := -1.0               # s depuis le début de la fin de l'averse
 var _meteo_de := 0               # fondu de _meteo_de vers weather, _meteo_f de 0 à 1
 var _meteo_f := 1.0
 var _meteo_fondu := METEO_FONDU
@@ -901,6 +904,22 @@ func _meteo_avancer(dt: float) -> void:
 		if _meteo_pas <= 0.0 or _meteo_f >= 1.0:
 			_meteo_pas = _meteo_fondu / float(METEO_PAS)
 			_lumiere()
+	_arc_avancer(dt)
+
+## Arc-en-ciel (v6.96) : quand une averse se termine, de jour ; il paraît au milieu du fondu, reste une minute puis
+## s'efface en deux. Le ciel le dessine à l'opposé du soleil (ciel_nuages.gdshaderinc), donc seulement si le soleil est
+## assez bas (pas à midi).
+func _arc_avancer(dt: float) -> void:
+	_arc_t = _arc_t + dt * meteo_vitesse if _meteo_de == 2 and weather != 2 else -1.0
+	var a := 0.0
+	if _arc_t >= 0.0:
+		a = smoothstep(0.35 * _meteo_fondu, 0.6 * _meteo_fondu, _arc_t) * (1.0 - smoothstep(_meteo_fondu + 60.0,
+			_meteo_fondu + 180.0, _arc_t)) * (1.0 - _night)
+	if absf(a - arc_en_ciel) > 0.02 or (a == 0.0 and arc_en_ciel != 0.0):
+		arc_en_ciel = a
+		for m in [_sky_peint, _sky_day]:
+			if m:
+				m.set_shader_parameter("arc", a)
 
 ## Réglage `cle` de METEO_REGLAGES au point du fondu.
 func _meteo(cle: String, f: float) -> float:
@@ -976,7 +995,7 @@ func _lumiere() -> void:
 	# ciel : ses reflets se recalculent sur plusieurs images (Sky.PROCESS_MODE_AUTOMATIC -> INCREMENTAL, le shader
 	# lit LIGHT0) : ne rien toucher s'il n'a pas changé (sinon la lumière ambiante reste celle d'un ciel d'avant)
 	var p := _ciel_melange(a.ciel, b.ciel, f)
-	var etat_ciel := [photo, p, _sun.rotation, _sun.light_energy]
+	var etat_ciel := [photo, p, _sun.rotation, _soleil_base]
 	if etat_ciel != _ciel_pose:
 		_ciel_pose = etat_ciel
 		if photo >= 1.0 or p.is_empty():
@@ -1001,6 +1020,7 @@ func _lumiere() -> void:
 	# temps qu'il fait
 	_gris = _meteo("gris", fm)
 	pluie = _meteo("pluie", fm)
+	brouillard = _meteo("brouillard", fm)
 	phares_meteo = _meteo("phares", fm) > 0.5
 	wind_strength = _meteo("vent", fm)
 	_wet_target = _meteo("mouille", fm)

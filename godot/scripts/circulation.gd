@@ -60,7 +60,8 @@ const COURSE_CASE := 16.0
 const BARRAGE := 12.0                          # course : arrêt à cette distance du carrefour d'une rue du tracé (m)
 const LENT := 4.0                              # s derrière un véhicule lent (route rapide) avant de le doubler
 const V_RAPIDE := 19.0                         # doubler un véhicule lent : routes limitées à ~70 km/h et plus (m/s)
-const PLUIE_V := 0.85                          # sous la pluie (main.pluie, v6.91) : vitesse visée ×, temps de suivi ×
+const PLUIE_V := 0.85                          # sous la pluie (main.pluie, v6.91) ou dans le brouillard (main.brouillard,
+                                               # v6.96) : vitesse visée ×, temps de suivi ×
 const PLUIE_T := 1.5
 
 var target: Node3D
@@ -847,7 +848,7 @@ func _physics_process(dt: float) -> void:
 		return
 	var t0 := Time.get_ticks_usec()
 	_t += dt
-	_pluie = float(main.get("pluie")) if main else 0.0
+	_pluie = maxf(float(main.get("pluie")), float(main.get("brouillard"))) if main else 0.0
 	var p := target.global_position
 	_route_course()
 	for i in range(voitures.size() - 1, -1, -1):
