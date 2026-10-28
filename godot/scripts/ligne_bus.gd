@@ -249,7 +249,7 @@ func process(dt: float) -> void:
 func _ouvrir(porte: Vector3) -> void:
 	var act = _act()
 	var dern := i == arrets.size() - 1
-	var desc := voyageurs if dern else randi_range(0, mini(2, voyageurs))
+	var desc := voyageurs if dern else (randi_range(1, mini(2, voyageurs)) if _demande and voyageurs > 0 else 0)
 	var r: Array = main.pietons.bus_a_l_arret(arrets[i], porte, mini(desc, 4))
 	var monte := 0 if dern else int(r[0])
 	voyageurs = maxi(voyageurs - desc, 0) + monte

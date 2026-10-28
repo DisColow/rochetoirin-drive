@@ -3099,7 +3099,8 @@ func _ligne_bus_test() -> void:
 		return
 	dire.call("ligne de %d arrêts : %s" % [lb.arrets.size(), ", ".join(range(lb.arrets.size()).map(func(k): return "%s (%s)" % [lb.noms[k], lb._mmss(lb.horaires[k])]))])
 	dire.call("véhicule : %s, %.0f kg, gabarit %s, %d roues" % [car.voiture, car.mass, str(car.gabarit), car.wheels.size()])
-	# accélération
+	# accélération (ligne en pause : le premier arrêt n'est pas franchi pendant ce temps)
+	activities.mode = ""
 	var t := 0.0
 	while t < 6.0:
 		car.touch_throttle = 1.0
@@ -3107,6 +3108,7 @@ func _ligne_bus_test() -> void:
 		t += get_physics_process_delta_time()
 	dire.call("pleins gaz 6 s : %.0f km/h" % car.kmh())
 	car.touch_throttle = 0.0
+	activities.mode = "bus"
 	var cam := Camera3D.new()
 	add_child(cam)
 	for a in OS.get_cmdline_user_args():
@@ -3192,6 +3194,11 @@ func _ligne_bus_test() -> void:
 		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
 		if lb.phase == "portes" and lb.i == k:
 			var porte: Vector3 = car.global_transform * LB.PORTE
+			var montent := 0
+			for c in pietons.passants:
+				if c.has("monte"):
+					montent += 1
+			dire.call("  attendaient (tirés) %d, arrêt demandé %s ; passants qui vont à la porte %d" % [lb._attendent, lb._demande, montent])
 			dire.call("arrêt %d %s : portes ouvertes en %.1f s, porte à %.1f m du poteau ; %d à bord, recette %.2f €, primes %.2f €" % [
 				k + 1, lb.noms[k], lb.t - t0, Vector2(porte.x - q.x, porte.z - q.z).length(), lb.voyageurs, lb.recette, lb.primes])
 			if not FileAccess.file_exists("user://shots/ligne_bus.png") and k >= 1:
