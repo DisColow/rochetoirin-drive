@@ -28,6 +28,9 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **Piège (28/10)** : pousser pendant qu'un build tourne l'annule (`cancel-in-progress` d'`apk.yml` et `desktop.yml`) :
+  la v6.94 n'a pas eu d'APK (la v6.95 la contient). Attendre la fin des builds avant de pousser (boucle sur
+  `gh api repos/DisColow/rochetoirin-drive/actions/runs` jusqu'à ce qu'aucun ne soit en cours).
 - **v6.95 (#143, `à tester`)** : cinq succès météo et nuit (`succes.gd` : orage, eclairs, aube, journee, taxinuit).
   Essai `--succes-test --succes-meteo` (aube du cycle sous la pluie, compteurs posés juste sous le but) : les cinq
   débloqués, primes versées, sauvegarde relue.
