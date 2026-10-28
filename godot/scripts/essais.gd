@@ -487,6 +487,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_pietons_test()
 		return
+	if OS.get_cmdline_user_args().has("--lourds-test"):
+		if t == 300:
+			_lourds_test()
+		return
 	if OS.get_cmdline_user_args().has("--balade-test"):
 		if t == 300:
 			_balade_test()
@@ -3054,6 +3058,62 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Véhicules lourds (v6.99, #136) : -- --drive-test --lourds-test [--drive-from=…] (--fixed-fps 8 conseillé) : circulation
+## dense, tracteurs et bus trois fois plus fréquents (--lourds-x=…) ; la voiture du joueur arrêtée ; relevé toutes les 10 s (tracteurs et
+## bus en scène, leur vitesse la plus haute, voitures en train d'en doubler une) ; gros plan du premier de chaque genre
+## qui roule à moins de 150 m ; 60 s.
+func _lourds_test() -> void:
+	var ci = circulation
+	var dire := func(x: String): print("  [lourds] " + x)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	ci.set_densite(3)
+	ci.lourds_x = 3.0
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--lourds-x="):
+			ci.lourds_x = float(a.get_slice("=", 1))
+	ci.vider()
+	dire.call("modèles présents : %s" % str(ci._dispo))
+	var cam := Camera3D.new()
+	add_child(cam)
+	var vus := {}
+	var vmax := {2: 0.0, 3: 0.0}
+	var doubles := 0
+	var t := 0.0
+	var log_t := 0.0
+	while t < 60.0:
+		car.hold(0.5)
+		await get_tree().process_frame
+		t += get_process_delta_time()
+		var n := {0: 0, 1: 0, 2: 0, 3: 0}
+		for c in ci.voitures:
+			var m := int(c.m)
+			n[m] += 1
+			if m >= 2 and t > 3.0:
+				vmax[m] = maxf(vmax[m], float(c.v) * 3.6)
+				if not vus.has(m) and t > 5.0 and (c.pos as Vector3).distance_to(car.global_position) < 150.0 and float(c.v) > 2.0:
+					vus[m] = true
+					var dir: Vector3 = c.dir
+					var cote := dir.cross(Vector3.UP).normalized()
+					cam.global_position = (c.pos as Vector3) + cote * 9.0 + dir * 6.0 + Vector3.UP * 2.6
+					cam.look_at((c.pos as Vector3) + Vector3.UP * 1.3)
+					cam.current = true
+					for i in 3:
+						await get_tree().process_frame
+					get_viewport().get_texture().get_image().save_png("user://shots/lourd_%s.png" % ci.MODELES[m])
+					cam_rig.cam.current = true
+			elif (c.dep as Array).size() > 0:
+				doubles += 1
+		if t >= log_t:
+			log_t += 10.0
+			dire.call("t=%2.0f s : %d voitures, %d tracteur(s), %d bus ; vitesse la plus haute : tracteur %.0f km/h, bus %.0f km/h ; voitures en dépassement (cumul d'images) %d" % [
+				t, ci.voitures.size(), n[2], n[3], vmax[2], vmax[3], doubles])
+	dire.call("gros plans : %s ; épaves %d" % [str(vus.keys().map(func(m): return ci.MODELES[m])), ci.epaves.size()])
+	dire.call("FIN")
+	get_tree().quit()
 
 ## Balade (v6.98) : -- --drive-test --balade-test [--duree=<s>] [--drive-from=…] (--fixed-fps 8 conseillé) : balade
 ## lancée comme depuis le menu ; relevé toutes les 15 s (lieu visé, vitesse, limitation de la route, plan) ; à la fin :

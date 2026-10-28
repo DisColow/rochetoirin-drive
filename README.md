@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.98.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.98/RochetoirinSimulator-v6.98.apk)**
+**[RochetoirinSimulator-v6.99.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.99/RochetoirinSimulator-v6.99.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.98 :
-- **Balade** (Activités > Course libre) : la voiture roule toute seule de lieu en lieu (limitations et feux rouges
-  respectés), et la caméra filme comme au cinéma (bord de route, drone, ras de la roue, survol…). Idéal avec la météo
-  variable et le cycle jour et nuit. Un toucher sur l'écran rend le volant.
+Nouveautés de la v6.99 :
+- **Tracteurs et bus** dans la circulation (les modèles que tu as choisis) : des tracteurs avec leur remorque sur les
+  routes de campagne, à 25 km/h, que les voitures finissent par doubler ; des bus de ville en agglomération.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

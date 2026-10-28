@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 28/10/2026, 6 h (v6.84 #131 à v6.98 #146 livrées ; #136 : l'utilisateur a choisi le tracteur T5 et le bus B1, à intégrer)
+## État au 28/10/2026, 6 h (v6.84 #131 à v6.99 #136 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -28,6 +28,9 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v6.99 (#136, `à tester`)** : tracteur T5 et bus B1 (choix de l'utilisateur) dans la circulation (voir CLAUDE.md
+  « Véhicules lourds ») ; données publiées par `publier_fichiers.sh assets/props/lourd_*.glb(.import)`. Import d'un
+  glb seul : petit projet temporaire (même chemin res://), puis copie du .import et de .godot/imported/<nom>-<md5>.*.
 - **v6.98 (#146, `à tester`)** : mode Balade (`balade.gd`, voir CLAUDE.md « Balade ») : pilote des concurrents à allure
   de promenade (limitations relevées sur le trajet), lieux de places.json, six plans de caméra, un toucher rend la main.
   Arrêt aux feux rouges, sans doubler. Essai `--balade-test [--duree=s]` (lent ici : ~1 h pour 5 min de jeu en ville).
