@@ -3144,11 +3144,14 @@ func _ligne_bus_test() -> void:
 		var t0: float = lb.t
 		t = 0.0
 		var fini := false
+		if OS.get_cmdline_user_args().has("--ligne-libre"):   # personne à prendre ni à déposer : le bus passe
+			lb._demande = false
+			lb._attendent = 0
 		var libre: bool = not lb._demande and lb._attendent == 0
 		if libre:
 			dire.call("arrêt %d %s : personne à prendre ni à déposer, le bus passe sans s'arrêter" % [k + 1, lb.noms[k]])
 		while t < 60.0 and lb.actif and lb.i == k and lb.phase == "route":
-			var s_vise := sa + 30.0 if libre else sa - PORTE_BUS_Z
+			var s_vise := sa + 40.0 if libre else sa - PORTE_BUS_Z
 			var gc: Array = ci._geo(voie, s_vise, 0)
 			var cible: Vector3 = gc[0]
 			var fwd := car.global_transform.basis.z
@@ -3159,7 +3162,9 @@ func _ligne_bus_test() -> void:
 			var vise: Vector3 = (gp[0] as Vector3) - car.global_position
 			car.touch_steer = clampf(fwd.cross(vise.normalized()).y * 2.5, -1.0, 1.0)
 			var v := car.linear_velocity.length()
-			if reste > v * v / 6.0 + 1.0 and car.kmh() < 22.0:
+			if libre and car.kmh() < 28.0:
+				car.touch_throttle = 1.0; car.touch_brake = 0.0
+			elif reste > v * v / 6.0 + 1.0 and car.kmh() < 22.0:
 				car.touch_throttle = 1.0 if car.kmh() < 8.0 else 0.6; car.touch_brake = 0.0
 			elif car.kmh() > 2.0:
 				car.touch_throttle = 0.0; car.touch_brake = 1.0
@@ -3198,7 +3203,8 @@ func _ligne_bus_test() -> void:
 			for c in pietons.passants:
 				if c.has("monte"):
 					montent += 1
-			dire.call("  attendaient (tirés) %d, arrêt demandé %s ; passants qui vont à la porte %d" % [lb._attendent, lb._demande, montent])
+			dire.call("  attendaient (tirés) %d, arrêt demandé %s (sonnette %s) ; passants qui vont à la porte %d" % [lb._attendent, lb._demande,
+				"entendue" if lb._sonne else "non", montent])
 			dire.call("arrêt %d %s : portes ouvertes en %.1f s, porte à %.1f m du poteau ; %d à bord, recette %.2f €, primes %.2f €" % [
 				k + 1, lb.noms[k], lb.t - t0, Vector2(porte.x - q.x, porte.z - q.z).length(), lb.voyageurs, lb.recette, lb.primes])
 			if not FileAccess.file_exists("user://shots/ligne_bus.png") and k >= 1:
