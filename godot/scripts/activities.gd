@@ -1172,6 +1172,7 @@ func _taxi_process(dt: float) -> void:
 	elif _phase == "arret":
 		# le client fait sa course (#53) : le compteur tourne au tarif d'attente, rien ne presse
 		if _compteur:
+			_compteur.nuit = main.has_method("tarif_nuit") and main.tarif_nuit()
 			_compteur.compter(dt, 0.0, 0.0)
 		_arret_t -= dt
 		_set_status("%s\nLe client est à %s… (le compteur tourne)" % [head, _arret_nom])
@@ -1191,6 +1192,7 @@ func _taxi_process(dt: float) -> void:
 	elif _phase == "course":
 		_t += dt
 		if _compteur:
+			_compteur.nuit = main.has_method("tarif_nuit") and main.tarif_nuit()     # tarif de nuit (v6.93)
 			_compteur.compter(dt, Vector2(car.linear_velocity.x, car.linear_velocity.z).length() * dt, car.kmh())
 		var dest := _rp(vise)
 		var d := c.distance_to(dest)
@@ -1316,6 +1318,7 @@ func _taxi_pickup() -> void:
 	_stop_t = 0.0
 	_phase = "course"
 	if _compteur:
+		_compteur.nuit = main.has_method("tarif_nuit") and main.tarif_nuit()
 		_compteur.demarrer()
 	for b in _beacons:
 		if is_instance_valid(b):
@@ -1386,7 +1389,8 @@ func _taxi_drop() -> void:
 		conv += "\nTrajet rapide : le client est content."
 	elif part_temps < 0.0:
 		conv += "\nLe trajet a paru long au client."
-	hud.toast("Course : %s + pourboire %s%s" % [_euros(fare), _euros(tip), conv], 5.0)
+	hud.toast("Course : %s%s + pourboire %s%s" % [_euros(fare), " (tarif de nuit)" if _compteur and _compteur.nuit else "",
+		_euros(tip), conv], 5.0)
 	if _client and is_instance_valid(_client):
 		if "cible" in _client:
 			# il réapparaît près de la portière et s'en va à pied vers sa destination (#55), puis disparaît

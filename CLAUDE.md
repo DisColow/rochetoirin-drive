@@ -228,6 +228,11 @@
   d'avant (midi sombre). `heure_texte()` dans la pastille du HUD ; `phares_allumes()` (voiture, circulation) ; la
   carrière rend le cycle après le service de nuit (`set_time(choix, heure)`). Essai
   `--fixed-fps 8 -- --drive-test --cycle-test --drive-from=-8410.95,221,-7187.25,45.2`.
+  **Étoiles** (v6.93, #141) : `etoile()` de `ciel_nuages.gdshaderinc` (grille de directions de 0,4°, une case sur ~70,
+  1 à 2 px : plus petites, elles scintilleraient), dernier réglage `etoiles` du ciel peint (nuit claire seulement,
+  mêlé au crépuscule), sous les nuages. **Tarif de nuit du taxi** : `main.tarif_nuit()` (réglage Nuit, 19 h 30 - 7 h
+  dans le cycle) -> `taximetre.nuit` (« TARIF 2 », `PAR_KM_NUIT`, chaque mètre au tarif du moment). Essais `--nuit-test`
+  (étoiles comptées, taximètre), `--taxi-test --taxi-nuit`.
 - **Météo** (`main.gd`, ⚙ > Météo) : Beau temps, Couvert, Pluie, Brouillard, ou **Variable** (v6.91, #139, initiative
   de Claude : `meteo_choix` = réglage, `weather` = temps qu'il fait ou qui arrive). Variable : durées `METEO_DUREES`,
   suites `METEO_SUITES`, fondu de `METEO_FONDU` s (`meteo_vers`, `_meteo_avancer`) où tous les réglages de
