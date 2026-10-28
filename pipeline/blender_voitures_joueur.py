@@ -55,6 +55,10 @@ CARS = {
     "gt3": dict(marque="porcche", logos=[("capot", 0.28, 0.10)], lh=(1.88, 1.3), L=4.55, rot=180, roues=["Rim1Mtl", "Tyre1Mtl", "Rotor1Mtl", "Caliper1Mtl"], suppr=[],
                 mats={"Paint1Mtl": "paint", "Glass1Mtl": "glass", "Glass2Mtl": "glass", "Windows1Mtl": "glass",
                       "Tyre1Mtl": "rubber"}, couleur=(0.95, 0.38, 0.05)),
+    # bus B1 de la circulation (#136), conduit par le joueur dans l'activité « Ligne de bus » (#148) : pas au garage
+    "bus": dict(src="../lourds/bus/model.glb", L=11.5, rot=90, roues=[r"^material(_4)?$"], suppr=[r"^seat$", r"^wood$"],
+                mats={"glass": "glass", "light": "lamp"}, faces=40000, couleur=None,
+                eye=[-0.75, 2.05, -3.7], steer=[-0.75, 1.6, -4.1]),     # poste de conduite tout à l'avant
     "twingo": dict(marque="renaud", logos=[("av", 0.55, 0.13)], lh=(1.63, 1.42), L=3.43, rot=0, roues=["^object_0$", "^object_1$"], suppr=[], mats={}, couleur=None),
 }
 
@@ -198,7 +202,7 @@ def effacer_badges(b, c):
 
 def convertir(cid, c):
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    bpy.ops.import_scene.gltf(filepath=os.path.join(SRC, cid, "scene.gltf"))
+    bpy.ops.import_scene.gltf(filepath=os.path.join(SRC, c["src"]) if c.get("src") else os.path.join(SRC, cid, "scene.gltf"))
     for o in list(bpy.data.objects):
         if o.type == "MESH":
             mw = o.matrix_world.copy(); o.parent = None; o.matrix_world = mw
@@ -376,6 +380,9 @@ def convertir(cid, c):
             "steer": [-round(W * 0.2, 2), round(H * 0.62, 2), -round(L * 0.1, 2)],
             "beams": [round(W * 0.36, 2), round(H * 0.5, 2), round(z.y - mid - 0.1, 2)],
             "couleur": list(c["couleur"]) if c["couleur"] else None}
+    for k in ("eye", "steer"):              # poste de conduite placé à la main (bus : tout à l'avant)
+        if c.get(k):
+            meta[k] = c[k]
     if c.get("roue_de"):                    # #109 : roue du modèle ratée, celle d'une autre voiture (car.gd)
         meta["roue_de"] = c["roue_de"]
     json.dump(meta, open(os.path.join(d, "meta.json"), "w"))

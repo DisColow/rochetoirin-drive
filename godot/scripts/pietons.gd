@@ -26,6 +26,7 @@ const R_MIN := 25.0                            # apparition au moins à cette di
 const R_MAX := 110.0
 const R_VU := 75.0                             # apparition dans le champ seulement au-delà
 const R_LOIN := 140.0
+const R_GARDE := 400.0                          # passants posés à un arrêt pour la ligne de bus du joueur (#148)
 const CASE := 64.0
 const BOND := 4.5                              # vitesse de l'écart (m/s)
 const T_BOND := 0.65
@@ -197,7 +198,8 @@ func _apparaitre(p: Vector3, partout: bool) -> void:
 			return
 	_poser(k, s)
 
-## Essais : `nb` passants qui attendent à l'arrêt de bus le plus proche de p (40 m au plus) ; combien posés.
+## `nb` passants qui attendent à l'arrêt de bus le plus proche de p (40 m au plus), gardés hors du compte jusqu'à
+## R_GARDE m (ligne de bus du joueur, #148 ; essais) ; combien posés.
 func peupler_arret(p: Vector3, nb: int) -> int:
 	var best := -1
 	for k in _genre.size():
@@ -208,10 +210,10 @@ func peupler_arret(p: Vector3, nb: int) -> int:
 		return 0
 	var n0 := passants.size()
 	for i in nb:
-		_poser(best, longueur(best) * (0.5 + (float(i) - (nb - 1) * 0.5) * 0.3))
+		_poser(best, longueur(best) * (0.5 + (float(i) - (nb - 1) * 0.5) * 0.3), true)
 	return passants.size() - n0
 
-func _poser(k: int, s: float) -> void:
+func _poser(k: int, s: float, garde := false) -> void:
 	var m := _modele_pret()
 	if m < 0:
 		return
@@ -236,6 +238,8 @@ func _poser(k: int, s: float) -> void:
 		c.pause = 1e9
 		c.lat = 0.0
 		c.sens = 1
+	if garde:
+		c.garde = true
 	passants.append(c)
 	_placer(c, 1.0)
 
@@ -255,14 +259,14 @@ func _physics_process(dt: float) -> void:
 	_presse = 1.0 + 0.3 * (float(main.get("pluie")) if main else 0.0)
 	var p := target.global_position
 	for i in range(passants.size() - 1, -1, -1):
-		if (passants[i].n as Node3D).global_position.distance_to(p) > R_LOIN:
+		if (passants[i].n as Node3D).global_position.distance_to(p) > (R_GARDE if passants[i].has("garde") else R_LOIN):
 			_retirer(i)
 	var n := voulu()
 	while passants.size() > n:                   # en trop (réglage baissé, client du taxi adopté) : hors de vue d'abord
 		var j := -1
 		for i in passants.size():
 			var q: Vector3 = (passants[i].n as Node3D).global_position
-			if not _visible(q) and (j < 0 or q.distance_squared_to(p) > (passants[j].n as Node3D).global_position.distance_squared_to(p)):
+			if not _visible(q) and not passants[i].has("garde") and (j < 0 or q.distance_squared_to(p) > (passants[j].n as Node3D).global_position.distance_squared_to(p)):
 				j = i
 		if j < 0:
 			break
@@ -296,9 +300,10 @@ func arrets_bus() -> PackedVector3Array:
 	return l
 
 ## Bus arrêté à l'arrêt p, porte avant à `porte` (v7.01) : les passants qui attendent à moins de 15 m montent (ils
-## marchent jusqu'à la porte puis disparaissent) ; un ou deux autres descendent et partent à pied. [montés, descendus,
+## marchent jusqu'à la porte puis disparaissent) ; un ou deux autres (`nb_desc` s'il est donné) descendent et partent à
+## pied. [montés, descendus,
 ## temps de marche du plus loin jusqu'à la porte (s)]
-func bus_a_l_arret(p: Vector3, porte: Vector3) -> Array:
+func bus_a_l_arret(p: Vector3, porte: Vector3, nb_desc := -1) -> Array:
 	if not ok:
 		return [0, 0]
 	var m0 := 0
@@ -310,7 +315,7 @@ func bus_a_l_arret(p: Vector3, porte: Vector3) -> Array:
 			m0 += 1
 			marche = maxf(marche, (c.n as Node3D).global_position.distance_to(porte) / 1.5)
 	var d0 := 0
-	for i in randi_range(1, 2):
+	for i in (randi_range(1, 2) if nb_desc < 0 else nb_desc):
 		var m := _modele_pret()
 		if m < 0:
 			break

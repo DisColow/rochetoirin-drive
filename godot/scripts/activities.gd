@@ -316,6 +316,8 @@ func _clear_world() -> void:
 func _stop() -> void:
 	if main.get("balade") and main.balade.actif:
 		main.balade.arreter()
+	if main.get("ligne_bus") and main.ligne_bus.actif:
+		main.ligne_bus.arreter()
 	_fin_concurrents(0.0)
 	_course_ia = false
 	if main.net and main.net.armes:
@@ -1032,6 +1034,19 @@ func _balade_start() -> void:
 	hud._show_drive(true)
 	main.balade.demarrer()
 
+## Ligne de bus (#148, ligne_bus.gd) : le joueur prend le bus et dessert une ligne de vrais arrêts.
+func _bus_start() -> void:
+	_close_menu()
+	_stop()
+	if not main.ligne_bus.demarrer():
+		_set_status("Pas d'arrêt de bus près d'ici : allez en ville (Bourgoin-Jallieu, La Tour-du-Pin…).")
+		_status_t = 6.0
+		return
+	mode = "bus"
+	map.locked = true             # pas de téléportation pendant le service (■ Arrêter pour reprendre sa voiture)
+	hud._show_drive(true)
+	hud.toast("Vous prenez le volant du bus : %d arrêts, suivez le GPS." % main.ligne_bus.arrets.size(), 4.0)
+
 func _taxi_start() -> void:
 	_close_menu()
 	_clear_world()
@@ -1471,6 +1486,8 @@ func _process_corps(dt: float) -> void:
 			_hunt_process(dt)
 		"taxi":
 			_taxi_process(dt)
+		"bus":
+			main.ligne_bus.process(dt)
 
 func _physics_process(dt: float) -> void:
 	if get_tree().paused or car == null or mode != "taxi" or _phase != "course":

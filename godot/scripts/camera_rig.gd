@@ -131,7 +131,9 @@ func _process_corps(dt: float) -> void:
 		var flat := Vector3(fwd.x, 0, fwd.z).normalized().rotated(Vector3.UP, yaw_off)
 		# caméra proche de la voiture (souhait du joueur), à toutes les vitesses
 		# (v6.57, #92 : un peu plus haute, 2,05 m avant, pour mieux voir devant la voiture)
-		var cd: float = CRANS[cran][0]; var ch: float = CRANS[cran][1]; var cv: float = CRANS[cran][2]
+		# véhicule long (bus de la ligne, #148) : caméra reculée et montée d'autant
+		var kg := clampf(float(target.get("gabarit").z) / 4.8, 1.0, 2.4) if target.get("gabarit") != null else 1.0
+		var cd: float = CRANS[cran][0] * kg; var ch: float = CRANS[cran][1] * kg; var cv: float = CRANS[cran][2] * kg
 		var want := t.origin - flat * cd * cos(pitch_off) + Vector3(0, ch + cd * sin(pitch_off), 0)
 		# voiture portée par la soucoupe : plan large, un peu en contrebas, voiture et soucoupe dans le cadre
 		_carry = move_toward(_carry, 1.0 if target.carried else 0.0, dt * 0.8)
