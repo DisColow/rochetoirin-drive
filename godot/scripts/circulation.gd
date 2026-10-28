@@ -578,6 +578,12 @@ func bus_vers_arret(arret: Vector3, recul := 70.0) -> int:
 	if best.is_empty():
 		return -1
 	var s0: float = maxf(float(best[1]) - recul, 2.0)
+	if voitures.size() >= voulu():                # place faite : la voiture la plus loin de l'arrêt s'en va
+		var loin := 0
+		for i in voitures.size():
+			if (voitures[i].pos as Vector3).distance_to(arret) > (voitures[loin].pos as Vector3).distance_to(arret):
+				loin = i
+		_retirer(loin)
 	_creer(int(best[0]), s0, 0, 3, _geo(int(best[0]), s0, 0))
 	return _id - 1
 
