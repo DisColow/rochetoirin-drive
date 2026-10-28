@@ -257,6 +257,8 @@
   distance, nuit, à pied, vitesse maximale, temps et communes suivis ici ; médailles, voitures et chapitres relus de
   leur sauvegarde (`valeur`). Annonces une par une (bandeau du HUD : `main.get_node("HUD")`, main n'a pas de variable
   `hud`). Sauvegarde `user://succes.cfg`. Essai `--fixed-fps 8 -- --drive-test --succes-test --drive-from=…`.
+  v6.95 (#143) : succès de la météo et de la nuit (`km_pluie`, `eclairs` noté par `main.eclair`, `km_aube` et
+  `heures_cycle` dans le cycle, `taxi_nuit` noté par `activities._taxi_drop`) ; essai `--succes-test --succes-meteo`.
 - **Accueil** (v6.86, `scripts/accueil.gd`) : premier lancement d'un nouveau joueur (ni garage.cfg ni carriere.cfg au
   lancement), jamais avec des options de ligne de commande (essais) ; une fois (reglages.cfg accueil/vu). Capture
   `-- --drive-test --accueil-test`.

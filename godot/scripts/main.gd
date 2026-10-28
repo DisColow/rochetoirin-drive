@@ -1059,6 +1059,8 @@ func eclair(f: float) -> void:
 	_eclair_t = 0.0
 	_eclair_f = clampf(f, 0.0, 1.0) * lerpf(0.35, 1.0, _night)
 	eclairs += 1
+	if succes:
+		succes.noter("eclairs")
 
 func _eclair_avancer(dt: float) -> void:
 	if _eclair_t < 0.0 or _env == null:

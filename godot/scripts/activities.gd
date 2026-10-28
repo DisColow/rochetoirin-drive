@@ -1361,6 +1361,8 @@ func _taxi_drop() -> void:
 		main.succes.noter("taxi")
 		if stars >= 5:
 			main.succes.noter("taxi5")
+		if _compteur and _compteur.nuit:
+			main.succes.noter("taxi_nuit")           # v6.95
 	if not _rappel.is_empty():
 		if (_rappel.client as Dictionary).is_empty():
 			_rappel.client = _talk.client.duplicate()          # le même client, plus tard (#53)

@@ -2864,6 +2864,17 @@ func _succes_test() -> void:
 	su.verifier()
 	dire.call("au départ (état déjà sauvegardé : médailles, voitures, carrière) : %d succès %s" % [su.obtenus.size(), str(su.obtenus.keys())])
 	var argent0: float = garage.argent
+	if OS.get_cmdline_user_args().has("--succes-meteo"):
+		# v6.95 : à l'aube du cycle, sous la pluie, compteurs juste sous le but
+		set_time(CYCLE, 6.0)
+		set_weather(2)
+		su.stats["km_pluie"] = 4.9
+		su.stats["km_aube"] = 1.9
+		su.stats["heures_cycle"] = 23.8
+		su.stats["eclairs"] = 19.0
+		su.stats["taxi_nuit"] = 4.0
+		await get_tree().process_frame
+		dire.call("météo : pluie %.2f, heure %s" % [pluie, heure_texte()])
 	car.touch_brake = 0.0
 	car.touch_throttle = 1.0
 	car.aide_voie = true
@@ -2880,6 +2891,12 @@ func _succes_test() -> void:
 	su.noter("explosions")
 	su.noter("taxi", 1.0)
 	su.noter("km", 1.0)
+	if OS.get_cmdline_user_args().has("--succes-meteo"):
+		eclair(1.0)
+		su.noter("taxi_nuit")
+		dire.call("après 20 s à l'aube sous la pluie : sous la pluie %s, à l'aube %s, heures du cycle %.2f, éclairs %d, taxi de nuit %d" % [
+			su.texte_stat("km_pluie", "km"), su.texte_stat("km_aube", "km"), su.valeur("heures_cycle"), int(su.valeur("eclairs")),
+			int(su.valeur("taxi_nuit"))])
 	for i in 30:
 		await get_tree().process_frame
 	su.verifier()
