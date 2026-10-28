@@ -1018,6 +1018,9 @@ func _physics_process(_dt: float) -> void:
 		# 4 roues au sol, garde au sol), puis capture de côté ; on revient au pick-up à la fin
 		var V := preload("res://scripts/voitures.gd")
 		var ids: Array = V.ordre().filter(func(i): return ResourceLoader.exists(String(V.CATALOGUE[i].dossier) + "/body.glb"))
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--voitures="):           # quelques voitures seulement, bus de service compris (#148)
+				ids = Array(a.get_slice("=", 1).split(","))
 		var k := (t - 300) / 560
 		var u := (t - 300) % 560
 		car.aide_voie = false
