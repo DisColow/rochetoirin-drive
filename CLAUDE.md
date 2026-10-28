@@ -285,7 +285,10 @@
   poteau, bus arrêté -> portes (bus tenu immobile : frein de porte), `pietons.peupler_arret` à `PEUPLER` m (passants
   « garde » : hors du compte jusqu'à `R_GARDE`), `pietons.bus_a_l_arret(p, porte, nb_desc)` ; recette `TARIF` par
   voyageur, `PRIME_HEURE` à ± `ECART` s, `MALUS_CHOC` ; terminus : `garage.gagner`, succès `lignes_bus`/`voyageurs`,
-  voiture rendue (`garage.vue_changee`). Caméra poursuite reculée d'après `car.gabarit.z` (`camera_rig.gd`). Essai
+  voiture rendue (`garage.vue_changee`). v7.03 : à chaque arrêt `_attendent` (passants posés) et `_demande` (sonnette
+  « arrêt demandé » à 250 m, `_sonnette`) ; sans l'un ni l'autre, arrêt desservi en passant (dépassé de 8 m après
+  être venu à 15 m), sinon brûlé (`oublis`, `MALUS_CHOC`). Roues du bus en pneu et jante unis (`roue_unie` de
+  `blender_voitures_joueur.py` : texture déformée par l'allègement). Essai : `--ligne-libre` (tous les arrêts libres). Caméra poursuite reculée d'après `car.gabarit.z` (`camera_rig.gd`). Essai
   `--fixed-fps 8 -- --drive-test --ligne-bus-test --drive-from=-10975,236,-1100,90` (bus posé en amont de chaque arrêt
   et conduit jusqu'au poteau, capture `ligne_bus.png`).
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
