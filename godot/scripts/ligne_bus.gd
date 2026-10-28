@@ -28,6 +28,7 @@ var main: Node
 var actif := false
 var arrets: Array = []                          # Vector3 des arrêts de la ligne
 var noms: Array = []
+var ligne := ""                                 # « LIGNE 4 · Gare > Hôtel de Ville » (réseau Ruban), sinon ""
 var horaires: Array = []                        # s depuis le départ
 var i := 0                                      # arrêt visé
 var t := 0.0
@@ -62,6 +63,106 @@ func demarrer() -> bool:
 		return false
 	var tous: PackedVector3Array = pie.arrets_bus()
 	var p := car.global_position
+	noms.clear()
+	ligne = ""
+	if not _ligne_ruban(tous, p) and not _ligne_proche(tous, p):
+		return false
+	var names = main.get_node("HUD").names
+	horaires.clear()
+	var h := 0.0
+	var prec := p
+	for q: Vector3 in arrets:
+		if noms.size() < horaires.size() + 1:
+			var n: String = names.road_at_fixe(q) if names else ""
+			noms.append(n if n != "" and n != "Hors route" else "Arrêt %d" % (noms.size() + 1))
+		h += prec.distance_to(q) * 1.4 / V_HORAIRE + (ATTENTE if horaires.size() > 0 else 15.0)
+		horaires.append(roundf(h / 10.0) * 10.0)
+		prec = q
+	# prise du bus à la place de la voiture
+	car.construire("bus")
+	car.set("nitro_niveau", 0)
+	car.global_position += Vector3.UP * 0.4
+	car.linear_velocity = Vector3.ZERO
+	car.angular_velocity = Vector3.ZERO
+	actif = true
+	i = 0
+	t = 0.0
+	voyageurs = 0
+	transportes = 0
+	recette = 0.0
+	primes = 0.0
+	chocs = 0
+	a_l_heure = 0
+	oublis = 0
+	_peuple = -1
+	_viser()
+	return true
+
+## Vraie ligne du réseau Ruban (#149, world/lignes_bus.json de pipeline/fetch_lignes_bus.py) : ses arrêts ramenés aux
+## arrêts de la carte (à RACCORD m au plus, longés par une voie), puis, de l'arrêt le plus proche du joueur (R_DEPART)
+## dans le sens de la ligne, NB_ARRETS arrêts consécutifs (ceux hors de la carte sont sautés) ; vrais noms d'arrêts.
+const RACCORD := 35.0
+var _lignes = null
+func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
+	if _lignes == null:
+		_lignes = []
+		if FileAccess.file_exists("res://world/lignes_bus.json"):
+			var l = JSON.parse_string(FileAccess.get_file_as_string("res://world/lignes_bus.json"))
+			if l is Array:
+				_lignes = l
+	var departs := []                                   # [distance au joueur, ligne, rang du premier arrêt]
+	var cartes := []                                    # par ligne : indice de l'arrêt de la carte de chaque arrêt (-1)
+	for li in _lignes.size():
+		var c := PackedInt32Array()
+		for a in _lignes[li].arrets:
+			var q := Vector3(float(a[0]), 0.0, float(a[1]))
+			var best := -1
+			var bd := RACCORD
+			for k in tous.size():
+				var d := Vector2(tous[k].x - q.x, tous[k].z - q.z).length()
+				if d < bd:
+					bd = d
+					best = k
+			c.append(best)
+			if best >= 0 and tous[best].distance_to(p) < R_DEPART:
+				departs.append([tous[best].distance_to(p), li, c.size() - 1])
+		cartes.append(c)
+	departs.sort_custom(func(a, b): return a[0] < b[0])
+	var meilleur := []
+	var m_li := -1
+	for dep in departs.slice(0, 40):
+		var li: int = dep[1]
+		var suite := []
+		var vus := {}
+		for j in range(int(dep[2]), cartes[li].size()):
+			var k: int = cartes[li][j]
+			if k < 0 or vus.has(k):
+				continue
+			if not _desservis.has(k):
+				var ci = main.get("circulation")
+				_desservis[k] = ci == null or not ci.ok or not ci.voie_arret(tous[k], 0.0).is_empty()
+			if not _desservis[k]:
+				continue
+			vus[k] = true
+			suite.append([k, String(_lignes[li].arrets[j][2])])
+			if suite.size() >= NB_ARRETS:
+				break
+		if suite.size() > meilleur.size():
+			meilleur = suite
+			m_li = li
+		if meilleur.size() >= NB_ARRETS:
+			break
+	if meilleur.size() < 4:
+		return false
+	arrets.clear()
+	for e in meilleur:
+		arrets.append(tous[int(e[0])])
+		noms.append(String(e[1]) if String(e[1]) != "" else "Arrêt %d" % (noms.size() + 1))
+	ligne = "LIGNE %s · %s" % [_lignes[m_li].ref, _lignes[m_li].nom]
+	return true
+
+## Secours (v7.02) : arrêts de la carte enchaînés de proche en proche à partir du plus proche du joueur.
+func _ligne_proche(tous: PackedVector3Array, p: Vector3) -> bool:
 	var cand := []
 	for k in tous.size():
 		if tous[k].distance_to(p) < R_DEPART:
@@ -91,38 +192,7 @@ func demarrer() -> bool:
 		dir = (tous[best] - q0).normalized()
 		pris[best] = true
 		arrets.append(tous[best])
-	if arrets.size() < 3:
-		return false
-	var names = main.get_node("HUD").names
-	noms.clear()
-	horaires.clear()
-	var h := 0.0
-	var prec := p
-	for q: Vector3 in arrets:
-		var n: String = names.road_at_fixe(q) if names else ""
-		noms.append(n if n != "" and n != "Hors route" else "Arrêt %d" % (noms.size() + 1))
-		h += prec.distance_to(q) * 1.4 / V_HORAIRE + (ATTENTE if horaires.size() > 0 else 15.0)
-		horaires.append(roundf(h / 10.0) * 10.0)
-		prec = q
-	# prise du bus à la place de la voiture
-	car.construire("bus")
-	car.set("nitro_niveau", 0)
-	car.global_position += Vector3.UP * 0.4
-	car.linear_velocity = Vector3.ZERO
-	car.angular_velocity = Vector3.ZERO
-	actif = true
-	i = 0
-	t = 0.0
-	voyageurs = 0
-	transportes = 0
-	recette = 0.0
-	primes = 0.0
-	chocs = 0
-	a_l_heure = 0
-	oublis = 0
-	_peuple = -1
-	_viser()
-	return true
+	return arrets.size() >= 3
 
 ## Meilleur candidat ([score, indice], le plus petit score d'abord) longé par une voie de la circulation où le bus peut
 ## s'arrêter (sinon arrêt sur une voie de service, un parking de gare… : inaccessible) ; -1 si aucun.
@@ -195,7 +265,8 @@ func process(dt: float) -> void:
 		_sonne = true
 		_sonnette()
 		main.get_node("HUD").toast("Arrêt demandé : %s" % noms[i], 2.5)
-	var head := "BUS  ·  arrêt %d/%d  ·  %d à bord  ·  %s" % [i + 1, arrets.size(), voyageurs, act._euros(recette + primes)]
+	var head := "%s  ·  arrêt %d/%d  ·  %d à bord  ·  %s" % [ligne if ligne != "" else "BUS", i + 1, arrets.size(), voyageurs,
+		act._euros(recette + primes)]
 	var reste := float(horaires[i]) - t
 	var heure := ("dans " + _mmss(reste)) if reste >= 0.0 else ("retard " + _mmss(reste))
 	if phase == "route":

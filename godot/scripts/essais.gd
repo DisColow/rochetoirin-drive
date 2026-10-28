@@ -3097,6 +3097,7 @@ func _ligne_bus_test() -> void:
 		dire.call("ÉCHEC : ligne non démarrée")
 		get_tree().quit()
 		return
+	dire.call("%s" % (lb.ligne if lb.ligne != "" else "ligne de proche en proche (secours)"))
 	dire.call("ligne de %d arrêts : %s" % [lb.arrets.size(), ", ".join(range(lb.arrets.size()).map(func(k): return "%s (%s)" % [lb.noms[k], lb._mmss(lb.horaires[k])]))])
 	dire.call("véhicule : %s, %.0f kg, gabarit %s, %d roues" % [car.voiture, car.mass, str(car.gabarit), car.wheels.size()])
 	# accélération (ligne en pause : le premier arrêt n'est pas franchi pendant ce temps)
