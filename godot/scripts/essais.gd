@@ -487,6 +487,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_pietons_test()
 		return
+	if OS.get_cmdline_user_args().has("--lumiere-perf"):
+		if t == 300:
+			_lumiere_perf()
+		return
 	if OS.get_cmdline_user_args().has("--arc-test"):
 		if t == 300:
 			_arc_test()
@@ -3046,6 +3050,40 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Coût de la lumière (v6.97) : -- --drive-test --lumiere-perf : durée moyenne de _lumiere() (appelée chaque seconde
+## dans le cycle jour et nuit et pendant les fondus de la météo), sur un plateau (rien ne change) et pendant une
+## transition ; nombre de matériaux de l'ambiance (Env.mats).
+func _lumiere_perf() -> void:
+	var dire := func(x: String): print("  [lumière] " + x)
+	while not Chargement.fini:
+		await get_tree().process_frame
+	for i in 30:
+		await get_tree().process_frame
+	var Env := preload("res://scripts/env.gd")
+	dire.call("matériaux de l'ambiance : %d" % Env.mats.size())
+	for cas in [["plateau de midi (12 h)", 12.0, 0.0], ["transition (16 h -> 17 h)", 16.0, 1.0 / 200.0]]:
+		set_time(CYCLE, float(cas[1]))
+		var t0 := Time.get_ticks_usec()
+		for i in 200:
+			heure += float(cas[2])
+			_cycle_situer()
+			_lumiere()
+		dire.call("%s : %.0f µs par mise à jour" % [cas[0], float(Time.get_ticks_usec() - t0) / 200.0])
+	# horloge du cockpit (vue conducteur) dans le cycle : 21 h 37 puis 7 h 05
+	cam_rig.set_mode(1)
+	for hh in [21.0 + 37.0 / 60.0, 7.0 + 5.0 / 60.0]:
+		set_time(CYCLE, hh)
+		for i in 40:
+			car.hold(0.5)
+			await get_tree().process_frame
+		var n := "%02dh%02d" % [int(hh), int(round(fmod(hh, 1.0) * 60.0))]
+		get_viewport().get_texture().get_image().save_png("user://shots/cockpit_%s.png" % n)
+		dire.call("cockpit à %s : pénombre %.2f (nuit du jeu %.2f)" % [heure_texte(), cockpit._night() if cockpit else -1.0, _night])
+	cam_rig.set_mode(0)
+	set_time(0)
+	dire.call("FIN")
+	get_tree().quit()
 
 ## Arc-en-ciel (v6.96) : -- --drive-test --arc-test [--drive-from=…] (--fixed-fps 8 conseillé) : fin d'une averse
 ## (pluie -> couvert, fondu de 20 s) en fin d'après-midi (soleil à 24°) puis à midi (48° : l'arc reste sous l'horizon) ;

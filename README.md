@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.96.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.96/RochetoirinSimulator-v6.96.apk)**
+**[RochetoirinSimulator-v6.97.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.97/RochetoirinSimulator-v6.97.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.96 :
-- **Arc-en-ciel** : en météo variable, à la fin d'une averse, retourne-toi, le soleil dans le dos : un arc-en-ciel
-  (et son reflet pâle au-dessus). Le matin, en fin d'après-midi ou au coucher ; jamais à midi, comme en vrai.
-- **Brouillard** : la circulation lève le pied et garde ses distances.
+Nouveautés de la v6.97 :
+- **Cockpit** : en mode Cycle, l'horloge de l'autoradio donne l'heure du jeu, et le tableau de bord s'assombrit et
+  s'éclaire avec la nuit qui tombe.
+- **Plus fluide** : la lumière du cycle jour et nuit et de la météo coûte près de dix fois moins au téléphone.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
