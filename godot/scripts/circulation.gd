@@ -508,7 +508,8 @@ func _arret_bus(c: Dictionary, dt: float) -> void:
 		arrets_faits += 1
 		var pie = main.get("pietons")
 		if pie and pie.ok:
-			pie.bus_a_l_arret(_arrets[best], (c.pos as Vector3) + dir * 4.5 + droite * 1.6)
+			var r: Array = pie.bus_a_l_arret(_arrets[best], (c.pos as Vector3) + dir * 4.5 + droite * 1.6)
+			c.arret_t = maxf(ARRET_BUS, float(r[2]) + 2.0)    # attend que tous soient montés
 
 ## Modèle d'une voiture qui apparaît sur l'arc k : parfois un tracteur (route de campagne) ou un bus (en ville).
 func _tirer_modele(k: int) -> int:

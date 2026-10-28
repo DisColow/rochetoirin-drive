@@ -3095,6 +3095,7 @@ func _bus_test() -> void:
 				if q.distance_to(car.global_position) < bd:
 					bd = q.distance_to(car.global_position)
 					arret = q
+			dire.call("passants posés à l'arrêt : %d" % pietons.peupler_arret(arret, 2))
 			suivi = ci.bus_vers_arret(arret)
 			vise = arret
 			dire.call("arrêt visé à %.0f m de la voiture %s : bus posé n° %d" % [bd, str(arret), suivi])

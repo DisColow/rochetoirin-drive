@@ -195,6 +195,23 @@ func _apparaitre(p: Vector3, partout: bool) -> void:
 	for o in passants:
 		if (o.n as Node3D).global_position.distance_squared_to(pos) < 9.0:
 			return
+	_poser(k, s)
+
+## Essais : `nb` passants qui attendent à l'arrêt de bus le plus proche de p (40 m au plus) ; combien posés.
+func peupler_arret(p: Vector3, nb: int) -> int:
+	var best := -1
+	for k in _genre.size():
+		if _genre[k] == 4 and point(k, longueur(k) * 0.5).distance_to(p) < 40.0 \
+				and (best < 0 or point(k, longueur(k) * 0.5).distance_to(p) < point(best, longueur(best) * 0.5).distance_to(p)):
+			best = k
+	if best < 0:
+		return 0
+	var n0 := passants.size()
+	for i in nb:
+		_poser(best, longueur(best) * (0.5 + (float(i) - (nb - 1) * 0.5) * 0.3))
+	return passants.size() - n0
+
+func _poser(k: int, s: float) -> void:
 	var m := _modele_pret()
 	if m < 0:
 		return
@@ -279,16 +296,19 @@ func arrets_bus() -> PackedVector3Array:
 	return l
 
 ## Bus arrêté à l'arrêt p, porte avant à `porte` (v7.01) : les passants qui attendent à moins de 15 m montent (ils
-## marchent jusqu'à la porte puis disparaissent) ; un ou deux autres descendent et partent à pied. [montés, descendus]
+## marchent jusqu'à la porte puis disparaissent) ; un ou deux autres descendent et partent à pied. [montés, descendus,
+## temps de marche du plus loin jusqu'à la porte (s)]
 func bus_a_l_arret(p: Vector3, porte: Vector3) -> Array:
 	if not ok:
 		return [0, 0]
 	var m0 := 0
+	var marche := 0.0
 	for c in passants:
 		if _genre[int(c.l)] == 4 and (c.n as Node3D).global_position.distance_to(p) < 15.0 and not c.has("monte"):
 			c.monte = porte
 			c.pause = 0.0
 			m0 += 1
+			marche = maxf(marche, (c.n as Node3D).global_position.distance_to(porte) / 1.5)
 	var d0 := 0
 	for i in randi_range(1, 2):
 		var m := _modele_pret()
@@ -315,7 +335,7 @@ func bus_a_l_arret(p: Vector3, porte: Vector3) -> Array:
 			n.process_mode = Node.PROCESS_MODE_DISABLED
 			_reserve.append([n, m])
 	descendus += d0
-	return [m0, d0]
+	return [m0, d0, marche]
 
 ## Client du taxi déposé (activities.gd) : il devient un passant, rejoint la ligne la plus proche (25 m) et poursuit
 ## son chemin ; il ne disparaît que loin ou hors de vue. Modèle m de mh.json (-1 : inconnu). Faux si aucune ligne.
