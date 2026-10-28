@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v7.02.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.02/RochetoirinSimulator-v7.02.apk)**
+**[RochetoirinSimulator-v7.03.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.03/RochetoirinSimulator-v7.03.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,11 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.02 :
-- **Chauffeur de bus** (Activités > Taxi > « Prendre une ligne de bus ») : prenez le volant du bus de ville et
-  desservez 6 vrais arrêts de bus de la ville, guidé par le GPS. Arrêtez la porte avant au
-  poteau, laissez monter les voyageurs, soyez à l'heure : recette, primes de ponctualité et deux nouveaux succès.
-- Le bus a son propre tableau de bord en pixel art.
+Nouveautés de la v7.03 :
+- **Ligne de bus** : un voyageur sonne « arrêt demandé » quand il veut descendre ; s'il n'y a personne à prendre ni à
+  déposer, vous pouvez passer l'arrêt sans vous arrêter. Un arrêt demandé brûlé fâche les voyageurs.
+- Les roues du bus ne sont plus bleues.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

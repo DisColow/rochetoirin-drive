@@ -5,7 +5,8 @@
 ## portes ouvertes, les passants qui attendent montent (posés à l'approche : pietons.peupler_arret), d'autres
 ## descendent (pietons.bus_a_l_arret) ; bus tenu immobile portes ouvertes (frein de porte), on repart quand tout le
 ## monde est monté. Recette : TARIF par voyageur, prime
-## PRIME_HEURE à l'heure (horaire de chaque arrêt, ± ECART s), MALUS_CHOC par choc avec des voyageurs à bord. Au
+## PRIME_HEURE à l'heure (horaire de chaque arrêt, ± ECART s), MALUS_CHOC par choc avec des voyageurs à bord et par
+## arrêt brûlé. v7.03 : arrêt demandé (sonnette) par un voyageur à bord ; sans demande ni personne qui attend, on passe. Au
 ## terminus (ou ■ Arrêter) : la voiture du joueur revient (garage.vue_changee : caisse et pièces du garage).
 extends Node
 
@@ -37,6 +38,12 @@ var recette := 0.0
 var primes := 0.0
 var chocs := 0
 var a_l_heure := 0
+var oublis := 0                                # arrêts demandés brûlés
+var _attendent := 0                             # passants qui attendent à l'arrêt visé
+var _demande := false                           # un voyageur a demandé l'arrêt (sonnette)
+var _sonne := false
+var _plus_pres := INF                           # distance la plus courte du bus à l'arrêt visé
+var _ding: AudioStreamPlayer
 var _porte_t := 0.0
 var _peuple := -1
 var _stop_t := 0.0
@@ -112,6 +119,7 @@ func demarrer() -> bool:
 	primes = 0.0
 	chocs = 0
 	a_l_heure = 0
+	oublis = 0
 	_peuple = -1
 	_viser()
 	return true
@@ -152,6 +160,12 @@ func _viser() -> void:
 	phase = "route"
 	_stop_t = 0.0
 	_conseil = false
+	# arrêt demandé (sonnette) par un voyageur à bord ; quelqu'un attend ou non : sans l'un ni l'autre, on peut passer
+	var dern := i == arrets.size() - 1
+	_attendent = 0 if dern or randf() < 0.25 else randi_range(1, 4)
+	_demande = dern or (voyageurs > 0 and randf() < 0.55)
+	_sonne = false
+	_plus_pres = INF
 	var q: Vector3 = arrets[i]
 	act._beacon(q, Color(0.25, 0.75, 1.0), 3.0, 40.0)
 	act.marks = []
@@ -175,15 +189,42 @@ func process(dt: float) -> void:
 	var d := Vector2(car.global_position.x - q.x, car.global_position.z - q.z).length()
 	if d < PEUPLER and _peuple != i:
 		_peuple = i
-		if i < arrets.size() - 1:                       # au terminus, personne ne monte
-			main.pietons.peupler_arret(q, randi_range(1, 4))
+		if _attendent > 0:                               # au terminus, personne ne monte
+			main.pietons.peupler_arret(q, _attendent)
+	if _demande and not _sonne and d < 250.0 and phase == "route" and i < arrets.size() - 1:
+		_sonne = true
+		_sonnette()
+		main.get_node("HUD").toast("Arrêt demandé : %s" % noms[i], 2.5)
 	var head := "BUS  ·  arrêt %d/%d  ·  %d à bord  ·  %s" % [i + 1, arrets.size(), voyageurs, act._euros(recette + primes)]
 	var reste := float(horaires[i]) - t
 	var heure := ("dans " + _mmss(reste)) if reste >= 0.0 else ("retard " + _mmss(reste))
 	if phase == "route":
 		var porte := car.global_transform * PORTE
 		var dp := Vector2(porte.x - q.x, porte.z - q.z).length()
-		act._set_status("%s\n→ %s%s : %d m  ·  passage %s" % [head, noms[i], " (terminus)" if i == arrets.size() - 1 else "", int(d), heure])
+		var libre := not _demande and _attendent == 0
+		act._set_status("%s\n→ %s%s : %d m  ·  passage %s%s" % [head, noms[i], " (terminus)" if i == arrets.size() - 1 else "", int(d), heure,
+			"  ·  ARRÊT DEMANDÉ" if _sonne else ("  ·  personne : vous pouvez passer" if libre and d < PEUPLER else "")])
+		# arrêt dépassé : sans demande ni personne qui attend, desservi en passant ; sinon brûlé
+		var rel := q - car.global_position
+		_plus_pres = minf(_plus_pres, d)
+		if _plus_pres < 15.0 and d < 40.0 and rel.dot(car.global_transform.basis.z) < -8.0:
+			if libre:
+				var ecart := t - float(horaires[i])
+				if absf(ecart) <= ECART:
+					primes += PRIME_HEURE
+					a_l_heure += 1
+				main.get_node("HUD").toast("%s : personne à prendre ni à déposer, vous passez%s." % [noms[i],
+					(" à l'heure (+%s)" % act._euros(PRIME_HEURE)) if absf(ecart) <= ECART else ""], 3.0)
+			else:
+				oublis += 1
+				main.get_node("HUD").toast("Arrêt %s brûlé ! Les voyageurs râlent (−%s)." % [noms[i], act._euros(MALUS_CHOC)], 3.0)
+			act._bip.play()
+			i += 1
+			if i >= arrets.size():
+				_fin()
+			else:
+				_viser()
+			return
 		if dp < R_ARRET and car.kmh() < 3.0:
 			_stop_t += dt
 			if _stop_t > 0.8:
@@ -208,7 +249,7 @@ func process(dt: float) -> void:
 func _ouvrir(porte: Vector3) -> void:
 	var act = _act()
 	var dern := i == arrets.size() - 1
-	var desc := voyageurs if dern else randi_range(0, mini(2, voyageurs))
+	var desc := voyageurs if dern else (randi_range(1, mini(2, voyageurs)) if _demande and voyageurs > 0 else 0)
 	var r: Array = main.pietons.bus_a_l_arret(arrets[i], porte, mini(desc, 4))
 	var monte := 0 if dern else int(r[0])
 	voyageurs = maxi(voyageurs - desc, 0) + monte
@@ -240,9 +281,23 @@ static func _accord(n: int, un: String, plusieurs: String, aucun: String) -> Str
 		return aucun
 	return "1 " + un if n == 1 else "%d %s" % [n, plusieurs]
 
+## Sonnette « arrêt demandé » : ding-dong (le bip des activités, plus aigu puis plus grave).
+func _sonnette() -> void:
+	if _ding == null:
+		_ding = AudioStreamPlayer.new()
+		_ding.stream = load("res://assets/sfx/bip.wav")
+		_ding.volume_db = -4.0
+		add_child(_ding)
+	_ding.pitch_scale = 1.6
+	_ding.play()
+	await get_tree().create_timer(0.32).timeout
+	if _ding:
+		_ding.pitch_scale = 1.25
+		_ding.play()
+
 func _fin() -> void:
 	var act = _act()
-	var total := maxf(recette + primes - chocs * MALUS_CHOC, 0.0)
+	var total := maxf(recette + primes - (chocs + oublis) * MALUS_CHOC, 0.0)
 	var g = main.get("garage")
 	if g:
 		g.gagner(total)
@@ -251,7 +306,8 @@ func _fin() -> void:
 		main.succes.noter("voyageurs", transportes)
 	var bilan := "Terminus ! %s, %d arrêt%s sur %d à l'heure, %s : %s gagnés." % [
 		_accord(transportes, "voyageur", "voyageurs", "aucun voyageur"), a_l_heure, "s" if a_l_heure > 1 else "", arrets.size(),
-		_accord(chocs, "choc", "chocs", "aucun choc"), act._euros(total)]
+		_accord(chocs, "choc", "chocs", "aucun choc") + (", " + _accord(oublis, "arrêt brûlé", "arrêts brûlés", "") if oublis > 0 else ""),
+		act._euros(total)]
 	act._stop()
 	act._set_status(bilan)
 	act._status_t = 8.0

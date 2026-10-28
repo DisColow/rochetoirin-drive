@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 28/10/2026, 21 h (v6.84 #131 à v7.02 livrées)
+## État au 28/10/2026, 21 h (v6.84 #131 à v7.03 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -28,6 +28,8 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v7.03 (#148, `à tester`)** : sonnette « arrêt demandé », arrêts sans personne desservis en passant, arrêts brûlés
+  pénalisés ; roues du bus en couleurs unies (`wheel.glb` republié sur `donnees`, `wheel_Image_1.jpg` retiré).
 - **v7.02 (#148, `à tester`)** : ligne de bus du joueur (voir CLAUDE.md « Ligne de bus ») : bus jouable
   (`assets/voitures/bus`, publié sur `donnees`), cockpit `assets/cockpit/bus`, `ligne_bus.gd`. Essai `--ligne-bus-test
   [--ligne-arret=n]`. Pièges : arrêts sur voie de service inaccessibles (filtrés par `circulation.voie_arret`) ; bus
