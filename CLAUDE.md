@@ -190,9 +190,10 @@
   voitures qui arrivent comprises ; `dep[5]` = vitesse du dépassement) ; pendant qu'elle déboîte, `_devant` ignore les
   voitures de sa voie. Essai `--circulation-test --circulation-double --drive-from=-8410.95,221,-7187.25,45.2`. **Véhicules lourds** (v6.99, #136,
   choix de l'utilisateur T5 et B1) : `pipeline/fetch_lourds.py` + `blender_lourds.py` (couleurs des textures regroupées
-  en matériaux unis, roues laissées dans la caisse, allégés) -> `assets/props/lourd_tracteur.glb`, `lourd_bus.glb` ;
+  en matériaux unis, roues regroupées par essieu et par côté en matériaux « roue_<n>_c<couleur> », allégés) -> `assets/props/lourd_tracteur.glb`, `lourd_bus.glb` ;
   `MODELES` 2 et 3 de `circulation.gd` (`_tirer_modele` : tracteur sur les routes à 65-95 km/h, bus à 50 km/h au plus ;
-  `LOURD_CHANCE`, `LOURD_VMAX`, `LOURD_PITCH` ; modèle absent des données : jamais tiré). Essai `--lourds-test
+  `LOURD_CHANCE`, `LOURD_VMAX`, `LOURD_PITCH` ; modèle absent des données : jamais tiré ; v7.00 : une roue par groupe
+  `roue_<n>`, `_roues_g` : centre, rayon, MultiMesh ; angle = `c.dist` / rayon). Essai `--lourds-test
   [--lourds-x=n]`. Concurrents : `concurrent._piloter` évite aussi
   les voitures de la circulation (`evites` : voitures contournées). **Course contre des concurrents** : tracé dégagé
   sur `COURSE_MARGE` m (`_route_course`, d'après `concurrents[0]._chemin` : voitures et épaves retirées au départ,

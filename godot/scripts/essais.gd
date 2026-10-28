@@ -3077,6 +3077,10 @@ func _lourds_test() -> void:
 			ci.lourds_x = float(a.get_slice("=", 1))
 	ci.vider()
 	dire.call("modèles présents : %s" % str(ci._dispo))
+	for m in [2, 3]:
+		dire.call("%s : %d roues tournantes, rayons %s m, centres %s" % [ci.MODELES[m], ci._roues_g[m].size(),
+			str(ci._roues_g[m].map(func(r): return snappedf(float(r[1]), 0.01))),
+			str(ci._roues_g[m].map(func(r): return (r[0] as Vector3).snapped(Vector3.ONE * 0.1)))])
 	var cam := Camera3D.new()
 	add_child(cam)
 	var vus := {}
@@ -3104,6 +3108,11 @@ func _lourds_test() -> void:
 					for i in 3:
 						await get_tree().process_frame
 					get_viewport().get_texture().get_image().save_png("user://shots/lourd_%s.png" % ci.MODELES[m])
+					var rg: Array = ci._roues_g[m][0] if not ci._roues_g[m].is_empty() else []
+					if not rg.is_empty():
+						dire.call("%s en gros plan à %.0f km/h : %.1f m parcourus, roue avant à %.0f° (%.1f tours)" % [ci.MODELES[m],
+							float(c.v) * 3.6, float(c.dist), rad_to_deg(fmod(float(c.dist) / float(rg[1]), TAU)),
+							float(c.dist) / float(rg[1]) / TAU])
 					cam_rig.cam.current = true
 			elif (c.dep as Array).size() > 0:
 				doubles += 1

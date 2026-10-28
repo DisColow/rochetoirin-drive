@@ -5,8 +5,9 @@ des voitures de la circulation (circulation.gd _preparer_modele : un maillage, d
   - orientation (avant vers +Y de Blender, soit -Z dans Godot), longueur réelle, centré, posé sur z = 0 ;
   - couleurs des textures relevées au centre de chaque face puis regroupées (k-moyennes) en quelques matériaux unis :
     le shader de la circulation n'a pas de textures (une couleur et un aspect par matériau) ;
-  - roues laissées dans la caisse (tracteur : avant petites, arrière grandes, remorque ; bus : roues avant et arrière
-    de pièces différentes, mal regroupées en 4 roues tournantes) ;
+  - roues (v7.00) : faces des pièces de roue (objets ou matériaux d'origine, `roues`) regroupées par essieu (k-moyennes
+    sur la position en long) et par côté, matériaux « roue_<n>_c<couleur> » (n = essieu × 2 + côté) : circulation.gd
+    en fait une roue par groupe, qui tourne sur son axe à la vitesse de son rayon ;
   - allégé (Decimate) au-delà de MAX_TRIS.
 Usage : <python avec bpy> blender_lourds.py [dossier de sortie] (défaut : ../godot/assets/props)."""
 import bpy, bmesh, math, os, sys, random
@@ -18,8 +19,10 @@ OUT = sys.argv[-1] if len(sys.argv) > 1 and os.path.isdir(sys.argv[-1]) else os.
 # nom -> source, longueur (m), rotation autour de Z (°) pour mettre l'avant vers +Y, roues tournantes : objets ou
 # matériaux d'origine des roues, matériau des feux, triangles au plus, couleurs
 LOURDS = {
-    "lourd_tracteur": dict(src="tracteur", long=7.4, rot=180.0, roues=None, feux=None, max_tris=14000, couleurs=10),
-    "lourd_bus": dict(src="bus", long=11.5, rot=90.0, roues=None, feux="light", max_tris=26000, couleurs=12),
+    "lourd_tracteur": dict(src="tracteur", long=7.4, rot=180.0, roues=dict(objets=("Jante", "Pneu"), essieux=3), feux=None,
+                           max_tris=14000, couleurs=10),
+    "lourd_bus": dict(src="bus", long=11.5, rot=90.0, roues=dict(materiaux=("material", "material_4"), essieux=2),
+                      feux="light", max_tris=26000, couleurs=12),
 }
 
 
@@ -67,7 +70,8 @@ def convertir(nom, c):
     for o in objs:
         me = o.data
         uv = me.uv_layers.active.data if me.uv_layers.active else None
-        roue_obj = c["roues"] is not None and any(m and m.name in c["roues"] for m in me.materials)
+        r = c["roues"] or {}
+        roue_nom = any(t.lower() in o.name.lower() for t in r.get("objets", ()))
         for p in me.polygons:
             mat = me.materials[p.material_index] if me.materials else None
             nm = mat.name if mat else ""
@@ -85,7 +89,7 @@ def convertir(nom, c):
                 j = (y * w + x) * 4
                 col = tuple(lin(px[j + t]) * base[t] for t in range(3))
             role = "caisse"
-            if roue_obj:
+            if roue_nom or nm in r.get("materiaux", ()):
                 role = "roue"
             elif c["feux"] and nm == c["feux"]:
                 role = "feu"
@@ -94,8 +98,8 @@ def convertir(nom, c):
             elif "chrome" in nm.lower():
                 role = "chrome"
             faces.append((o, p.index, col, role))
-    # regroupement des couleurs de la caisse
-    pts = [f[2] for f in faces if f[3] == "caisse"]
+    # regroupement des couleurs de la caisse (roues comprises : jantes et pneus gardent leurs couleurs)
+    pts = [f[2] for f in faces if f[3] in ("caisse", "roue")]
     centres = kmoyennes(random.sample(pts, min(len(pts), 4000)), c["couleurs"])
     mats = []
     for i, cc in enumerate(centres):
@@ -130,8 +134,10 @@ def convertir(nom, c):
         me.materials.clear()
         for m in tous:
             me.materials.append(m)
+        attr = me.attributes.new("roue", "INT", "FACE")
         for (_, pi, col, role) in par_obj.get(o.name, []):
-            if role == "caisse":
+            attr.data[pi].value = 1 if role == "roue" else 0
+            if role in ("caisse", "roue"):
                 i = min(range(len(centres)), key=lambda j: sum((col[t] - centres[j][t]) ** 2 for t in range(3)))
             elif role == "roue":
                 i = len(mats)
@@ -170,6 +176,33 @@ def convertir(nom, c):
           min(v.y for v in vs), max(v.y for v in vs), min(v.z for v in vs), max(v.z for v in vs)))
     # feux : à l'arrière (y < 0) -> feux stop
     me = ob.data
+    # roues : essieux (k-moyennes sur y) et côté (x) ; matériau « roue_<n>_c<couleur> » de la couleur de la face
+    attr = me.attributes.get("roue")
+    if attr is not None and c["roues"]:
+        rf = [p for p in me.polygons if attr.data[p.index].value == 1]
+        ys = sorted(p.center.y for p in rf)
+        k = c["roues"]["essieux"]
+        cy = [ys[int((i + 0.5) * len(ys) / k)] for i in range(k)]
+        for _ in range(20):
+            gr = [[] for _ in cy]
+            for y in ys:
+                gr[min(range(k), key=lambda j: abs(y - cy[j]))].append(y)
+            cy = [sum(g) / len(g) if g else cy[i] for i, g in enumerate(gr)]
+        cy.sort(reverse=True)                       # essieu 0 à l'avant
+        nouv = {}
+        for p in rf:
+            e = min(range(k), key=lambda j: abs(p.center.y - cy[j]))
+            g = e * 2 + (0 if p.center.x < 0.0 else 1)
+            cle = (g, p.material_index)
+            if cle not in nouv:
+                base = me.materials[p.material_index]
+                m = base.copy()
+                m.name = "roue_%d_c%d" % cle
+                me.materials.append(m)
+                nouv[cle] = len(me.materials) - 1
+            p.material_index = nouv[cle]
+        print("%s : %d faces de roue, essieux à y = %s, %d matériaux de roue" % (nom, len(rf),
+              ", ".join("%.2f" % (y * 1.0) for y in cy), len(nouv)))
     for p in me.polygons:
         if p.material_index == len(mats) + 3 and p.center.y < 0.0:
             p.material_index = len(mats) + 4
