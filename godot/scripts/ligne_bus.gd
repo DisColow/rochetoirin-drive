@@ -152,6 +152,13 @@ func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
 			m_li = li
 		if meilleur.size() >= NB_ARRETS:
 			break
+	if OS.get_cmdline_user_args().has("--ligne-bus-test"):
+		var raccordes := 0
+		for c in cartes:
+			for k in c:
+				raccordes += 1 if k >= 0 else 0
+		print("  [ligne] réseau Ruban : %d variantes, %d arrêts raccordés à la carte, %d départs à moins de %d m, meilleure suite %d arrêts" % [
+			_lignes.size(), raccordes, departs.size(), int(R_DEPART), meilleur.size()])
 	if meilleur.size() < 4:
 		return false
 	arrets.clear()
