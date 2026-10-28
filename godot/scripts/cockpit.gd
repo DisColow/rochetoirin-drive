@@ -333,7 +333,14 @@ func _draw_rain() -> void:
 func _tod() -> int:
 	return int(main.time_of_day) if main and "time_of_day" in main else 0
 
+func _cycle() -> bool:
+	return main != null and "heure_choix" in main and int(main.heure_choix) == 4
+
+## Pénombre du cockpit : par moment ; dans le cycle, suit la nuit qui tombe (main._night : 0,35 au coucher -> 0,45 ici).
 func _night() -> float:
+	if _cycle():
+		var n := float(main._night)
+		return n / 0.35 * 0.45 if n < 0.35 else lerpf(0.45, 1.0, (n - 0.35) / 0.65)
 	return [0.0, 0.0, 0.45, 1.0][_tod()]
 
 # ---------------------------------------------------------------- dessin
@@ -443,6 +450,8 @@ func _draw_glow() -> void:
 	var lcd: Array = meta.get("lcd", [-100, -100, 0, 0])
 	var hm: Array = [[12, 0], [17, 30], [20, 45], [23, 10]][_tod()]
 	var mins := int(hm[0]) * 60 + int(hm[1]) + int(_clock / 60.0)
+	if _cycle():
+		mins = int(float(main.heure) * 60.0)                # cycle jour et nuit (v6.97) : l'heure du jeu
 	var txt := "%2d:%02d" % [(mins / 60) % 24, mins % 60]
 	if main and main.get("radio") and main.radio.lcd_text() != "" and int(_clock / 4.0) % 3 != 0:
 		txt = main.radio.lcd_text()                       # fréquence de la station (l'heure revient de temps en temps)

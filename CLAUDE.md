@@ -243,6 +243,9 @@
   secondaire à 50,5-53,5°, sous l'horizon si le soleil dépasse 42°) ; `main._arc_avancer` : fin d'une averse (fondu
   depuis la pluie), de jour, une minute puis effacé. Brouillard : `main.brouillard`, circulation prudente comme sous la
   pluie. Essai `--arc-test` (pixels colorés avec et sans l'arc sur la même image).
+  **Coût** (v6.97, #145) : `Env.set_value` ne renvoie plus une valeur simple inchangée aux matériaux (les tableaux,
+  modifiés sur place, repartent toujours ; un matériau ajouté reçoit tout par `add()`) : `_lumiere()` 216 -> 22 µs
+  (essai `--lumiere-perf`, 217 matériaux). Cockpit : horloge et pénombre suivent le cycle (`cockpit._cycle()`).
 - **Météo** (`main.gd`, ⚙ > Météo) : Beau temps, Couvert, Pluie, Brouillard, ou **Variable** (v6.91, #139, initiative
   de Claude : `meteo_choix` = réglage, `weather` = temps qu'il fait ou qui arrive). Variable : durées `METEO_DUREES`,
   suites `METEO_SUITES`, fondu de `METEO_FONDU` s (`meteo_vers`, `_meteo_avancer`) où tous les réglages de

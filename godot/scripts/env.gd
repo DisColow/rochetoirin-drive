@@ -18,6 +18,10 @@ static func remove(m: ShaderMaterial) -> void:
 	mats.erase(m)
 
 static func set_value(k: String, v) -> void:
+	# valeur simple inchangée : rien à refaire (v6.97 : la lumière du cycle et de la météo est remise à jour chaque
+	# seconde ; un matériau ajouté plus tard reçoit les valeurs par add()). Les tableaux, modifiés sur place, repartent.
+	if (v is float or v is int or v is Vector4 or v is Color) and vals.has(k) and vals[k] == v:
+		return
 	vals[k] = v
 	for m in mats:
 		m.set_shader_parameter(k, v)
