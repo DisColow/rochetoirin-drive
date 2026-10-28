@@ -42,6 +42,8 @@ var traversees := 0                            # passages piétons empruntés (e
 var sursauts := 0                              # passants qui ont entendu le klaxon du joueur (essais)
 var adoptes := 0                               # clients du taxi devenus passants (essais)
 var fuites := 0                                # passants qui ont fui une explosion (essais)
+var montes := 0                                # passants montés dans un bus (essais)
+var descendus := 0                             # passants descendus d'un bus (essais)
 
 var _p0 := PackedInt32Array()
 var _np := PackedInt32Array()
@@ -257,12 +259,63 @@ func _physics_process(dt: float) -> void:
 	var autos := _autos()
 	for i in range(passants.size() - 1, -1, -1):
 		var c: Dictionary = passants[i]
+		if bool(c.get("a_bord", false)):         # monté dans le bus (v7.01)
+			montes += 1
+			_retirer(i)
+			continue
 		if _eviter(c, autos):
 			_retirer(i)
 			continue
 		_marcher(c, dt)
 		_placer(c, dt)
 	PerfMon.note("pietons", Time.get_ticks_usec() - t0)
+
+## Arrêts de bus (genre 4) : position de chaque ligne (circulation.gd : les bus s'y arrêtent, v7.01).
+func arrets_bus() -> PackedVector3Array:
+	var l := PackedVector3Array()
+	for k in _genre.size():
+		if _genre[k] == 4:
+			l.append(point(k, longueur(k) * 0.5))
+	return l
+
+## Bus arrêté à l'arrêt p, porte avant à `porte` (v7.01) : les passants qui attendent à moins de 15 m montent (ils
+## marchent jusqu'à la porte puis disparaissent) ; un ou deux autres descendent et partent à pied. [montés, descendus]
+func bus_a_l_arret(p: Vector3, porte: Vector3) -> Array:
+	if not ok:
+		return [0, 0]
+	var m0 := 0
+	for c in passants:
+		if _genre[int(c.l)] == 4 and (c.n as Node3D).global_position.distance_to(p) < 15.0 and not c.has("monte"):
+			c.monte = porte
+			c.pause = 0.0
+			m0 += 1
+	var d0 := 0
+	for i in randi_range(1, 2):
+		var m := _modele_pret()
+		if m < 0:
+			break
+		var n: Node3D = null
+		for j in _reserve.size():
+			if int(_reserve[j][1]) == m:
+				n = _reserve[j][0]
+				_reserve.remove_at(j)
+				break
+		if n == null:
+			n = (_modeles[m][1] as PackedScene).instantiate()
+			n.set_script(PIETON)
+			add_child(n)
+		n.visible = true
+		n.process_mode = Node.PROCESS_MODE_INHERIT
+		n.global_position = porte + Vector3(randf_range(-0.4, 0.4), 0.0, randf_range(-0.4, 0.4))
+		if adopter(n, m):
+			adoptes -= 1                            # compté comme descendu, pas comme client du taxi
+			d0 += 1
+		else:
+			n.visible = false
+			n.process_mode = Node.PROCESS_MODE_DISABLED
+			_reserve.append([n, m])
+	descendus += d0
+	return [m0, d0]
 
 ## Client du taxi déposé (activities.gd) : il devient un passant, rejoint la ligne la plus proche (25 m) et poursuit
 ## son chemin ; il ne disparaît que loin ou hors de vue. Modèle m de mh.json (-1 : inconnu). Faux si aucune ligne.
@@ -315,6 +368,16 @@ func _marcher(c: Dictionary, dt: float) -> void:
 	if float(c.bond_t) > 0.0:                    # écart d'un bond
 		c.bond_t = float(c.bond_t) - dt
 		c.off = (c.off as Vector3) + (c.bond as Vector3) * dt
+		return
+	if c.has("monte"):                           # vers la porte du bus (v7.01), puis à bord
+		var vers: Vector3 = (c.monte as Vector3) - (c.n as Node3D).global_position
+		vers.y = 0.0
+		if vers.length() < 0.8:
+			c.a_bord = true
+		else:
+			c.off = (c.off as Vector3) + vers.normalized() * 1.5 * dt
+			c.regard = c.monte
+			c.regard_t = 1.0
 		return
 	if float(c.pause) > 0.0:
 		c.pause = float(c.pause) - dt

@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v7.00.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.00/RochetoirinSimulator-v7.00.apk)**
+**[RochetoirinSimulator-v7.01.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.01/RochetoirinSimulator-v7.01.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,9 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.00 :
-- **Tracteurs et bus** : leurs roues tournent maintenant, chacune à sa vitesse (grandes roues arrière du tracteur, roues
-  de la remorque, roues jumelées du bus).
+Nouveautés de la v7.01 :
+- **Bus** : le bus s'arrête aux arrêts de bus de la ville ; les passants qui attendent montent par la porte avant,
+  un ou deux voyageurs descendent, puis il repart.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

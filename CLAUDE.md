@@ -194,7 +194,10 @@
   `MODELES` 2 et 3 de `circulation.gd` (`_tirer_modele` : tracteur sur les routes à 65-95 km/h, bus à 50 km/h au plus ;
   `LOURD_CHANCE`, `LOURD_VMAX`, `LOURD_PITCH` ; modèle absent des données : jamais tiré ; v7.00 : une roue par groupe
   `roue_<n>`, `_roues_g` : centre, rayon, MultiMesh ; angle = `c.dist` / rayon). Essai `--lourds-test
-  [--lourds-x=n]`. Concurrents : `concurrent._piloter` évite aussi
+  [--lourds-x=n]`. **Arrêts de bus** (v7.01) : `_arret_bus` (arrêts `pietons.arrets_bus()`, devant à moins de 40 m,
+  à droite de -1,5 à 9 m) : le bus freine jusqu'à l'arrêt (leader « arrêt de bus »), attend `ARRET_BUS` s,
+  `pietons.bus_a_l_arret` (passants qui attendent : vont à la porte et montent ; 1 ou 2 descendent) ; `bus_vers_arret`
+  (essais) pose un bus en amont d'un arrêt. Essai `--bus-test`. Concurrents : `concurrent._piloter` évite aussi
   les voitures de la circulation (`evites` : voitures contournées). **Course contre des concurrents** : tracé dégagé
   sur `COURSE_MARGE` m (`_route_course`, d'après `concurrents[0]._chemin` : voitures et épaves retirées au départ,
   aucune apparition ensuite) et barré : une voiture ne s'engage plus sur une voie du tracé (`_sur_trace` : à 4,5 m et
