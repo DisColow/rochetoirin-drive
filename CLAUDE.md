@@ -276,6 +276,18 @@
   du trajet et dans son sens) puis `_feux_appliquer` (vitesse du profil nulle au point d'arrêt tant que c'est rouge) ;
   `concurrent.doubler = false` : suit la voiture de devant sans la doubler ni la pousser. Essai
   `--fixed-fps 8 -- --drive-test --balade-test [--duree=s] --drive-from=…`.
+- **Ligne de bus** (v7.02, #148, initiative de Claude, `scripts/ligne_bus.gd`, Activités > Taxi > « Prendre une ligne de
+  bus », `activities._bus_start`, mode « bus ») : le joueur prend le bus B1 (`voitures.gd` « bus », `service` : hors du
+  garage, `ordre()` l'écarte ; modèle `blender_voitures_joueur.py bus` depuis `import/lourds/bus`, poste de conduite
+  `eye`/`steer` posé à la main, cockpit `build_cockpits.py bus`) ; `NB_ARRETS` vrais arrêts enchaînés de proche en
+  proche (`D_MIN`-`D_MAX` m, sans demi-tour), seulement ceux longés par une voie de la circulation
+  (`circulation.voie_arret`) ; horaire par arrêt (`V_HORAIRE`, `ATTENTE`) ; porte avant `PORTE` à moins de `R_ARRET` m du
+  poteau, bus arrêté -> portes (bus tenu immobile : frein de porte), `pietons.peupler_arret` à `PEUPLER` m (passants
+  « garde » : hors du compte jusqu'à `R_GARDE`), `pietons.bus_a_l_arret(p, porte, nb_desc)` ; recette `TARIF` par
+  voyageur, `PRIME_HEURE` à ± `ECART` s, `MALUS_CHOC` ; terminus : `garage.gagner`, succès `lignes_bus`/`voyageurs`,
+  voiture rendue (`garage.vue_changee`). Caméra poursuite reculée d'après `car.gabarit.z` (`camera_rig.gd`). Essai
+  `--fixed-fps 8 -- --drive-test --ligne-bus-test --drive-from=-10975,236,-1100,90` (bus posé en amont de chaque arrêt
+  et conduit jusqu'au poteau, capture `ligne_bus.png`).
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
   `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,

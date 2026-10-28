@@ -3,7 +3,8 @@
 ## vrais arrêts (pietons.arrets_bus, nœuds bus_stop d'OSM) enchaînés de proche en proche, itinéraire au GPS
 ## (activities._itineraire). À chaque arrêt : porte avant (PORTE) à moins de R_ARRET m du poteau, bus arrêté ->
 ## portes ouvertes, les passants qui attendent montent (posés à l'approche : pietons.peupler_arret), d'autres
-## descendent (pietons.bus_a_l_arret) ; on repart quand tout le monde est monté. Recette : TARIF par voyageur, prime
+## descendent (pietons.bus_a_l_arret) ; bus tenu immobile portes ouvertes (frein de porte), on repart quand tout le
+## monde est monté. Recette : TARIF par voyageur, prime
 ## PRIME_HEURE à l'heure (horaire de chaque arrêt, ± ECART s), MALUS_CHOC par choc avec des voyageurs à bord. Au
 ## terminus (ou ■ Arrêter) : la voiture du joueur revient (garage.vue_changee : caisse et pièces du garage).
 extends Node
@@ -42,7 +43,6 @@ var _stop_t := 0.0
 var _conseil := false
 var _prev_v := Vector3.ZERO
 var _choc_cd := 0.0
-var _parti_tot := false
 
 func _act():
 	return main.activities
@@ -152,7 +152,6 @@ func _viser() -> void:
 	phase = "route"
 	_stop_t = 0.0
 	_conseil = false
-	_parti_tot = false
 	var q: Vector3 = arrets[i]
 	act._beacon(q, Color(0.25, 0.75, 1.0), 3.0, 40.0)
 	act.marks = []
@@ -196,11 +195,8 @@ func process(dt: float) -> void:
 				main.get_node("HUD").toast("Arrêtez la porte avant (à droite) au niveau du poteau.", 3.0)
 	elif phase == "portes":
 		_porte_t -= dt
+		car.hold(0.2)                                   # frein de porte (comme un vrai bus) : immobile portes ouvertes
 		act._set_status("%s\n%s : portes ouvertes, montée des voyageurs…" % [head, noms[i]])
-		if car.kmh() > 4.0 and not _parti_tot:
-			_parti_tot = true
-			chocs += 1
-			main.get_node("HUD").toast("Attendez que tout le monde soit monté ! (−%s)" % act._euros(MALUS_CHOC), 2.5)
 		if _porte_t <= 0.0:
 			act._bip.play()
 			i += 1
@@ -230,6 +226,10 @@ func _ouvrir(porte: Vector3) -> void:
 		msg += "  En retard de %s : pas de prime." % _mmss(ecart)
 	main.get_node("HUD").toast(msg, 4.0)
 	act._bip.play()
+	for b in act._beacons:                              # la colonne lumineuse s'efface : on y est
+		if is_instance_valid(b):
+			b.queue_free()
+	act._beacons.clear()
 	_porte_t = maxf(4.0, float(r[2]) + 1.5)
 	phase = "portes"
 
