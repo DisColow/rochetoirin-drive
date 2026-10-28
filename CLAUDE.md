@@ -233,6 +233,12 @@
   mêlé au crépuscule), sous les nuages. **Tarif de nuit du taxi** : `main.tarif_nuit()` (réglage Nuit, 19 h 30 - 7 h
   dans le cycle) -> `taximetre.nuit` (« TARIF 2 », `PAR_KM_NUIT`, chaque mètre au tarif du moment). Essais `--nuit-test`
   (étoiles comptées, taximètre), `--taxi-test --taxi-nuit`.
+  **Orage** (v6.94, #142) : la boucle `assets/sfx/pluie.ogg` contient des coups de tonnerre, relevés par analyse
+  (énergie sous 200 Hz : `rain.gd` `TONNERRES` [début, force]) ; `rain.eclairs_entre(p0, p1)` lance `main.eclair(f)`
+  1 à 2,6 s avant chacun (plus fort = plus près) : deux éclats (ciel `background_energy_multiplier`, ambiance, lune),
+  plus discrets le jour. **Bulletin météo** : `main.bulletin_meteo()` ajouté au flash de Rochetoirin Info (`radio.gd`) ;
+  en météo variable, `meteo_suivante` est tirée d'avance (la prévision se réalise). Essai `--orage-test` (textes, calage
+  sur une boucle à 30 images/s, lueur image par image à temps ×0,1 ; ici le son avance en temps réel, pas le jeu).
 - **Météo** (`main.gd`, ⚙ > Météo) : Beau temps, Couvert, Pluie, Brouillard, ou **Variable** (v6.91, #139, initiative
   de Claude : `meteo_choix` = réglage, `weather` = temps qu'il fait ou qui arrive). Variable : durées `METEO_DUREES`,
   suites `METEO_SUITES`, fondu de `METEO_FONDU` s (`meteo_vers`, `_meteo_avancer`) où tous les réglages de
