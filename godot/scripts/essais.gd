@@ -487,6 +487,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_pietons_test()
 		return
+	if OS.get_cmdline_user_args().has("--nuit-test"):
+		if t == 300:
+			_nuit_test()
+		return
 	if OS.get_cmdline_user_args().has("--cycle-test"):
 		if t == 300:
 			_cycle_test()
@@ -1332,6 +1336,8 @@ func _physics_process(_dt: float) -> void:
 	if OS.get_cmdline_user_args().has("--taxi-test"):
 		# courses de taxi enchaînées (#53) : la voiture est posée sur chaque cible ; journal [taxi]
 		if t == 300:
+			if OS.get_cmdline_user_args().has("--taxi-nuit"):
+				set_time(3)                  # tarif de nuit (v6.93)
 			activities._taxi_start()
 		if t > 300 and t % 120 == 0:
 			var ph: String = activities._phase
@@ -1340,7 +1346,8 @@ func _physics_process(_dt: float) -> void:
 				cible = activities._cl_pos
 			elif ph == "course":
 				cible = activities._rp(activities._dest if activities._arret < 0 else activities._arret)
-			print("  [taxi] t=%d phase %s sorte %s arrêt %d (%.0f s) rappel %s courses %d compteur %.2f" % [t, ph, activities._sorte, activities._arret, activities._arret_t, not activities._rappel.is_empty(), activities._rides, activities._compteur.montant if activities._compteur else 0.0])
+			print("  [taxi] t=%d phase %s sorte %s arrêt %d (%.0f s) rappel %s courses %d compteur %.2f%s" % [t, ph, activities._sorte, activities._arret, activities._arret_t, not activities._rappel.is_empty(), activities._rides, activities._compteur.montant if activities._compteur else 0.0,
+				" TARIF 2 (nuit)" if activities._compteur and activities._compteur.nuit else ""])
 			if cible != Vector2.INF and _car2_dist(cible) > 12.0:
 				var i: int = activities._nearest(cible)
 				car.place(Vector3(cible.x, activities.pts[i + 2] + 1.0, cible.y), activities.pts[i + 3])
@@ -3014,6 +3021,96 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Nuit (v6.93) : -- --drive-test --nuit-test [--drive-from=…] (--fixed-fps 8 conseillé) : étoiles comptées (points
+## lumineux du haut de l'image, caméra levée vers le ciel, interface cachée) de nuit par temps clair, par temps couvert,
+## à midi et au crépuscule du cycle ; taximètre de jour et de nuit sur le même trajet ; tarif de nuit selon l'heure.
+func _nuit_test() -> void:
+	var dire := func(x: String): print("  [nuit] " + x)
+	var shot := func(n: String):
+		get_viewport().get_texture().get_image().save_png("user://shots/nuit_%s.png" % n)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	var images := func(n: int):
+		for i in n:
+			car.hold(0.5)
+			await get_tree().process_frame
+	# points lumineux : pixel clair nettement au-dessus de ses voisins à 2 pixels, dans les deux tiers du haut
+	var etoiles_vues := func() -> int:
+		var im := get_viewport().get_texture().get_image()
+		var w := im.get_width()
+		var h := im.get_height()
+		var n := 0
+		for y in range(2, h * 2 / 3):
+			for x in range(2, w - 2):
+				var l := im.get_pixel(x, y).get_luminance()
+				if l < 0.22:
+					continue
+				var v := maxf(maxf(im.get_pixel(x - 2, y).get_luminance(), im.get_pixel(x + 2, y).get_luminance()),
+					maxf(im.get_pixel(x, y - 2).get_luminance(), im.get_pixel(x, y + 2).get_luminance()))
+				if l > v + 0.1:
+					n += 1
+		return n
+	var hud_n = get_node("HUD")
+	var cam := Camera3D.new()
+	add_child(cam)
+	cam.fov = 70.0
+	cam.global_position = car.global_position + Vector3.UP * 3.0
+	cam.look_at(cam.global_position + Vector3(0.35, 0.8, -0.5))
+	cam.current = true
+	hud_n.visible = false
+	set_weather(0)
+	for cas in [["nuit claire", 3, 0, -1.0], ["nuit couverte", 3, 1, -1.0], ["midi", 0, 0, -1.0], ["cycle 19 h", CYCLE, 0, 19.0],
+			["cycle 19 h 45", CYCLE, 0, 19.75], ["cycle 20 h 15", CYCLE, 0, 20.25], ["cycle 23 h", CYCLE, 0, 23.0]]:
+		set_weather(int(cas[2]))
+		set_time(int(cas[1]), float(cas[3]))
+		await images.call(30)
+		var n: int = etoiles_vues.call()
+		dire.call("%s : %d étoiles vues" % [cas[0], n])
+		if cas[0] == "nuit claire":
+			shot.call("etoiles")
+	set_weather(0)
+	# vue de jeu, de nuit : la route sous les étoiles
+	cam.current = false
+	hud_n.visible = true
+	set_time(3)
+	await images.call(30)
+	shot.call("route")
+	cam.queue_free()
+	# taximètre : 1 km à 72 km/h puis 1 min d'attente, de jour et de nuit
+	var tx = preload("res://scripts/taximetre.gd").new()
+	add_child(tx)
+	for nuit in [false, true]:
+		tx.nuit = nuit
+		tx.demarrer()
+		for i in 100:
+			tx.compter(0.5, 10.0, 72.0)
+		for i in 120:
+			tx.compter(0.5, 0.0, 0.0)
+		dire.call("taximètre %s : 1 km + 1 min d'attente = %.2f €" % ["TARIF 2 (nuit)" if nuit else "TARIF 1 (jour)", tx.montant])
+	# nuit qui tombe pendant la course : 500 m de jour puis 500 m de nuit
+	tx.nuit = false
+	tx.demarrer()
+	for i in 50:
+		tx.compter(0.5, 10.0, 72.0)
+	tx.nuit = true
+	for i in 50:
+		tx.compter(0.5, 10.0, 72.0)
+	dire.call("taximètre, la nuit tombe à mi-course (1 km) : %.2f €" % tx.montant)
+	tx.queue_free()
+	var heures := []
+	for hh in [6.5, 7.0, 12.0, 19.0, 19.5, 23.0, 3.0]:
+		set_time(CYCLE, hh)
+		heures.append("%s %s" % [heure_texte(), "nuit" if tarif_nuit() else "jour"])
+	set_time(3)
+	heures.append("réglage Nuit %s" % ("nuit" if tarif_nuit() else "jour"))
+	set_time(2)
+	heures.append("réglage Coucher %s" % ("nuit" if tarif_nuit() else "jour"))
+	dire.call("tarif selon l'heure : " + ", ".join(heures))
+	set_time(0)
+	dire.call("FIN")
+	get_tree().quit()
 
 ## Cycle jour et nuit (v6.92) : -- --drive-test --cycle-test [--drive-from=…] (--fixed-fps 8 conseillé) : moments fixes
 ## (lumière ambiante « ciel » à part nulle contre l'ancienne « couleur » : même image ?), puis une journée entière en

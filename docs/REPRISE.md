@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 28/10/2026, 6 h (v6.84 #131 à v6.92 #140 livrées ; choix de modèles de tracteur et de bus en attente, #136)
+## État au 28/10/2026, 6 h (v6.84 #131 à v6.93 #141 livrées ; choix de modèles de tracteur et de bus en attente, #136)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -28,6 +28,10 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v6.93 (#141, `à tester`)** : ciel étoilé (`etoile()` de `ciel_nuages.gdshaderinc`, réglage `etoiles` du ciel peint)
+  et tarif de nuit du taxi (`main.tarif_nuit()`, `taximetre.nuit`, « TARIF 2 »). Essai `--nuit-test` : 121 étoiles par
+  nuit claire, 0 par temps couvert ; taximètre 17,10 € de jour, 19,50 € de nuit (1 km + 1 min). `--taxi-test --taxi-nuit` :
+  compteur en TARIF 2 pendant la course. Piège : `get_node("HUD")` est un CanvasLayer (pas un CanvasItem).
 - **v6.92 (#140, `à tester`)** : cycle jour et nuit (⚙ > Heure > Cycle ; voir CLAUDE.md « Heure et cycle ») : journée de
   24 min, départ à 9 h, heure dans la pastille du HUD. `set_time`/`_apply_weather` remplacés par `_lumiere()` (deux
   moments `_moment()` mêlés, chacun mêlé par la météo). Essai `RS_CLOUDS=0,1 … --cycle-test` (moments fixes inchangés :

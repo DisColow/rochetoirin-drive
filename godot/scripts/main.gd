@@ -697,7 +697,7 @@ func _ciel_peint(p: Array) -> ShaderMaterial:
 	_ciel_regler(_sky_peint, p)
 	return _sky_peint
 
-const CIEL_CLES := ["haut", "horizon", "sol", "energie", "couverture", "clair", "ombre", "taille_soleil"]
+const CIEL_CLES := ["haut", "horizon", "sol", "energie", "couverture", "clair", "ombre", "taille_soleil", "etoiles"]
 var _ciel_vent := Vector2(randf(), randf())
 func _ciel_regler(m: ShaderMaterial, p: Array) -> void:
 	if m.get_shader_parameter("nuages") == null:
@@ -706,7 +706,8 @@ func _ciel_regler(m: ShaderMaterial, p: Array) -> void:
 	for i in CIEL_CLES.size():
 		m.set_shader_parameter(CIEL_CLES[i], p[i])
 
-## Ciel du moment `t` par le temps `w` : vide pour le ciel photo (midi, beau temps), sinon réglages du ciel peint.
+## Ciel du moment `t` par le temps `w` : vide pour le ciel photo (midi, beau temps), sinon réglages du ciel peint
+## (le dernier : étoiles, la nuit par temps clair seulement, v6.93).
 func _ciel_reglages(t: int, w: int) -> Array:
 	if w == 0:
 		if t == 0:
@@ -716,17 +717,18 @@ func _ciel_reglages(t: int, w: int) -> Array:
 			var hz := Color(0.88, 0.80, 0.66) if t == 1 else Color(1.0, 0.56, 0.30)
 			return [Color(0.26, 0.44, 0.75) if t == 1 else Color(0.14, 0.2, 0.42), hz, hz.darkened(0.6), float(MOMENTS[t][3]),
 				0.56 if t == 1 else 0.6, Color(1.0, 0.95, 0.88) if t == 1 else Color(1.0, 0.68, 0.48),
-				Color(0.5, 0.52, 0.6) if t == 1 else Color(0.35, 0.28, 0.38), 1.0]
+				Color(0.5, 0.52, 0.6) if t == 1 else Color(0.35, 0.28, 0.38), 1.0, 0.0]
 		# nuit : ciel bleu nuit, clair de lune (le « soleil » devient la lune)
 		return [Color(0.01, 0.015, 0.04), Color(0.05, 0.07, 0.13), Color(0.01, 0.01, 0.015), 1.0, 0.6,
-			Color(0.1, 0.11, 0.16), Color(0.025, 0.03, 0.045), 0.6]
+			Color(0.1, 0.11, 0.16), Color(0.025, 0.03, 0.045), 0.6, 1.0]
 	# temps gris : ciel peint presque entièrement couvert de nuages gris (#57)
 	var k: float = [1.0, 0.8, 0.45, 0.06][t]           # luminosité du ciel selon l'heure
 	var top := Color(0.56, 0.6, 0.65) if w == 1 else (Color(0.4, 0.43, 0.47) if w == 2 else Color(0.72, 0.74, 0.76))
 	var hor := Color(0.74, 0.76, 0.78) if w != 2 else Color(0.55, 0.57, 0.6)
 	if t == 2:
 		hor = hor.lerp(Color(0.85, 0.6, 0.45), 0.35)
-	return [top * k, hor * k, Color(0.2, 0.21, 0.2) * k, 1.0, [0.6, 0.3, 0.12, 0.2][w], hor * k * 1.04, top * k * 0.72, 1.0]
+	return [top * k, hor * k, Color(0.2, 0.21, 0.2) * k, 1.0, [0.6, 0.3, 0.12, 0.2][w], hor * k * 1.04, top * k * 0.72, 1.0,
+		0.0]
 
 ## Réglages du ciel peint mêlés ; un côté vide (ciel photo) prend ceux de l'autre.
 func _ciel_melange(a: Array, b: Array, f: float) -> Array:
@@ -1008,6 +1010,12 @@ func _lumiere() -> void:
 	_apply_ambience()
 	if car and car.has_method("set_lights"):
 		car.set_lights(phares_allumes())
+
+## Tarif de nuit du taxi (v6.93, taximetre.gd) : réglage Nuit, ou de 19 h 30 à 7 h dans le cycle.
+func tarif_nuit() -> bool:
+	if heure_choix == CYCLE:
+		return heure >= 19.5 or heure < 7.0
+	return time_of_day == 3
 
 ## Phares allumés : la nuit, au coucher, sous la pluie et dans le brouillard (voiture du joueur, circulation).
 func phares_allumes() -> bool:
