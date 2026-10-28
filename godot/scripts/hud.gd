@@ -233,16 +233,16 @@ func _open_settings() -> void:
 			for c in ht.get_children():
 				c.button_pressed = c == b)
 		ht.add_child(b)
-	# météo (ciel, lumière, brume, pluie et route mouillée)
+	# météo (ciel, lumière, brume, pluie et route mouillée) ; « Variable » (v6.91) : le temps change tout seul
 	var lw := Label.new(); lw.text = "Météo"; lw.add_theme_font_size_override("font_size", 30); v.add_child(lw)
-	var hw := HBoxContainer.new(); hw.add_theme_constant_override("separation", 16); v.add_child(hw)
+	var hw := HBoxContainer.new(); hw.add_theme_constant_override("separation", 12); v.add_child(hw)
 	for i in main_node.WEATHERS.size():
 		var b := Button.new()
 		b.text = main_node.WEATHERS[i]
 		b.toggle_mode = true
-		b.button_pressed = i == main_node.weather
-		b.custom_minimum_size = Vector2(220, 70)
-		b.add_theme_font_size_override("font_size", 30)
+		b.button_pressed = i == main_node.meteo_choix
+		b.custom_minimum_size = Vector2(190, 70)
+		b.add_theme_font_size_override("font_size", 28)
 		b.pressed.connect(func():
 			main_node.set_weather(i)
 			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")

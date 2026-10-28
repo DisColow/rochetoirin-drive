@@ -590,7 +590,7 @@ func _process_corps(dt: float) -> void:
 var _wipe_n := -1
 var _rain_roof: AudioStreamPlayer
 func _rain_inside(dt: float) -> void:
-	var raining: bool = main != null and main.weather == 2
+	var raining: bool = main != null and main.pluie > 0.5
 	if _rain_roof == null:
 		_rain_roof = _player("pluie_toit", _bus_car)
 	_vol(_rain_roof, (0.8 if raining else 0.0) * _cockpit)
@@ -611,8 +611,7 @@ func _update_beds(cp: Vector3, dt: float) -> void:
 	var a := amb_at(cp.x, cp.z)
 	var bati: float = a[0]; var bois: float = a[1]; var auto: float = a[3]
 	var tod: int = main.time_of_day if main else 0
-	var wx: int = main.weather if main else 0
-	var rain := 1.0 if wx == 2 else 0.0
+	var rain: float = main.pluie if main else 0.0
 	var wind: float = main.wind_strength if main else 0.55
 	var day := 1.0 if tod <= 1 else 0.0
 	var soir := 1.0 if tod == 2 else 0.0
@@ -676,7 +675,7 @@ func _spot_sounds(cp: Vector3, dt: float) -> void:
 	var a := amb_at(cp.x, cp.z)
 	var bati: float = a[0]; var bois: float = a[1]
 	var tod: int = main.time_of_day if main else 0
-	var rain: bool = main and main.weather == 2
+	var rain: bool = main != null and main.pluie > 0.5
 	var kmh: float = absf(car.forward_speed()) * 3.6
 	var mask := 1.0 - 0.8 * smoothstep(10.0, 110.0, kmh)
 	# oiseaux : merles, rouge-gorge, corneilles le jour ; rossignol et chouette la nuit

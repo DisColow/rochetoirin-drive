@@ -217,6 +217,17 @@
   s'éloigne et disparaît comme avant) ; explosion -> `pietons.panique(p)` (appelée par `explosion.gd`, fuite à 60 m).
   Essai `--fixed-fps 8 -- --drive-test --pietons-test [--pietons-court] --drive-from=-10461.9,241.5,-498.6,105`
   (centre de Bourgoin, 17 passages piétons à 100 m).
+- **Météo** (`main.gd`, ⚙ > Météo) : Beau temps, Couvert, Pluie, Brouillard, ou **Variable** (v6.91, #139, initiative
+  de Claude : `meteo_choix` = réglage, `weather` = temps qu'il fait ou qui arrive). Variable : durées `METEO_DUREES`,
+  suites `METEO_SUITES`, fondu de `METEO_FONDU` s (`meteo_vers`, `_meteo_avancer`) où tous les réglages de
+  `METEO_REGLAGES` sont mêlés (brume en échelle logarithmique), mis à jour `METEO_PAS` fois par fondu (le ciel qui
+  change recalcule ses reflets : pas à chaque image). Ciel : le ciel photo de midi se couvre par `gris` de
+  `ciel_midi.gdshader`, qui mêle le ciel peint de `ciel_nuages.gdshaderinc` (code commun avec `ciel_peint.gdshader`,
+  mêmes réglages `_ciel_reglages`) : à la fin du fondu, `_sky_peint` le remplace sans saut. `main.pluie` (0-1) et
+  `phares_meteo` : gouttes (`rain.gd`, premières gouttes en 4 s), pare-brise, sons (`audio.gd`), circulation
+  (`PLUIE_V`, `PLUIE_T`, phares), passants (`PLUIE` : moins nombreux, pas pressé). Essai
+  `--fixed-fps 8 -- --drive-test --meteo-test --drive-from=-8410.95,221,-7187.25,45.2` (luminosité image par image,
+  captures `meteo_*.png`, enchaînement de la météo variable accéléré).
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
   `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,

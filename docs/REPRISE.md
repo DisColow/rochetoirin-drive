@@ -3,9 +3,11 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 23/10/2026, 2 h (v6.84 #131 à v6.90 #138 livrées ; choix de modèles de tracteur et de bus en attente, #136)
+## État au 28/10/2026, 6 h (v6.84 #131 à v6.91 #139 livrées ; choix de modèles de tracteur et de bus en attente, #136)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
-  Sauvegarde du travail en cours : `git push -f origin HEAD:refs/heads/zone-wip` (pousser `godot/` déclenche l'APK).
+  Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
+  jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
+  `GIT_LFS_SKIP_PUSH=1` (les commits de code n'ont aucun objet LFS).
 - **Objectif de l'utilisateur (22/10, /goal)** : « poursuivre sur ta lancée, compléter / améliorer / peaufiner / ajouter
   jusqu'à un produit fini de haute qualité ; prends des initiatives ». Initiatives choisies : carrière complète (#131,
   scénario déjà validé dans #120), puis circulation (#132), puis (idées) son de moteur propre à chaque voiture,
@@ -26,6 +28,12 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v6.91 (#139, `à tester`)** : météo variable (⚙ > Météo > Variable ; voir CLAUDE.md « Météo ») : fondus de 90 s
+  (ciel photo de midi grisé puis ciel peint identique, brume, soleil, pluie, sol mouillé qui sèche en 60 s), circulation
+  plus lente et phares allumés sous la pluie, passants moins nombreux (×0,4) et plus pressés. Essai `--meteo-test`
+  (`--meteo-court` : seulement l'enchaînement, sur 20 h de jeu simulées) : saut de luminosité d'une image à l'autre
+  0,42 au plus pendant le fondu beau -> couvert (3,4 d'un coup) ; répartition beau 52 %, couvert 34 %, pluie 11 %,
+  brouillard 2 %.
 - **v6.90 (#138, `à tester`)** : client du taxi déposé qui devient un passant (`pietons.adopter`), passants qui fuient
   les explosions (`pietons.panique`). Essais `--taxi-test` (« clients devenus passants : 2 sur 4 courses » : les autres
   destinations sans trottoir à 25 m) et `--pietons-test --pietons-court`.
