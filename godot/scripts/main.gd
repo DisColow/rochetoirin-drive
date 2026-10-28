@@ -50,6 +50,7 @@ var autoroute: Node3D
 var circulation: Node3D       # voitures qui roulent (#132, circulation.gd)
 var pietons: Node3D           # passants (v6.88, pietons.gd)
 var klaxon: Node3D            # klaxon du joueur (v6.88, klaxon.gd)
+var balade: Node3D               # balade : la voiture roule toute seule, caméra de cinéma (v6.98, balade.gd)
 var dust: Node3D
 var _trample: Node                 # cultures fauchées (trample.gd)
 var rain: Node3D
@@ -285,6 +286,9 @@ func _ready() -> void:
 	klaxon = preload("res://scripts/klaxon.gd").new()
 	klaxon.main = self
 	add_child(klaxon)
+	balade = preload("res://scripts/balade.gd").new()
+	balade.main = self
+	add_child(balade)
 	poles.set_night(_night)
 	await _etape("Voiture, sons et radio")
 	# gardien des limites de la carte

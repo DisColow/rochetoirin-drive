@@ -314,6 +314,8 @@ func _clear_world() -> void:
 	join_marks = false
 
 func _stop() -> void:
+	if main.get("balade") and main.balade.actif:
+		main.balade.arreter()
 	_fin_concurrents(0.0)
 	_course_ia = false
 	if main.net and main.net.armes:
@@ -1021,6 +1023,15 @@ func _hunt_process(dt: float) -> void:
 			main.carriere.chasse_finie(_t)
 
 # ================================================================ taxi
+## Balade (v6.98, balade.gd) : la voiture roule toute seule d'un lieu à l'autre, caméra de cinéma.
+func _balade_start() -> void:
+	_close_menu()
+	_clear_world()
+	mode = "balade"
+	map.locked = true             # pas de téléportation pendant la balade (■ Arrêter ou un toucher pour reprendre la main)
+	hud._show_drive(true)
+	main.balade.demarrer()
+
 func _taxi_start() -> void:
 	_close_menu()
 	_clear_world()

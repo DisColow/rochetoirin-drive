@@ -257,6 +257,16 @@
   (`PLUIE_V`, `PLUIE_T`, phares), passants (`PLUIE` : moins nombreux, pas pressé). Essai
   `--fixed-fps 8 -- --drive-test --meteo-test --drive-from=-8410.95,221,-7187.25,45.2` (luminosité image par image,
   captures `meteo_*.png`, enchaînement de la météo variable accéléré).
+- **Balade** (v6.98, #146, initiative de Claude, `scripts/balade.gd`, Activités > Course libre > « Partir en balade »,
+  `activities._balade_start`, mode « balade ») : pilote des concurrents (`concurrent.gd`) sur la voiture du joueur,
+  `a_lat` 2,2, profil plafonné à la limitation de chaque route (`road_name.gd`, tous les 20 m : `_limiter`), lieux de
+  `places.json` à 1,5-5 km l'un après l'autre ; plans de caméra `PLANS` (poursuite = caméra du jeu, bord de route avec
+  vue dégagée vérifiée par un rayon, drone, roue, face, survol) de 7 à 12 s ; `hud.commandes_visibles(false)` cache les
+  commandes de conduite sans mettre le jeu en pause ; un toucher hors de la rangée du haut, une touche ou un bouton de
+  manette : `activities._stop()`. Feux rouges : `_relever_feux` (arrivées d'arcs de `trafic.bin` à feu, à moins de 7 m
+  du trajet et dans son sens) puis `_feux_appliquer` (vitesse du profil nulle au point d'arrêt tant que c'est rouge) ;
+  `concurrent.doubler = false` : suit la voiture de devant sans la doubler ni la pousser. Essai
+  `--fixed-fps 8 -- --drive-test --balade-test [--duree=s] --drive-from=…`.
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
   `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,
