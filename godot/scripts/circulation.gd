@@ -25,9 +25,16 @@ extends Node3D
 
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 const Env := preload("res://scripts/env.gd")
-const MODELES := ["car1", "car3"]
-const BOITES := [Vector3(1.66, 1.48, 3.75), Vector3(1.76, 1.45, 4.45)]     # comme props.gd (largeur, hauteur, longueur)
-const MASSES := [1100.0, 1400.0]
+const MODELES := ["car1", "car3", "lourd_tracteur", "lourd_bus"]
+const BOITES := [Vector3(1.66, 1.48, 3.75), Vector3(1.76, 1.45, 4.45),     # comme props.gd (largeur, hauteur, longueur)
+	Vector3(2.28, 2.55, 7.4), Vector3(2.8, 2.85, 11.5)]
+## Véhicules lourds (v6.99, #136, choix de l'utilisateur : T5 et B1 ; pipeline/blender_lourds.py) : tracteur avec
+## remorque sur les routes de campagne (limitées à 70-90 km/h), bus en ville (50 km/h au plus) ; chance à chaque
+## apparition, vitesse plafonnée (le tracteur se fait doubler : véhicule lent, v6.89), moteur plus grave.
+const LOURD_CHANCE := [0.0, 0.0, 0.07, 0.06]
+const LOURD_VMAX := [INF, INF, 7.0, 13.9]                   # m/s (25 et 50 km/h)
+const LOURD_PITCH := [1.0, 1.0, 0.62, 0.7]
+const MASSES := [1100.0, 1400.0, 4500.0, 11000.0]
 const SANS := ["InteriorPanel", "InteriorPanel_0"]                         # habitacle, invisible derrière les vitres
 const ROUES := ["rubber", "material"]
 const COULEURS := [Color(0.92, 0.92, 0.9), Color(0.92, 0.92, 0.9), Color(0.62, 0.64, 0.66), Color(0.62, 0.64, 0.66),
@@ -98,7 +105,9 @@ var _resa := {}                                # nœud -> [voiture, heure de la 
 var _corps: Array = []                         # par modèle : Mesh de la caisse
 var _roue: Array = []                          # par modèle : Mesh d'une roue (centrée sur son axe)
 var _pos_roues: Array = []                     # par modèle : 4 centres de roue (avant gauche, avant droite, arrière gauche, arrière droite)
-var _mm_roues: Array = []                      # par modèle : MultiMeshInstance3D de toutes les roues
+var _mm_roues: Array = []                      # par modèle : MultiMeshInstance3D de toutes les roues (null : roues fixes)
+var _dispo: Array = []                         # par modèle : présent dans les données
+var lourds_x := 1.0                            # essais : chance des véhicules lourds multipliée
 var _mat: ShaderMaterial
 var _id := 0
 var _remplir := true
@@ -121,7 +130,11 @@ func _ready() -> void:
 	Env.phares_sur(_mat)
 	Env.fade(_mat, FONDU)
 	for k in MODELES.size():
-		_preparer_modele(k)
+		_dispo.append(ResourceLoader.exists("res://assets/props/%s.glb" % MODELES[k]))
+		if _dispo[k]:
+			_preparer_modele(k)
+		else:
+			_corps.append(null); _roue.append(null); _mm_roues.append(null); _pos_roues.append([])
 	if ResourceLoader.exists("res://assets/sfx/klaxon.ogg"):
 		_son_klaxon = load("res://assets/sfx/klaxon.ogg")
 	for k in 2:
@@ -297,6 +310,9 @@ func _preparer_modele(m: int) -> void:
 			"rubber": col = Color(0.03, 0.03, 0.035); rm = 0.9
 		(roues if nm in ROUES else corps).append([mesh.surface_get_arrays(s), Color(col.r, col.g, col.b, rm)])
 	_corps.append(_fusion(corps, true))
+	if roues.is_empty():                           # roues fixes, dans la caisse (tracteur et remorque : tailles différentes)
+		_roue.append(null); _mm_roues.append(null); _pos_roues.append([])
+		return
 	# roues : les 4 groupes de triangles (avant/arrière × gauche/droite) ; la roue avant gauche sert pour les quatre
 	var groupes := [[], [], [], []]
 	var centres := [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
@@ -407,6 +423,15 @@ func _visible(p: Vector3) -> bool:
 	var cam := get_viewport().get_camera_3d()
 	return cam != null and cam.is_position_in_frustum(p + Vector3(0, 0.8, 0))
 
+## Modèle d'une voiture qui apparaît sur l'arc k : parfois un tracteur (route de campagne) ou un bus (en ville).
+func _tirer_modele(k: int) -> int:
+	var v := _v[k] * 3.6
+	if v >= 65.0 and v <= 95.0 and _dispo[2] and randf() < LOURD_CHANCE[2] * lourds_x:
+		return 2
+	if v <= 52.0 and _dispo[3] and randf() < LOURD_CHANCE[3] * lourds_x:
+		return 3
+	return randi() % 2
+
 func _apparaitre(p: Vector3, partout: bool) -> void:
 	var q := Vector2(p.x, p.z) + Vector2.from_angle(randf() * TAU) * randf_range(R_CACHE, R_MAX)
 	var arcs: PackedInt32Array = _grille.get(Vector2i(floori(q.x / CASE), floori(q.y / CASE)), PackedInt32Array())
@@ -434,9 +459,9 @@ func _apparaitre(p: Vector3, partout: bool) -> void:
 	for e in epaves:
 		if is_instance_valid(e.rb) and (e.rb as Node3D).global_position.distance_squared_to(pos) < 25.0 * 25.0:
 			return
-	var m := randi() % MODELES.size()
+	var m := _tirer_modele(k)
 	var c := {"id": _id, "m": m, "col": COULEURS[randi() % COULEURS.size()], "voie": voie, "s": s, "L": L, "rang": rang,
-		"v": _v[k] * 0.7, "perso": randf_range(0.85, 1.02), "suite": -1, "dec": Vector3.ZERO, "dec_s": -100.0,
+		"v": minf(_v[k] * 0.7, LOURD_VMAX[m]), "perso": randf_range(0.85, 1.02), "suite": -1, "dec": Vector3.ZERO, "dec_s": -100.0,
 		"pos": pos, "dir": Vector3(g[1].x, 0.0, g[1].y), "frein": false, "roue": 0.0, "resa": -1, "bloque": 0.0,
 		"klaxon": 0.0, "impasse": false, "leader": "", "clign": 0, "dep": [], "attente": 0.0, "engage": -1, "lent": 0.0,
 		"derive": randf_range(-0.3, 0.3)}
@@ -627,7 +652,7 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 	if int(c.suite) == -1 and float(c.L) - float(c.s) < 60.0:
 		c.suite = _suite(int(c.voie))
 		c.clign = _clignotant(int(c.voie), int(c.suite))
-	var v0: float = _v[k] * float(c.perso) * lerpf(1.0, PLUIE_V, _pluie)
+	var v0: float = minf(_v[k] * float(c.perso) * lerpf(1.0, PLUIE_V, _pluie), LOURD_VMAX[int(c.m)])
 	v0 = minf(v0, _v_virage(c))
 	var dv := _devant(c, obstacles)
 	var gap: float = dv[0]
@@ -960,7 +985,7 @@ func _accident(i: int, par: Node3D) -> void:
 	remove_child(mi)
 	rb.add_child(mi)
 	mi.transform = Transform3D.IDENTITY
-	for g in 4:
+	for g in (4 if _roue[m] != null else 0):
 		var w := MeshInstance3D.new()
 		w.mesh = _roue[m]
 		w.transform = _roue_xf(m, g, float(c.roue))
@@ -1084,7 +1109,9 @@ func _roue_xf(m: int, g: int, a: float) -> Transform3D:
 
 func _rendre() -> void:
 	var phares: bool = main != null and main.has_method("phares_allumes") and main.phares_allumes()
-	var nb := [0, 0]
+	var nb := []
+	nb.resize(MODELES.size())
+	nb.fill(0)
 	var plus_proches := []
 	for c in voitures:
 		var m := int(c.m)
@@ -1097,6 +1124,9 @@ func _rendre() -> void:
 		mi.multimesh.set_instance_custom_data(0, col)
 		mi.global_transform = xf
 		(c.corps as AnimatableBody3D).global_transform = xf
+		if _mm_roues[m] == null:
+			plus_proches.append([(c.pos as Vector3).distance_squared_to(target.global_position), c])
+			continue
 		var mm: MultiMesh = (_mm_roues[m] as MultiMeshInstance3D).multimesh
 		for g in 4:
 			if nb[m] >= mm.instance_count:
@@ -1106,7 +1136,8 @@ func _rendre() -> void:
 			nb[m] += 1
 		plus_proches.append([(c.pos as Vector3).distance_squared_to(target.global_position), c])
 	for m in MODELES.size():
-		(_mm_roues[m] as MultiMeshInstance3D).multimesh.visible_instance_count = nb[m]
+		if _mm_roues[m] != null:
+			(_mm_roues[m] as MultiMeshInstance3D).multimesh.visible_instance_count = nb[m]
 	# bruit de moteur des deux voitures les plus proches
 	plus_proches.sort_custom(func(x, y): return x[0] < y[0])
 	for k in _moteurs.size():
@@ -1114,7 +1145,7 @@ func _rendre() -> void:
 		if k < plus_proches.size() and float(plus_proches[k][0]) < 80.0 * 80.0:
 			var c: Dictionary = plus_proches[k][1]
 			ap.global_position = c.pos
-			ap.pitch_scale = clampf(0.55 + float(c.v) / 20.0, 0.5, 1.6)
+			ap.pitch_scale = clampf(0.55 + float(c.v) / 20.0, 0.5, 1.6) * LOURD_PITCH[int(c.m)]
 			ap.volume_db = -14.0 + clampf(float(c.v) / 3.0, 0.0, 6.0)
 			if not ap.playing:
 				ap.play(randf() * 2.0)

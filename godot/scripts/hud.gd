@@ -112,6 +112,7 @@ const CREDITS := """Enseigne de la boulangerie : polices Kaushan Script et Cavea
 Voix du taxi : synthèse vocale de l'appareil ; à défaut, synthèse Piper (rhasspy) ; voix « Siwis » (Université d'Édimbourg, CC BY 4.0) et « Gilles » (CC0), effet talkie-walkie ffmpeg.
 Voiture : « Ford Ranger Raptor 2019 » par David_Holiday (Sketchfab, licence CC BY 4.0), repeint en noir.
 Lampadaires : « Street Lantern » par Samuel Francis Johnson (Oneironauticus) (Sketchfab, licence CC BY 4.0).
+Circulation (Sketchfab, licence CC BY 4.0) : « Tractor With Trailer – Low Poly 3D Model » par KidBi-Gaming, « Generic Town Bus » par own.guest.
 Aéronefs (Sketchfab, licence CC BY 4.0) : « Free Cessna 172 Replica » par quadzii, « Low Poly Airliner » par maurogsw, « Low Poly Helicopter » par antonmoek, « UNDERPOLY: Free Sailplane Glider » par underpolyproject.
 Animations des clients : « Universal Animation Library » 1 et 2 de Quaternius (CC0).
 Explosions : planches d'images de feu et de fumée de Unity Labs (« Free VFX Image Sequences & Flipbooks », CC0).
