@@ -15,7 +15,7 @@ const D_MIN := 220.0                            # arrêt suivant : de D_MIN à D
 const D_MAX := 1000.0
 const R_DEPART := 1500.0                        # premier arrêt à moins de ça du joueur
 const TARIF := 1.70
-const PRIME_HEURE := 3.0
+const PRIME_HEURE := 5.0
 const ECART := 60.0                             # à l'heure : moins d'une minute d'avance ou de retard
 const MALUS_CHOC := 2.0
 const V_HORAIRE := 7.0                          # m/s sur le trajet (×1,4 pour les détours) : horaire de chaque arrêt
@@ -55,12 +55,11 @@ func demarrer() -> bool:
 		return false
 	var tous: PackedVector3Array = pie.arrets_bus()
 	var p := car.global_position
-	var cur := -1
-	var bd := R_DEPART
+	var cand := []
 	for k in tous.size():
-		if tous[k].distance_to(p) < bd:
-			bd = tous[k].distance_to(p)
-			cur = k
+		if tous[k].distance_to(p) < R_DEPART:
+			cand.append([tous[k].distance_to(p), k])
+	var cur := _premier_desservi(tous, cand)
 	if cur < 0:
 		return false
 	arrets = [tous[cur]]
@@ -68,8 +67,7 @@ func demarrer() -> bool:
 	var dir := Vector3.ZERO
 	while arrets.size() < NB_ARRETS:
 		var q0: Vector3 = arrets[-1]
-		var best := -1
-		var score := INF
+		cand.clear()
 		for k in tous.size():
 			if pris.has(k):
 				continue
@@ -79,9 +77,8 @@ func demarrer() -> bool:
 			var sc := d
 			if dir != Vector3.ZERO and (tous[k] - q0).normalized().dot(dir) < -0.2:
 				sc += 1500.0                            # pas de demi-tour : la ligne avance
-			if sc < score:
-				score = sc
-				best = k
+			cand.append([sc, k])
+		var best := _premier_desservi(tous, cand)
 		if best < 0:
 			break
 		dir = (tous[best] - q0).normalized()
@@ -118,6 +115,20 @@ func demarrer() -> bool:
 	_peuple = -1
 	_viser()
 	return true
+
+## Meilleur candidat ([score, indice], le plus petit score d'abord) longé par une voie de la circulation où le bus peut
+## s'arrêter (sinon arrêt sur une voie de service, un parking de gare… : inaccessible) ; -1 si aucun.
+var _desservis := {}
+func _premier_desservi(tous: PackedVector3Array, cand: Array) -> int:
+	cand.sort_custom(func(a, b): return a[0] < b[0])
+	var ci = main.get("circulation")
+	for c in cand:
+		var k: int = c[1]
+		if not _desservis.has(k):
+			_desservis[k] = ci == null or not ci.ok or not ci.voie_arret(tous[k], 0.0).is_empty()
+		if _desservis[k]:
+			return k
+	return -1
 
 ## Fin de service : la voiture du joueur revient (avec ses pièces du garage).
 func arreter() -> void:

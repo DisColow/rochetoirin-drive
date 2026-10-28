@@ -2888,6 +2888,7 @@ func _succes_test() -> void:
 	su.verifier()
 	dire.call("au départ (état déjà sauvegardé : médailles, voitures, carrière) : %d succès %s" % [su.obtenus.size(), str(su.obtenus.keys())])
 	var argent0: float = garage.argent
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://shots/ligne_bus.png"))
 	if OS.get_cmdline_user_args().has("--succes-meteo"):
 		# v6.95 : à l'aube du cycle, sous la pluie, compteurs juste sous le but
 		set_time(CYCLE, 6.0)
@@ -3086,6 +3087,7 @@ func _ligne_bus_test() -> void:
 	for k in 120:
 		await get_tree().process_frame
 	var argent0: float = garage.argent
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://shots/ligne_bus.png"))
 	dire.call("voiture avant : %s" % car.voiture)
 	activities._bus_start()
 	if not lb.actif:
@@ -3109,7 +3111,11 @@ func _ligne_bus_test() -> void:
 		essais_arret += 1
 		var k: int = lb.i
 		var q: Vector3 = lb.arrets[k]
+		var recul := 40.0
 		var va: Array = ci.voie_arret(q, 45.0)
+		if va.is_empty():                                # arrêt près du début de sa voie : posé plus près
+			recul = 14.0
+			va = ci.voie_arret(q, 18.0)
 		if va.is_empty():
 			dire.call("arrêt %d : aucune voie le long, sauté" % (k + 1))
 			lb.i += 1
@@ -3120,7 +3126,7 @@ func _ligne_bus_test() -> void:
 			continue
 		var voie: int = va[0]
 		var sa: float = va[1]
-		var g0: Array = ci._geo(voie, sa - 40.0, 0)
+		var g0: Array = ci._geo(voie, sa - recul, 0)
 		var p0: Vector3 = g0[0]
 		await _teleport(p0 + Vector3.UP * 0.6, rad_to_deg(atan2(g0[1].x, -g0[1].y)))
 		for f in 30:
@@ -3137,7 +3143,7 @@ func _ligne_bus_test() -> void:
 			var vers := cible - car.global_position
 			vers.y = 0.0
 			var reste := vers.dot(Vector3(gc[1].x, 0.0, gc[1].y))
-			var gp: Array = ci._geo(voie, minf(sa - PORTE_BUS_Z, sa - 40.0 + t * 8.0 + 12.0), 0)
+			var gp: Array = ci._geo(voie, minf(sa - PORTE_BUS_Z, sa - recul + t * 8.0 + 12.0), 0)
 			var vise: Vector3 = (gp[0] as Vector3) - car.global_position
 			car.touch_steer = clampf(fwd.cross(vise.normalized()).y * 2.5, -1.0, 1.0)
 			var v := car.linear_velocity.length()
@@ -3155,7 +3161,7 @@ func _ligne_bus_test() -> void:
 			var porte: Vector3 = car.global_transform * LB.PORTE
 			dire.call("arrêt %d %s : portes ouvertes en %.1f s, porte à %.1f m du poteau ; %d à bord, recette %.2f €, primes %.2f €" % [
 				k + 1, lb.noms[k], lb.t - t0, Vector2(porte.x - q.x, porte.z - q.z).length(), lb.voyageurs, lb.recette, lb.primes])
-			if k == 1:
+			if not FileAccess.file_exists("user://shots/ligne_bus.png") and k >= 1:
 				var droite := -car.global_transform.basis.x
 				cam.global_position = car.global_position + droite * 9.0 + car.global_transform.basis.z * 9.0 + Vector3.UP * 3.0
 				cam.look_at(car.global_position + car.global_transform.basis.z * 3.5 + Vector3.UP * 1.2)
