@@ -334,9 +334,9 @@ def convertir(cid, c):
         w.data.materials.clear()            # d'après la distance de chaque face à l'axe (x), avant l'allègement
         w.data.materials.append(materiau("rubber", (0.035, 0.035, 0.04), 0.0, 0.85))
         w.data.materials.append(materiau("hubcap", c["roue_unie"], 0.6, 0.35))
-        for f in w.data.polygons:
-            q = f.center
-            f.material_index = 0 if (q.y ** 2 + q.z ** 2) ** 0.5 > 0.58 * rayon else 1
+        for f in w.data.polygons:                    # sommet le plus loin de l'axe : un grand disque plat qui couvre
+            rmax = max((w.data.vertices[k].co.y ** 2 + w.data.vertices[k].co.z ** 2) ** 0.5 for k in f.vertices)
+            f.material_index = 0 if rmax > 0.62 * rayon else 1      # la roue est du pneu, pas de la jante
     alleger(w, 2500)
     # matériaux (ceux de la roue copiés : une jante peut partager le matériau de la caisse)
     for sl in w.material_slots:
