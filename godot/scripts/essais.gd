@@ -487,6 +487,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_pietons_test()
 		return
+	if OS.get_cmdline_user_args().has("--balade-test"):
+		if t == 300:
+			_balade_test()
+		return
 	if OS.get_cmdline_user_args().has("--lumiere-perf"):
 		if t == 300:
 			_lumiere_perf()
@@ -3050,6 +3054,152 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Balade (v6.98) : -- --drive-test --balade-test [--duree=<s>] [--drive-from=…] (--fixed-fps 8 conseillé) : balade
+## lancée comme depuis le menu ; relevé toutes les 15 s (lieu visé, vitesse, limitation de la route, plan) ; à la fin :
+## lieux atteints, distance, vitesse moyenne, temps au-dessus de la limitation (+10 km/h), explosions, arrêts aux feux
+## rouges (et passages au rouge : voiture à plus de 15 km/h sur le point d'arrêt d'un feu rouge), plans vus ;
+## capture de chaque plan ; puis un toucher au milieu de l'écran rend la main. --balade-feu : le premier feu du trajet
+## passe au rouge quand la voiture en est à 60 m (horloge des feux avancée) ; arrêt, attente et départ au vert relevés.
+func _balade_test() -> void:
+	var dire := func(x: String): print("  [balade] " + x)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	var duree := 240.0
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--duree="):
+			duree = float(a.get_slice("=", 1))
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	var b = balade
+	var hud_n = get_node("HUD")
+	if OS.get_cmdline_user_args().has("--balade-feu"):
+		# départ 150 m avant un feu de la circulation (arrivée d'arc à feu la plus proche, sur un arc assez long), arrivée
+		# 250 m après le nœud, dans le prolongement
+		var circ = circulation
+		var meilleur := -1
+		var md := INF
+		for k in circ._a.size():
+			if circ._feu_b[k] < 0 or circ._np[k] < 2:
+				continue
+			var n: int = circ._b[k]
+			var pa: int = circ._p0[k]
+			var lg := Vector2(circ._P[pa * 3], circ._P[pa * 3 + 2]).distance_to(Vector2(circ._nx[n], circ._nz[n]))
+			var dn := Vector2(circ._nx[n], circ._nz[n]).distance_to(Vector2(car.global_position.x, car.global_position.z))
+			if lg > 160.0 and dn < md:
+				md = dn
+				meilleur = k
+		if meilleur >= 0:
+			var n: int = circ._b[meilleur]
+			var q := Vector2(circ._nx[n], circ._nz[n])
+			var pa: int = circ._p0[meilleur]
+			var depart := Vector2(circ._P[pa * 3], circ._P[pa * 3 + 2])
+			var dir := (q - depart).normalized()
+			var p0 := q - dir * 150.0
+			var y := preload("res://scripts/relief.gd").hauteur(Vector3(p0.x, 0.0, p0.y))
+			car.place(Vector3(p0.x, y + 1.0, p0.y), rad_to_deg(atan2(dir.x, -dir.y)))   # cap : 0 au nord (-Z), sens horaire
+			car.hold(1.0)
+			for i in 40:
+				await get_tree().process_frame
+			b.destination = q + dir * 250.0
+			dire.call("feu d'essai : arc %d, nœud à (%.0f, %.0f), départ 150 m avant" % [meilleur, q.x, q.y])
+	activities._balade_start()
+	var t := 0.0
+	var dist := 0.0
+	var p_prec := car.global_position
+	var au_dessus := 0.0
+	var mesure := 0.0
+	var vmax := 0.0
+	var boums := 0
+	var au_rouge := 0
+	var blown := false
+	var pris := {}
+	var plan_prec := -1
+	var plan_t0 := 0.0
+	var log_t := 0.0
+	var feu_force := []                     # --balade-feu : [point d'arrêt, code] du feu mis au rouge
+	var feu_arret_t := -1.0
+	var feu_d_min := INF
+	var feu_vert_t := -1.0
+	var feu_fin := false
+	var Env := preload("res://scripts/env.gd")
+	while t < duree and not feu_fin:
+		await get_tree().process_frame
+		var dt := get_process_delta_time()
+		t += dt
+		var p := car.global_position
+		if p.distance_to(p_prec) < 30.0:
+			dist += p.distance_to(p_prec)
+		p_prec = p
+		var kmh := absf(car.forward_speed()) * 3.6
+		vmax = maxf(vmax, kmh)
+		var lim := int(hud_n.get("_limit"))
+		if b._pilote_parti and lim > 0:
+			mesure += dt
+			if kmh > float(lim) + 10.0:
+				au_dessus += dt
+		for f in b._feux:
+			var dfeu: float = b._pilote._s[int(f[0])] - b._pilote.s if is_instance_valid(b._pilote) else 99.0
+			if absf(dfeu) < 1.0 and kmh > 15.0 and circulation._etat_feu(int(f[1])) == 2:
+				au_rouge += 1
+		if OS.get_cmdline_user_args().has("--balade-feu") and is_instance_valid(b._pilote) and b._pilote_parti:
+			if feu_force.is_empty():
+				for f in b._feux:
+					var df: float = b._pilote._s[int(f[0])] - b._pilote.s
+					if df > 40.0 and df < 60.0:
+						feu_force = f
+						# rouge pendant encore 29 s : phase du feu à 31 s de son cycle de 60 s
+						var code: int = int(f[1])
+						Env._t_feux = fposmod(31.0 - float(code >> 1) - (30.0 if code & 1 else 0.0), 600.0)
+						dire.call("feu mis au rouge à %.0f m (état %d)" % [df, circulation._etat_feu(code)])
+						break
+			else:
+				var dfo: float = b._pilote._s[int(feu_force[0])] - b._pilote.s
+				var etat_f: int = circulation._etat_feu(int(feu_force[1]))
+				if etat_f == 2 and dfo > -5.0 and feu_vert_t < 0.0:
+					feu_d_min = minf(feu_d_min, dfo)
+					if kmh < 3.0 and feu_arret_t < 0.0:
+						feu_arret_t = t
+						dire.call("arrêt au rouge à %.1f m du point d'arrêt" % dfo)
+				elif feu_arret_t >= 0.0 and feu_vert_t < 0.0:
+					feu_vert_t = t
+				if feu_vert_t >= 0.0 and t - feu_vert_t > 6.0:
+					dire.call("feu forcé : arrêté %.0f s au rouge, au plus près %.1f m du point d'arrêt ; 6 s après le vert : %.0f km/h, %.0f m après le point d'arrêt" % [
+						feu_vert_t - feu_arret_t, feu_d_min, kmh, -dfo])
+					feu_fin = true
+		if car.blown and not blown:
+			boums += 1
+		blown = car.blown
+		if b._plan != plan_prec:
+			plan_prec = b._plan
+			plan_t0 = t
+		var nom_plan: String = b.PLANS[b._plan]
+		if not pris.has(nom_plan) and t - plan_t0 > 2.0:
+			pris[nom_plan] = true
+			get_viewport().get_texture().get_image().save_png("user://shots/balade_%s.png" % nom_plan)
+		if t >= log_t:
+			log_t += 15.0
+			var raison := ""
+			if kmh < 3.0 and is_instance_valid(b._pilote) and b._pilote_parti:
+				raison = " ; arrêt : %s, feu au rouge %s, profil %.1f m/s" % [b._pilote.suivie, str(b._arrete_feu),
+					float(b._pilote._au(b._pilote.s + 4.0)[2])]
+			if is_instance_valid(b._pilote):
+				b._pilote.suivie = ""
+			dire.call("t=%3.0f s : vers %s, %3.0f km/h (limitation %d), plan %s, lieux atteints %d, commandes %s%s" % [t, b.lieu,
+				kmh, lim, nom_plan, b.lieux, "visibles" if hud_n.buttons[0].visible else "cachées", raison])
+	dire.call("bilan sur %.0f s : %d lieu(x) atteint(s), %.2f km, %.0f km/h de moyenne, %.0f km/h au plus ; au-dessus de la limitation (+10 km/h) %.0f %% du temps ; %d explosion(s) ; plans vus : %s" % [
+		t, b.lieux, dist / 1000.0, dist / t * 3.6, vmax, 100.0 * au_dessus / maxf(mesure, 0.01), boums, ", ".join(b.plans_vus.keys())])
+	dire.call("feux tricolores sur les trajets : %d ; arrêts au rouge : %d ; passages au rouge : %d" % [b._feux.size(), b.arrets_feu, au_rouge])
+	var ev := InputEventScreenTouch.new()
+	ev.pressed = true
+	ev.position = get_viewport().get_visible_rect().size * 0.5
+	Input.parse_input_event(ev)
+	for i in 8:
+		await get_tree().process_frame
+	dire.call("après un toucher au milieu de l'écran : balade active %s, activité « %s », caméra du jeu %s, commandes visibles %s" % [
+		str(b.actif), activities.mode, str(cam_rig.cam.current), str(hud_n.buttons[0].visible)])
+	dire.call("FIN")
+	get_tree().quit()
 
 ## Coût de la lumière (v6.97) : -- --drive-test --lumiere-perf : durée moyenne de _lumiere() (appelée chaque seconde
 ## dans le cycle jour et nuit et pendant les fondus de la météo), sur un plateau (rien ne change) et pendant une

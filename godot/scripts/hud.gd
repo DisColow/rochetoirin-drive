@@ -778,6 +778,12 @@ func releve_perf_fini(texte: String) -> void:
 	add_child(box)
 	get_tree().create_timer(60.0).timeout.connect(func(): if is_instance_valid(box): box.queue_free())
 
+## Balade (v6.98, balade.gd) : commandes de conduite cachées ou rendues (le jeu continue, contrairement à _show_drive) ;
+## tenu à chaque image par _process (à pied / en voiture).
+var _sans_commandes := false
+func commandes_visibles(on: bool) -> void:
+	_sans_commandes = not on
+
 func _show_drive(on: bool) -> void:
 	_conduite = on
 	for i in buttons.size():
@@ -813,17 +819,18 @@ func _process_corps(_dt: float) -> void:
 		var pd = get_parent().get("pied")
 		if pd:
 			var a_pied: bool = pd.actif
-			b_pied.visible = _conduite and (a_pied or pd.peut_sortir())
+			var cond: bool = _conduite and not _sans_commandes
+			b_pied.visible = cond and (a_pied or pd.peut_sortir())
 			b_pied.text = ("MONTER" if pd.pres_de_la_voiture() else "VOITURE") if a_pied else "À PIED"
 			# à pied : plus de compteur ni de freins à l'écran
 			speed_panel.visible = _conduite and not a_pied
-			b_parking.visible = _conduite and not a_pied
+			b_parking.visible = cond and not a_pied
 			# à pied (#80) : plus de ◀ ▶ FREIN GAZ (sticks virtuels), le disque du frein à main devient « SAUT »
 			for i in 4:
-				buttons[i].visible = _conduite and not a_pied
-			b_klaxon.visible = _conduite and not a_pied
-			b_frein_main.visible = _conduite
-			b_nitro.visible = _conduite and not a_pied and car != null and car.nitro_niveau > 0
+				buttons[i].visible = cond and not a_pied
+			b_klaxon.visible = cond and not a_pied
+			b_frein_main.visible = cond
+			b_nitro.visible = cond and not a_pied and car != null and car.nitro_niveau > 0
 			var lb: Label = b_frein_main.get_child(0)
 			lb.text = "SAUT" if a_pied else "F. À\nMAIN"
 			b_frein_main.position = Vector2(get_viewport().get_visible_rect().size.x - 130, get_viewport().get_visible_rect().size.y * 0.42) if a_pied else Vector2(get_viewport().get_visible_rect().size.x - 470 + 12, get_viewport().get_visible_rect().size.y - 330)

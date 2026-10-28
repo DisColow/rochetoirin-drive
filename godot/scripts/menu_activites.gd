@@ -263,6 +263,10 @@ func _course() -> void:
 	_bouton(v, "Créer un tracé", act._course_setup)
 	if not act._last_route.is_empty():
 		_bouton(v, "Recommencer le dernier tracé" + ("" if act._best == INF else "  (record " + act._fmt(act._best) + ")"), act._course_again)
+	# v6.98 : balade (balade.gd)
+	_texte(v, "Balade : la voiture roule toute seule d'un lieu à l'autre, en respectant les limitations, et la caméra "
+		+ "filme comme au cinéma. Touchez l'écran pour reprendre le volant.")
+	_bouton(v, "Partir en balade", act._balade_start)
 
 func _taxi() -> void:
 	var v := _colonne()

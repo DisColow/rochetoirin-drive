@@ -35,6 +35,8 @@ var depart := Transform3D()         # place sur la grille de départ
 var main: Node
 var autres: Array = []              # voitures de la course (joueur compris) : dépassements
 var voiture: Car                    # donnée d'avance (essai : voiture du joueur pilotée), sinon créée
+var doubler := true                 # balade (v6.98) : non, on suit la voiture de devant à bonne distance
+var suivie := ""                    # balade : voiture suivie (essais : raison d'un arrêt)
 
 var pret := false                   # tracé et profil prêts
 var parti := false                  # « Partez ! »
@@ -291,6 +293,14 @@ func _piloter(dt: float) -> void:
 		elif l.z >= 4.5 and l.z < 16.0 + v * 0.8 and absf(l.x) < 2.3:
 			var vo: float = (e[1] as Vector3).dot(xf.basis.z)
 			if vo < v - 0.5 or l.z < 7.0:
+				if not doubler:
+					# seulement une voiture qui va dans notre sens, sur notre voie (une voiture qui arrive en face dans
+					# une rue étroite n'est pas à suivre : chacune attendrait l'autre)
+					var vit_o: Vector3 = e[1]
+					if absf(l.x) < 1.6 and (vit_o.length() < 0.5 or vit_o.normalized().dot(xf.basis.z) > 0.5):
+						v_cible = minf(v_cible, maxf(maxf(vo, 0.0) + (l.z - 9.0) * 0.4, 0.0))
+						suivie = "voiture %d à %.0f m" % [int(e[2]), l.z]
+					continue
 				gene = true
 				if int(e[2]) >= 0:
 					evites[int(e[2])] = true
