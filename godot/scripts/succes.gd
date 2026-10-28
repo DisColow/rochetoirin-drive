@@ -3,7 +3,8 @@
 ## « Succès » du menu Activités (menu_activites.gd). Sauvegarde user://succes.cfg (compteurs, succès obtenus).
 ## Compteurs : suivi de la voiture ici (distance, vitesse, nuit, à pied, communes, temps de jeu) ; noter() appelé par
 ## car.gd (explosion), casse.gd (décor, arbres), activities.gd (taxi, chasse, concurrents détruits), circulation.gd
-## (voitures percutées), garage.gd (argent gagné) ; état déjà sauvegardé (médailles, voitures, carrière) relu par valeur().
+## (voitures percutées), garage.gd (argent gagné), main.gd (éclairs) ; v6.95 : pluie, aube et journée du cycle suivies
+## ici ; état déjà sauvegardé (médailles, voitures, carrière) relu par valeur().
 ## Essai : -- --drive-test --succes-test.
 extends Node
 
@@ -16,6 +17,11 @@ const SUCCES := [
 	{"id": "v200", "titre": "Plein pot", "texte": "Atteindre 200 km/h.", "stat": "vmax", "but": 200.0, "prime": 300},
 	{"id": "v280", "titre": "Mur du son… presque", "texte": "Atteindre 280 km/h.", "stat": "vmax", "but": 280.0, "prime": 1000},
 	{"id": "nuit10", "titre": "Couche-tard", "texte": "Rouler 10 km de nuit.", "stat": "km_nuit", "but": 10.0, "prime": 300},
+	{"id": "orage", "titre": "Chasseur d'orages", "texte": "Rouler 5 km sous la pluie.", "stat": "km_pluie", "but": 5.0, "prime": 300},
+	{"id": "eclairs", "titre": "Zeus", "texte": "Voir 20 éclairs.", "stat": "eclairs", "but": 20.0, "prime": 200},
+	{"id": "aube", "titre": "Lève-tôt", "texte": "Rouler 2 km à l'aube (cycle jour et nuit).", "stat": "km_aube", "but": 2.0, "prime": 300},
+	{"id": "journee", "titre": "Tour du cadran", "texte": "Jouer une journée entière du cycle jour et nuit.", "stat": "heures_cycle",
+		"but": 24.0, "prime": 500},
 	{"id": "pied1", "titre": "Promeneur", "texte": "Marcher 1 km à pied.", "stat": "km_pied", "but": 1.0, "prime": 200},
 	{"id": "communes", "titre": "Explorateur", "texte": "Traverser 9 communes différentes.", "stat": "communes", "but": 9.0, "prime": 500},
 	{"id": "boum1", "titre": "KA-BOOM", "texte": "Exploser contre un obstacle.", "stat": "explosions", "but": 1.0, "prime": 100},
@@ -26,6 +32,7 @@ const SUCCES := [
 	{"id": "taxi1", "titre": "Taxi !", "texte": "Terminer une course de taxi.", "stat": "taxi", "but": 1.0, "prime": 100},
 	{"id": "taxi50", "titre": "Chauffeur de confiance", "texte": "Terminer 50 courses de taxi.", "stat": "taxi", "but": 50.0, "prime": 1500},
 	{"id": "taxi5e", "titre": "Cinq étoiles", "texte": "10 courses de taxi à 5 étoiles.", "stat": "taxi5", "but": 10.0, "prime": 600},
+	{"id": "taxinuit", "titre": "Taxi de nuit", "texte": "5 courses de taxi au tarif de nuit.", "stat": "taxi_nuit", "but": 5.0, "prime": 400},
 	{"id": "chasse10", "titre": "Détective", "texte": "Réussir 10 chasses au lieu.", "stat": "chasses", "but": 10.0, "prime": 600},
 	{"id": "or1", "titre": "Médaillé", "texte": "Décrocher une médaille d'or.", "stat": "ors", "but": 1.0, "prime": 200},
 	{"id": "or10", "titre": "Collectionneur d'or", "texte": "L'or sur 10 épreuves différentes.", "stat": "ors", "but": 10.0, "prime": 1500},
@@ -38,11 +45,12 @@ const SUCCES := [
 	{"id": "champion", "titre": "Champion du Nord-Isère", "texte": "Finir la carrière.", "stat": "chapitres", "but": 4.0, "prime": 2000},
 ]
 ## Statistiques affichées dans l'onglet : [clé, libellé, unité]
-const STATS := [["km", "Distance parcourue", "km"], ["km_nuit", "dont de nuit", "km"], ["km_pied", "À pied", "km"],
+const STATS := [["km", "Distance parcourue", "km"], ["km_nuit", "dont de nuit", "km"], ["km_pluie", "dont sous la pluie", "km"],
+	["km_pied", "À pied", "km"], ["eclairs", "Éclairs vus", ""],
 	["vmax", "Vitesse maximale", "km/h"], ["temps", "Temps de jeu", "temps"], ["communes", "Communes traversées", ""],
 	["explosions", "Explosions", ""], ["casse", "Éléments du décor cassés", ""], ["arbres", "Arbres couchés", ""],
 	["circulation", "Voitures de la circulation percutées", ""], ["taxi", "Courses de taxi", ""],
-	["taxi5", "dont à 5 étoiles", ""], ["chasses", "Chasses au lieu réussies", ""], ["ors", "Épreuves en or", ""],
+	["taxi5", "dont à 5 étoiles", ""], ["taxi_nuit", "dont au tarif de nuit", ""], ["chasses", "Chasses au lieu réussies", ""], ["ors", "Épreuves en or", ""],
 	["concurrents", "Concurrents détruits", ""], ["argent", "Argent gagné", "€"]]
 
 var main: Node
@@ -127,6 +135,9 @@ func _physics_process(dt: float) -> void:
 	var a_pied: bool = pied != null and bool(pied.get("actif"))
 	stats["temps"] = float(stats.get("temps", 0.0)) + dt
 	_change = true
+	var cycle := int(main.get("heure_choix")) == 4
+	if cycle:
+		noter("heures_cycle", dt * float(main.get("heure_vitesse")))
 	if a_pied:
 		var pv = pied.get("velocity")
 		if pv is Vector3:
@@ -137,6 +148,10 @@ func _physics_process(dt: float) -> void:
 			noter("km", v * dt / 1000.0)
 			if int(main.get("time_of_day")) == 3:
 				noter("km_nuit", v * dt / 1000.0)
+			if float(main.get("pluie")) > 0.5:
+				noter("km_pluie", v * dt / 1000.0)
+			if cycle and float(main.get("heure")) >= 5.0 and float(main.get("heure")) < 7.5:
+				noter("km_aube", v * dt / 1000.0)
 			if v * 3.6 > float(stats.get("vmax", 0.0)):
 				stats["vmax"] = v * 3.6
 

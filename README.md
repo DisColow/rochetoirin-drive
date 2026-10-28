@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v6.94.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.94/RochetoirinSimulator-v6.94.apk)**
+**[RochetoirinSimulator-v6.95.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v6.95/RochetoirinSimulator-v6.95.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,11 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v6.94 :
-- **Orage** : sous la pluie, des éclairs illuminent le ciel et la ville juste avant chaque coup de tonnerre.
-  Spectaculaire la nuit !
-- **Bulletin météo à la radio** (Rochetoirin Info) : l'heure, le temps qu'il fait et, en météo variable, la prévision
-  des prochaines minutes… qui se réalise.
+Nouveautés de la v6.95 :
+- **Cinq nouveaux succès** : Chasseur d'orages (5 km sous la pluie), Zeus (20 éclairs), Lève-tôt (rouler à l'aube),
+  Tour du cadran (une journée entière du cycle) et Taxi de nuit (5 courses au tarif de nuit), avec leur prime.
+- Statistiques : distance sous la pluie, éclairs vus, courses au tarif de nuit.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
