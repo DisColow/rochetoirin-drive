@@ -3148,7 +3148,7 @@ func _ligne_bus_test() -> void:
 			car.touch_steer = clampf(fwd.cross(vise.normalized()).y * 2.5, -1.0, 1.0)
 			var v := car.linear_velocity.length()
 			if reste > v * v / 6.0 + 1.0 and car.kmh() < 22.0:
-				car.touch_throttle = 0.6; car.touch_brake = 0.0
+				car.touch_throttle = 1.0 if car.kmh() < 8.0 else 0.6; car.touch_brake = 0.0
 			elif car.kmh() > 2.0:
 				car.touch_throttle = 0.0; car.touch_brake = 1.0
 			else:
@@ -3157,6 +3157,19 @@ func _ligne_bus_test() -> void:
 			await get_tree().physics_frame
 			var t_av := t
 			t += get_physics_process_delta_time()
+			if t >= 8.0 and t_av < 8.0 and reste > recul - PORTE_BUS_Z - 4.0:
+				# bloqué depuis la pose : ce que touche la caisse, puis reposé plus près
+				var q3 := PhysicsShapeQueryParameters3D.new()
+				var bx := BoxShape3D.new()
+				bx.size = Vector3(car.gabarit.x * 0.95, 1.4, car.gabarit.z * 0.95)
+				q3.shape = bx
+				q3.transform = car.global_transform.translated(Vector3.UP * 1.3)
+				q3.exclude = [car.get_rid()]
+				var touches := []
+				for h in get_world_3d().direct_space_state.intersect_shape(q3, 8):
+					var o: Object = h.collider
+					touches.append("%s%s" % [o.name if o is Node else str(o), " (" + str((o as Node).get_meta("matiere")) + ")" if o is Node and (o as Node).has_meta("matiere") else ""])
+				dire.call("  bloqué après 8 s (%.1f m parcourus) ; la caisse touche : %s" % [recul - PORTE_BUS_Z - reste, ", ".join(touches) if touches.size() > 0 else "rien"])
 			if int(t / 10.0) != int(t_av / 10.0):
 				dire.call("  t=%.0f s : %.1f km/h, reste %.1f m, gaz %.1f, frein %.1f, volant %.2f, position %s" % [t, car.kmh(), reste,
 					car.touch_throttle, car.touch_brake, car.touch_steer, str(car.global_position.snapped(Vector3.ONE * 0.1))])

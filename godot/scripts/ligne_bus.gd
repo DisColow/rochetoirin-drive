@@ -215,7 +215,8 @@ func _ouvrir(porte: Vector3) -> void:
 	transportes += monte
 	recette += monte * TARIF
 	var ecart := t - float(horaires[i])
-	var msg := "%s : %d voyageur(s) monte(nt), %d descend(ent)." % [noms[i], monte, desc]
+	var msg := "%s : %s, %s." % [noms[i], _accord(monte, "voyageur monte", "voyageurs montent", "personne ne monte"),
+		_accord(desc, "descend", "descendent", "personne ne descend")]
 	if absf(ecart) <= ECART:
 		primes += PRIME_HEURE
 		a_l_heure += 1
@@ -233,6 +234,12 @@ func _ouvrir(porte: Vector3) -> void:
 	_porte_t = maxf(4.0, float(r[2]) + 1.5)
 	phase = "portes"
 
+## « 1 voyageur monte », « 3 voyageurs montent », « personne ne monte ».
+static func _accord(n: int, un: String, plusieurs: String, aucun: String) -> String:
+	if n == 0:
+		return aucun
+	return "1 " + un if n == 1 else "%d %s" % [n, plusieurs]
+
 func _fin() -> void:
 	var act = _act()
 	var total := maxf(recette + primes - chocs * MALUS_CHOC, 0.0)
@@ -242,8 +249,9 @@ func _fin() -> void:
 	if main.get("succes"):
 		main.succes.noter("lignes_bus")
 		main.succes.noter("voyageurs", transportes)
-	var bilan := "Terminus ! %d voyageurs, %d arrêt(s) sur %d à l'heure, %d choc(s) : %s gagnés." % [
-		transportes, a_l_heure, arrets.size(), chocs, act._euros(total)]
+	var bilan := "Terminus ! %s, %d arrêt%s sur %d à l'heure, %s : %s gagnés." % [
+		_accord(transportes, "voyageur", "voyageurs", "aucun voyageur"), a_l_heure, "s" if a_l_heure > 1 else "", arrets.size(),
+		_accord(chocs, "choc", "chocs", "aucun choc"), act._euros(total)]
 	act._stop()
 	act._set_status(bilan)
 	act._status_t = 8.0
