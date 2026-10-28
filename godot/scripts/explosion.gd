@@ -57,6 +57,9 @@ func _ready() -> void:
 	var h := Relief.hauteur(g)
 	if is_finite(h) and absf(h - g.y) < 4.0:
 		_sol = h - g.y
+	var pie = get_parent().get("pietons")         # v6.90 : les passants proches s'enfuient
+	if pie and pie.has_method("panique"):
+		pie.panique(g)
 	for nom in PLANCHES:
 		_recettes[nom] = []
 	match style:

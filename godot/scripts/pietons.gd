@@ -39,6 +39,8 @@ var bonds := 0                                 # écarts devant une voiture (ess
 var poufs := 0                                 # passants touchés (essais)
 var traversees := 0                            # passages piétons empruntés (essais)
 var sursauts := 0                              # passants qui ont entendu le klaxon du joueur (essais)
+var adoptes := 0                               # clients du taxi devenus passants (essais)
+var fuites := 0                                # passants qui ont fui une explosion (essais)
 
 var _p0 := PackedInt32Array()
 var _np := PackedInt32Array()
@@ -232,8 +234,15 @@ func _physics_process(dt: float) -> void:
 		if (passants[i].n as Node3D).global_position.distance_to(p) > R_LOIN:
 			_retirer(i)
 	var n := voulu()
-	while passants.size() > n:
-		_retirer(passants.size() - 1)
+	while passants.size() > n:                   # en trop (réglage baissé, client du taxi adopté) : hors de vue d'abord
+		var j := -1
+		for i in passants.size():
+			var q: Vector3 = (passants[i].n as Node3D).global_position
+			if not _visible(q) and (j < 0 or q.distance_squared_to(p) > (passants[j].n as Node3D).global_position.distance_squared_to(p)):
+				j = i
+		if j < 0:
+			break
+		_retirer(j)
 	var essais := 60 if _remplir else 2
 	while passants.size() < n and essais > 0:
 		essais -= 1
@@ -249,6 +258,40 @@ func _physics_process(dt: float) -> void:
 		_marcher(c, dt)
 		_placer(c, dt)
 	PerfMon.note("pietons", Time.get_ticks_usec() - t0)
+
+## Client du taxi déposé (activities.gd) : il devient un passant, rejoint la ligne la plus proche (25 m) et poursuit
+## son chemin ; il ne disparaît que loin ou hors de vue. Modèle m de mh.json (-1 : inconnu). Faux si aucune ligne.
+func adopter(n: Node3D, m: int) -> bool:
+	if not ok or m < 0 or m >= _modeles.size():
+		return false
+	var p := n.global_position
+	var best := -1
+	var bs := 0.0
+	var bd := 25.0 * 25.0
+	var c0 := Vector2i(floori(p.x / CASE), floori(p.z / CASE))
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			for k: int in _grille.get(c0 + Vector2i(dx, dz), PackedInt32Array()):
+				if _genre[k] == 3 or _genre[k] == 4:
+					continue
+				for i in _np[k]:
+					var q := _pts[_p0[k] + i]
+					var d := Vector2(q.x - p.x, q.z - p.z).length_squared()
+					if d < bd:
+						bd = d; best = k; bs = float(i) * _pas[k]
+	if best < 0:
+		return false
+	if n.get_parent() != self:
+		n.reparent(self)
+	n.set("cible", Vector3.INF)
+	var off := p - point(best, bs)                # rejoint la ligne en marchant (off s'estompe)
+	off.y = 0.0
+	var c := {"n": n, "m": m, "l": best, "s": bs, "sens": 1 if randf() < 0.5 else -1, "v": randf_range(1.2, 1.45),
+		"lat": randf_range(-0.2, 0.2), "pause": 0.0, "off": off, "bond": Vector3.ZERO, "bond_t": 0.0,
+		"traverse": -1, "attente": 0.0, "regard": Vector3.ZERO, "regard_t": 0.0}
+	passants.append(c)
+	adoptes += 1
+	return true
 
 ## Voitures pilotées : [position, vitesse, transformation].
 func _autos() -> Array:
@@ -436,3 +479,17 @@ func klaxon(p: Vector3, f: Vector3) -> void:
 			c.regard = p
 			c.regard_t = 1.6
 			c.pause = maxf(float(c.pause), 1.2)
+
+## Explosion en p (explosion.gd) : les passants à moins de 60 m s'enfuient en courant, puis restent plantés là.
+func panique(p: Vector3) -> void:
+	for c in passants:
+		var d: Vector3 = (c.n as Node3D).global_position - p
+		d.y = 0.0
+		if d.length() > 60.0:
+			continue
+		var fuite := d.normalized() if d.length() > 0.5 else Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU)
+		c.bond = fuite * randf_range(4.0, 5.0)
+		c.bond_t = randf_range(2.5, 3.5)
+		c.pause = randf_range(2.0, 4.0)
+		c.traverse = -1
+		fuites += 1

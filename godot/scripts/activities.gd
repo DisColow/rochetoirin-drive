@@ -1395,11 +1395,14 @@ func _taxi_drop() -> void:
 			cl.global_position = Vector3(porte.x, Relief.hauteur(porte), porte.z)
 			cl.visible = true
 			_teleport_fx(cl.global_position)
-			var loin := car.global_transform * Vector3(-12.0, 0.0, -4.0)
-			cl.cible = loin
-			get_tree().create_timer(9.0).timeout.connect(func():
-				if is_instance_valid(cl):
-					cl.queue_free())
+			# v6.90 : il devient un passant (pietons.gd) et rejoint le trottoir ; sinon, il s'éloigne et disparaît
+			var pie = main.get("pietons")
+			if not (pie and pie.adopter(cl, int(_profil.get("modele", -1)))):
+				var loin := car.global_transform * Vector3(-12.0, 0.0, -4.0)
+				cl.cible = loin
+				get_tree().create_timer(9.0).timeout.connect(func():
+					if is_instance_valid(cl):
+						cl.queue_free())
 		else:
 			_client.queue_free()
 	_client = null

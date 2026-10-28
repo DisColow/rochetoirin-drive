@@ -1335,6 +1335,13 @@ func _physics_process(_dt: float) -> void:
 				car.place(Vector3(cible.x, activities.pts[i + 2] + 1.0, cible.y), activities.pts[i + 3])
 				car.hold(0.4)
 		if t > 300 + 120 * 70 or activities._rides >= 4:
+			if pietons:                      # v6.90 : clients déposés devenus passants (encore en scène ou non)
+				var vus := 0
+				for c in pietons.passants:
+					if c.n.global_position.distance_to(car.global_position) < 40.0:
+						vus += 1
+				print("  [taxi] clients devenus passants : %d sur %d courses ; passants à moins de 40 m : %d" % [pietons.adoptes,
+					activities._rides, vus])
 			get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--garage-test"):
@@ -3195,6 +3202,41 @@ func _pietons_test() -> void:
 			pa.pause = 0.0
 			dire.call("passage piéton : voiture %d à %.0f m, arrêtée %s (meneur %s), au plus près %.1f m du passant, passant toujours là %s" % [
 				int(v.id), d0, str(arret), meneur, dmin, str(pi.passants.has(pa))])
+	# explosion (v6.90) : à 15 m du passant le plus proche ; ceux à moins de 60 m doivent s'enfuir
+	if not pi.passants.is_empty():
+		var cible_e = pi.passants[0]
+		for o in pi.passants:
+			if (o.n as Node3D).global_position.distance_to(car.global_position) < (cible_e.n as Node3D).global_position.distance_to(car.global_position):
+				cible_e = o
+		var pe: Vector3 = (cible_e.n as Node3D).global_position + Vector3(15.0, 0.0, 0.0)
+		var avant := {}
+		for o in pi.passants:
+			avant[o.n] = (o.n as Node3D).global_position
+		var f0: int = pi.fuites
+		var fx = preload("res://scripts/explosion.gd").new()
+		fx.style = "mini"
+		fx.position = pe
+		add_child(fx)
+		# vue d'au-dessus de la voiture (dans la rue), vers le passant : la boule de feu, puis ceux qui s'enfuient
+		cam.global_position = car.global_position + Vector3.UP * 16.0
+		cam.look_at((cible_e.n as Node3D).global_position.lerp(pe, 0.4))
+		cam.current = true
+		await pas.call(30)
+		await get_tree().process_frame
+		shot.call("fuite_0")
+		await pas.call(150)
+		await get_tree().process_frame
+		shot.call("fuite_1")
+		await pas.call(180)
+		var eloignes := 0
+		var proches := 0
+		for o in pi.passants:
+			if avant.has(o.n) and (avant[o.n] as Vector3).distance_to(pe) < 60.0:
+				proches += 1
+				if (o.n as Node3D).global_position.distance_to(pe) > (avant[o.n] as Vector3).distance_to(pe) + 4.0:
+					eloignes += 1
+		dire.call("explosion : %d passant(s) ont fui, %d sur %d à moins de 60 m se sont éloignés de plus de 4 m" % [pi.fuites - f0,
+			eloignes, proches])
 	releve.call("fin")
 	cam.queue_free()
 	dire.call("FIN")
