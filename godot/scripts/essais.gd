@@ -3142,15 +3142,18 @@ func _ligne_bus_test() -> void:
 		var t0: float = lb.t
 		t = 0.0
 		var fini := false
+		var libre: bool = not lb._demande and lb._attendent == 0
+		if libre:
+			dire.call("arrêt %d %s : personne à prendre ni à déposer, le bus passe sans s'arrêter" % [k + 1, lb.noms[k]])
 		while t < 60.0 and lb.actif and lb.i == k and lb.phase == "route":
-			var s_vise := sa - PORTE_BUS_Z
+			var s_vise := sa + 30.0 if libre else sa - PORTE_BUS_Z
 			var gc: Array = ci._geo(voie, s_vise, 0)
 			var cible: Vector3 = gc[0]
 			var fwd := car.global_transform.basis.z
 			var vers := cible - car.global_position
 			vers.y = 0.0
 			var reste := vers.dot(Vector3(gc[1].x, 0.0, gc[1].y))
-			var gp: Array = ci._geo(voie, minf(sa - PORTE_BUS_Z, sa - recul + t * 8.0 + 12.0), 0)
+			var gp: Array = ci._geo(voie, minf(s_vise, sa - recul + t * 8.0 + 12.0), 0)
 			var vise: Vector3 = (gp[0] as Vector3) - car.global_position
 			car.touch_steer = clampf(fwd.cross(vise.normalized()).y * 2.5, -1.0, 1.0)
 			var v := car.linear_velocity.length()
@@ -3205,6 +3208,8 @@ func _ligne_bus_test() -> void:
 				car.hold(0.3)
 				await get_tree().physics_frame
 			dire.call("  voyageurs montés : %d au total, %d à bord" % [lb.transportes, lb.voyageurs])
+		elif libre and lb.i != k:
+			dire.call("  arrêt %d desservi en passant (%.0f km/h), primes %.2f €" % [k + 1, car.kmh(), lb.primes])
 		elif lb.actif:
 			var porte2: Vector3 = car.global_transform * LB.PORTE
 			dire.call("arrêt %d : portes NON ouvertes en 60 s (porte à %.1f m du poteau, %.0f km/h, phase %s)" % [k + 1,
