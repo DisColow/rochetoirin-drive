@@ -215,17 +215,17 @@ func _open_settings() -> void:
 		var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
 		cfg.set_value("affichage", "eco_60", on); cfg.save("user://reglages.cfg"))
 	v.add_child(b60)
-	# heure de la journée (lumière, ciel, phares et fenêtres éclairées le soir)
+	# heure de la journée (lumière, ciel, phares et fenêtres éclairées le soir) ; « Cycle » (v6.92) : la journée passe
 	var lt := Label.new(); lt.text = "Heure de la journée"; lt.add_theme_font_size_override("font_size", 30); v.add_child(lt)
-	var ht := HBoxContainer.new(); ht.add_theme_constant_override("separation", 16); v.add_child(ht)
+	var ht := HBoxContainer.new(); ht.add_theme_constant_override("separation", 12); v.add_child(ht)
 	var main_node = get_parent()
 	for i in main_node.TIMES.size():
 		var b := Button.new()
 		b.text = main_node.TIMES[i]
 		b.toggle_mode = true
-		b.button_pressed = i == main_node.time_of_day
-		b.custom_minimum_size = Vector2(220, 70)
-		b.add_theme_font_size_override("font_size", 30)
+		b.button_pressed = i == main_node.heure_choix
+		b.custom_minimum_size = Vector2(190, 70)
+		b.add_theme_font_size_override("font_size", 28)
 		b.pressed.connect(func():
 			main_node.set_time(i)
 			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
@@ -856,6 +856,9 @@ func _process_corps(_dt: float) -> void:
 			_road_text = names.road_at(p)
 			_limit = names.speed_limit
 			_where_text = "%s  ·  x %d  z %d" % [names.commune_at(p), int(round(p.x)), int(round(p.z))]
+			var h: String = get_parent().heure_texte() if get_parent().has_method("heure_texte") else ""
+			if h != "":
+				_where_text = h + "  ·  " + _where_text            # cycle jour et nuit : l'heure du jeu
 			pill.queue_redraw()
 
 ## Pastille ronde de 28 px (témoin d'un interrupteur) : disque coloré cerné de sombre, reflet en haut.

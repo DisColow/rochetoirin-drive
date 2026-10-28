@@ -225,7 +225,7 @@ func _ready() -> void:
 	_meteo_de = weather
 	_meteo_reste = _meteo_duree(weather)
 	car.aide_voie = bool(cfg.get_value("conduite", "aide_voie", true))
-	set_time(int(cfg.get_value("affichage", "heure", 0)))
+	set_time(int(cfg.get_value("affichage", "heure", 0)), CYCLE_DEPART)
 	_wet = _wet_target                                    # au démarrage : sol déjà mouillé s'il pleut
 	await _etape("Poteaux et lampadaires")
 	poles = preload("res://scripts/poles.gd").new()
@@ -284,7 +284,7 @@ func _ready() -> void:
 	klaxon = preload("res://scripts/klaxon.gd").new()
 	klaxon.main = self
 	add_child(klaxon)
-	poles.set_night(1.0 if time_of_day == 3 else (0.35 if time_of_day == 2 else 0.0))
+	poles.set_night(_night)
 	await _etape("Voiture, sons et radio")
 	# gardien des limites de la carte
 	guardian = preload("res://scripts/guardian.gd").new()
@@ -351,7 +351,8 @@ func _ready() -> void:
 	radio.main = self
 	radio.cam_rig = cam_rig
 	add_child(radio)
-	set_time(time_of_day)
+	_nuit_posee = -1.0                                   # tout est en place : lumière, nuit et météo redonnées à tous
+	_lumiere()
 	# étalonnage de l'image finale (calque 2D sous l'interface)
 	var gl := CanvasLayer.new()
 	gl.layer = -1
@@ -601,7 +602,7 @@ func set_post(level: int) -> void:
 		if car and car.has_method("set_lights"):
 			car.set_lights(car.lights_on)
 		if _env:
-			set_time(time_of_day)
+			_lumiere()
 
 ## Résolution 3D ajustée toute seule (Économie, #124) : on ne peut mesurer que le retard (à 30 img/s plafonnées, une
 ## image en avance ne se voit pas) ; sous 28 img/s on baisse de 5 points (jusqu'à 50 %), et toutes les 6 s à 30 img/s
@@ -652,8 +653,35 @@ func _perf_auto(dt: float) -> void:
 		print("[perf] niveau automatique : %.0f img/s -> %d" % [f, l + 1])
 
 # ---------------------------------------------------------------- heure de la journée (Réglages)
-const TIMES := ["Midi", "Après-midi", "Coucher", "Nuit"]
-var time_of_day := 0
+const TIMES := ["Midi", "Après-midi", "Coucher", "Nuit", "Cycle"]
+const CYCLE := 4
+## Lumière de chaque moment : [hauteur du soleil (°), couleur, énergie, énergie du ciel, exposition, couleur du
+## brouillard, densité, nuit].
+const MOMENTS := [
+	[48.0, Color(1.0, 0.96, 0.9), 1.45, 1.0, 1.0, Color(0.75, 0.82, 0.92), 0.000014, 0.0],
+	[24.0, Color(1.0, 0.86, 0.66), 1.5, 0.9, 1.05, Color(0.85, 0.80, 0.70), 0.00002, 0.0],
+	[9.0, Color(1.0, 0.62, 0.38), 1.8, 1.0, 1.1, Color(0.90, 0.62, 0.46), 0.00003, 0.35],
+	[38.0, Color(0.55, 0.65, 1.0), 0.32, 1.0, 1.25, Color(0.05, 0.07, 0.12), 0.00003, 1.0],
+]
+## Cycle jour et nuit (v6.92, initiative de Claude) : une journée en 24 min (une heure de jeu par minute). Repères
+## [heure, moment, décalage du soleil (°)] : nuit jusqu'à 5 h, aube (lumière du coucher, soleil de l'autre côté),
+## matinée (lumière d'après-midi), midi de 10 h 30 à 14 h 30 (ciel photo), après-midi, coucher à 19 h, nuit dès 20 h 30.
+## Entre deux repères, tout est mêlé ; du coucher à la nuit, le soleil cède la place à la lune dans la pénombre.
+const CYCLE_REPERES := [[0.0, 3, 0.0], [5.0, 3, 0.0], [6.5, 2, -80.0], [8.0, 1, -45.0], [10.5, 0, 0.0], [14.5, 0, 0.0],
+	[17.0, 1, 40.0], [19.0, 2, 80.0], [20.5, 3, 0.0], [24.0, 3, 0.0]]
+const CYCLE_DEPART := 9.0                    # heure au lancement du jeu
+const CYCLE_HEURES := [12.5, 16.5, 19.0, 23.0]  # heure de chaque moment (passage d'un réglage fixe au cycle)
+const CYCLE_PAS := 1.0                       # s entre deux mises à jour de la lumière (le ciel recalcule ses reflets)
+var time_of_day := 0             # moment (0-3) ; dans le cycle, le plus proche
+var heure_choix := 0             # réglage ⚙ > Heure (CYCLE : la journée passe)
+var heure := CYCLE_DEPART        # heure du jeu dans le cycle
+var heure_vitesse := 1.0 / 60.0  # heures de jeu par seconde (essais : plus vite)
+var _heure_de := 0               # entre deux repères du cycle : de _heure_de vers _heure_vers, _heure_f de 0 à 1
+var _heure_vers := 0
+var _heure_f := 0.0
+var _az_soleil := 0.0            # décalage du soleil (°)
+var _heure_pas := 0.0
+var cycle_pas := CYCLE_PAS       # essais : lumière mise à jour à chaque image
 var _env: Environment
 var _sun: DirectionalLight3D
 var _sun_az := 0.0
@@ -678,16 +706,15 @@ func _ciel_regler(m: ShaderMaterial, p: Array) -> void:
 	for i in CIEL_CLES.size():
 		m.set_shader_parameter(CIEL_CLES[i], p[i])
 
-## Ciel de l'heure par le temps `w` : vide pour le ciel photo (midi, beau temps), sinon réglages du ciel peint.
-func _ciel_reglages(w: int) -> Array:
-	var t := time_of_day
+## Ciel du moment `t` par le temps `w` : vide pour le ciel photo (midi, beau temps), sinon réglages du ciel peint.
+func _ciel_reglages(t: int, w: int) -> Array:
 	if w == 0:
 		if t == 0:
 			return []
 		if t < 3:
 			# fin d'après-midi (bleu doux, horizon doré) ; coucher (bleu profond, horizon orangé), avec nuages
 			var hz := Color(0.88, 0.80, 0.66) if t == 1 else Color(1.0, 0.56, 0.30)
-			return [Color(0.26, 0.44, 0.75) if t == 1 else Color(0.14, 0.2, 0.42), hz, hz.darkened(0.6), float(_P[3]),
+			return [Color(0.26, 0.44, 0.75) if t == 1 else Color(0.14, 0.2, 0.42), hz, hz.darkened(0.6), float(MOMENTS[t][3]),
 				0.56 if t == 1 else 0.6, Color(1.0, 0.95, 0.88) if t == 1 else Color(1.0, 0.68, 0.48),
 				Color(0.5, 0.52, 0.6) if t == 1 else Color(0.35, 0.28, 0.38), 1.0]
 		# nuit : ciel bleu nuit, clair de lune (le « soleil » devient la lune)
@@ -701,56 +728,74 @@ func _ciel_reglages(w: int) -> Array:
 		hor = hor.lerp(Color(0.85, 0.6, 0.45), 0.35)
 	return [top * k, hor * k, Color(0.2, 0.21, 0.2) * k, 1.0, [0.6, 0.3, 0.12, 0.2][w], hor * k * 1.04, top * k * 0.72, 1.0]
 
-## Lumière selon l'heure : midi (ciel photo à cumulus), fin d'après-midi dorée, coucher de soleil orangé, nuit bleutée
-## (phares allumés, fenêtres éclairées). Le soleil garde son azimut ; seuls hauteur, couleur et ciel changent (le ciel,
-## l'énergie du soleil et la brume : _apply_weather, selon le temps qu'il fait).
-func set_time(i: int) -> void:
-	time_of_day = clampi(i, 0, TIMES.size() - 1)
-	if _env == null:
-		return
-	# [hauteur du soleil (°), couleur, énergie, énergie du ciel, exposition, couleur du brouillard, densité, nuit]
-	_P = [
-		[48.0, Color(1.0, 0.96, 0.9), 1.45, 1.0, 1.0, Color(0.75, 0.82, 0.92), 0.000014, 0.0],
-		[24.0, Color(1.0, 0.86, 0.66), 1.5, 0.9, 1.05, Color(0.85, 0.80, 0.70), 0.00002, 0.0],
-		[9.0, Color(1.0, 0.62, 0.38), 1.8, 1.0, 1.1, Color(0.90, 0.62, 0.46), 0.00003, 0.35],
-		[38.0, Color(0.55, 0.65, 1.0), 0.32, 1.0, 1.25, Color(0.05, 0.07, 0.12), 0.00003, 1.0],
-	][time_of_day]
-	_sun.rotation = Vector3(deg_to_rad(-float(_P[0])), _sun_az, 0)
-	_sun.light_color = _P[1]
-	_env.tonemap_exposure = _P[4]
-	var eco := int(Engine.get_meta("niveau_perf", 1)) == 0
-	# lumière ambiante : ciel le jour ; chaude au coucher, bleutée la nuit (sinon tout devient noir)
-	if time_of_day < 2:
-		# v6.28 : ciel seul = ombres gris-bleu (murs beiges gris à l'ombre) ; on y mêle la lumière renvoyée par le sol,
-		# gris chaud, comme sur les photos (une façade à l'ombre garde sa couleur)
-		_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-		_env.ambient_light_color = Color(0.80, 0.75, 0.68)
-		_env.ambient_light_sky_contribution = 0.4
+## Réglages du ciel peint mêlés ; un côté vide (ciel photo) prend ceux de l'autre.
+func _ciel_melange(a: Array, b: Array, f: float) -> Array:
+	if a.is_empty() or b.is_empty():
+		return b if a.is_empty() else a
+	var p := []
+	for i in CIEL_CLES.size():
+		p.append((a[i] as Color).lerp(b[i], f) if a[i] is Color else lerpf(float(a[i]), float(b[i]), f))
+	return p
+
+## Heure de la journée : un moment fixe (midi, fin d'après-midi dorée, coucher de soleil orangé, nuit bleutée : phares
+## allumés, fenêtres éclairées) ou le cycle jour et nuit (`h` : heure où le reprendre, sinon celle du moment affiché).
+func set_time(i: int, h := -1.0) -> void:
+	var avant := heure_choix
+	heure_choix = clampi(i, 0, TIMES.size() - 1)
+	if heure_choix == CYCLE:
+		if h >= 0.0:
+			heure = h
+		elif avant != CYCLE:
+			heure = CYCLE_HEURES[time_of_day]
+		_cycle_situer()
 	else:
-		_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-		_env.ambient_light_sky_contribution = 1.0
-		_env.ambient_light_color = Color(0.62, 0.50, 0.45) if time_of_day == 2 else Color(0.20, 0.25, 0.40)
-		_env.ambient_light_energy = 0.9 if time_of_day == 2 else 0.75
-		if eco and time_of_day == 3:
-			# Économie : ni phares ni lampadaires réels -> nuit de clair de lune plus claire (#124)
-			_env.ambient_light_color = Color(0.30, 0.36, 0.52)
-			_env.ambient_light_energy = 1.25
-	var night: float = _P[7]
-	preload("res://scripts/env.gd").set_value("night", night)
-	if buildings and buildings.mat:
-		buildings.mat.set_shader_parameter("night", night)
-		buildings.set_kit_night(night)
-	if poles:
-		poles.set_night(night)
-	_night = night
-	_apply_weather()
+		time_of_day = heure_choix
+		_heure_de = heure_choix
+		_heure_vers = heure_choix
+		_heure_f = 0.0
+		_az_soleil = 0.0
+	_lumiere()
+
+## Cycle : repères qui encadrent l'heure, avancement entre les deux, moment le plus proche.
+func _cycle_situer() -> void:
+	heure = fposmod(heure, 24.0)
+	for k in CYCLE_REPERES.size() - 1:
+		var a: Array = CYCLE_REPERES[k]
+		var b: Array = CYCLE_REPERES[k + 1]
+		if heure >= float(a[0]) and heure < float(b[0]):
+			_heure_de = int(a[1])
+			_heure_vers = int(b[1])
+			_heure_f = (heure - float(a[0])) / (float(b[0]) - float(a[0]))
+			_az_soleil = lerpf(float(a[2]), float(b[2]), _heure_f)
+			break
+	time_of_day = _heure_vers if _heure_f >= 0.5 else _heure_de
+
+## Cycle jour et nuit : l'heure avance ; lumière mise à jour toutes les CYCLE_PAS s.
+func _cycle_avancer(dt: float) -> void:
+	if heure_choix != CYCLE:
+		return
+	heure = fposmod(heure + dt * heure_vitesse, 24.0)
+	_heure_pas -= dt
+	if _heure_pas <= 0.0:
+		_heure_pas = cycle_pas
+		_cycle_situer()
+		_lumiere()
+
+## Heure du jeu en texte (« 14 h 05 »), dans le cycle seulement.
+func heure_texte() -> String:
+	if heure_choix != CYCLE:
+		return ""
+	var m := int(heure * 60.0) % 1440
+	return "%d h %02d" % [m / 60, m % 60]
 
 ## Vent (direction fixe, force modérée) et ombres des nuages : le jour seulement (ciel à cumulus à midi, plus léger
 ## en fin d'après-midi ; pas de nuages découpés au coucher ni la nuit), effacées quand le ciel se couvre.
 var wind_strength := 0.55
 func _apply_ambience() -> void:
 	preload("res://scripts/env.gd").set_value("wind", Vector4(0.8, 0.6, wind_strength, 0.0))
-	var cl := Vector4([0.45, 0.32, 0.0, 0.0][time_of_day] * (1.0 - _gris), 0.0, 0.0, 0.0)
+	var ombres := [0.45, 0.32, 0.0, 0.0]
+	var force := lerpf(float(ombres[_heure_de]), float(ombres[_heure_vers]), _heure_f)
+	var cl := Vector4(force * (1.0 - _gris), 0.0, 0.0, 0.0)
 	if OS.get_environment("RS_CLOUDS") != "":                # essai : « force,seuil »
 		var v := OS.get_environment("RS_CLOUDS").split(",")
 		cl = Vector4(float(v[0]), float(v[1]), 0.0, 0.0)
@@ -792,8 +837,9 @@ var _meteo_fondu := METEO_FONDU
 var _meteo_reste := 0.0          # météo variable : temps avant le prochain changement
 var _meteo_pas := 0.0
 var _gris := 0.0
-var _P: Array = []               # réglages de l'heure (set_time)
 var _night := 0.0
+var _nuit_posee := -1.0          # nuit déjà donnée aux bâtiments et aux lampadaires
+var _ciel_pose := []             # ciel déjà posé (_lumiere)
 var _wet := 0.0
 var _wet_target := 0.0
 
@@ -805,7 +851,7 @@ func set_weather(i: int) -> void:
 		weather = meteo_choix
 		_meteo_de = weather
 		_meteo_f = 1.0
-	set_time(time_of_day)
+	_lumiere()
 
 func _meteo_duree(w: int) -> float:
 	return randf_range(float(METEO_DUREES[w][0]), float(METEO_DUREES[w][1]))
@@ -847,67 +893,108 @@ func _meteo_avancer(dt: float) -> void:
 		_meteo_pas -= dt * meteo_vitesse
 		if _meteo_pas <= 0.0 or _meteo_f >= 1.0:
 			_meteo_pas = _meteo_fondu / float(METEO_PAS)
-			_apply_weather()
+			_lumiere()
 
 ## Réglage `cle` de METEO_REGLAGES au point du fondu.
 func _meteo(cle: String, f: float) -> float:
 	return lerpf(float(METEO_REGLAGES[cle][_meteo_de]), float(METEO_REGLAGES[cle][weather]), f)
 
-## Ciel gris uniforme, soleil voilé (ombres pâles), brume plus ou moins dense, vent, sol mouillé, pluie, essuie-glaces ;
-## phares allumés la nuit, sous la pluie et dans le brouillard. Pendant un fondu (météo variable), tout passe peu à peu
-## d'un temps à l'autre, ciel compris : le ciel photo de midi se couvre (ciel_midi.gdshader `gris`) puis cède la place
-## au ciel peint, identique à ce moment-là.
-func _apply_weather() -> void:
-	if _env == null or _P.is_empty():
-		return
-	var f := smoothstep(0.0, 1.0, _meteo_f)
-	_gris = _meteo("gris", f)
-	pluie = _meteo("pluie", f)
-	phares_meteo = _meteo("phares", f) > 0.5
-	_env.adjustment_saturation = _meteo("sat", f)
-	wind_strength = _meteo("vent", f)
-	_wet_target = _meteo("mouille", f)
-	_sun.light_energy = float(_P[2]) * _meteo("soleil", f)
-	_sun.shadow_opacity = _meteo("ombre", f)
-	# brume : celle de l'heure par beau temps ; mêlée en échelle logarithmique (elle s'épaissit régulièrement)
+## Lumière et ciel du moment `t` (0-3) par le temps qu'il fait, fondu de météo `fm` compris.
+func _moment(t: int, fm: float) -> Dictionary:
+	var P: Array = MOMENTS[t]
 	var eco := int(Engine.get_meta("niveau_perf", 1)) == 0
-	var b0: float = float(_P[6]) * (float(NIVEAUX[0].brume) if eco else 1.0)
+	var d := {"elev": float(P[0]), "coul": P[1], "soleil": float(P[2]) * _meteo("soleil", fm), "expo": float(P[4]),
+		"nuit": float(P[7])}
+	# lumière ambiante : ciel le jour ; chaude au coucher, bleutée la nuit (sinon tout devient noir). Toujours « ciel »,
+	# sa part à 0 au coucher et la nuit (= couleur seule) : un passage continu dans le cycle.
+	if t < 2:
+		# v6.28 : ciel seul = ombres gris-bleu (murs beiges gris à l'ombre) ; on y mêle la lumière renvoyée par le sol,
+		# gris chaud, comme sur les photos (une façade à l'ombre garde sa couleur)
+		d.amb = Color(0.80, 0.75, 0.68)
+		d.amb_e = lerpf(1.5, 1.25, _meteo("gris", fm))
+		d.amb_ciel = 0.4
+	else:
+		d.amb = Color(0.62, 0.50, 0.45) if t == 2 else Color(0.20, 0.25, 0.40)
+		d.amb_e = 0.9 if t == 2 else 0.75
+		d.amb_ciel = 0.0
+		if eco and t == 3:
+			# Économie : ni phares ni lampadaires réels -> nuit de clair de lune plus claire (#124)
+			d.amb = Color(0.30, 0.36, 0.52)
+			d.amb_e = 1.25
+	# brume : celle du moment par beau temps ; mêlée en échelle logarithmique (elle s'épaissit régulièrement)
+	var b0: float = float(P[6]) * (float(NIVEAUX[0].brume) if eco else 1.0)
 	var ba: float = b0 if _meteo_de == 0 else float(METEO_REGLAGES.brume[_meteo_de])
 	var bb: float = b0 if weather == 0 else float(METEO_REGLAGES.brume[weather])
-	_env.fog_density = exp(lerpf(log(maxf(ba, 1e-7)), log(maxf(bb, 1e-7)), f))
-	_env.fog_sky_affect = _meteo("brume_ciel", f)
-	# perspective aérienne (midi, beau temps) ; sinon brume de la couleur de l'horizon
-	var pa := _ciel_reglages(_meteo_de)
-	var pb := _ciel_reglages(weather)
-	var aa := 0.85 if pa.is_empty() else 0.0
-	var ab := 0.85 if pb.is_empty() else 0.0
-	_env.fog_aerial_perspective = lerpf(aa, ab, f)
-	var ca: Color = _P[5] if _meteo_de == 0 else pa[1]
-	var cb: Color = _P[5] if weather == 0 else pb[1]
-	_env.fog_light_color = ca.lerp(cb, f)
-	if time_of_day < 2:
-		_env.ambient_light_energy = lerpf(1.5, 1.25, _gris)
-	# ciel
-	if pa.is_empty() and pb.is_empty():
-		_sky_day.set_shader_parameter("gris", 0.0)
-		_env.sky.sky_material = _sky_day
-	elif (pa.is_empty() or pb.is_empty()) and f < 1.0 and f > 0.0:
-		_ciel_regler(_sky_day, pb if pa.is_empty() else pa)
-		_sky_day.set_shader_parameter("gris", f if pa.is_empty() else 1.0 - f)
-		_env.sky.sky_material = _sky_day
-	elif pb.is_empty() and f >= 1.0 or pa.is_empty() and f <= 0.0:
-		_sky_day.set_shader_parameter("gris", 0.0)
-		_env.sky.sky_material = _sky_day
-	else:
-		var p := []
-		for i in CIEL_CLES.size():
-			if pa.is_empty() or pb.is_empty():
-				p.append((pb if pa.is_empty() else pa)[i])
-			elif pa[i] is Color:
-				p.append((pa[i] as Color).lerp(pb[i], f))
-			else:
-				p.append(lerpf(float(pa[i]), float(pb[i]), f))
-		_env.sky.sky_material = _ciel_peint(p)
+	d.brume = exp(lerpf(log(maxf(ba, 1e-7)), log(maxf(bb, 1e-7)), fm))
+	# ciel : part du ciel photo (midi par beau temps) et réglages du ciel peint
+	var pa := _ciel_reglages(t, _meteo_de)
+	var pb := _ciel_reglages(t, weather)
+	d.photo = lerpf(1.0 if pa.is_empty() else 0.0, 1.0 if pb.is_empty() else 0.0, fm)
+	d.ciel = _ciel_melange(pa, pb, fm)
+	var ca: Color = P[5] if _meteo_de == 0 else pa[1]
+	var cb: Color = P[5] if weather == 0 else pb[1]
+	d.brume_coul = ca.lerp(cb, fm)
+	return d
+
+## Lumière, ciel et temps qu'il fait : le moment de la journée (deux moments mêlés dans le cycle) par la météo (deux
+## temps mêlés pendant un fondu). Ciel gris uniforme, soleil voilé (ombres pâles), brume plus ou moins dense, vent, sol
+## mouillé, pluie, essuie-glaces ; phares allumés la nuit, sous la pluie et dans le brouillard. Le ciel photo de midi
+## se couvre ou se change en ciel de l'après-midi par `gris` (ciel_midi.gdshader), puis cède la place au ciel peint,
+## identique à ce moment-là. Du coucher à la nuit (et de la nuit à l'aube), le soleil devient la lune dans la pénombre.
+func _lumiere() -> void:
+	if _env == null:
+		return
+	var fm := smoothstep(0.0, 1.0, _meteo_f)
+	var a := _moment(_heure_de, fm)
+	var b := a if _heure_vers == _heure_de else _moment(_heure_vers, fm)
+	var f := _heure_f
+	var creux := sin(PI * f) if (_heure_de == 3) != (_heure_vers == 3) else 0.0
+	_sun.rotation = Vector3(deg_to_rad(-lerpf(a.elev, b.elev, f)), _sun_az + deg_to_rad(_az_soleil), 0)
+	_sun.light_color = (a.coul as Color).lerp(b.coul, f)
+	_sun.light_energy = lerpf(a.soleil, b.soleil, f) * (1.0 - 0.92 * creux)
+	_sun.shadow_opacity = _meteo("ombre", fm)
+	_env.tonemap_exposure = lerpf(a.expo, b.expo, f)
+	_env.adjustment_saturation = _meteo("sat", fm)
+	_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	_env.ambient_light_color = (a.amb as Color).lerp(b.amb, f)
+	_env.ambient_light_energy = lerpf(a.amb_e, b.amb_e, f)
+	_env.ambient_light_sky_contribution = lerpf(a.amb_ciel, b.amb_ciel, f)
+	_env.fog_density = exp(lerpf(log(a.brume), log(b.brume), f))
+	_env.fog_sky_affect = _meteo("brume_ciel", fm)
+	var photo := lerpf(a.photo, b.photo, f)
+	_env.fog_aerial_perspective = 0.85 * photo
+	_env.fog_light_color = (a.brume_coul as Color).lerp(b.brume_coul, f)
+	# ciel : ses reflets se recalculent sur plusieurs images (Sky.PROCESS_MODE_AUTOMATIC -> INCREMENTAL, le shader
+	# lit LIGHT0) : ne rien toucher s'il n'a pas changé (sinon la lumière ambiante reste celle d'un ciel d'avant)
+	var p := _ciel_melange(a.ciel, b.ciel, f)
+	var etat_ciel := [photo, p, _sun.rotation, _sun.light_energy]
+	if etat_ciel != _ciel_pose:
+		_ciel_pose = etat_ciel
+		if photo >= 1.0 or p.is_empty():
+			_sky_day.set_shader_parameter("gris", 0.0)
+			_env.sky.sky_material = _sky_day
+		elif photo <= 0.0:
+			_env.sky.sky_material = _ciel_peint(p)
+		else:
+			_ciel_regler(_sky_day, p)
+			_sky_day.set_shader_parameter("gris", 1.0 - photo)
+			_env.sky.sky_material = _sky_day
+	# nuit : fenêtres éclairées, lampadaires
+	_night = lerpf(a.nuit, b.nuit, f)
+	if absf(_night - _nuit_posee) > 0.004:
+		_nuit_posee = _night
+		preload("res://scripts/env.gd").set_value("night", _night)
+		if buildings and buildings.mat:
+			buildings.mat.set_shader_parameter("night", _night)
+			buildings.set_kit_night(_night)
+		if poles:
+			poles.set_night(_night)
+	# temps qu'il fait
+	_gris = _meteo("gris", fm)
+	pluie = _meteo("pluie", fm)
+	phares_meteo = _meteo("phares", fm) > 0.5
+	wind_strength = _meteo("vent", fm)
+	_wet_target = _meteo("mouille", fm)
 	preload("res://scripts/env.gd").set_value("wet", _wet)
 	if car and car.has_method("set_wet"):
 		car.set_wet(_wet)
@@ -920,7 +1007,11 @@ func _apply_weather() -> void:
 		car.rain = pluie
 	_apply_ambience()
 	if car and car.has_method("set_lights"):
-		car.set_lights(_night > 0.2 or phares_meteo)
+		car.set_lights(phares_allumes())
+
+## Phares allumés : la nuit, au coucher, sous la pluie et dans le brouillard (voiture du joueur, circulation).
+func phares_allumes() -> bool:
+	return _night > 0.2 or phares_meteo
 
 func _terrain() -> void:
 	terrain = Terrain3D.new()
@@ -977,6 +1068,7 @@ func _process_corps(_dt: float) -> void:
 	_perf_auto(_dt)
 	_resolution_auto(_dt)
 	_meteo_avancer(_dt)
+	_cycle_avancer(_dt)
 	# sol qui se mouille peu à peu sous la pluie et sèche après
 	if absf(_wet - _wet_target) > 0.001:
 		_wet = move_toward(_wet, _wet_target, _dt / (6.0 if _wet_target > _wet else 60.0))

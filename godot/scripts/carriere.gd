@@ -176,7 +176,8 @@ var _concs := {}                   # manche du championnat : rival -> concurrent
 var _taxi_m := ""                  # mission de la course de taxi imposée en cours
 var _courses := 0                  # service de nuit : courses faites, étoiles cumulées
 var _etoiles := 0
-var _heure_avant := -1             # heure de la journée à rendre après le service de nuit
+var _heure_avant := -1             # heure de la journée à rendre après le service de nuit (réglage, heure du cycle)
+var _heure_cycle := -1.0
 var _bulle: Control
 var _voix := {}                    # graine -> voix du téléphone
 
@@ -597,7 +598,8 @@ func chasse_finie(t: float) -> void:
 
 # ================================================================ service de nuit (taxi)
 func _nuit_debut(m: Dictionary) -> void:
-	_heure_avant = int(main.time_of_day)
+	_heure_avant = int(main.heure_choix)
+	_heure_cycle = float(main.heure)
 	main.set_time(3)
 	_courses = 0
 	_etoiles = 0
@@ -607,7 +609,7 @@ func _nuit_debut(m: Dictionary) -> void:
 
 func _rendre_heure() -> void:
 	if _heure_avant >= 0 and main:
-		main.set_time(_heure_avant)
+		main.set_time(_heure_avant, _heure_cycle)
 	_heure_avant = -1
 
 func _nuit_course(m: Dictionary, etoiles: int) -> void:
