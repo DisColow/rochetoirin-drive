@@ -3106,6 +3106,10 @@ func _ligne_bus_test() -> void:
 	car.touch_throttle = 0.0
 	var cam := Camera3D.new()
 	add_child(cam)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--ligne-arret="):                # essai d'un seul arrêt (numéro de 1 à 6)
+			lb.i = clampi(int(a.get_slice("=", 1)) - 1, 0, lb.arrets.size() - 1)
+			lb._viser()
 	var essais_arret := 0
 	while lb.actif and essais_arret < 10:
 		essais_arret += 1
@@ -3170,6 +3174,12 @@ func _ligne_bus_test() -> void:
 					var o: Object = h.collider
 					touches.append("%s%s" % [o.name if o is Node else str(o), " (" + str((o as Node).get_meta("matiere")) + ")" if o is Node and (o as Node).has_meta("matiere") else ""])
 				dire.call("  bloqué après 8 s (%.1f m parcourus) ; la caisse touche : %s" % [recul - PORTE_BUS_Z - reste, ", ".join(touches) if touches.size() > 0 else "rien"])
+				var rs := []
+				for w: VehicleWheel3D in car.wheels:
+					rs.append("%s %s, force %.0f" % [w.name, ("au sol %.2f m sous l'axe" % (w.global_position.y - w.get_contact_point().y)) if w.is_in_contact() else "en l'air", w.engine_force])
+				dire.call("  roues : %s ; vitesse %s, endormi %s, figé %s, tenu %.2f s, sol relief %.1f m (caisse %.1f m)" % ["; ".join(rs),
+					str(car.linear_velocity.snapped(Vector3.ONE * 0.01)), car.sleeping, car.freeze, float(car.get("_hold_t")),
+					Relief.hauteur(car.global_position) if relief else -1.0, car.global_position.y])
 			if int(t / 10.0) != int(t_av / 10.0):
 				dire.call("  t=%.0f s : %.1f km/h, reste %.1f m, gaz %.1f, frein %.1f, volant %.2f, position %s" % [t, car.kmh(), reste,
 					car.touch_throttle, car.touch_brake, car.touch_steer, str(car.global_position.snapped(Vector3.ONE * 0.1))])
