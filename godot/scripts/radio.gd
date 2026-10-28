@@ -37,6 +37,7 @@ var _etape := 0                    # station d'info : 0 actualité, 1-2 chansons
 var _en_journal := false
 var _dernier_journal := -1e9       # heure (s) du dernier journal diffusé : un par quart d'heure au plus
 var _flash_t := 0.0                # flash lu par la voix du téléphone : temps restant
+var dernier_flash := ""            # texte du dernier flash (essais)
 
 ## 1 : quelqu'un parle dans la voiture (la radio baisse), 0 : volume normal.
 func set_duck(on: float) -> void:
@@ -238,6 +239,10 @@ func _tune_infos() -> void:
 		# voix du téléphone au volume de la musique (#67 : plein volume ; #111 : rien si la musique est coupée), jamais
 		# pendant une course de taxi (#104)
 		var t: String = infos.flash()
+		# bulletin météo après les titres (v6.94 : heure du cycle, temps qu'il fait, prévision de la météo variable)
+		if main and main.has_method("bulletin_meteo"):
+			t = (t + " " if t != "" else "Flash info. ") + main.bulletin_meteo()
+		dernier_flash = t
 		var d: float = 0.0 if not flash_permis() else infos.lire_flash(t, _vol_flash())
 		if d > 0.0:
 			_player.stop()

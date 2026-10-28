@@ -487,6 +487,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_pietons_test()
 		return
+	if OS.get_cmdline_user_args().has("--orage-test"):
+		if t == 300:
+			_orage_test()
+		return
 	if OS.get_cmdline_user_args().has("--nuit-test"):
 		if t == 300:
 			_nuit_test()
@@ -3021,6 +3025,115 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Orage et bulletin (v6.94) : -- --drive-test --orage-test [--drive-from=…] (--fixed-fps 8 conseillé) : textes du
+## bulletin météo dans plusieurs situations et flash composé par la radio ; éclairs déclenchés par la boucle de pluie
+## (position du son à chaque éclair, contre les coups de tonnerre relevés) ; lueur d'un éclair image par image (temps
+## ralenti ×0,1), captures avant et pendant.
+func _orage_test() -> void:
+	var dire := func(x: String): print("  [orage] " + x)
+	var shot := func(n: String):
+		get_viewport().get_texture().get_image().save_png("user://shots/orage_%s.png" % n)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	var lum := func() -> float:
+		var im := get_viewport().get_texture().get_image()
+		im.resize(96, 54, Image.INTERPOLATE_BILINEAR)
+		var t := 0.0
+		for y in 54:
+			for x in 96:
+				t += im.get_pixel(x, y).get_luminance()
+		return t / (96.0 * 54.0) * 255.0
+	var images := func(n: int):
+		for i in n:
+			car.hold(0.5)
+			await get_tree().process_frame
+	# bulletin
+	set_weather(0)
+	set_time(0)
+	dire.call("bulletin (midi, beau temps fixe) : " + bulletin_meteo())
+	set_time(3)
+	dire.call("bulletin (nuit, beau temps fixe) : " + bulletin_meteo())
+	set_time(CYCLE, 14.1)
+	set_weather(VARIABLE)
+	for cas in [[0, 1, 200.0], [1, 2, 600.0], [2, 1, 1200.0], [3, 0, 100.0], [1, 0, 450.0]]:
+		weather = int(cas[0])
+		_meteo_de = weather
+		_meteo_f = 1.0
+		meteo_suivante = int(cas[1])
+		_meteo_reste = float(cas[2])
+		dire.call("bulletin (cycle, variable, %s puis %s dans %d s) : %s" % [WEATHERS[cas[0]], WEATHERS[cas[1]], int(cas[2]),
+			bulletin_meteo()])
+	if radio:
+		radio.station = radio.stations.size() - 1
+		radio._etape = 0
+		radio._dernier_journal = Time.get_unix_time_from_system()
+		radio._tune_infos()
+		dire.call("radio, flash composé : « %s »" % radio.dernier_flash)
+		radio.station = -1
+		radio._player.stop()
+	# météo variable : la prévision se réalise
+	weather = 0
+	_meteo_de = 0
+	meteo_vers(0, 1.0)
+	var prevu: int = meteo_suivante
+	_meteo_reste = 0.5
+	await images.call(30)
+	dire.call("prévu : %s ; arrivé : %s" % [WEATHERS[prevu], WEATHERS[weather]])
+	# éclairs déclenchés par la boucle de pluie
+	set_weather(2)
+	set_time(3)
+	_wet = 1.0
+	var vus := []
+	var n0 := eclairs
+	var att := 0
+	while att < 900:
+		att += 1
+		await images.call(1)
+		if eclairs > n0:
+			vus.append("%.2f s" % rain.sound.get_playback_position())
+			n0 = eclairs
+		if att % 15 == 0:
+			dire.call("pluie : son %s, position %.2f s, intensité %.2f" % [str(rain.sound.playing) if rain.sound else "absent",
+				rain.sound.get_playback_position() if rain.sound else 0.0, rain.amount])
+		if rain.sound and rain.sound.playing and rain.sound.get_playback_position() > 33.0:
+			break
+	dire.call("éclairs pendant les 33 premières secondes de la pluie : %d, aux positions du son %s (tonnerres à 15.3, 19.8, 22.35, 26.1, 30.85 s ; éclair 1 à 2,6 s avant)" % [
+		vus.size(), ", ".join(vus)])
+	# calage : la boucle de pluie parcourue à 30 images/s (deux tours), éclairs lancés et leur avance sur le tonnerre
+	var vus2 := []
+	var p0 := 0.0
+	for i in 2 * 90 * 30:
+		var p1 := fmod(float(i + 1) / 30.0, 90.0)
+		for f in rain.eclairs_entre(p0, p1):
+			vus2.append("%.2f s (force %.2f)" % [p1, f])
+		p0 = p1
+	dire.call("boucle de pluie à 30 images/s, deux tours : %d éclairs : %s" % [vus2.size(), ", ".join(vus2)])
+	# lueur d'un éclair, image par image (temps ×0,1 : une image = 12,5 ms ; éclairs de la pluie coupés pendant la mesure)
+	rain.main = null
+	await images.call(20)
+	var avant: float = lum.call()
+	shot.call("avant")
+	Engine.time_scale = 0.1
+	await images.call(2)
+	eclair(1.0)
+	var courbe := []
+	var pris := false
+	for i in 48:
+		await images.call(1)
+		var l: float = lum.call()
+		courbe.append("%.0f" % l)
+		if not pris and _eclair_k > 0.8:
+			pris = true
+			shot.call("eclair")
+	Engine.time_scale = 1.0
+	rain.main = self
+	dire.call("lueur d'un éclair (nuit, pluie), luminosité toutes les 12,5 ms : avant %.1f ; %s" % [avant, " ".join(courbe)])
+	set_weather(0)
+	set_time(0)
+	dire.call("FIN")
+	get_tree().quit()
 
 ## Nuit (v6.93) : -- --drive-test --nuit-test [--drive-from=…] (--fixed-fps 8 conseillé) : étoiles comptées (points
 ## lumineux du haut de l'image, caméra levée vers le ciel, interface cachée) de nuit par temps clair, par temps couvert,

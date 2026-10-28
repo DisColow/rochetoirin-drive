@@ -7,6 +7,7 @@ var cam_rig: Node3D
 var car: VehicleBody3D
 var on := false
 var amount := 0.0
+var main: Node
 var drops: CPUParticles3D
 var mat: StandardMaterial3D
 var sound: AudioStreamPlayer
@@ -56,6 +57,31 @@ func _ready() -> void:
 		sound.volume_db = -60.0
 		add_child(sound)
 
+## Éclairs (v6.94) : la boucle de pluie contient des coups de tonnerre (début du grondement relevé par analyse de
+## pluie.ogg : énergie sous 200 Hz, et sa force de 0 à 1) ; un éclair part un peu avant chacun, d'autant plus tôt que le
+## tonnerre est faible (lointain : le son voyage moins vite que la lumière).
+const TONNERRES := [[15.3, 0.25], [19.8, 1.0], [22.35, 0.45], [26.1, 0.8], [30.85, 0.65], [68.45, 0.5]]
+var _pos_prec := -1.0
+
+func _eclairs() -> void:
+	if sound == null or not sound.playing or main == null or amount < 0.5:
+		_pos_prec = -1.0
+		return
+	var pos := sound.get_playback_position()
+	if _pos_prec >= 0.0:
+		for f in eclairs_entre(_pos_prec, pos):
+			main.eclair(float(f) * amount)
+	_pos_prec = pos
+
+## Éclairs à lancer quand le son passe de la position p0 à p1 (s ; la boucle peut être repartie au début) : leur force.
+func eclairs_entre(p0: float, p1: float) -> Array:
+	var l := []
+	for t in TONNERRES:
+		var at: float = float(t[0]) - lerpf(2.6, 1.0, float(t[1]))
+		if ((p0 < at and p1 >= at) if p1 >= p0 else (at > p0 or at <= p1)):
+			l.append(float(t[1]))
+	return l
+
 ## Gouttes moins visibles la nuit (seulement dans la lumière des phares et des lampadaires).
 func set_night(n: float) -> void:
 	mat.albedo_color = Color(0.72, 0.76, 0.82, 1.0).lerp(Color(0.5, 0.55, 0.62, 0.16), n)
@@ -74,6 +100,7 @@ func _process_corps(dt: float) -> void:
 		elif amount <= 0.01 and sound.playing:
 			sound.stop()
 		sound.volume_db = linear_to_db(maxf(amount, 0.001)) - 9.0
+		_eclairs()
 	if not drops.emitting or cam_rig == null:
 		return
 	var cam: Camera3D = cam_rig.cam

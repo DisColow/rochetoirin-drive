@@ -224,6 +224,7 @@ func _ready() -> void:
 	weather = meteo_choix if meteo_choix != VARIABLE else _meteo_depart()
 	_meteo_de = weather
 	_meteo_reste = _meteo_duree(weather)
+	meteo_suivante = _meteo_suivant(weather)
 	car.aide_voie = bool(cfg.get_value("conduite", "aide_voie", true))
 	set_time(int(cfg.get_value("affichage", "heure", 0)), CYCLE_DEPART)
 	_wet = _wet_target                                    # au démarrage : sol déjà mouillé s'il pleut
@@ -328,6 +329,7 @@ func _ready() -> void:
 	rain = preload("res://scripts/rain.gd").new()
 	rain.cam_rig = cam_rig
 	rain.car = car
+	rain.main = self
 	add_child(rain)
 	sound = preload("res://scripts/audio.gd").new()
 	sound.name = "Audio"
@@ -837,6 +839,7 @@ var _meteo_de := 0               # fondu de _meteo_de vers weather, _meteo_f de 
 var _meteo_f := 1.0
 var _meteo_fondu := METEO_FONDU
 var _meteo_reste := 0.0          # météo variable : temps avant le prochain changement
+var meteo_suivante := 1          # météo variable : le temps qui suivra, tiré d'avance (bulletin de la radio)
 var _meteo_pas := 0.0
 var _gris := 0.0
 var _night := 0.0
@@ -849,6 +852,7 @@ func set_weather(i: int) -> void:
 	meteo_choix = clampi(i, 0, WEATHERS.size() - 1)
 	if meteo_choix == VARIABLE:
 		_meteo_reste = _meteo_duree(weather)
+		meteo_suivante = _meteo_suivant(weather)
 	else:
 		weather = meteo_choix
 		_meteo_de = weather
@@ -883,13 +887,14 @@ func meteo_vers(w: int, duree := METEO_FONDU) -> void:
 	_meteo_fondu = duree
 	_meteo_pas = 0.0
 	_meteo_reste = _meteo_duree(w)
+	meteo_suivante = _meteo_suivant(w)
 
 ## Temps qui change tout seul (météo variable) et fondu en cours, à chaque image.
 func _meteo_avancer(dt: float) -> void:
 	if meteo_choix == VARIABLE and _meteo_f >= 1.0:
 		_meteo_reste -= dt * meteo_vitesse
 		if _meteo_reste <= 0.0:
-			meteo_vers(_meteo_suivant(weather))
+			meteo_vers(meteo_suivante)
 	if _meteo_f < 1.0:
 		_meteo_f = minf(1.0, _meteo_f + dt * meteo_vitesse / _meteo_fondu)
 		_meteo_pas -= dt * meteo_vitesse
@@ -953,13 +958,15 @@ func _lumiere() -> void:
 	var creux := sin(PI * f) if (_heure_de == 3) != (_heure_vers == 3) else 0.0
 	_sun.rotation = Vector3(deg_to_rad(-lerpf(a.elev, b.elev, f)), _sun_az + deg_to_rad(_az_soleil), 0)
 	_sun.light_color = (a.coul as Color).lerp(b.coul, f)
-	_sun.light_energy = lerpf(a.soleil, b.soleil, f) * (1.0 - 0.92 * creux)
+	_soleil_base = lerpf(a.soleil, b.soleil, f) * (1.0 - 0.92 * creux)
+	_sun.light_energy = _soleil_base + 2.5 * _eclair_k
 	_sun.shadow_opacity = _meteo("ombre", fm)
 	_env.tonemap_exposure = lerpf(a.expo, b.expo, f)
 	_env.adjustment_saturation = _meteo("sat", fm)
 	_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	_env.ambient_light_color = (a.amb as Color).lerp(b.amb, f)
-	_env.ambient_light_energy = lerpf(a.amb_e, b.amb_e, f)
+	_amb_base = lerpf(a.amb_e, b.amb_e, f)
+	_env.ambient_light_energy = _amb_base * (1.0 + 6.0 * _eclair_k)
 	_env.ambient_light_sky_contribution = lerpf(a.amb_ciel, b.amb_ciel, f)
 	_env.fog_density = exp(lerpf(log(a.brume), log(b.brume), f))
 	_env.fog_sky_affect = _meteo("brume_ciel", fm)
@@ -1010,6 +1017,62 @@ func _lumiere() -> void:
 	_apply_ambience()
 	if car and car.has_method("set_lights"):
 		car.set_lights(phares_allumes())
+
+## Bulletin météo de Rochetoirin Info (v6.94, radio.gd, après le flash) : l'heure dans le cycle, le temps qu'il fait,
+## et en météo variable la prévision, exacte (le temps suivant est tiré d'avance : meteo_suivante).
+func bulletin_meteo() -> String:
+	var t := "Météo. "
+	var h := heure_texte()
+	if h != "":
+		t = "Il est %s. Météo. " % h.replace(" h 00", " heures").replace(" h ", " heures ")
+	var nuit := time_of_day == 3
+	t += ["Ciel dégagé" if nuit else "Grand soleil", "Ciel couvert", "Il pleut", "Brouillard"][weather]
+	if meteo_choix != VARIABLE:
+		return t + (" toute la nuit." if nuit else " toute la journée.")
+	var quand := "dans les prochaines minutes" if _meteo_reste < 300.0 else ("d'ici un quart d'heure" if _meteo_reste < 900.0
+		else "un peu plus tard")
+	var suite := ""
+	match meteo_suivante:
+		0:
+			suite = "la nuit sera claire" if nuit else "retour du soleil"
+		1:
+			suite = ["le ciel va se couvrir", "", "fin des averses", "le brouillard va se lever"][weather]
+		2:
+			suite = "des averses sont attendues"
+		3:
+			suite = "du brouillard est attendu"
+	t += "."
+	if suite == "":
+		return t
+	return "%s %s%s %s." % [t, suite[0].to_upper(), suite.substr(1), quand]
+
+## Éclair (v6.94, rain.gd, un peu avant chaque coup de tonnerre de la pluie) : le ciel et la lumière ambiante
+## s'illuminent deux fois de suite, et la lune (le « soleil » de la nuit) prend un éclat blanc bleuté ; `f` de 0 à 1
+## (plus fort : plus près), plus discret le jour.
+var eclairs := 0                 # éclairs (essais)
+var _eclair_t := -1.0
+var _eclair_f := 0.0
+var _eclair_k := 0.0
+var _amb_base := 1.5
+var _soleil_base := 1.45
+func eclair(f: float) -> void:
+	_eclair_t = 0.0
+	_eclair_f = clampf(f, 0.0, 1.0) * lerpf(0.35, 1.0, _night)
+	eclairs += 1
+
+func _eclair_avancer(dt: float) -> void:
+	if _eclair_t < 0.0 or _env == null:
+		return
+	_eclair_t += dt
+	var t := _eclair_t
+	# deux lueurs (la seconde un peu plus faible), puis plus rien après 0,5 s
+	_eclair_k = _eclair_f * maxf(exp(-pow((t - 0.04) / 0.035, 2.0)), 0.75 * exp(-pow((t - 0.22) / 0.06, 2.0)))
+	if t > 0.5:
+		_eclair_t = -1.0
+		_eclair_k = 0.0
+	_env.background_energy_multiplier = 1.0 + 6.0 * _eclair_k
+	_env.ambient_light_energy = _amb_base * (1.0 + 6.0 * _eclair_k)
+	_sun.light_energy = _soleil_base + 2.5 * _eclair_k
 
 ## Tarif de nuit du taxi (v6.93, taximetre.gd) : réglage Nuit, ou de 19 h 30 à 7 h dans le cycle.
 func tarif_nuit() -> bool:
@@ -1077,6 +1140,7 @@ func _process_corps(_dt: float) -> void:
 	_resolution_auto(_dt)
 	_meteo_avancer(_dt)
 	_cycle_avancer(_dt)
+	_eclair_avancer(_dt)
 	# sol qui se mouille peu à peu sous la pluie et sèche après
 	if absf(_wet - _wet_target) > 0.001:
 		_wet = move_toward(_wet, _wet_target, _dt / (6.0 if _wet_target > _wet else 60.0))
