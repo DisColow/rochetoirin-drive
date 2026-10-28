@@ -34,6 +34,7 @@ const BOITES := [Vector3(1.66, 1.48, 3.75), Vector3(1.76, 1.45, 4.45),     # com
 const LOURD_CHANCE := [0.0, 0.0, 0.07, 0.06]
 const LOURD_VMAX := [INF, INF, 7.0, 13.9]                   # m/s (25 et 50 km/h)
 const LOURD_PITCH := [1.0, 1.0, 0.62, 0.7]
+const ARRET_BUS := 8.0                         # v7.01 : le bus attend à chaque arrêt (s), les passants montent et descendent
 const MASSES := [1100.0, 1400.0, 4500.0, 11000.0]
 const SANS := ["InteriorPanel", "InteriorPanel_0"]                         # habitacle, invisible derrière les vitres
 const ROUES := ["rubber", "material"]
@@ -109,6 +110,9 @@ var _mm_roues: Array = []                      # par modèle : MultiMeshInstance
 var _dispo: Array = []                         # par modèle : présent dans les données
 var _roues_g: Array = []                       # par modèle : roues des lourds [centre, rayon, MultiMeshInstance3D, Mesh, nb]
 var lourds_x := 1.0                            # essais : chance des véhicules lourds multipliée
+var arrets_faits := 0                          # arrêts de bus marqués (essais)
+var _arrets := PackedVector3Array()            # arrêts de bus (pietons.arrets_bus)
+var _arrets_lus := false
 var _mat: ShaderMaterial
 var _id := 0
 var _remplir := true
@@ -471,6 +475,42 @@ func _visible(p: Vector3) -> bool:
 	var cam := get_viewport().get_camera_3d()
 	return cam != null and cam.is_position_in_frustum(p + Vector3(0, 0.8, 0))
 
+## Bus : arrêt de bus le plus proche devant, à droite (de -1,5 m, arrêts sur l'axe des sens uniques, à 9 m ; moins de
+## 40 m devant) ; arrivé (porte avant à
+## sa hauteur, presque arrêté) : attente ARRET_BUS s, passants qui montent et descendent (pietons.bus_a_l_arret).
+func _arret_bus(c: Dictionary, dt: float) -> void:
+	if not _arrets_lus:
+		var pie = main.get("pietons") if main else null
+		if pie and pie.ok:
+			_arrets = pie.arrets_bus()
+			_arrets_lus = true
+	if float(c.arret_t) > 0.0:
+		c.arret_t = float(c.arret_t) - dt
+		return
+	var dir: Vector3 = c.dir
+	var droite := dir.cross(Vector3.UP).normalized()
+	var best := -1
+	var bd := 40.0
+	for i in _arrets.size():
+		if i == int(c.arret_servi):
+			continue
+		var rel: Vector3 = _arrets[i] - (c.pos as Vector3)
+		var le_long := rel.dot(dir)
+		var cote := rel.dot(droite)
+		if le_long > 0.0 and le_long < bd and cote > -1.5 and cote < 9.0:
+			bd = le_long
+			best = i
+	c.arret_d = bd if best >= 0 else INF
+	if best >= 0 and bd - 4.0 < 1.5 and float(c.v) < 0.8:
+		c.arret_t = ARRET_BUS
+		c.arret_servi = best
+		c.arret_d = INF
+		arrets_faits += 1
+		var pie = main.get("pietons")
+		if pie and pie.ok:
+			var r: Array = pie.bus_a_l_arret(_arrets[best], (c.pos as Vector3) + dir * 4.5 + droite * 1.6)
+			c.arret_t = maxf(ARRET_BUS, float(r[2]) + 2.0)    # attend que tous soient montés
+
 ## Modèle d'une voiture qui apparaît sur l'arc k : parfois un tracteur (route de campagne) ou un bus (en ville).
 func _tirer_modele(k: int) -> int:
 	var v := _v[k] * 3.6
@@ -507,10 +547,54 @@ func _apparaitre(p: Vector3, partout: bool) -> void:
 	for e in epaves:
 		if is_instance_valid(e.rb) and (e.rb as Node3D).global_position.distance_squared_to(pos) < 25.0 * 25.0:
 			return
-	var m := _tirer_modele(k)
+	_creer(voie, s, rang, _tirer_modele(k), g)
+
+## Essais : un bus posé ~`recul` m en amont de l'arrêt `arret`, sur la voie qui le longe à droite ; son numéro, -1 si
+## aucune voie.
+func bus_vers_arret(arret: Vector3, recul := 70.0) -> int:
+	var vus := {}
+	var best := []
+	var bd := 12.0
+	for dx in [-1, 0, 1]:
+		for dz in [-1, 0, 1]:
+			for k in _grille.get(Vector2i(floori(arret.x / CASE) + dx, floori(arret.z / CASE) + dz), PackedInt32Array()):
+				if vus.has(k):
+					continue
+				vus[k] = true
+				for sens in [0, 1]:
+					if sens == 1 and _fl[k] & 1:
+						continue
+					var voie: int = (k << 1) | sens
+					var L := _longueur(voie)
+					var s := 0.0
+					while s < L:
+						var g := _geo(voie, s, 0)
+						var rel: Vector3 = arret - (g[0] as Vector3)
+						var cote := rel.dot(Vector3(g[1].x, 0.0, g[1].y).cross(Vector3.UP).normalized())
+						var d := Vector2(rel.x, rel.z).length()
+						if d < bd and cote > -1.0 and cote < 8.0 and s > recul * 0.5:
+							bd = d
+							best = [voie, s]
+						s += 2.0
+	if best.is_empty():
+		return -1
+	var s0: float = maxf(float(best[1]) - recul, 2.0)
+	if voitures.size() >= voulu():                # place faite : la voiture la plus loin de l'arrêt s'en va
+		var loin := 0
+		for i in voitures.size():
+			if (voitures[i].pos as Vector3).distance_to(arret) > (voitures[loin].pos as Vector3).distance_to(arret):
+				loin = i
+		_retirer(loin)
+	_creer(int(best[0]), s0, 0, 3, _geo(int(best[0]), s0, 0))
+	return _id - 1
+
+func _creer(voie: int, s: float, rang: int, m: int, g: Array) -> void:
+	var k := voie >> 1
+	var L := _longueur(voie)
+	var pos: Vector3 = g[0]
 	var c := {"id": _id, "m": m, "col": COULEURS[randi() % COULEURS.size()], "voie": voie, "s": s, "L": L, "rang": rang,
 		"v": minf(_v[k] * 0.7, LOURD_VMAX[m]), "perso": randf_range(0.85, 1.02), "suite": -1, "dec": Vector3.ZERO, "dec_s": -100.0,
-		"pos": pos, "dir": Vector3(g[1].x, 0.0, g[1].y), "frein": false, "roue": 0.0, "dist": 0.0, "resa": -1, "bloque": 0.0,
+		"pos": pos, "dir": Vector3(g[1].x, 0.0, g[1].y), "frein": false, "roue": 0.0, "dist": 0.0, "arret_t": 0.0, "arret_servi": -1, "arret_d": INF, "resa": -1, "bloque": 0.0,
 		"klaxon": 0.0, "impasse": false, "leader": "", "clign": 0, "dep": [], "attente": 0.0, "engage": -1, "lent": 0.0,
 		"derive": randf_range(-0.3, 0.3)}
 	_id += 1
@@ -736,6 +820,13 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 	if int(c.suite) == -2 and reste - BARRAGE < gap:            # route barrée par une course : arrêt avant le carrefour
 		gap = reste - BARRAGE; vl = 0.0; c.leader = "barrage"
 		c.impasse = true
+	# bus (v7.01) : arrêt aux arrêts de bus à droite de sa voie, porte avant à leur hauteur
+	if int(c.m) == 3:
+		_arret_bus(c, dt)
+		if float(c.arret_t) > 0.0:
+			gap = 0.0; vl = 0.0; c.leader = "arrêt de bus"
+		elif float(c.arret_d) - 4.0 + IDM_S0 < gap:      # IDM s'arrête à IDM_S0 : porte avant à hauteur de l'arrêt
+			gap = maxf(float(c.arret_d) - 4.0 + IDM_S0, 0.0); vl = 0.0; c.leader = "arrêt de bus"
 	# obstacle immobile devant (épave, joueur arrêté, concurrent) : on le dépasse après ATTENTE s
 	if (c.dep as Array).is_empty() and String(c.leader) in ["joueur", "épave", "concurrent"] and float(c.v) < 0.5 \
 			and vl < 0.3 and gap < 12.0:

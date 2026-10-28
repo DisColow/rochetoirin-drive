@@ -487,6 +487,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_pietons_test()
 		return
+	if OS.get_cmdline_user_args().has("--bus-test"):
+		if t == 300:
+			_bus_test()
+		return
 	if OS.get_cmdline_user_args().has("--lourds-test"):
 		if t == 300:
 			_lourds_test()
@@ -3058,6 +3062,93 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Bus aux arrêts (v7.01) : -- --drive-test --bus-test --drive-from=-10975,236,-1100,90 (--fixed-fps 8 conseillé) : à
+## Bourgoin ; deux passants posés à l'arrêt le plus proche et un bus 70 m en amont (circulation.bus_vers_arret) ; suivi
+## du bus toutes les 4 s ; 90 s ; arrêts marqués, passants montés et descendus ; capture du premier bus à l'arrêt.
+func _bus_test() -> void:
+	var ci = circulation
+	var dire := func(x: String): print("  [bus] " + x)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	ci.set_densite(3)
+	ci.lourds_x = 8.0
+	ci.vider()
+	pietons.set_densite(3)
+	var cam := Camera3D.new()
+	add_child(cam)
+	var t := 0.0
+	var log_t := 0.0
+	var pris := false
+	var pose := false
+	var suivi := -1
+	var suivi_t := 0.0
+	var vise := Vector3.ZERO
+	while t < 90.0:
+		if not pose and t > 3.0 and pietons.ok:
+			# un bus posé en amont de l'arrêt le plus proche de la voiture (les lignes réelles passent rarement par là)
+			pose = true
+			var bd := INF
+			var arret := Vector3.ZERO
+			for q: Vector3 in pietons.arrets_bus():
+				if q.distance_to(car.global_position) < bd:
+					bd = q.distance_to(car.global_position)
+					arret = q
+			dire.call("passants posés à l'arrêt : %d" % pietons.peupler_arret(arret, 2))
+			suivi = ci.bus_vers_arret(arret)
+			vise = arret
+			dire.call("arrêt visé à %.0f m de la voiture %s : bus posé n° %d" % [bd, str(arret), suivi])
+		if suivi >= 0 and t >= suivi_t:
+			suivi_t += 4.0
+			var trouve := false
+			for c in ci.voitures:
+				if int(c.id) == suivi:
+					trouve = true
+					var rel: Vector3 = vise - (c.pos as Vector3)
+					var dir: Vector3 = c.dir
+					dire.call("  t=%.0f s bus n° %d : %.0f km/h, arrêt devant %.1f m, côté %.1f m, arret_d %.1f, attente %.1f s, leader « %s »" % [t, suivi,
+						float(c.v) * 3.6, rel.dot(dir), rel.dot(dir.cross(Vector3.UP).normalized()), float(c.arret_d), float(c.arret_t), str(c.leader)])
+			if not trouve:
+				dire.call("  t=%.0f s bus n° %d disparu" % [t, suivi])
+				suivi = -1
+		car.hold(0.5)
+		await get_tree().process_frame
+		t += get_process_delta_time()
+		if not pris:
+			for c in ci.voitures:
+				if int(c.m) == 3 and float(c.arret_t) > 5.0 and float(c.arret_t) < 6.5:
+					pris = true
+					var dir: Vector3 = c.dir
+					var droite := dir.cross(Vector3.UP).normalized()
+					cam.global_position = (c.pos as Vector3) + droite * 10.0 + dir * 9.0 + Vector3.UP * 2.2
+					cam.look_at((c.pos as Vector3) + droite * 2.0 + dir * 3.0 + Vector3.UP * 1.2)
+					cam.current = true
+					for i in 3:
+						await get_tree().process_frame
+					get_viewport().get_texture().get_image().save_png("user://shots/bus_arret.png")
+					cam_rig.cam.current = true
+					dire.call("bus à l'arrêt en gros plan (encore %.1f s d'attente)" % float(c.arret_t))
+					break
+		if t >= log_t:
+			log_t += 20.0
+			var bus: Array = ci.voitures.filter(func(c): return int(c.m) == 3)
+			dire.call("t=%3.0f s : %d bus (%s) ; arrêts de bus connus %d, arrêts marqués %d ; passants montés %d, descendus %d" % [t, bus.size(),
+				", ".join(bus.map(func(c): return "%.0f km/h%s" % [float(c.v) * 3.6, " à l'arrêt" if float(c.arret_t) > 0.0 else ""])),
+				ci._arrets.size(), ci.arrets_faits, pietons.montes, pietons.descendus])
+			for c in bus:
+				var bd := INF
+				var info := ""
+				for q: Vector3 in ci._arrets:
+					var d: float = q.distance_to(c.pos)
+					if d < bd:
+						bd = d
+						var dir: Vector3 = c.dir
+						info = "devant %.1f m, côté %.1f m" % [(q - (c.pos as Vector3)).dot(dir), (q - (c.pos as Vector3)).dot(dir.cross(Vector3.UP).normalized())]
+				dire.call("  bus %d : arrêt le plus proche à %.0f m (%s), arret_d %.1f" % [int(c.id), bd, info, float(c.arret_d)])
+	dire.call("FIN")
+	get_tree().quit()
 
 ## Véhicules lourds (v6.99, #136) : -- --drive-test --lourds-test [--drive-from=…] (--fixed-fps 8 conseillé) : circulation
 ## dense, tracteurs et bus trois fois plus fréquents (--lourds-x=…) ; la voiture du joueur arrêtée ; relevé toutes les 10 s (tracteurs et

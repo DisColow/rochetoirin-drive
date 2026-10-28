@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 28/10/2026, 6 h (v6.84 #131 à v7.00 livrées)
+## État au 28/10/2026, 17 h (v6.84 #131 à v7.01 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -28,6 +28,10 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v7.01 (#147, `à tester`)** : le bus s'arrête aux arrêts de bus (`circulation._arret_bus`, porte avant à hauteur :
+  l'écart d'arrêt `IDM_S0` est ajouté), les passants qui attendent montent (il attend qu'ils aient marché jusqu'à la
+  porte), 1 ou 2 descendent. Essai `--bus-test --drive-from=-10975,236,-1100,90` (bus posé en amont : les lignes
+  aléatoires passent rarement devant un arrêt ; piège : une voiture ajoutée au-delà du quota est retirée aussitôt).
 - **v7.00 (#136, `à tester`)** : roues des tracteurs (6 : avant, arrière, remorque) et des bus (4) qui tournent, chacune
   à son rayon (`blender_lourds.py` : matériaux « roue_<n>_c<couleur> » ; `circulation._roues_g`). Essai `--lourds-test`.
 - **v6.99 (#136, `à tester`)** : tracteur T5 et bus B1 (choix de l'utilisateur) dans la circulation (voir CLAUDE.md
