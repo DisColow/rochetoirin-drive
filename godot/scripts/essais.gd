@@ -487,6 +487,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_pietons_test()
 		return
+	if OS.get_cmdline_user_args().has("--arc-test"):
+		if t == 300:
+			_arc_test()
+		return
 	if OS.get_cmdline_user_args().has("--orage-test"):
 		if t == 300:
 			_orage_test()
@@ -3042,6 +3046,90 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Arc-en-ciel (v6.96) : -- --drive-test --arc-test [--drive-from=…] (--fixed-fps 8 conseillé) : fin d'une averse
+## (pluie -> couvert, fondu de 20 s) en fin d'après-midi (soleil à 24°) puis à midi (48° : l'arc reste sous l'horizon) ;
+## caméra tournée à l'opposé du soleil, levée de 20° ; pixels nettement colorés (écart de plus de 0,12 entre la plus forte
+## et la plus faible composante) dans les deux tiers du haut, au plus fort de l'arc, avec et sans lui (même image, arc
+## coupé quelques images) ; captures ; puis la circulation dans le brouillard.
+func _arc_test() -> void:
+	var dire := func(x: String): print("  [arc] " + x)
+	var shot := func(n: String):
+		get_viewport().get_texture().get_image().save_png("user://shots/arc_%s.png" % n)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	var images := func(n: int):
+		for i in n:
+			car.hold(0.5)
+			await get_tree().process_frame
+	var couleur := func() -> int:
+		var im := get_viewport().get_texture().get_image()
+		var n := 0
+		for y in im.get_height() * 2 / 3:
+			for x in im.get_width():
+				var c := im.get_pixel(x, y)
+				if maxf(c.r, maxf(c.g, c.b)) - minf(c.r, minf(c.g, c.b)) > 0.12:
+					n += 1
+		return n
+	var hud_n = get_node("HUD")
+	var cam := Camera3D.new()
+	add_child(cam)
+	cam.fov = 80.0
+	hud_n.visible = false
+	for moment in [1, 0]:
+		set_weather(2)
+		set_time(moment)
+		var vers_soleil: Vector3 = _sun.global_transform.basis.z
+		var oppose := Vector3(-vers_soleil.x, 0.0, -vers_soleil.z).normalized()
+		cam.global_position = car.global_position + Vector3.UP * 2.5
+		cam.look_at(cam.global_position + oppose * cos(deg_to_rad(20.0)) + Vector3.UP * sin(deg_to_rad(20.0)))
+		cam.current = true
+		await images.call(30)
+		meteo_vers(1, 20.0)
+		var a_max := 0.0
+		var avec := 0
+		var sans := 0
+		while _meteo_f < 1.0:
+			await images.call(1)
+			a_max = maxf(a_max, arc_en_ciel)
+			if arc_en_ciel > 0.9 and avec == 0:
+				await images.call(10)
+				shot.call(TIMES[moment].to_lower().replace("è", "e").replace("-", "_"))
+				avec = couleur.call()
+				for m in [_sky_peint, _sky_day]:
+					m.set_shader_parameter("arc", 0.0)
+				await images.call(3)
+				sans = couleur.call()
+				for m in [_sky_peint, _sky_day]:
+					m.set_shader_parameter("arc", arc_en_ciel)
+		meteo_vitesse = 20.0                   # 3 min de jeu en 9 s
+		await images.call(80)
+		meteo_vitesse = 1.0
+		dire.call("%s (soleil à %.0f°) : arc-en-ciel au plus %.2f ; pixels colorés au plus fort : %d avec l'arc, %d sans (même image) ; trois minutes après : arc %.2f" % [
+			TIMES[moment], rad_to_deg(-_sun.rotation.x), a_max, avec, sans, arc_en_ciel])
+	cam.current = false
+	cam.queue_free()
+	hud_n.visible = true
+	# brouillard : circulation prudente comme sous la pluie
+	for w in [0, 2, 3]:
+		set_weather(w)
+		await images.call(4)
+		dire.call("%s : circulation, prudence %.2f (vitesse visée × %.2f)" % [WEATHERS[w], float(circulation._pluie),
+			lerpf(1.0, circulation.PLUIE_V, float(circulation._pluie))])
+	# vue de jeu : la route vers l'arc-en-ciel
+	set_weather(2)
+	set_time(1)
+	await images.call(20)
+	meteo_vers(1, 20.0)
+	while arc_en_ciel < 0.95:
+		await images.call(1)
+	await images.call(10)
+	shot.call("route")
+	set_weather(0)
+	set_time(0)
+	dire.call("FIN")
+	get_tree().quit()
 
 ## Orage et bulletin (v6.94) : -- --drive-test --orage-test [--drive-from=…] (--fixed-fps 8 conseillé) : textes du
 ## bulletin météo dans plusieurs situations et flash composé par la radio ; éclairs déclenchés par la boucle de pluie

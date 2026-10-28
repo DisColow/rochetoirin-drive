@@ -2,7 +2,7 @@
 // (assets/fx/nuages.png de pipeline/build_nuages_tex.py), éclairés côté soleil, plus sombres dessous, effacés vers
 // l'horizon. Commun à ciel_peint.gdshader et à ciel_midi.gdshader (v6.91 : météo variable, le ciel photo de midi se
 // couvre en fondu vers ce ciel peint, `gris`). Les variables LIGHT0_* n'existent que dans sky() : passées en argument.
-// v6.93 : étoiles la nuit (`etoiles`, 0-1), sous les nuages.
+// v6.93 : étoiles la nuit (`etoiles`, 0-1), sous les nuages. v6.96 : arc-en-ciel (`arc`, 0-1) à l'opposé du soleil.
 
 uniform vec3 haut : source_color = vec3(0.26, 0.44, 0.75);
 uniform vec3 horizon : source_color = vec3(0.88, 0.80, 0.66);
@@ -15,6 +15,14 @@ uniform vec3 ombre : source_color = vec3(0.45, 0.47, 0.55);
 uniform vec2 vent = vec2(0.0);
 uniform float taille_soleil = 1.0;
 uniform float etoiles = 0.0;
+uniform float arc = 0.0;
+
+// Couleur de l'arc-en-ciel à la position x de sa bande (0 violet, 1 rouge), bords adoucis, rien en dehors.
+vec3 arc_couleur(float x) {
+	float e = smoothstep(-0.15, 0.1, x) * (1.0 - smoothstep(0.9, 1.15, x));
+	vec3 k = clamp(abs(fract(mix(0.76, 0.0, clamp(x, 0.0, 1.0)) + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0) - 1.0, 0.0, 1.0);
+	return mix(vec3(1.0), k, 0.75) * e;
+}
 
 float hachage13(vec3 p3) {
 	p3 = fract(p3 * 0.1031);
@@ -61,6 +69,13 @@ vec3 ciel_peint(vec3 d, bool l0, vec3 l0_dir, vec3 l0_lum, bool cubemap) {
 		vec3 nc = mix(ombre, clair, lum);
 		nc += sc * 0.35 * pow(max(s, 0.0), 6.0);                 // liseré lumineux près du soleil
 		c = mix(c, nc * mix(1.0, energie, 0.5), a * 0.92);
+		// arc-en-ciel : à 40,5-42,5° du point opposé au soleil (rouge dehors), arc secondaire pâle et inversé à
+		// 50,5-53,5° ; sous l'horizon quand le soleil est à plus de 42° (midi) : comme le vrai, on ne le voit pas
+		if (arc > 0.0 && l0) {
+			float ang = degrees(acos(clamp(dot(d, -l0_dir), -1.0, 1.0)));
+			vec3 col = arc_couleur((ang - 40.5) / 2.0) + 0.4 * arc_couleur((53.5 - ang) / 3.0);
+			c += col * arc * 0.3 * smoothstep(0.0, 0.1, h) * (1.0 - 0.5 * a);
+		}
 	}
 	return c * energie;
 }
