@@ -3155,7 +3155,11 @@ func _ligne_bus_test() -> void:
 				car.touch_throttle = 0.0; car.touch_brake = 0.0
 				car.hold(0.3)
 			await get_tree().physics_frame
+			var t_av := t
 			t += get_physics_process_delta_time()
+			if int(t / 10.0) != int(t_av / 10.0):
+				dire.call("  t=%.0f s : %.1f km/h, reste %.1f m, gaz %.1f, frein %.1f, volant %.2f, position %s" % [t, car.kmh(), reste,
+					car.touch_throttle, car.touch_brake, car.touch_steer, str(car.global_position.snapped(Vector3.ONE * 0.1))])
 		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
 		if lb.phase == "portes" and lb.i == k:
 			var porte: Vector3 = car.global_transform * LB.PORTE
