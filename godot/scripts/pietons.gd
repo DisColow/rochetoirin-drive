@@ -21,6 +21,7 @@ const PIETON := preload("res://scripts/pieton.gd")
 const NOMBRE := [3, 8, 12, 16]                 # par niveau de performances (Économie, Équilibré, Élevée, Maximale)
 const DENSITES := [0.0, 0.5, 1.0, 1.6]         # comme circulation.gd (⚙ > Conduite > Circulation)
 const NUIT := 0.35                             # part des passants la nuit
+const PLUIE := 0.4                             # part des passants sous la pluie (main.pluie, v6.91), qui pressent le pas
 const R_MIN := 25.0                            # apparition au moins à cette distance
 const R_MAX := 110.0
 const R_VU := 75.0                             # apparition dans le champ seulement au-delà
@@ -55,6 +56,7 @@ var _grille := {}                              # case -> PackedInt32Array de lig
 var _modeles: Array = []                       # [chemin, scène ou null, sexe, âge]
 var _reserve: Array = []                       # passants cachés, prêts à resservir : [nœud, modèle]
 var _remplir := true
+var _presse := 1.0                             # pas pressé sous la pluie
 
 func _ready() -> void:
 	ok = _charger()
@@ -117,6 +119,8 @@ func voulu() -> int:
 	var n := float(NOMBRE[clampi(niveau, 0, NOMBRE.size() - 1)]) * float(DENSITES[clampi(densite, 0, DENSITES.size() - 1)])
 	if main and int(main.get("time_of_day")) == 3:
 		n *= NUIT
+	if main:
+		n *= lerpf(1.0, PLUIE, float(main.get("pluie")))
 	return int(round(n))
 
 func set_niveau(n: int) -> void:
@@ -229,6 +233,7 @@ func _physics_process(dt: float) -> void:
 	if not ok or target == null or get_tree().paused:
 		return
 	var t0 := Time.get_ticks_usec()
+	_presse = 1.0 + 0.3 * (float(main.get("pluie")) if main else 0.0)
 	var p := target.global_position
 	for i in range(passants.size() - 1, -1, -1):
 		if (passants[i].n as Node3D).global_position.distance_to(p) > R_LOIN:
@@ -325,7 +330,7 @@ func _marcher(c: Dictionary, dt: float) -> void:
 		return
 	var k := int(c.l)
 	var L := longueur(k)
-	var s := float(c.s) + float(c.sens) * float(c.v) * (1.2 if _genre[k] == 3 else 1.0) * dt
+	var s := float(c.s) + float(c.sens) * float(c.v) * _presse * (1.2 if _genre[k] == 3 else 1.0) * dt
 	if s >= 0.0 and s <= L:
 		c.s = s
 		if _genre[k] != 3 and randf() < dt / 40.0:          # s'arrête de temps en temps (vitrine, téléphone…)
@@ -416,7 +421,7 @@ func _placer(c: Dictionary, dt: float) -> void:
 		vers.y = 0.0
 		if vers.length_squared() > 0.01:
 			dir = vers.normalized()
-	var vit := 0.0 if float(c.pause) > 0.0 or int(c.traverse) >= 0 else float(c.v)
+	var vit := 0.0 if float(c.pause) > 0.0 or int(c.traverse) >= 0 else float(c.v) * _presse
 	if float(c.bond_t) > 0.0:
 		dir = (c.bond as Vector3).normalized()
 		vit = BOND

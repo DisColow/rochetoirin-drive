@@ -30,7 +30,10 @@ func _shots(path: String) -> void:
 			for i in 30:
 				await get_tree().process_frame
 		if s.has("weather"):
+			meteo_choix = int(s.weather)
 			weather = int(s.weather)
+			_meteo_de = weather
+			_meteo_f = 1.0
 			_wet_target = [0.0, 0.0, 1.0, 0.3][weather]
 			_wet = _wet_target
 		if s.has("time") or s.has("weather"):
@@ -483,6 +486,10 @@ func _physics_process(_dt: float) -> void:
 	if OS.get_cmdline_user_args().has("--pietons-test"):
 		if t == 300:
 			_pietons_test()
+		return
+	if OS.get_cmdline_user_args().has("--meteo-test"):
+		if t == 300:
+			_meteo_test()
 		return
 	if OS.get_cmdline_user_args().has("--succes-test"):
 		if t == 300:
@@ -3003,6 +3010,108 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Météo variable (v6.91) : -- --drive-test --meteo-test [--drive-from=…] (--fixed-fps 8 conseillé) : à midi, fondus
+## accélérés beau -> couvert -> pluie -> couvert -> brouillard -> beau, luminosité moyenne de l'image à chaque image (le
+## plus grand saut d'une image à la suivante, contre le changement d'un coup d'avant la v6.91), captures au milieu et à
+## la fin de chaque fondu ; passants et circulation sous la pluie ; enchaînement tiré par la météo variable (accéléré).
+func _meteo_test() -> void:
+	var dire := func(x: String): print("  [météo] " + x)
+	var shot := func(n: String):
+		get_viewport().get_texture().get_image().save_png("user://shots/meteo_%s.png" % n)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	var lum := func() -> float:
+		var im := get_viewport().get_texture().get_image()
+		im.resize(96, 54, Image.INTERPOLATE_BILINEAR)
+		var t := 0.0
+		for y in 54:
+			for x in 96:
+				var c := im.get_pixel(x, y)
+				t += 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
+		return t / (96.0 * 54.0) * 255.0
+	var images := func(n: int):
+		for i in n:
+			car.hold(0.5)
+			await get_tree().process_frame
+	var noms := ["beau", "couvert", "pluie", "brouillard"]
+	set_time(0)
+	set_weather(0)
+	_wet = 0.0
+	await images.call(60)
+	var pv_beau: int = pietons.voulu() if pietons else 0
+	if OS.get_cmdline_user_args().has("--meteo-court"):
+		_meteo_variable(noms)
+		return
+	# avant : changement d'un coup (réglage fixe, comme jusqu'à la v6.90)
+	var l0: float = lum.call()
+	set_weather(1)
+	await images.call(3)
+	var l1: float = lum.call()
+	dire.call("d'un coup (réglage fixe) : beau -> couvert, luminosité %.1f -> %.1f, saut de %.1f en une image" % [l0, l1,
+		absf(l1 - l0)])
+	set_weather(0)
+	await images.call(30)
+	for w in [1, 2, 1, 3, 0]:
+		var de: int = weather
+		meteo_vers(w, 24.0)
+		var prec: float = lum.call()
+		var debut := prec
+		var saut := 0.0
+		var nb := 0
+		var mi := false
+		var ciels := []
+		while _meteo_f < 1.0:
+			await images.call(1)
+			var l: float = lum.call()
+			saut = maxf(saut, absf(l - prec))
+			prec = l
+			nb += 1
+			var ciel_vu := "peint"
+			if _env.sky.sky_material == _sky_day:
+				ciel_vu = "photo" if float(_sky_day.get_shader_parameter("gris")) <= 0.0 else "photo grisée"
+			if not ciels.has(ciel_vu):
+				ciels.append(ciel_vu)
+			if not mi and _meteo_f >= 0.5:
+				mi = true
+				shot.call("%s_%s_mi" % [noms[de], noms[w]])
+		await images.call(40)
+		var fin: float = lum.call()
+		shot.call(noms[w] + ("_2" if w == 1 and de == 2 else ""))
+		dire.call(("fondu %s -> %s : %d images, luminosité %.1f -> %.1f, plus grand saut d'une image à l'autre %.2f (%.0f %% " +
+			"de l'écart) ; ciel %s ; pluie %.2f (gouttes %.2f), sol mouillé %.2f, phares %s, brume %.5f") % [noms[de], noms[w], nb,
+			debut, fin, saut, 100.0 * saut / maxf(absf(fin - debut), 0.01), " -> ".join(ciels), pluie, float(rain.amount), _wet,
+			str(phares_meteo), _env.fog_density])
+		if w == 2:
+			dire.call("sous la pluie : passants voulus %d (beau temps : %d), circulation : pluie %.2f, phares %s, vitesse visée × %.2f" % [
+				pietons.voulu() if pietons else 0, pv_beau, float(circulation._pluie) if circulation else 0.0,
+				str(phares_meteo), lerpf(1.0, circulation.PLUIE_V, float(circulation._pluie)) if circulation else 1.0])
+	_meteo_variable(noms)
+
+## Météo variable : enchaînement tiré au hasard sur 20 h de jeu, par pas de 5 s (la vraie mécanique, _meteo_avancer,
+## sans attendre les images).
+func _meteo_variable(noms: Array) -> void:
+	var dire := func(x: String): print("  [météo] " + x)
+	meteo_vitesse = 1.0
+	set_weather(VARIABLE)
+	var suite := [noms[weather]]
+	var duree := [0.0, 0.0, 0.0, 0.0]
+	var actuel: int = weather
+	for i in 14400:
+		_meteo_avancer(5.0)
+		duree[weather] += 5.0
+		if weather != actuel:
+			actuel = weather
+			suite.append(noms[weather])
+	var total: float = duree[0] + duree[1] + duree[2] + duree[3]
+	dire.call("variable : %d changements en %.1f h de jeu : %s" % [suite.size() - 1, total / 3600.0, " > ".join(suite.slice(0, 24))])
+	dire.call("variable : part du temps beau %.0f %%, couvert %.0f %%, pluie %.0f %%, brouillard %.0f %%" % [
+		100.0 * duree[0] / total, 100.0 * duree[1] / total, 100.0 * duree[2] / total, 100.0 * duree[3] / total])
+	meteo_vitesse = 1.0
+	set_weather(0)
+	dire.call("FIN")
+	get_tree().quit()
 
 ## Passants (v6.88) : -- --drive-test --pietons-test [--drive-from=…] (--fixed-fps 8 conseillé) : passants en scène
 ## autour du joueur (lignes : trottoirs, rues piétonnes, bords de rue), capture d'un passant de près et de la rue, puis

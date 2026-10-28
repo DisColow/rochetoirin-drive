@@ -60,6 +60,8 @@ const COURSE_CASE := 16.0
 const BARRAGE := 12.0                          # course : arrêt à cette distance du carrefour d'une rue du tracé (m)
 const LENT := 4.0                              # s derrière un véhicule lent (route rapide) avant de le doubler
 const V_RAPIDE := 19.0                         # doubler un véhicule lent : routes limitées à ~70 km/h et plus (m/s)
+const PLUIE_V := 0.85                          # sous la pluie (main.pluie, v6.91) : vitesse visée ×, temps de suivi ×
+const PLUIE_T := 1.5
 
 var target: Node3D
 var main: Node
@@ -69,6 +71,7 @@ var densite := 2
 var voitures: Array = []
 var epaves: Array = []
 var accidents := 0                             # voitures devenues épaves (essais)
+var _pluie := 0.0
 
 # réseau
 var _nx := PackedFloat32Array()
@@ -623,7 +626,7 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 	if int(c.suite) == -1 and float(c.L) - float(c.s) < 60.0:
 		c.suite = _suite(int(c.voie))
 		c.clign = _clignotant(int(c.voie), int(c.suite))
-	var v0: float = _v[k] * float(c.perso)
+	var v0: float = _v[k] * float(c.perso) * lerpf(1.0, PLUIE_V, _pluie)
 	v0 = minf(v0, _v_virage(c))
 	var dv := _devant(c, obstacles)
 	var gap: float = dv[0]
@@ -682,7 +685,7 @@ func _conduire(c: Dictionary, dt: float, obstacles: Array) -> void:
 	if _ecart(c, float(c.s)) > 0.3:
 		v0 = minf(v0, 8.0) if dep.size() < 6 else maxf(v0, float(dep[5]))   # au pas autour d'un obstacle immobile
 	var v: float = c.v
-	var s_et := IDM_S0 + maxf(0.0, v * IDM_T + v * (v - vl) / (2.0 * sqrt(IDM_A * IDM_B)))
+	var s_et := IDM_S0 + maxf(0.0, v * IDM_T * lerpf(1.0, PLUIE_T, _pluie) + v * (v - vl) / (2.0 * sqrt(IDM_A * IDM_B)))
 	var acc := IDM_A * (1.0 - pow(v / maxf(v0, 0.5), 4.0) - pow(s_et / maxf(gap, 0.2), 2.0))
 	acc = clampf(acc, -9.0, IDM_A)
 	v = maxf(0.0, v + acc * dt)
@@ -844,6 +847,7 @@ func _physics_process(dt: float) -> void:
 		return
 	var t0 := Time.get_ticks_usec()
 	_t += dt
+	_pluie = float(main.get("pluie")) if main else 0.0
 	var p := target.global_position
 	_route_course()
 	for i in range(voitures.size() - 1, -1, -1):
@@ -1078,7 +1082,7 @@ func _roue_xf(m: int, g: int, a: float) -> Transform3D:
 	return Transform3D(b, _pos_roues[m][g])
 
 func _rendre() -> void:
-	var phares: bool = main != null and int(main.get("time_of_day")) >= 2
+	var phares: bool = main != null and (int(main.get("time_of_day")) >= 2 or bool(main.get("phares_meteo")))
 	var nb := [0, 0]
 	var plus_proches := []
 	for c in voitures:

@@ -66,7 +66,7 @@ func _process(dt: float) -> void:
 	PerfMon.note("rain", Time.get_ticks_usec() - t0_perf)
 
 func _process_corps(dt: float) -> void:
-	amount = move_toward(amount, 1.0 if on else 0.0, dt * 0.5)
+	amount = move_toward(amount, 1.0 if on else 0.0, dt * 0.25)      # premières gouttes en 4 s
 	drops.emitting = amount > 0.05
 	if sound:
 		if amount > 0.01 and not sound.playing:
