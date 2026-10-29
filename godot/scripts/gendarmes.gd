@@ -62,9 +62,10 @@ func _ready() -> void:
 	_bandeau.add_theme_color_override("font_outline_color", Color(0.02, 0.05, 0.2))
 	_bandeau.add_theme_constant_override("outline_size", 10)
 	_bandeau.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_bandeau.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_bandeau.position = Vector2(-400, 64)
-	_bandeau.size = Vector2(800, 80)
+	_bandeau.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)          # en bas, entre les commandes tactiles
+	_bandeau.offset_left = -400.0; _bandeau.offset_right = 400.0
+	_bandeau.offset_top = -190.0; _bandeau.offset_bottom = -110.0
+	_bandeau.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	_bandeau.visible = false
 	cl.add_child(_bandeau)
 

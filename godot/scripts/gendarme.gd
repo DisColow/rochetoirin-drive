@@ -17,6 +17,7 @@ const PAS := 2.0                    # rééchantillonnage de l'itinéraire (m)
 const LOIN := 85.0
 const PRES := 70.0
 const DIRECT := 45.0                # poursuite : droit sur le joueur en deçà (m), s'il est en vue
+const ARRET := 6.0                  # joueur arrêté : le gendarme s'arrête à cette distance (interpellation)
 const REPLAN := 2.0                 # poursuite : nouvel itinéraire toutes les REPLAN s
 const A_LAT := 6.0                  # accélération latérale admise en virage (m/s²)
 const VOIE := 2.2
@@ -284,7 +285,11 @@ func _piloter(dt: float, j: Node3D, dj: float) -> void:
 		var jv: Vector3 = (j as RigidBody3D).linear_velocity if j is RigidBody3D else Vector3.ZERO
 		var p := j.global_position + jv * clampf(dj / maxf(absf(v), 6.0), 0.0, 1.2)
 		q = Vector2(p.x, p.z)
-		v_cible = minf(_vmax, jv.length() + 6.0 + dj * 0.3)
+		if jv.length() < 4.0:
+			# joueur arrêté ou au pas : on s'arrête à ARRET m de lui (interpellation, gendarmes.gd), sans l'emboutir
+			v_cible = clampf((dj - ARRET) * 0.7, 0.0, 12.0)
+		else:
+			v_cible = minf(_vmax, jv.length() + 6.0 + dj * 0.3)
 	elif _chemin.size() >= 2:
 		v_cible = INF
 		var d := 0.0
@@ -323,7 +328,10 @@ func _piloter(dt: float, j: Node3D, dj: float) -> void:
 	var l := xf.affine_inverse() * Vector3(q.x, xf.origin.y, q.y)
 	var alpha := atan2(l.x, l.z)
 	var delta := atan2(2.0 * 2.5 * sin(alpha), maxf(Vector2(l.x, l.z).length(), 1.0))
-	if l.z < 0.5:                             # point visé derrière : demi-tour au pas
+	var recule := false
+	if l.z < 0.5 and direct and Vector2(l.x, l.z).length() < 15.0:
+		recule = true                         # joueur juste derrière (dépassé) : marche arrière vers lui
+	elif l.z < 0.5:                           # point visé derrière : demi-tour au pas
 		delta = signf(l.x) * PI
 		v_cible = minf(v_cible, 5.0)
 	var k := clampf(absf(v) * 3.6 / 130.0, 0.0, 1.0)
@@ -331,7 +339,9 @@ func _piloter(dt: float, j: Node3D, dj: float) -> void:
 	var thr := 0.0
 	var brk := 0.0
 	var e := v_cible - v
-	if _recul_t > 0.0:
+	if recule:
+		brk = 0.7 if dj > ARRET else 0.0; st = 0.0
+	elif _recul_t > 0.0:
 		_recul_t -= dt
 		brk = 0.8; st = -st
 	elif e > 0.3:

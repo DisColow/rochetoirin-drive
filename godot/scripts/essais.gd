@@ -3154,7 +3154,8 @@ func _gendarmes_test() -> void:
 	var cap := false
 	var arr0: int = gd.arrestations
 	while t < 45.0 and gd.arrestations == arr0:
-		car.touch_brake = 1.0
+		car.touch_brake = 1.0 if car.forward_speed() > 0.5 else 0.0     # à l'arrêt, le frein serait la marche arrière
+		car.frein_parking = car.forward_speed() <= 0.5
 		await get_tree().physics_frame
 		t += get_physics_process_delta_time()
 		if not is_instance_valid(g) and not gd.liste.is_empty():
@@ -3167,11 +3168,21 @@ func _gendarmes_test() -> void:
 				gd.etoiles, gd._bandeau.text.replace("\n", " / ")])
 		if not cap and d < 14.0:
 			cap = true
-			for k in 3:
+			# caméra de côté, en hauteur, qui voit le joueur et le gendarme
+			var mil: Vector3 = (car.global_position + g.voiture.global_position) * 0.5
+			var cote: Vector3 = car.global_transform.basis.x
+			var vue := Camera3D.new()
+			add_child(vue)
+			vue.global_position = mil + cote * 11.0 + Vector3.UP * 4.5
+			vue.look_at(mil + Vector3.UP * 0.8)
+			vue.current = true
+			for k in 4:
 				await get_tree().process_frame
 			get_viewport().get_texture().get_image().save_png("user://shots/gendarmes.png")
+			vue.queue_free()
 			dire.call("capture gendarmes.png (gendarme à %.0f m)" % d)
 	car.touch_brake = 0.0
+	car.frein_parking = false
 	dire.call("arrestation : %s après %.0f s, argent %+.2f €" % [str(gd.arrestations > arr0), t, garage.argent - argent0])
 	# 3) gendarme embouti, téléportation loin : semés
 	for k in 60:
@@ -3191,7 +3202,8 @@ func _gendarmes_test() -> void:
 	var sem0: int = gd.semes
 	t = 0.0
 	while t < 40.0 and gd.semes == sem0:
-		car.touch_brake = 1.0
+		car.touch_brake = 1.0 if car.forward_speed() > 0.5 else 0.0     # à l'arrêt, le frein serait la marche arrière
+		car.frein_parking = car.forward_speed() <= 0.5
 		await get_tree().physics_frame
 		t += get_physics_process_delta_time()
 		if fmod(t, 4.0) < get_physics_process_delta_time():
