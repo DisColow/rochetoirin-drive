@@ -265,8 +265,12 @@ func en_vue(a: Vector3, b: Vector3) -> bool:
 		q.exclude.append(main.car.get_rid())
 	q.collide_with_areas = false
 	var r := w.direct_space_state.intersect_ray(q)
-	obstacle = "" if r.is_empty() else "%s à %.1f m" % [(r.collider as Node).get_path() if r.collider is Node else str(r.collider), (r.position as Vector3).distance_to(a)]
-	return r.is_empty()
+	# une voiture (le joueur lui-même, la circulation) ne cache pas : seuls le décor et le relief comptent
+	if r.is_empty() or r.collider is VehicleBody3D or (r.position as Vector3).distance_to(b) < 4.0:
+		obstacle = ""
+		return true
+	obstacle = "%s à %.1f m" % [(r.collider as Node).get_path() if r.collider is Node else str(r.collider), (r.position as Vector3).distance_to(a)]
+	return false
 
 func _piloter(dt: float, j: Node3D, dj: float) -> void:
 	var v := voiture.forward_speed()
