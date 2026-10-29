@@ -24,6 +24,9 @@ CANDIDATS = {
                   "Porsche 911 GT3 RS (991)"),
     "mustang": ("File:Ford Mustang GT (S550) - engine and exhaust sound (YouTube 2ceiDjGgpI8).opus", 8, "Ford Mustang GT (S550)"),
     "bronco": ("File:Ford Bronco (1979) - engine and exhaust sound (YouTube h49p3ivoHYI).opus", 8, "Ford Bronco (1979)"),
+    # BigSoundBank (Joseph Sardin, CC0) : « titre » = bsb:<numéro>
+    "ess1l": ("bsb:966", 4, "moteur essence 1 litre (BigSoundBank)"),
+    "dsl29": ("bsb:967", 4, "moteur diesel 2,9 litres (BigSoundBank)"),
     "man_sg220": ("File:WWS CityBusMANSG220engine.ogg", 6, "autobus MAN SG 220, diesel"),
 }
 
@@ -82,6 +85,12 @@ def main(cles):
         if os.path.exists(dst) and os.path.getsize(dst) > 10000:
             continue
         brut = "%s/%s.brut" % (OUT, cle)
+        if titre.startswith("bsb:"):
+            from fetch_sons import bsb
+            brut = bsb(int(titre[4:]))
+            subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", brut, "-ac", "1", "-ar", "44100", dst], check=True)
+            print("%-10s %s" % (cle, desc), flush=True)
+            continue
         open(brut, "wb").write(lire_url(url_fichier(titre)))
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", brut, "-ac", "1", "-ar", "44100", dst], check=True)
         os.remove(brut)
@@ -89,6 +98,10 @@ def main(cles):
         time.sleep(30.0)                             # entre deux fichiers : rester discret
     # licences et auteurs (crédits) : une seule requête à l'API pour tous les fichiers
     old = json.load(open(OUT + "/credits.json")) if os.path.exists(OUT + "/credits.json") else {}
+    for c in cles:
+        if c not in old and CANDIDATS[c][0].startswith("bsb:"):
+            old[c] = {"titre": "BigSoundBank n° " + CANDIDATS[c][0][4:], "licence": "CC0", "auteur": "Joseph SARDIN - BigSoundBank.com",
+                      "cylindres": CANDIDATS[c][1], "desc": CANDIDATS[c][2]}
     manque = [c for c in cles if c not in old]
     if manque:
         import re

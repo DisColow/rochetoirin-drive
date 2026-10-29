@@ -23,7 +23,8 @@ PALIERS = 4
 REGIME = {"2cv6": (850, 5800), "r5t2": (900, 6500), "twingo": (750, 6000), "106r": (900, 7500), "cliors": (800, 6800),
           "meganers": (800, 6800), "rcz": (800, 6800), "toledo": (800, 6000), "laguna": (700, 6500),
           "omega": (700, 6200), "gt3_992": (900, 9000), "gt3rs_991": (900, 9000), "mustang": (700, 7000),
-          "bronco": (650, 4500), "man_sg220": (600, 2300)}
+          "bronco": (650, 4500), "man_sg220": (600, 2300), "ess1l": (800, 6000),
+          "dsl29": (750, 4200)}
 HOP = 0.03
 NB = 260                                   # cases de fréquence (échelle log)
 
@@ -140,8 +141,12 @@ def paliers(x, cyl, regime, nb=PALIERS):
                 break
         if best:
             _, s, L = best
-            choix.append((t0[s] - HOP / 2, t0[s + L - 1] + HOP / 2))
-    return t0, f, choix
+            seg = (t0[s] - HOP / 2, t0[s + L - 1] + HOP / 2)
+            r_seg = float(np.exp(np.mean(np.log(rpm[s:s + L]))))
+            if choix and (seg in [a for a, _ in choix] or abs(np.log(r_seg / choix[-1][1])) < np.log(1.08)):
+                continue                              # même extrait ou palier trop proche du précédent
+            choix.append((seg, r_seg))
+    return t0, f, [a for a, _ in choix]
 
 
 def voir(cle, png):
