@@ -605,6 +605,46 @@ func bord_arret(arret: Vector3, ecart := 3.2) -> Vector3:
 	var droite := Vector3(g[1].x, 0.0, g[1].y).cross(Vector3.UP).normalized()
 	return p0 + droite * clampf((arret - p0).dot(droite), 1.5, ecart)
 
+## Gendarmes (#150) : vitesse autorisée (km/h) sur la route la plus proche de p (axe à moins de `r` m), -1 hors route.
+func limite(p: Vector3, r := 10.0) -> float:
+	if not ok:
+		return -1.0
+	var bd := r * r
+	var best := -1
+	for k: int in _grille.get(Vector2i(floori(p.x / CASE), floori(p.z / CASE)), PackedInt32Array()):
+		for i in range(_p0[k], _p0[k] + _np[k] - 1):
+			var a := Vector2(_P[i * 3], _P[i * 3 + 2]); var b := Vector2(_P[i * 3 + 3], _P[i * 3 + 5])
+			var ab := b - a
+			var q := a + ab * clampf((Vector2(p.x, p.z) - a).dot(ab) / maxf(ab.length_squared(), 1e-6), 0.0, 1.0)
+			var d := q.distance_squared_to(Vector2(p.x, p.z))
+			if d < bd:
+				bd = d; best = k
+	return _v[best] * 3.6 if best >= 0 else -1.0
+
+## Gendarmes (#150) : feu rouge franchi en allant de p0 à p1 (deux positions successives du joueur) : passage de la
+## ligne du nœud du feu (à moins de 7 m de côté) dans le sens d'arrivée de la voie, feu au rouge (orange toléré).
+func feu_franchi(p0: Vector3, p1: Vector3) -> bool:
+	if not ok:
+		return false
+	var mv := Vector2(p1.x - p0.x, p1.z - p0.z)
+	if mv.length_squared() < 0.01:
+		return false
+	for k: int in _grille.get(Vector2i(floori(p1.x / CASE), floori(p1.z / CASE)), PackedInt32Array()):
+		for sens in 2:
+			var feu := _feu_b[k] if sens == 0 else _feu_a[k]
+			if feu < 0:
+				continue
+			# dernier segment de la voie avant le nœud, dans le sens d'arrivée
+			var i1 := _p0[k] + _np[k] - 1 if sens == 0 else _p0[k]
+			var i0 := i1 - 1 if sens == 0 else i1 + 1
+			var n := Vector2(_P[i1 * 3], _P[i1 * 3 + 2])
+			var t := (n - Vector2(_P[i0 * 3], _P[i0 * 3 + 2])).normalized()
+			var d0 := (Vector2(p0.x, p0.z) - n).dot(t); var d1 := (Vector2(p1.x, p1.z) - n).dot(t)
+			if d0 < -1.0 and d1 >= -1.0 and absf((Vector2(p1.x, p1.z) - n).cross(t)) < 7.0 \
+					and mv.normalized().dot(t) > 0.6 and _etat_feu(feu) == 2:
+				return true
+	return false
+
 func _creer(voie: int, s: float, rang: int, m: int, g: Array) -> void:
 	var k := voie >> 1
 	var L := _longueur(voie)
@@ -1079,7 +1119,7 @@ func _obstacles() -> Array:
 func _joueur() -> Node3D:
 	return main.car if main and main.get("car") else null
 
-## Voitures pilotées qui peuvent percuter la circulation : le joueur et les concurrents d'une course.
+## Voitures pilotées qui peuvent percuter la circulation : le joueur, les concurrents d'une course, les gendarmes.
 func _pilotes() -> Array:
 	var l := []
 	var j := _joueur()
@@ -1090,6 +1130,9 @@ func _pilotes() -> Array:
 		for c in act.concurrents:
 			if is_instance_valid(c) and c.voiture and is_instance_valid(c.voiture):
 				l.append(c.voiture)
+	var gd = main.get("gendarmes") if main else null
+	if gd:                                              # gendarmes (#150)
+		l.append_array(gd.voitures())
 	return l
 
 ## Juste avant qu'une voiture pilotée la percute (boîtes qui se touchent à la marge près, vitesse de rapprochement
@@ -1164,6 +1207,8 @@ func _accident(i: int, par: Node3D) -> void:
 	accidents += 1
 	if par == _joueur() and main.get("succes"):
 		main.succes.noter("circulation")              # succès (#133)
+	if par == _joueur() and main.get("gendarmes"):
+		main.gendarmes.infraction("accrochage", c.pos)  # #150 : sous les yeux d'une patrouille
 	if _debug:
 		print("[circulation] choc : voiture %d devient une épave (%.0f km/h, percutée par %s) à (%.0f, %.0f), meneur %s, suite %d, sur le tracé %s" % [
 			int(c.id), float(c.v) * 3.6, par.name, (c.pos as Vector3).x, (c.pos as Vector3).z, c.leader, int(c.suite),

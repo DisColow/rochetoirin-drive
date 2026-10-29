@@ -25,7 +25,14 @@ var _tache := -1
 var _res := PackedVector2Array()
 var _res_l := 0.0
 
+static var _commun := {}                # graphe déjà lu (plusieurs itinéraires à la fois : gendarmes, concurrents)
+
 func _init() -> void:
+	if not _commun.is_empty():
+		for k: String in _commun:
+			set(k, _commun[k])
+		ok = true
+		return
 	var f := "res://world/graphe.bin"
 	if not FileAccess.file_exists(f):
 		return
@@ -73,6 +80,8 @@ func _init() -> void:
 	for i in np_:
 		px[i] = pp[i * 2]; pz[i] = pp[i * 2 + 1]
 	ok = true
+	for k in ["nx", "nz", "adj_debut", "adj", "arc_a", "arc_b", "arc_l", "arc_p0", "arc_np", "px", "pz", "grille"]:
+		_commun[k] = get(k)
 
 func plus_proche(p: Vector2) -> int:
 	var c := Vector2i(floori(p.x / CASE), floori(p.y / CASE))
