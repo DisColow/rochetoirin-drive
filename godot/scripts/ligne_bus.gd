@@ -423,7 +423,8 @@ func _physics_process(dt: float) -> void:
 	var car: VehicleBody3D = main.car
 	_choc_cd -= dt
 	var v := car.linear_velocity
-	if _choc_cd <= 0.0 and voyageurs > 0 and (v - _prev_v).length() > 5.5 and not car.carried:
+	# pas un choc : remise en place ou téléportation (voiture tenue, car.hold)
+	if _choc_cd <= 0.0 and voyageurs > 0 and (v - _prev_v).length() > 5.5 and not car.carried and float(car.get("_hold_t")) <= 0.0:
 		chocs += 1
 		_choc_cd = 1.0
 		main.get_node("HUD").toast("Les voyageurs sont secoués ! (−%s)" % _act()._euros(MALUS_CHOC), 1.5)
