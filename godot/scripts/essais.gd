@@ -3140,7 +3140,8 @@ func _livreur_test() -> void:
 			t += get_physics_process_delta_time()
 			if k == 0 and t > 1.2 and t < 1.3:
 				get_viewport().get_texture().get_image().save_png("user://shots/livreur.png")
-		dire.call("  livraison %d : %s" % [k + 1, "faite" if lv.n > n0 or not lv.actif else "ÉCHEC (pas livrée)"])
+		dire.call("  livraison %d : %s" % [k + 1, "faite" if lv.n > n0 or not lv.actif else "ÉCHEC (pas livrée : à %.1f m de l'adresse, %.1f km/h, repas %d %%)" % [
+			Vector2(car.global_position.x - lv.dest.x, car.global_position.z - lv.dest.z).length(), car.kmh(), int(lv.etat)]])
 	car.frein_parking = false
 	dire.call("fin : actif %s, %d livrées, %d en retard, %d refusées, gain %.2f €, argent %+.2f €, statut « %s »" % [str(lv.actif),
 		lv.livrees, lv.en_retard, lv.refusees, lv.gain, garage.argent - argent0, activities._status_l.text])

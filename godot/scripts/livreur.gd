@@ -45,6 +45,7 @@ var refusees := 0
 var en_retard := 0
 var _arret_t := 0.0
 var _prev_v := Vector3.ZERO
+var _prev_p := Vector3.ZERO
 var _choc_cd := 0.0
 var _itin                           # graphe routier (adresses)
 var _deja := {}                     # restaurants déjà servis pendant la tournée
@@ -150,7 +151,7 @@ func _rue(q: Vector3) -> String:
 		r = r.get_slice(" · ", r.get_slice_count(" · ") - 1)
 	var re := RegEx.new()
 	re.compile("^(A|N|D|M|E|RN|RD|C|VC|CD) ?\\d")
-	if r == "" or re.search(r) != null or r.begins_with("Voie de service") or r.begins_with("Bretelle") \
+	if r == "" or re.search(r) != null or r.begins_with("Voie de service") or r.begins_with("Chemin de terre") or r.begins_with("Sentier") or r.begins_with("Bretelle") \
 			or r.begins_with("Échangeur") or r.begins_with("Autoroute"):
 		return ""
 	return r
@@ -284,6 +285,10 @@ func _physics_process(dt: float) -> void:
 	var car: VehicleBody3D = main.car
 	_choc_cd -= dt
 	var v := car.linear_velocity
+	var saut := car.global_position.distance_to(_prev_p) > 10.0      # téléportation, remise sur la route : pas un choc
+	_prev_p = car.global_position
+	if saut:
+		_choc_cd = 0.5
 	if _choc_cd <= 0.0 and (v - _prev_v).length() > 5.5 and not car.carried and float(car.get("_hold_t")) <= 0.0:
 		etat = maxf(etat - CHOC, 0.0)
 		_choc_cd = 1.0
