@@ -276,7 +276,7 @@
   du trajet et dans son sens) puis `_feux_appliquer` (vitesse du profil nulle au point d'arrêt tant que c'est rouge) ;
   `concurrent.doubler = false` : suit la voiture de devant sans la doubler ni la pousser. Essai
   `--fixed-fps 8 -- --drive-test --balade-test [--duree=s] --drive-from=…`.
-- **Ligne de bus** (v7.02, #148, initiative de Claude, `scripts/ligne_bus.gd`, Activités > Taxi > « Prendre une ligne de
+- **Ligne de bus** (v7.02, #148, initiative de Claude, `scripts/ligne_bus.gd`, Activités > Métiers (ex-Taxi) > « Prendre une ligne de
   bus », `activities._bus_start`, mode « bus ») : le joueur prend le bus B1 (`voitures.gd` « bus », `service` : hors du
   garage, `ordre()` l'écarte ; modèle `blender_voitures_joueur.py bus` depuis `import/lourds/bus`, poste de conduite
   `eye`/`steer` posé à la main, cockpit `build_cockpits.py bus`) ; `NB_ARRETS` vrais arrêts enchaînés de proche en
@@ -298,7 +298,7 @@
   à 15 m. Caméra poursuite reculée d'après `car.gabarit.z` (`camera_rig.gd`). Essai
   `--fixed-fps 8 -- --drive-test --ligne-bus-test --drive-from=-10975,236,-1100,90` (bus posé en amont de chaque arrêt
   et conduit jusqu'au poteau, capture `ligne_bus.png`).
-- **Livreur de repas** (v7.09, #151, initiative de Claude, `scripts/livreur.gd`, Activités > Taxi > « Livrer des
+- **Livreur de repas** (v7.09, #151, initiative de Claude, `scripts/livreur.gd`, Activités > Métiers > « Livrer des
   repas », `activities._livreur_start`, mode « livreur », sa propre voiture) : `NB` livraisons ; restaurant au hasard
   parmi les 4 plus proches (`world/restos.json` de `pipeline/build_restos.py` : points OSM restaurant/fast_food, nom
   de l'enseigne en jeu tiré comme `build_shops.sign_for` ; publié sur `donnees`), arrêt à `R_PRISE` m ; adresse =
@@ -307,7 +307,10 @@
   repas −`CHOC` par choc (téléportation ignorée : saut de plus de 10 m), refus sous `REFUS` ; paiement `BASE` +
   `PAR_KM` + pourboire selon l'avance, moitié en retard. Succès `tournees`, `livraisons`. Essai `--fixed-fps 8 --
   --drive-test --livreur-test --drive-from=-10975,236,-1100,90` (à l'heure, deux chocs, en retard ; capture
-  `livreur.png`).
+  `livreur.png`). v7.10 : arrêt sur la route devant le restaurant (`circulation.point_route`, le point OSM peut être
+  au fond d'un bâtiment), majoration de nuit `NUIT` (`main.tarif_nuit`, essai `--livreur-nuit`). Onglet « Taxi » des
+  Activités renommé « Métiers » (taxi, bus, livreur, un titre par métier ; essai `--metiers-menu-test`, capture
+  `metiers_menu.png`).
 - **Gendarmes** (v7.05, #150, initiative de Claude ; voiture et règles en attente du choix de l'utilisateur : planche
   `docs/apercus/planche_police.jpg`, A Focus de gendarmerie ou B 306 du garage repeinte ; voiture provisoire = B,
   `modele` « p306 » repeinte `couleur`) : `scripts/gendarmes.gd` (`main.gendarmes`, ⚙ > Conduite > Gendarmes,

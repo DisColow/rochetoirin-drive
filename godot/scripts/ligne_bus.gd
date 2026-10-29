@@ -1,4 +1,4 @@
-## Ligne de bus (#148, initiative de Claude, Activités > Taxi > « Prendre une ligne de bus », mode « bus ») : le joueur
+## Ligne de bus (#148, initiative de Claude, Activités > Métiers > « Prendre une ligne de bus », mode « bus ») : le joueur
 ## laisse sa voiture et prend le volant du bus B1 (voitures.gd « bus », véhicule de service) ; une ligne de NB_ARRETS
 ## vrais arrêts (pietons.arrets_bus, nœuds bus_stop d'OSM) enchaînés de proche en proche, itinéraire au GPS
 ## (activities._itineraire). À chaque arrêt : porte avant (PORTE) à moins de R_ARRET m du poteau, bus arrêté ->

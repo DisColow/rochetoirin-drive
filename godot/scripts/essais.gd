@@ -931,6 +931,25 @@ func _physics_process(_dt: float) -> void:
 	if OS.get_cmdline_user_args().has("--rails-test"):
 		_rails_test(t)
 		return
+	if OS.get_cmdline_user_args().has("--metiers-menu-test"):
+		# v7.10 : onglet « Métiers » (taxi, bus, livreur) : tout tient à l'écran ?
+		if not Chargement.fini:
+			return
+		var n: int = get_meta("metiers_t", 0) + 1
+		set_meta("metiers_t", n)
+		if n == 60:
+			activities.open_menu(2)
+			get_tree().paused = false
+		if n == 120:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/metiers_menu.png")
+			var bs: Array = activities._menu.find_children("*", "Button", true, false).filter(func(b): return b.is_visible_in_tree())
+			var bas := 0.0
+			for b in bs:
+				bas = maxf(bas, (b as Control).get_global_rect().end.y)
+			print("  [métiers] %d boutons, le plus bas finit à %.0f px sur %.0f" % [bs.size(), bas, get_viewport().get_visible_rect().size.y])
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--epreuves-menu-test"):
 		# #101 : menu des épreuves -> la dernière de la liste (la plus loin) ; la voiture doit être sur sa ligne de départ
 		var act = activities
@@ -3091,6 +3110,11 @@ func _livreur_test() -> void:
 	Engine.max_physics_steps_per_frame = 16
 	for k in 120:
 		await get_tree().process_frame
+	if OS.get_cmdline_user_args().has("--livreur-nuit"):      # v7.10 : majoration de nuit
+		set_time(3)
+		for k in 30:
+			await get_tree().process_frame
+		dire.call("de nuit : tarif de nuit %s" % str(tarif_nuit()))
 	var argent0: float = garage.argent
 	dire.call("%d restaurants chargés" % lv.restos.size())
 	activities._livreur_start()
@@ -3107,7 +3131,9 @@ func _livreur_test() -> void:
 		return r
 	for k in lv.NB:
 		dire.call("commande %d : %s (%s), à %.0f m" % [k + 1, lv.resto.nom, lv.resto_rue, Vector2(lv.resto.x - car.global_position.x, lv.resto.z - car.global_position.z).length()])
-		await _teleport(sur_route.call(lv.cible()), 0.0)
+		var pr: Vector3 = lv.cible()
+		await _teleport(pr + Vector3.UP * 0.6, 0.0)                     # point de la route devant le restaurant
+		dire.call("  arrêt dans la rue à %.0f m du restaurant" % Vector2(pr.x - lv.resto.x, pr.z - lv.resto.z).length())
 		var t := 0.0
 		while lv.phase == "resto" and t < 10.0:
 			car.frein_parking = true

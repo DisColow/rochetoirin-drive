@@ -1,11 +1,13 @@
-## Livreur de repas (#151, initiative de Claude) : Activités > Taxi > « Livrer des repas » (activities._livreur_start,
+## Livreur de repas (#151, initiative de Claude) : Activités > Métiers > « Livrer des repas » (activities._livreur_start,
 ## mode « livreur »). Tournée de NB livraisons avec sa propre voiture :
 ## - commande à prendre dans un des restaurants proches (world/restos.json de pipeline/build_restos.py : points OSM et
-##   nom de l'enseigne en jeu), balise et GPS ; arrêt à moins de R_PRISE m (moins de V_ARRET km/h pendant 1 s) ;
+##   nom de l'enseigne en jeu), balise et GPS sur la route devant (circulation.point_route) ; arrêt à moins de R_PRISE m
+##   (moins de V_ARRET km/h pendant 1 s) ;
 ## - livraison à une adresse tirée au hasard (nœud du graphe routier à D_MIN-D_MAX m, rue nommée, numéro au hasard),
 ##   délai d'après la distance (V_DELAI de moyenne + MARGE s) ; arrêt à moins de R_LIVRE m ;
 ## - état du repas : −CHOC à chaque choc ; en dessous de REFUS, le client refuse la commande ;
-## - paiement : BASE + PAR_KM par km + pourboire (POURBOIRE au plus, selon l'avance) ; en retard : moitié, sans pourboire.
+## - paiement : BASE + PAR_KM par km + pourboire (POURBOIRE au plus, selon l'avance) ; en retard : moitié, sans pourboire ;
+##   v7.10 : majoration de nuit NUIT (heures du tarif de nuit du taxi).
 ## Essai : --drive-test --livreur-test (essais.gd).
 extends Node
 
@@ -24,6 +26,7 @@ const REFUS := 40.0
 const BASE := 6.0
 const PAR_KM := 0.8
 const POURBOIRE := 4.0
+const NUIT := 1.3                   # majoration de nuit (même heure que le tarif de nuit du taxi, main.tarif_nuit)
 const COULEUR_RESTO := Color(1.0, 0.55, 0.15)
 const COULEUR_CLIENT := Color(0.35, 0.95, 0.45)
 
@@ -34,6 +37,7 @@ var n := 0                          # livraison en cours (0..NB-1)
 var phase := ""                     # « resto » : aller chercher la commande ; « client » : la livrer
 var resto: Dictionary = {}
 var resto_rue := ""
+var resto_pt := Vector3.ZERO        # point de la route devant le restaurant (circulation.point_route)
 var dest := Vector3.ZERO
 var adresse := ""
 var delai := 0.0                    # temps accordé (s)
@@ -96,6 +100,10 @@ func _prochain_resto() -> bool:
 	_deja[k] = true
 	resto = restos[k]
 	var q := _sol(Vector3(float(resto.x), 0.0, float(resto.z)))
+	var circ = main.get("circulation")
+	if circ:
+		q = _sol(circ.point_route(q))       # on s'arrête dans la rue, pas au milieu du bâtiment
+	resto_pt = q
 	resto_rue = _rue(q)
 	phase = "resto"
 	_arret_t = 0.0
@@ -176,7 +184,7 @@ func _viser(q: Vector3, col: Color) -> void:
 	act.join_marks = false
 
 func cible() -> Vector3:
-	return _sol(Vector3(float(resto.x), 0.0, float(resto.z))) if phase == "resto" else dest
+	return resto_pt if phase == "resto" else dest
 
 static func _mmss(s: float) -> String:
 	var a := absf(s)
@@ -228,25 +236,29 @@ func _prendre() -> void:
 
 ## Client servi : paiement selon l'avance, l'état du repas, la distance.
 func _livrer() -> void:
-	var r := _sol(Vector3(float(resto.x), 0.0, float(resto.z)))
+	var r := resto_pt
 	var km := Vector2(dest.x - r.x, dest.z - r.z).length() * DETOUR / 1000.0
 	var reste := delai - t
 	var msg := ""
+	var nuit: bool = main.has_method("tarif_nuit") and main.tarif_nuit()
+	var x := NUIT if nuit else 1.0
 	if etat < REFUS:
 		refusees += 1
 		msg = "Le client refuse le repas, tout est renversé !"
 	elif reste < 0.0:
-		var p := (BASE + PAR_KM * km) * 0.5
+		var p := (BASE + PAR_KM * km) * 0.5 * x
 		gain += p
 		livrees += 1
 		en_retard += 1
 		msg = "Livré, mais froid… le client paie la moitié : +%s" % _act()._euros(p)
 	else:
 		var pb := POURBOIRE * clampf(reste / delai * 2.0, 0.0, 1.0) * etat / 100.0
-		var p := BASE + PAR_KM * km + pb
+		var p := (BASE + PAR_KM * km) * x + pb
 		gain += p
 		livrees += 1
 		msg = "Livré à l'heure ! +%s (pourboire %s)" % [_act()._euros(p), _act()._euros(pb)]
+	if nuit and etat >= REFUS:
+		msg += " · majoration de nuit"
 	main.get_node("HUD").toast(msg, 3.5)
 	print("[livreur] livraison %d : %s (%.1f km, reste %.0f s, repas %d %%)" % [n + 1, msg, km, reste, int(etat)])
 	_suivante()
