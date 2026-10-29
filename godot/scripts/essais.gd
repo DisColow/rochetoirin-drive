@@ -3140,7 +3140,7 @@ func _gendarmes_test() -> void:
 		if fmod(t, 1.0) < get_physics_process_delta_time():
 			dire.call("  t %.0f s : %.0f km/h (limite %.0f), s %.0f m, gendarmes %d%s" % [t, car.kmh(), ci.limite(car.global_position), s,
 				gd.liste.size(), (", le premier à %.0f m (%s%s)" % [gd.liste[0].voiture.global_position.distance_to(car.global_position),
-				gd.liste[0].mode, ", en vue" if gd.liste[0].en_vue(gd.liste[0].voiture.global_position, car.global_position) else ""]) if not gd.liste.is_empty() else ""])
+				gd.liste[0].mode, ", en vue" if gd.liste[0].en_vue(gd.liste[0].voiture.global_position, car.global_position) else ", caché par " + gd.liste[0].obstacle]) if not gd.liste.is_empty() else ""])
 	car.touch_throttle = 0.0
 	car.touch_steer = 0.0
 	if not is_instance_valid(g):

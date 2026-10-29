@@ -32,6 +32,7 @@ var cible := Vector2.ZERO           # bout de l'itinéraire en cours
 var direct := false                 # poursuite : droit sur le joueur (essais)
 var blown := false
 var boum_t := 0.0                   # temps depuis l'explosion
+var obstacle := ""                  # essais : ce qui cache le joueur (en_vue)
 
 var _itin
 var _chemin := PackedVector2Array()
@@ -263,7 +264,9 @@ func en_vue(a: Vector3, b: Vector3) -> bool:
 	if main.get("car"):
 		q.exclude.append(main.car.get_rid())
 	q.collide_with_areas = false
-	return w.direct_space_state.intersect_ray(q).is_empty()
+	var r := w.direct_space_state.intersect_ray(q)
+	obstacle = "" if r.is_empty() else "%s à %.1f m" % [(r.collider as Node).get_path() if r.collider is Node else str(r.collider), (r.position as Vector3).distance_to(a)]
+	return r.is_empty()
 
 func _piloter(dt: float, j: Node3D, dj: float) -> void:
 	var v := voiture.forward_speed()
