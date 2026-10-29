@@ -92,10 +92,24 @@ func voitures() -> Array:
 
 ## Gendarmes en balade libre seulement : ni activité en cours, ni à pied.
 func _permis() -> bool:
-	if not actif or not main.get("car") or not main.car.controle:
+	return _libre() and main.car.controle
+
+## Balade libre, au volant ou à pied (une poursuite continue quand on descend de voiture).
+func _libre() -> bool:
+	if not actif or not main.get("car"):
 		return false
 	var act = main.get("activities")
 	return act == null or str(act.get("mode")) == ""
+
+## À pied (#66) : le piéton du joueur, sinon null.
+func _pieton() -> Node3D:
+	var pd = main.get("pied")
+	return pd.corps if pd and pd.actif and pd.corps else null
+
+## Ce que les gendarmes poursuivent : la voiture, ou le joueur à pied.
+func cible() -> Node3D:
+	var pi := _pieton()
+	return pi if pi else main.car
 
 func _temoin(p: Vector3) -> bool:
 	for g in liste:
@@ -135,9 +149,9 @@ func _etoiles_txt() -> String:
 ## Où les gendarmes vont chercher le joueur : sa position s'ils le voient (ou l'ont vu il y a moins de 2 s), sinon
 ## l'endroit où il a été vu pour la dernière fois : [position, vitesse].
 func piste() -> Array:
-	var car = main.get("car")
-	if car and (_vu_t < 2.0 or not _vu_pos.is_finite()):
-		return [car.global_position, car.linear_velocity]
+	var c := cible()
+	if c and (_vu_t < 2.0 or not _vu_pos.is_finite()):
+		return [c.global_position, (c as RigidBody3D).linear_velocity if c is RigidBody3D else Vector3.ZERO]
 	return [_vu_pos, Vector3.ZERO]
 
 ## Point d'apparition : nœud du graphe routier entre R_APPARITION.x et .y m du joueur, de préférence derrière la
@@ -192,12 +206,19 @@ func _pas(dt: float) -> void:
 	var car = main.get("car")
 	if car == null:
 		return
-	var p: Vector3 = car.global_position
+	var p: Vector3 = cible().global_position
 	_menage(p)
-	if not _permis():
+	if not _libre():
 		if etoiles > 0 or not liste.is_empty():
 			_fin("")
 		_prec = Vector3.INF
+		return
+	if not _permis():                     # à pied : pas d'infraction ni de patrouille, mais la poursuite continue
+		_prec = Vector3.INF
+		if etoiles > 0:
+			_poursuite(dt, car, p)
+		else:
+			_bandeau.visible = false
 		return
 	# infractions : vitesse (toutes les 0,5 s), feu rouge, gendarme embouti
 	_vit_t -= dt
@@ -253,7 +274,8 @@ func _poursuite(dt: float, car: Node, p: Vector3) -> void:
 	_vu_t = 0.0 if vu else _vu_t + dt
 	if vu:
 		_vu_pos = p
-	if car.kmh() < ARRET_V and dmin < ARRET_D:
+	var a_pied := _pieton() != null
+	if (a_pied and dmin < ARRET_D * 1.4) or (not a_pied and car.kmh() < ARRET_V and dmin < ARRET_D):
 		_arret_t += dt
 	else:
 		_arret_t = maxf(_arret_t - dt * 2.0, 0.0)

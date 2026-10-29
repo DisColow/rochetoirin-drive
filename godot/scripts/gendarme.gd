@@ -205,7 +205,9 @@ func aller(vers: Vector2) -> void:
 	_itin.calculer(Vector2(p.x, p.z), vers)
 
 func _joueur() -> Node3D:
-	return main.car if main.get("car") else null
+	if not main.get("car"):
+		return null
+	return main.gendarmes.cible() if main.get("gendarmes") else main.car
 
 func _physics_process(dt: float) -> void:
 	var t0 := Time.get_ticks_usec()
