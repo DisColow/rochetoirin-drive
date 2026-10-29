@@ -351,6 +351,24 @@
   géré par `gendarmes._helicoptere` à chaque pas, même après la poursuite) ; sous-titre des messages radio (bandeau
   « Radio : … » quand l'autoradio est allumée, pour les appareils sans synthèse vocale). Essai `--helico-test`
   (capture `helico.png`).
+  v7.13 : **activité « Gendarme »** (hypothèse 4 de l'issue, `scripts/gendarme_joueur.gd`, Activités > Métiers >
+  « Prendre le service de gendarme », `activities._gendarme_start`, mode « gendarme ») : le joueur prend la voiture
+  « gendarme » (`voitures.gd` service, habillée par `Gendarme.habiller` : livrée, rampe, sirène), posée sur la route
+  la plus proche (`circulation.voie_proche` : point et direction du segment de voie) ; un fuyard (`gendarme.gd` mode
+  « fuite », `livree` faux, voiture du garage) part lancé (`ELAN`) `DEPART` m devant (`circulation.devant(p, dir, d,
+  droit, hasard)`) sur un trajet qui suit les voies (`circulation.trajet` : voie de droite, sortie au hasard aux
+  carrefours, jamais de demi-tour), refait toutes les 10 s loin du joueur et plutôt devant lui, à `FUITE_V` de sa
+  vitesse et `FUITE_MAX` (110 km/h) au plus. **Pas d'A\* pour un fuyard** : les nœuds de `graphe.bin` ne sont
+  qu'aux carrefours, le plus proche d'un but en pleine ligne droite peut être derrière lui (demi-tour) ; `_prendre`
+  coupe aussi l'aller-retour vers un nœud derrière la voiture (tous les gendarmes). Chaque choc (vitesse de
+  rapprochement du pas d'avant ≥ `CHOC_MIN`) l'abîme de `PAR_MS` % par m/s, `CHOC_MAX` % au plus ; 100 % :
+  immobilisé ; coincé (arrêté à moins de `COINCE_D` m pendant `COINCE_T` s) : interpellé ; KA-BOOM : prime moitié ;
+  perdu à plus de `PERDU` m pendant `PERDU_T` s ou après `DUREE` s. Succès `interpellations`. **Contacts** : la voiture
+  du joueur n'a pas de `contact_monitor` : les chocs se relèvent sur la voiture IA (`car in ia.get_colliding_bodies()`,
+  corrigé aussi dans `gendarmes.gd`). Voiture figée (`_glisser`) : abscisse continue `_sg` (avant, elle sautait d'un
+  point d'itinéraire par pas : 860 km/h). Essai `--fixed-fps 8 -- --drive-test --gendarme-joueur-test
+  [--gj-debug] --drive-from=-8410.95,221,-7187.25,45.2` (D522 dégagée ; à Bourgoin `-10975,236,-1100`, la voie OSM
+  longe une façade : départ contre le mur ; capture `gendarme_joueur.png`).
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
   `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,

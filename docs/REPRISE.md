@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 29/10/2026, 3 h (v6.84 #131 à v7.12 livrées)
+## État au 29/10/2026, 3 h (v6.84 #131 à v7.13 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -28,6 +28,10 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v7.13 (#150)** : activité « Gendarme » (le joueur poursuit un fuyard et l'emboutit), chocs relevés sur la
+  voiture IA (celle du joueur n'a pas de `contact_monitor`). Pièges trouvés : A* du GPS mauvais pour un fuyard
+  (nœuds aux carrefours seulement -> demi-tour ; `circulation.trajet` à la place), voiture figée qui glissait à
+  860 km/h (`_sg`), départ contre un mur à Bourgoin (voie OSM le long d'une façade ; essai sur la D522).
 - **v7.12 (#150)** : hélicoptère des gendarmes à 3 étoiles, sous-titres des messages radio.
 - **v7.11 (#152, `à tester`)** : défi du jour ; compteurs des succès sauvegardés en quittant (les 10 dernières
   secondes étaient perdues). Piège d'essai : les compteurs de `_physics_process` d'essais.gd comptent des pas de
