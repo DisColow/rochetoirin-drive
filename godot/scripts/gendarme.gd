@@ -26,7 +26,8 @@ const VOIE := 2.2
 const GYRO := 0.12                  # demi-période des éclats des gyrophares (s)
 
 var main: Node
-var modele := "p306"
+const MODELE := "p306"              # voiture provisoire (#150 : choix A ou B en attente)
+var modele := MODELE
 var couleur := Color(0.1, 0.17, 0.42)
 var mode := "patrouille"
 var voiture: Car
