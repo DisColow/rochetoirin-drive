@@ -499,6 +499,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_livreur_test()
 		return
+	if OS.get_cmdline_user_args().has("--helico-test"):
+		if t == 300:
+			_helico_test()
+		return
 	if OS.get_cmdline_user_args().has("--bus-test"):
 		if t == 300:
 			_bus_test()
@@ -3124,6 +3128,63 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Hélicoptère des gendarmes (v7.12) : -- --drive-test --helico-test --drive-from=-10975,236,-1100,90. 3 étoiles, le
+## joueur reste sur place : l'hélicoptère arrive (capture helico.png), le voit d'en haut ; puis il repart faire le plein.
+func _helico_test() -> void:
+	var gd = gendarmes
+	var dire := func(x: String): print("  [hélico] " + x)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	for k in 120:
+		await get_tree().process_frame
+	gd.infraction("explosion", car.global_position)
+	gd._helico_t = 0.0
+	var t := 0.0
+	var cap := false
+	while t < 40.0:
+		car.frein_parking = true
+		gd._renfort_t = 999.0                 # pas de renfort au sol : c'est l'hélicoptère qu'on regarde
+		for g in gd.liste:
+			if is_instance_valid(g):
+				g.queue_free()
+		gd.liste.clear()
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+		var h = gd.helico
+		if h == null or not is_instance_valid(h):
+			continue
+		var dh := Vector2(h.global_position.x - car.global_position.x, h.global_position.z - car.global_position.z).length()
+		if fmod(t, 4.0) < get_physics_process_delta_time():
+			dire.call("t %.0f s : hélicoptère à %.0f m (à l'horizontale), %.0f m au-dessus, voit le joueur %s, étoiles %d, %s" % [t, dh,
+				h.global_position.y - car.global_position.y, str(h.voit(car.global_position)), gd.etoiles, gd._bandeau.text.replace("\n", " / ")])
+		if not cap and dh < 60.0:
+			cap = true
+			var vue := Camera3D.new()
+			add_child(vue)
+			vue.global_position = car.global_position + Vector3(25, 12, 25)
+			vue.look_at((car.global_position + h.global_position) * 0.5)
+			vue.current = true
+			for k in 3:
+				await get_tree().process_frame
+			get_viewport().get_texture().get_image().save_png("user://shots/helico.png")
+			vue.queue_free()
+			dire.call("capture helico.png")
+			break
+	dire.call("message radio : « %s »" % gd.message)
+	if is_instance_valid(gd.helico):
+		gd.helico.age = 999.0
+		t = 0.0
+		while t < 40.0 and is_instance_valid(gd.helico):
+			car.frein_parking = true
+			await get_tree().physics_frame
+			t += get_physics_process_delta_time()
+		dire.call("parti faire le plein : %s après %.0f s ; message « %s »" % [str(not is_instance_valid(gd.helico)), t, gd.message])
+	car.frein_parking = false
+	print("  [hélico] FIN")
+	get_tree().quit()
 
 ## Livreur de repas (#151) : -- --drive-test --livreur-test --drive-from=-10975,236,-1100,90. Trois livraisons,
 ## voiture posée sur la route au plus près du restaurant puis de l'adresse : 1) à l'heure ; 2) après deux chocs ;
