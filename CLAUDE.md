@@ -318,7 +318,10 @@
   `gendarmes.png`). Piège : dans un essai, frein tenu à l'arrêt = marche arrière (`frein_parking`). v7.06 : message des
   patrouilles sur l'autoradio allumée (`radio.message_gendarmes` -> `radio_infos.lire_message`, voix d'homme du
   téléphone, musique baissée ; véhicule, motif, rue et commune), modèle préchargé en arrière-plan (à-coup de 34 ms à
-  la première patrouille), coût relevé dans `PerfMon` (« gendarmes » : 0,1-0,3 ms par image).
+  la première patrouille), coût relevé dans `PerfMon` (« gendarmes » : 0,1-0,3 ms par image). v7.07 : poursuite continuée à pied
+  (`gendarmes.cible()` : piéton `main.pied.corps` ; `_libre` = balade libre, `_permis` = au volant pour les
+  infractions et patrouilles), arrestation à moins de `ARRET_D` × 1,4 m du piéton ; essai : 4e phase à pied.
+  Astuces du chargement complétées (`data/astuces.json` : bus, gendarmes, balade, météo, feux).
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
   `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,
