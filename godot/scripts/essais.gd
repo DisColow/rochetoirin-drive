@@ -3136,6 +3136,9 @@ func _ligne_bus_test() -> void:
 			continue
 		var voie: int = va[0]
 		var sa: float = va[1]
+		var gq: Array = ci._geo(voie, sa, 0)
+		dire.call("  arrêt %d : voie %d, à %.0f m de son début (longueur %.0f), recul %.0f, écart du poteau à la voie %.1f m" % [k + 1, voie, sa,
+			ci._longueur(voie), recul, Vector2(q.x - gq[0].x, q.z - gq[0].z).length()])
 		var g0: Array = ci._geo(voie, sa - recul, 0)
 		var p0: Vector3 = g0[0]
 		await _teleport(p0 + Vector3.UP * 0.6, rad_to_deg(atan2(g0[1].x, -g0[1].y)))
