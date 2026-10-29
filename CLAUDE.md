@@ -298,6 +298,24 @@
   à 15 m. Caméra poursuite reculée d'après `car.gabarit.z` (`camera_rig.gd`). Essai
   `--fixed-fps 8 -- --drive-test --ligne-bus-test --drive-from=-10975,236,-1100,90` (bus posé en amont de chaque arrêt
   et conduit jusqu'au poteau, capture `ligne_bus.png`).
+- **Gendarmes** (v7.05, #150, initiative de Claude ; voiture et règles en attente du choix de l'utilisateur : planche
+  `docs/apercus/planche_police.jpg`, A Focus de gendarmerie ou B 306 du garage repeinte ; voiture provisoire = B,
+  `modele` « p306 » repeinte `couleur`) : `scripts/gendarmes.gd` (`main.gendarmes`, ⚙ > Conduite > Gendarmes,
+  `reglages.cfg` conduite/gendarmes) et `scripts/gendarme.gd` (une voiture : car.gd `ia`, pilotage repris de
+  concurrent.gd, itinéraire `itineraire.gd` recalculé toutes les `REPLAN` s, droit sur le joueur à moins de `DIRECT`
+  m s'il est en vue, arrêt à `ARRET` m d'un joueur arrêté (interpellation), marche arrière s'il est juste derrière ;
+  figée et glissant sur l'itinéraire au-delà de `LOIN` m ; rampe de gyrophares (boîtes sans ombrage, lueur bleue la
+  nuit) et sirène deux-tons `assets/sfx/sirene.ogg` (`build_sfx.py sirene`, publié sur `donnees`) ; KA-BOOM comme
+  les concurrents). En balade libre seulement (`activities.mode` vide, au volant). Patrouille toutes les `PATROUILLE`
+  s ; infraction vue par un gendarme (`VU` m, `en_vue` : rayon, les voitures ne cachent pas) : excès de `EXCES` km/h
+  (`circulation.limite`), feu rouge (`circulation.feu_franchi`), voiture percutée (`circulation._accident`),
+  gendarme embouti ; détruit : 3 étoiles. Étoiles 1-3 = voitures à la poursuite ; renforts seulement si le joueur est
+  en vue (ou plus personne : une voiture fouille) ; sans le voir, les gendarmes vont où il a été vu (`piste`). Semés
+  après `SEMER_T` s hors de vue (prime, succès `semes`), arrêté à moins de `ARRET_V` km/h près d'un gendarme pendant
+  `ARRET_T` s (amende `garage.payer`, stat `arrestations`). Bandeau en bas de l'écran. `itineraire.gd` : graphe lu une
+  fois (`_commun`). Essai `--fixed-fps 8 -- --drive-test --gendarmes-test --drive-from=-10975,236,-1100,90` (rue à 50
+  km/h, patrouille derrière, excès vu, arrestation, gendarme embouti, téléportation à 700 m, semés ; capture
+  `gendarmes.png`). Piège : dans un essai, frein tenu à l'arrêt = marche arrière (`frein_parking`).
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
   `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,

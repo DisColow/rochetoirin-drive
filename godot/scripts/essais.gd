@@ -3168,12 +3168,12 @@ func _gendarmes_test() -> void:
 				gd.etoiles, gd._bandeau.text.replace("\n", " / ")])
 		if not cap and d < 14.0:
 			cap = true
-			# caméra de côté, en hauteur, qui voit le joueur et le gendarme
+						# caméra derrière le gendarme, dans l'axe de la rue, en hauteur
 			var mil: Vector3 = (car.global_position + g.voiture.global_position) * 0.5
-			var cote: Vector3 = car.global_transform.basis.x
+			var ax: Vector3 = (g.voiture.global_position - car.global_position).normalized()
 			var vue := Camera3D.new()
 			add_child(vue)
-			vue.global_position = mil + cote * 11.0 + Vector3.UP * 4.5
+			vue.global_position = g.voiture.global_position + ax * 9.0 + Vector3.UP * 5.0
 			vue.look_at(mil + Vector3.UP * 0.8)
 			vue.current = true
 			for k in 4:

@@ -115,6 +115,15 @@ func gagner(somme: float) -> void:
 	if get_parent() and get_parent().get("succes"):
 		get_parent().succes.noter("argent", somme)    # succès (#133)
 
+## Amende (gendarmes, #150) : retirée de l'argent, sans passer sous zéro ; renvoie la somme vraiment payée.
+func payer(somme: float) -> float:
+	var p := clampf(somme, 0.0, argent)
+	if p > 0.0:
+		argent -= p
+		sauver()
+		change.emit()
+	return p
+
 static func euros(v: float) -> String:
 	return ("%.0f €" % v) if absf(v - roundf(v)) < 0.005 else ("%.2f €" % v).replace(".", ",")
 

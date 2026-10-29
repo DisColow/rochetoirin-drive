@@ -6,7 +6,7 @@
 ##   la circulation percutée (circulation._accident), gendarme embouti ; gendarme détruit : 3 étoiles d'office.
 ##   Niveau de recherche 1 à 3 étoiles ; autant de voitures à la poursuite que d'étoiles (renforts hors de vue).
 ## - Les gendarmes foncent sur le joueur quand ils le voient, sinon vers l'endroit où il a été vu pour la dernière fois
-##   (piste) ; les renforts ne sont appelés que s'il est en vue.
+##   (piste) ; les renforts ne sont appelés que s'il est en vue (ou s'il n'y a plus personne : une voiture fouille).
 ## - Semés : aucun gendarme à moins de SEMER_D m en vue pendant SEMER_T s -> prime, succès.
 ## - Arrestation : moins de ARRET_V km/h à moins de ARRET_D m d'un gendarme pendant ARRET_T s -> amende.
 ## - Bandeau en haut de l'écran : étoiles, distance du plus proche, compte à rebours pour semer ou de l'arrestation.
@@ -216,7 +216,8 @@ func _physics_process(dt: float) -> void:
 		if is_instance_valid(g) and not g.blown and g.mode == "poursuite":
 			actifs += 1
 	_renfort_t -= dt
-	if actifs < etoiles and _renfort_t <= 0.0 and _vu_t < 3.0:      # renforts appelés par ceux qui vous voient
+	# renforts appelés par ceux qui vous voient ; plus personne à vos trousses : une voiture vient fouiller le secteur
+	if _renfort_t <= 0.0 and ((actifs < etoiles and _vu_t < 3.0) or actifs == 0):
 		_renfort_t = RENFORT
 		_apparaitre("poursuite")
 	_poursuite(dt, car, p)
@@ -254,7 +255,7 @@ func _poursuite(dt: float, car: Node, p: Vector3) -> void:
 		arrestations += 1
 		var g = main.get("garage")
 		if g:
-			g.gagner(-amende)
+			amende = g.payer(amende)
 		if main.get("succes"):
 			main.succes.noter("arrestations")
 		_fin("Arrêté par la Gendarmerette : %s d'amende." % _euros(amende))
