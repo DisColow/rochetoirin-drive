@@ -13,6 +13,8 @@
 ## Essai : --drive-test --gendarmes-test (essais.gd).
 extends Node
 
+const PerfMon := preload("res://scripts/perf_monitor.gd")
+
 const Gendarme := preload("res://scripts/gendarme.gd")
 const VU := 120.0
 const SEMER_D := 250.0
@@ -172,6 +174,11 @@ func _apparaitre(mode: String) -> void:
 	print("[gendarmes] %s à %.0f m" % [mode, p.distance_to(Vector2(j.x, j.z))])
 
 func _physics_process(dt: float) -> void:
+	var t0 := Time.get_ticks_usec()
+	_pas(dt)
+	PerfMon.note("gendarmes", Time.get_ticks_usec() - t0)
+
+func _pas(dt: float) -> void:
 	_infr_t = maxf(_infr_t - dt, 0.0)
 	_choc_t = maxf(_choc_t - dt, 0.0)
 	var car = main.get("car")
