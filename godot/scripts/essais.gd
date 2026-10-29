@@ -3137,10 +3137,16 @@ func _gendarmes_test() -> void:
 		car.touch_throttle = 1.0
 		await get_tree().physics_frame
 		t += get_physics_process_delta_time()
+		if fmod(t, 1.0) < get_physics_process_delta_time():
+			dire.call("  t %.0f s : %.0f km/h (limite %.0f), s %.0f m, gendarmes %d%s" % [t, car.kmh(), ci.limite(car.global_position), s,
+				gd.liste.size(), (", le premier à %.0f m (%s%s)" % [gd.liste[0].voiture.global_position.distance_to(car.global_position),
+				gd.liste[0].mode, ", en vue" if gd.liste[0].en_vue(gd.liste[0].voiture.global_position, car.global_position) else ""]) if not gd.liste.is_empty() else ""])
 	car.touch_throttle = 0.0
 	car.touch_steer = 0.0
+	if not is_instance_valid(g):
+		g = gd.liste[0] if not gd.liste.is_empty() else null
 	dire.call("après %.1f s : %.0f km/h, %d étoile(s), infraction « %s », gendarme %s à %.0f m" % [t, car.kmh(), gd.etoiles, gd.dernier,
-		g.mode, g.voiture.global_position.distance_to(car.global_position)])
+		g.mode if g else "-", g.voiture.global_position.distance_to(car.global_position) if g else INF])
 	if gd.etoiles == 0:
 		dire.call("ÉCHEC : excès de vitesse non relevé")
 	# 2) arrêt : le gendarme arrive, arrestation
@@ -3151,6 +3157,8 @@ func _gendarmes_test() -> void:
 		car.touch_brake = 1.0
 		await get_tree().physics_frame
 		t += get_physics_process_delta_time()
+		if not is_instance_valid(g) and not gd.liste.is_empty():
+			g = gd.liste[0]
 		var d: float = g.voiture.global_position.distance_to(car.global_position) if is_instance_valid(g) else INF
 		if fmod(t, 2.0) < get_physics_process_delta_time():
 			dire.call("  t %.0f s : gendarme à %.0f m, %.0f km/h, %s%s%s, étoiles %d, %s" % [t, d,

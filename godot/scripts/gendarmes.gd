@@ -298,6 +298,7 @@ func _menage(p: Vector3) -> void:
 		var cache: bool = cam == null or cam.is_position_behind(q) or d > 150.0
 		if d > R_DISPARITION or (g.mode == "repli" and cache and d > 60.0) or (g.blown and g.boum_t > 4.0) \
 				or (g.mode == "patrouille" and d > 320.0 and cache):
+			print("[gendarmes] retiré : %s à %.0f m%s" % [g.mode, d, " (détruit)" if g.blown else ""])
 			g.queue_free()
 			liste.remove_at(k)
 
