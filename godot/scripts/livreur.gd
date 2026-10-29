@@ -118,7 +118,8 @@ func _adresse(depuis: Vector3) -> bool:
 			continue
 		q = _sol(q)
 		var rue := _rue(q)
-		if rue == "":
+		var circ = main.get("circulation")
+		if rue == "" or (circ and circ.limite(q, 15.0) > 72.0):      # une rue, pas une route rapide
 			continue
 		best = q
 		adresse = "%d %s" % [randi_range(1, 60), _minuscule(rue)]
@@ -138,9 +139,21 @@ static func _minuscule(rue: String) -> String:
 			return m.to_lower() + rue.substr(m.length())
 	return rue
 
+## Nom de la rue en q, sans le numéro de route (« D 522 · Rue de la Libération » -> « Rue de la Libération ») ; vide
+## pour une route sans nom de rue (« A 43 », « Voie de service »).
 func _rue(q: Vector3) -> String:
 	var nm = main.get_node("HUD").get("names")
-	return String(nm.road_at(q)) if nm else ""
+	if nm == null:
+		return ""
+	var r := String(nm.road_at(q))
+	if " · " in r:
+		r = r.get_slice(" · ", r.get_slice_count(" · ") - 1)
+	var re := RegEx.new()
+	re.compile("^(A|N|D|M|E|RN|RD|C|VC|CD) ?\\d")
+	if r == "" or re.search(r) != null or r.begins_with("Voie de service") or r.begins_with("Bretelle") \
+			or r.begins_with("Échangeur") or r.begins_with("Autoroute"):
+		return ""
+	return r
 
 func _commune(q: Vector3) -> String:
 	var nm = main.get_node("HUD").get("names")

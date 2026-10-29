@@ -3124,8 +3124,10 @@ func _livreur_test() -> void:
 				car.linear_velocity = car.global_transform.basis.z * 8.0
 				await get_tree().physics_frame
 				car.linear_velocity = Vector3.ZERO
-				for f in 12:
+				var tc := 0.0
+				while tc < 1.3:                       # au-delà du délai entre deux chocs comptés
 					await get_tree().physics_frame
+					tc += get_physics_process_delta_time()
 			dire.call("  après deux chocs : repas %d %%" % int(lv.etat))
 		if k == 2:
 			lv.t = lv.delai + 15.0                    # en retard
