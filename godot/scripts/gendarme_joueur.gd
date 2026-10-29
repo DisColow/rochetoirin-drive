@@ -47,6 +47,7 @@ func demarrer() -> bool:
 		if circ == null or not r.is_empty():
 			break
 		r = circ.devant(p0, f.rotated(Vector3.UP, k * PI / 4.0), DEPART)
+	print("[gendarme] départ : circulation %s, route à %.1f m, devant %s" % [str(circ != null and circ.ok), p0.distance_to(car.global_position), str(not r.is_empty())])
 	if r.is_empty():
 		return false
 	car.construire("gendarme")
