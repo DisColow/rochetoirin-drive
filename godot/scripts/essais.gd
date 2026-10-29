@@ -3160,12 +3160,12 @@ func _helico_test() -> void:
 		if fmod(t, 4.0) < get_physics_process_delta_time():
 			dire.call("t %.0f s : hélicoptère à %.0f m (à l'horizontale), %.0f m au-dessus, voit le joueur %s, étoiles %d, %s" % [t, dh,
 				h.global_position.y - car.global_position.y, str(h.voit(car.global_position)), gd.etoiles, gd._bandeau.text.replace("\n", " / ")])
-		if not cap and dh < 60.0:
+		if not cap and dh < 90.0:
 			cap = true
 			var vue := Camera3D.new()
 			add_child(vue)
-			vue.global_position = car.global_position + Vector3(25, 12, 25)
-			vue.look_at((car.global_position + h.global_position) * 0.5)
+			vue.global_position = h.global_position + Vector3(18, -10, 18)
+			vue.look_at(h.global_position)
 			vue.current = true
 			for k in 3:
 				await get_tree().process_frame

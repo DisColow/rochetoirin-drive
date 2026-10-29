@@ -32,6 +32,19 @@ func _ready() -> void:
 			_tournants.append([n, Vector3.RIGHT, 70.0])
 	for n in _modele.find_children("*", "GeometryInstance3D", true, false):
 		(n as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# livrée bleue de la gendarmerie (même teinte que les voitures, gendarme.gd)
+	var sh := Shader.new()
+	sh.code = preload("res://scripts/gendarme.gd").TEINTE
+	for n in _modele.find_children("*", "MeshInstance3D", true, false):
+		var m3 := n as MeshInstance3D
+		for k in m3.mesh.get_surface_count():
+			var m := m3.get_active_material(k) as BaseMaterial3D
+			if m and m.albedo_texture:
+				var t := ShaderMaterial.new()
+				t.shader = sh
+				t.set_shader_parameter("tex", m.albedo_texture)
+				t.set_shader_parameter("teinte", Color(0.12, 0.2, 0.5))
+				m3.set_surface_override_material(k, t)
 	_phare = SpotLight3D.new()
 	_phare.light_color = Color(1.0, 0.97, 0.9)
 	_phare.spot_range = 160.0
