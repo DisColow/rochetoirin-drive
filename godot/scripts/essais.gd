@@ -3122,10 +3122,9 @@ func _ligne_bus_test() -> void:
 		var k: int = lb.i
 		var q: Vector3 = lb.arrets[k]
 		var recul := 40.0
-		var va: Array = ci.voie_arret(q, 45.0)
-		if va.is_empty():                                # arrêt près du début de sa voie : posé plus près
-			recul = 14.0
-			va = ci.voie_arret(q, 18.0)
+		var va: Array = ci.voie_arret(q, 0.0)            # voie la plus proche ; arrêt près de son début : posé plus près
+		if not va.is_empty():
+			recul = clampf(float(va[1]) - 2.0, 8.0, 40.0)
 		if va.is_empty():
 			dire.call("arrêt %d : aucune voie le long, sauté" % (k + 1))
 			lb.i += 1
