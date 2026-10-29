@@ -4,6 +4,8 @@
 ##   repart vers un autre point au bout du trajet ; gyrophares éteints.
 ## - « poursuite » : itinéraire recalculé toutes les REPLAN s vers la position du joueur (anticipée) ; à moins de DIRECT
 ##   m et en vue, fonce droit sur un point devant lui pour le percuter ou le coincer ; gyrophares et sirène.
+## - « barrage » (3 étoiles) : arrêtée en travers de la route devant le joueur, gyrophares allumés, frein serré ;
+##   repart en poursuite quand il est passé (gendarmes.gd).
 ## - « repli » : la poursuite est finie : roule au pas puis disparaît hors de vue (gendarmes.gd).
 ## - Volant et pédales comme concurrent.gd (poursuite d'un point devant, vitesse visée d'après les virages à venir,
 ##   écart pour contourner la circulation, marche arrière quand la voiture est bloquée, remise sur la route).
@@ -37,6 +39,7 @@ var direct := false                 # poursuite : droit sur le joueur (essais)
 var blown := false
 var boum_t := 0.0                   # temps depuis l'explosion
 var obstacle := ""                  # essais : ce qui cache le joueur (en_vue)
+var age := 0.0                      # temps depuis l'arrivée (barrage)
 
 var _itin
 var _chemin := PackedVector2Array()
@@ -178,7 +181,7 @@ func voir_gyros(on: bool) -> void:
 		_lueur.light_energy = 0.0
 
 func _gyros(dt: float) -> void:
-	if mode != "poursuite":
+	if mode != "poursuite" and mode != "barrage":
 		return
 	_gyro_t += dt
 	# double éclat alterné gauche / droite
@@ -220,6 +223,7 @@ func _pas(dt: float) -> void:
 	if blown:
 		boum_t += dt
 		return
+	age += dt
 	_itin.suivre()
 	if _itin.pret:
 		_itin.pret = false
@@ -252,6 +256,12 @@ func _pas(dt: float) -> void:
 	elif dj > LOIN:
 		_figer()
 		return
+	if mode == "barrage":                 # en travers de la route, frein serré, en attendant le joueur
+		voiture.touch_throttle = 0.0; voiture.touch_brake = 0.0; voiture.touch_steer = 0.0
+		voiture.frein_parking = true
+		_surveiller(dt)
+		return
+	voiture.frein_parking = false
 	_suivre()
 	_piloter(dt, j, dj)
 	_surveiller(dt)

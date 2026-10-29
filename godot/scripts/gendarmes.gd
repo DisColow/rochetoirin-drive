@@ -4,7 +4,8 @@
 ## - Infraction commise sous les yeux d'un gendarme (à moins de VU m, en vue) : excès de vitesse (EXCES km/h au-dessus
 ##   de la vitesse autorisée de la route, circulation.limite), feu rouge grillé (circulation.feu_franchi), voiture de
 ##   la circulation percutée (circulation._accident), gendarme embouti ; gendarme détruit : 3 étoiles d'office.
-##   Niveau de recherche 1 à 3 étoiles ; autant de voitures à la poursuite que d'étoiles (renforts hors de vue).
+##   Niveau de recherche 1 à 3 étoiles ; autant de voitures à la poursuite que d'étoiles (renforts hors de vue) ; à 3
+##   étoiles, barrages de deux voitures en travers de la route devant le joueur (_barrer).
 ## - Les gendarmes foncent sur le joueur quand ils le voient, sinon vers l'endroit où il a été vu pour la dernière fois
 ##   (piste) ; les renforts ne sont appelés que s'il est en vue (ou s'il n'y a plus personne : une voiture fouille).
 ## - Semés : aucun gendarme à moins de SEMER_D m en vue pendant SEMER_T s -> prime, succès.
@@ -29,6 +30,8 @@ const PATROUILLE := Vector2(70.0, 160.0)
 const R_APPARITION := Vector2(150.0, 260.0)
 const R_DISPARITION := 450.0
 const RENFORT := 6.0                # s entre deux renforts
+const BARRAGE_D := 230.0            # 3 étoiles : barrage à cette distance devant le joueur (m)
+const BARRAGE_T := 45.0             # s entre deux barrages
 const NIVEAUX := {"vitesse": 1, "feu": 1, "accrochage": 1, "gendarme": 2, "explosion": 3}
 const MOTIFS := {"vitesse": "excès de vitesse", "feu": "feu rouge grillé", "accrochage": "accident",
 	"gendarme": "voiture de gendarmerie emboutie", "explosion": "voiture de gendarmerie détruite"}
@@ -47,6 +50,9 @@ var _vu_pos := Vector3.INF          # où le joueur a été vu pour la dernière
 var _arret_t := 0.0
 var _patrouille_t := 45.0
 var _renfort_t := 0.0
+var _barrage_t := 10.0
+var barrages := 0                   # barrages posés (essais)
+var dernier_barrage: Array = []     # [milieu de la chaussée, direction de la route] (essais)
 var _prec := Vector3.INF
 var _vit_t := 0.0
 var _infr_t := 0.0                  # délai entre deux infractions comptées
@@ -257,14 +263,47 @@ func _pas(dt: float) -> void:
 	if _renfort_t <= 0.0 and ((actifs < etoiles and _vu_t < 3.0) or fouille):
 		_renfort_t = RENFORT
 		_apparaitre("poursuite")
+	_barrer(dt, car, p)
 	_poursuite(dt, car, p)
+
+## 3 étoiles : deux voitures en travers de la route BARRAGE_D m devant le joueur lancé (circulation.devant), toutes
+## les BARRAGE_T s ; elles se lancent à sa poursuite quand il arrive à 25 m (ou au bout de 40 s).
+func _barrer(dt: float, car: Node, p: Vector3) -> void:
+	for g in liste:
+		if is_instance_valid(g) and not g.blown and g.mode == "barrage" and (g.voiture.global_position.distance_to(p) < 25.0 or g.age > 40.0):
+			g.mode = "poursuite"
+	_barrage_t -= dt
+	var circ = main.get("circulation")
+	if etoiles < 3 or _barrage_t > 0.0 or car.kmh() < 50.0 or circ == null:
+		return
+	_barrage_t = 8.0                      # nouvel essai bientôt si la route devant ne s'y prête pas
+	var r: Array = circ.devant(p, car.linear_velocity, BARRAGE_D)
+	if r.is_empty():
+		return
+	_barrage_t = BARRAGE_T
+	barrages += 1
+	dernier_barrage = r
+	var q: Vector3 = r[0]
+	var t: Vector2 = r[1]
+	var n := Vector2(-t.y, t.x)                 # en travers
+	for k in 2:
+		var gd := Gendarme.new()
+		gd.main = main
+		gd.mode = "barrage"
+		add_child(gd)
+		var c := Vector2(q.x, q.z) + n * (2.3 if k == 0 else -2.3) + t * (1.5 if k == 0 else -1.5)
+		gd.poser(c, c + n * (1.0 if k == 0 else -1.0))
+		gd.voir_gyros(true)
+		liste.append(gd)
+	print("[gendarmes] barrage à %.0f m devant" % q.distance_to(p))
+	_radio("À toutes les patrouilles : barrage en place, %s." % _lieu(q))
 
 ## Pendant la poursuite : vu ou non, arrestation, semés, bandeau.
 func _poursuite(dt: float, car: Node, p: Vector3) -> void:
 	var dmin := INF
 	var vu := false
 	for g in liste:
-		if not is_instance_valid(g) or g.blown or g.mode != "poursuite":
+		if not is_instance_valid(g) or g.blown or (g.mode != "poursuite" and g.mode != "barrage"):
 			continue
 		var q: Vector3 = g.voiture.global_position
 		var d := q.distance_to(p)

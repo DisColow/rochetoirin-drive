@@ -621,6 +621,58 @@ func limite(p: Vector3, r := 10.0) -> float:
 				bd = d; best = k
 	return _v[best] * 3.6 if best >= 0 else -1.0
 
+## Gendarmes (#150, barrage) : point de la route `d` m devant p dans le sens de marche `dir` (voie la plus proche
+## orientée comme dir, puis tout droit autant que possible aux carrefours) : [position, direction (Vector2)] ; vide si
+## aucune voie ou impasse avant `d` m.
+func devant(p: Vector3, dir: Vector3, d: float) -> Array:
+	if not ok:
+		return []
+	var d2 := Vector2(dir.x, dir.z).normalized()
+	var bd := 12.0 * 12.0
+	var voie := -1
+	var s := 0.0
+	for k: int in _grille.get(Vector2i(floori(p.x / CASE), floori(p.z / CASE)), PackedInt32Array()):
+		var c := _cum(k)
+		for i in range(_p0[k], _p0[k] + _np[k] - 1):
+			var a := Vector2(_P[i * 3], _P[i * 3 + 2]); var b := Vector2(_P[i * 3 + 3], _P[i * 3 + 5])
+			var ab := b - a
+			var f := clampf((Vector2(p.x, p.z) - a).dot(ab) / maxf(ab.length_squared(), 1e-6), 0.0, 1.0)
+			var e := (a + ab * f).distance_squared_to(Vector2(p.x, p.z))
+			var sens := 0 if ab.normalized().dot(d2) > 0.0 else 1
+			if e < bd and absf(ab.normalized().dot(d2)) > 0.7 and (sens == 0 or not (_fl[k] & 1)):
+				bd = e
+				voie = (k << 1) | sens
+				var sk := c[i - _p0[k]] + ab.length() * f
+				s = sk if sens == 0 else c[c.size() - 1] - sk
+	if voie < 0:
+		return []
+	var reste := d
+	for _n in 30:
+		var L := _longueur(voie)
+		if s + reste <= L:
+			var g := _geo(voie, s + reste, 0)
+			var k := voie >> 1
+			# milieu de la chaussée : la position de la voie de droite décalée de dl vers la gauche
+			var t: Vector2 = g[1]
+			return [(g[0] as Vector3) + Vector3(t.y, 0.0, -t.x) * _dl[k], t]
+		reste -= L - s
+		s = 0.0
+		var n := _noeud_fin(voie)
+		var t_fin: Vector2 = _geo(voie, L, 0)[1]
+		var meilleur := -1
+		var md := -INF
+		for i in range(_sort_debut[n], _sort_debut[n + 1]):
+			var w := _sort[i]
+			if w == voie ^ 1:
+				continue
+			var dd := t_fin.dot(_geo(w, 0.0, 0)[1])
+			if dd > md:
+				md = dd; meilleur = w
+		if meilleur < 0 or md < 0.3:
+			return []
+		voie = meilleur
+	return []
+
 ## Gendarmes (#150) : feu rouge franchi en allant de p0 à p1 (deux positions successives du joueur) : passage de la
 ## ligne du nœud du feu (à moins de 7 m de côté) dans le sens d'arrivée de la voie, feu au rouge (orange toléré).
 func feu_franchi(p0: Vector3, p1: Vector3) -> bool:
