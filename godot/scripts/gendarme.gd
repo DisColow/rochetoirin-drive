@@ -95,16 +95,30 @@ func _repeindre() -> void:
 		return
 	var sh := Shader.new()
 	sh.code = TEINTE
+	var repeint := 0
 	for mi in corps.find_children("*", "MeshInstance3D", true, false):
 		var m3 := mi as MeshInstance3D
 		for k in m3.mesh.get_surface_count():
-			var m := m3.get_active_material(k) as StandardMaterial3D
-			if m and m.albedo_texture and m.albedo_texture.resource_path.get_file().begins_with("body"):
+			var m := m3.get_active_material(k) as BaseMaterial3D          # glTF : ORMMaterial3D
+			if m and m.albedo_texture:
 				var t := ShaderMaterial.new()
 				t.shader = sh
 				t.set_shader_parameter("tex", m.albedo_texture)
 				t.set_shader_parameter("teinte", couleur)
 				m3.set_surface_override_material(k, t)
+				repeint += 1
+	print("[gendarmes] livrée : %d surface(s) teintée(s)" % repeint)
+
+## Haut de la carrosserie (repère de la voiture), d'après les boîtes des maillages ; gabarit à défaut.
+func _toit() -> float:
+	var corps: Node3D = voiture.get("_body")
+	var h := -INF
+	if corps:
+		var inv := voiture.global_transform.affine_inverse()
+		for mi in corps.find_children("*", "MeshInstance3D", true, false):
+			var b: AABB = (inv * (mi as MeshInstance3D).global_transform) * (mi as MeshInstance3D).get_aabb()
+			h = maxf(h, b.end.y)
+	return h if is_finite(h) else voiture.gabarit.y
 
 ## Rampe de gyrophares sur le toit : deux feux bleus et un témoin blanc, matériaux sans ombrage (éclats visibles de
 ## loin, la nuit comme le jour), lueur bleue la nuit.
@@ -117,7 +131,7 @@ func _rampe() -> void:
 	var ms := StandardMaterial3D.new()
 	ms.albedo_color = Color(0.85, 0.86, 0.9)
 	socle.material_override = ms
-	socle.position = Vector3(0, g.y + 0.03, -g.z * 0.05)
+	socle.position = Vector3(0, _toit() + 0.04, -g.z * 0.05)
 	voiture.add_child(socle)
 	for dx in [-1.0, 1.0]:
 		var f := MeshInstance3D.new()
