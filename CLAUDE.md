@@ -288,7 +288,14 @@
   voiture rendue (`garage.vue_changee`). v7.03 : à chaque arrêt `_attendent` (passants posés) et `_demande` (sonnette
   « arrêt demandé » à 250 m, `_sonnette`) ; sans l'un ni l'autre, arrêt desservi en passant (dépassé de 8 m après
   être venu à 15 m), sinon brûlé (`oublis`, `MALUS_CHOC`). Roues du bus en pneu et jante unis (`roue_unie` de
-  `blender_voitures_joueur.py` : texture déformée par l'allègement). Essai : `--ligne-libre` (tous les arrêts libres). Caméra poursuite reculée d'après `car.gabarit.z` (`camera_rig.gd`). Essai
+  `blender_voitures_joueur.py` : texture déformée par l'allègement). Essai : `--ligne-libre` (tous les arrêts libres).
+  v7.04 (#149) : **vraies lignes Ruban** (`pipeline/fetch_lignes_bus.py` : relations OSM route=bus network=Ruban ->
+  `world/lignes_bus.json`, [{ref, nom, arrets: [[x, z, nom]]}]) : `_ligne_ruban` raccorde chaque arrêt à un arrêt de
+  la carte à `RACCORD` m, sinon garde le quai d'OSM ramené au bord de la voie (`circulation.bord_arret`) ; ligne la plus
+  proche qui donne au moins 5 arrêts consécutifs desservis (écarts de 1,2 km au plus, 4 km en tout), sinon secours de
+  proche en proche (`_ligne_proche`). Voyageurs d'un quai sans ligne « arrêt de bus » : sur le trottoir le plus proche
+  (`pietons.peupler_arret`, drapeau `arret`, montée à 25 m). Arrêt dépassé : le bus s'éloigne de 10 m après être passé
+  à 15 m. Caméra poursuite reculée d'après `car.gabarit.z` (`camera_rig.gd`). Essai
   `--fixed-fps 8 -- --drive-test --ligne-bus-test --drive-from=-10975,236,-1100,90` (bus posé en amont de chaque arrêt
   et conduit jusqu'au poteau, capture `ligne_bus.png`).
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu

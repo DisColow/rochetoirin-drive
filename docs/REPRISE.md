@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 28/10/2026, 21 h (v6.84 #131 à v7.03 livrées)
+## État au 28/10/2026, 21 h (v6.84 #131 à v7.04 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -28,6 +28,9 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v7.04 (#149, `à tester`)** : vraies lignes Ruban (`world/lignes_bus.json` de `pipeline/fetch_lignes_bus.py`,
+  publié sur `donnees` ; Overpass coupe souvent : relancer). Pièges : seuls 34 quais Ruban tombent sur un arrêt de la
+  carte (la carte ne prend que les arrêts posés sur la chaussée) -> quais d'OSM ramenés au bord de la voie.
 - **v7.03 (#148, `à tester`)** : sonnette « arrêt demandé », arrêts sans personne desservis en passant, arrêts brûlés
   pénalisés ; roues du bus en couleurs unies (`wheel.glb` republié sur `donnees`, `wheel_Image_1.jpg` retiré).
 - **v7.02 (#148, `à tester`)** : ligne de bus du joueur (voir CLAUDE.md « Ligne de bus ») : bus jouable

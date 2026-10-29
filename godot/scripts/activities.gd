@@ -1045,7 +1045,9 @@ func _bus_start() -> void:
 	mode = "bus"
 	map.locked = true             # pas de téléportation pendant le service (■ Arrêter pour reprendre sa voiture)
 	hud._show_drive(true)
-	hud.toast("Vous prenez le volant du bus : %d arrêts, suivez le GPS." % main.ligne_bus.arrets.size(), 4.0)
+	var lb = main.ligne_bus
+	hud.toast("%s : %d arrêts, de %s à %s. Suivez le GPS." % [lb.ligne if lb.ligne != "" else "Vous prenez le volant du bus",
+		lb.arrets.size(), lb.noms[0], lb.noms[-1]], 5.0)
 
 func _taxi_start() -> void:
 	_close_menu()

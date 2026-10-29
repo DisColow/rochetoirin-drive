@@ -12,7 +12,7 @@ extends Node
 
 const NB_ARRETS := 6
 const PORTE := Vector3(-1.35, 0.0, 3.9)         # porte avant droite (repère du véhicule : avant +Z, droite -X)
-const R_ARRET := 6.0                            # porte à moins de ça du poteau
+const R_ARRET := 7.0                            # porte à moins de ça du poteau (quais d'OSM un peu en retrait)
 const D_MIN := 220.0                            # arrêt suivant : de D_MIN à D_MAX m à vol d'oiseau
 const D_MAX := 1000.0
 const R_DEPART := 1500.0                        # premier arrêt à moins de ça du joueur
@@ -28,6 +28,7 @@ var main: Node
 var actif := false
 var arrets: Array = []                          # Vector3 des arrêts de la ligne
 var noms: Array = []
+var ligne := ""                                 # « LIGNE 4 · Gare > Hôtel de Ville » (réseau Ruban), sinon ""
 var horaires: Array = []                        # s depuis le départ
 var i := 0                                      # arrêt visé
 var t := 0.0
@@ -62,6 +63,139 @@ func demarrer() -> bool:
 		return false
 	var tous: PackedVector3Array = pie.arrets_bus()
 	var p := car.global_position
+	noms.clear()
+	ligne = ""
+	if not _ligne_ruban(tous, p) and not _ligne_proche(tous, p):
+		return false
+	var names = main.get_node("HUD").names
+	horaires.clear()
+	var h := 0.0
+	var prec := p
+	for q: Vector3 in arrets:
+		if noms.size() < horaires.size() + 1:
+			var n: String = names.road_at_fixe(q) if names else ""
+			noms.append(n if n != "" and n != "Hors route" else "Arrêt %d" % (noms.size() + 1))
+		h += prec.distance_to(q) * 1.4 / V_HORAIRE + (ATTENTE if horaires.size() > 0 else 15.0)
+		horaires.append(roundf(h / 10.0) * 10.0)
+		prec = q
+	# prise du bus à la place de la voiture
+	car.construire("bus")
+	car.set("nitro_niveau", 0)
+	car.global_position += Vector3.UP * 0.4
+	car.linear_velocity = Vector3.ZERO
+	car.angular_velocity = Vector3.ZERO
+	actif = true
+	i = 0
+	t = 0.0
+	voyageurs = 0
+	transportes = 0
+	recette = 0.0
+	primes = 0.0
+	chocs = 0
+	a_l_heure = 0
+	oublis = 0
+	_peuple = -1
+	_viser()
+	return true
+
+## Vraie ligne du réseau Ruban (#149, world/lignes_bus.json de pipeline/fetch_lignes_bus.py) : ses arrêts ramenés aux
+## arrêts de la carte (à RACCORD m au plus, longés par une voie), puis, de l'arrêt le plus proche du joueur (R_DEPART)
+## dans le sens de la ligne, NB_ARRETS arrêts consécutifs (ceux hors de la carte sont sautés) ; vrais noms d'arrêts.
+const RACCORD := 35.0
+const Relief := preload("res://scripts/relief.gd")
+var _lignes = null
+var _pos_ruban: Array = []
+func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
+	if _lignes == null:
+		_lignes = []
+		if FileAccess.file_exists("res://world/lignes_bus.json"):
+			var l = JSON.parse_string(FileAccess.get_file_as_string("res://world/lignes_bus.json"))
+			if l is Array:
+				_lignes = l
+	var departs := []                                   # [distance au joueur, ligne, rang du premier arrêt]
+	var cartes := []                                    # par ligne : indice de l'arrêt de la carte de chaque arrêt (-1)
+	# chaque arrêt d'OSM : celui de la carte s'il y en a un à RACCORD m (panneau, passants qui attendent), sinon le quai
+	# d'OSM lui-même ; positions communes dans _pos_ruban (indice : clé de _desservis, au-delà des arrêts de la carte)
+	_pos_ruban = Array(tous)
+	var index := {}
+	for li in _lignes.size():
+		var c := PackedInt32Array()
+		for a in _lignes[li].arrets:
+			var q := Vector3(float(a[0]), 0.0, float(a[1]))
+			if absf(q.x - p.x) > 6000.0 or absf(q.z - p.z) > 6000.0:
+				c.append(-1)
+				continue
+			var best := -1
+			var bd := RACCORD
+			for k in tous.size():
+				var d := Vector2(tous[k].x - q.x, tous[k].z - q.z).length()
+				if d < bd:
+					bd = d
+					best = k
+			if best < 0:
+				var cle := "%d,%d" % [roundi(q.x), roundi(q.z)]
+				if not index.has(cle):
+					index[cle] = _pos_ruban.size()
+					_pos_ruban.append(Vector3(q.x, Relief.hauteur(q), q.z))
+				best = index[cle]
+			c.append(best)
+			if (_pos_ruban[best] as Vector3).distance_to(Vector3(p.x, (_pos_ruban[best] as Vector3).y, p.z)) < R_DEPART:
+				departs.append([Vector2(_pos_ruban[best].x - p.x, _pos_ruban[best].z - p.z).length(), li, c.size() - 1])
+		cartes.append(c)
+	departs.sort_custom(func(a, b): return a[0] < b[0])
+	var meilleur := []
+	var m_li := -1
+	for dep in departs.slice(0, 60):
+		var li: int = dep[1]
+		var suite := []
+		var vus := {}
+		var long := 0.0
+		for j in range(int(dep[2]), cartes[li].size()):
+			var k: int = cartes[li][j]
+			if k < 0 or vus.has(k):
+				continue
+			if suite.size() > 0:                          # ligne de ville : ni grand trou, ni trop longue
+				var ecart := (_pos_ruban[k] as Vector3).distance_to(_pos_ruban[int(suite[-1][0])])
+				if ecart > 1200.0 or long + ecart > 4000.0:
+					break
+				long += ecart
+			var cle_d: Variant = ("r%d" % k) if k >= tous.size() else k
+			if not _desservis.has(cle_d):
+				var ci = main.get("circulation")
+				_desservis[cle_d] = ci == null or not ci.ok or not ci.voie_arret(_pos_ruban[k], 0.0).is_empty()
+			if not _desservis[cle_d]:
+				continue
+			vus[k] = true
+			suite.append([k, String(_lignes[li].arrets[j][2])])
+			if suite.size() >= NB_ARRETS:
+				break
+		if suite.size() > meilleur.size():
+			meilleur = suite
+			m_li = li
+		if meilleur.size() >= NB_ARRETS - 1:            # la plus proche qui en a au moins 5
+			break
+	if OS.get_cmdline_user_args().has("--ligne-bus-test"):
+		var raccordes := 0
+		for c in cartes:
+			for k in c:
+				raccordes += 1 if k >= 0 else 0
+		print("  [ligne] réseau Ruban : %d variantes, %d arrêts raccordés à la carte, %d départs à moins de %d m, meilleure suite %d arrêts" % [
+			_lignes.size(), raccordes, departs.size(), int(R_DEPART), meilleur.size()])
+	if meilleur.size() < 4:
+		return false
+	arrets.clear()
+	var ci2 = main.get("circulation")
+	for e in meilleur:
+		var q: Vector3 = _pos_ruban[int(e[0])]
+		if int(e[0]) >= tous.size() and ci2 and ci2.ok:   # quai d'OSM : poteau ramené au bord de la voie
+			q = ci2.bord_arret(q)
+		arrets.append(q)
+		noms.append(String(e[1]) if String(e[1]) != "" else "Arrêt %d" % (noms.size() + 1))
+	ligne = "LIGNE %s · %s" % [_lignes[m_li].ref, _lignes[m_li].nom]
+	return true
+
+## Secours (v7.02) : arrêts de la carte enchaînés de proche en proche à partir du plus proche du joueur.
+func _ligne_proche(tous: PackedVector3Array, p: Vector3) -> bool:
 	var cand := []
 	for k in tous.size():
 		if tous[k].distance_to(p) < R_DEPART:
@@ -91,38 +225,7 @@ func demarrer() -> bool:
 		dir = (tous[best] - q0).normalized()
 		pris[best] = true
 		arrets.append(tous[best])
-	if arrets.size() < 3:
-		return false
-	var names = main.get_node("HUD").names
-	noms.clear()
-	horaires.clear()
-	var h := 0.0
-	var prec := p
-	for q: Vector3 in arrets:
-		var n: String = names.road_at_fixe(q) if names else ""
-		noms.append(n if n != "" and n != "Hors route" else "Arrêt %d" % (noms.size() + 1))
-		h += prec.distance_to(q) * 1.4 / V_HORAIRE + (ATTENTE if horaires.size() > 0 else 15.0)
-		horaires.append(roundf(h / 10.0) * 10.0)
-		prec = q
-	# prise du bus à la place de la voiture
-	car.construire("bus")
-	car.set("nitro_niveau", 0)
-	car.global_position += Vector3.UP * 0.4
-	car.linear_velocity = Vector3.ZERO
-	car.angular_velocity = Vector3.ZERO
-	actif = true
-	i = 0
-	t = 0.0
-	voyageurs = 0
-	transportes = 0
-	recette = 0.0
-	primes = 0.0
-	chocs = 0
-	a_l_heure = 0
-	oublis = 0
-	_peuple = -1
-	_viser()
-	return true
+	return arrets.size() >= 3
 
 ## Meilleur candidat ([score, indice], le plus petit score d'abord) longé par une voie de la circulation où le bus peut
 ## s'arrêter (sinon arrêt sur une voie de service, un parking de gare… : inaccessible) ; -1 si aucun.
@@ -190,12 +293,13 @@ func process(dt: float) -> void:
 	if d < PEUPLER and _peuple != i:
 		_peuple = i
 		if _attendent > 0:                               # au terminus, personne ne monte
-			main.pietons.peupler_arret(q, _attendent)
+			_attendent = main.pietons.peupler_arret(q, _attendent)    # ceux qui ont pu être posés
 	if _demande and not _sonne and d < 250.0 and phase == "route" and i < arrets.size() - 1:
 		_sonne = true
 		_sonnette()
 		main.get_node("HUD").toast("Arrêt demandé : %s" % noms[i], 2.5)
-	var head := "BUS  ·  arrêt %d/%d  ·  %d à bord  ·  %s" % [i + 1, arrets.size(), voyageurs, act._euros(recette + primes)]
+	var head := "%s  ·  arrêt %d/%d  ·  %d à bord  ·  %s" % [ligne if ligne != "" else "BUS", i + 1, arrets.size(), voyageurs,
+		act._euros(recette + primes)]
 	var reste := float(horaires[i]) - t
 	var heure := ("dans " + _mmss(reste)) if reste >= 0.0 else ("retard " + _mmss(reste))
 	if phase == "route":
@@ -207,7 +311,7 @@ func process(dt: float) -> void:
 		# arrêt dépassé : sans demande ni personne qui attend, desservi en passant ; sinon brûlé
 		var rel := q - car.global_position
 		_plus_pres = minf(_plus_pres, d)
-		if _plus_pres < 15.0 and d < 40.0 and rel.dot(car.global_transform.basis.z) < -8.0:
+		if _plus_pres < 15.0 and d > _plus_pres + 10.0 and rel.dot(car.global_transform.basis.z) < 0.0:
 			if libre:
 				var ecart := t - float(horaires[i])
 				if absf(ecart) <= ECART:
@@ -319,7 +423,8 @@ func _physics_process(dt: float) -> void:
 	var car: VehicleBody3D = main.car
 	_choc_cd -= dt
 	var v := car.linear_velocity
-	if _choc_cd <= 0.0 and voyageurs > 0 and (v - _prev_v).length() > 5.5 and not car.carried:
+	# pas un choc : remise en place ou téléportation (voiture tenue, car.hold)
+	if _choc_cd <= 0.0 and voyageurs > 0 and (v - _prev_v).length() > 5.5 and not car.carried and float(car.get("_hold_t")) <= 0.0:
 		chocs += 1
 		_choc_cd = 1.0
 		main.get_node("HUD").toast("Les voyageurs sont secoués ! (−%s)" % _act()._euros(MALUS_CHOC), 1.5)

@@ -3097,6 +3097,7 @@ func _ligne_bus_test() -> void:
 		dire.call("ÉCHEC : ligne non démarrée")
 		get_tree().quit()
 		return
+	dire.call("%s" % (lb.ligne if lb.ligne != "" else "ligne de proche en proche (secours)"))
 	dire.call("ligne de %d arrêts : %s" % [lb.arrets.size(), ", ".join(range(lb.arrets.size()).map(func(k): return "%s (%s)" % [lb.noms[k], lb._mmss(lb.horaires[k])]))])
 	dire.call("véhicule : %s, %.0f kg, gabarit %s, %d roues" % [car.voiture, car.mass, str(car.gabarit), car.wheels.size()])
 	# accélération (ligne en pause : le premier arrêt n'est pas franchi pendant ce temps)
@@ -3121,10 +3122,9 @@ func _ligne_bus_test() -> void:
 		var k: int = lb.i
 		var q: Vector3 = lb.arrets[k]
 		var recul := 40.0
-		var va: Array = ci.voie_arret(q, 45.0)
-		if va.is_empty():                                # arrêt près du début de sa voie : posé plus près
-			recul = 14.0
-			va = ci.voie_arret(q, 18.0)
+		var va: Array = ci.voie_arret(q, 0.0)            # voie la plus proche ; arrêt près de son début : posé plus près
+		if not va.is_empty():
+			recul = clampf(float(va[1]) - 2.0, 8.0, 40.0)
 		if va.is_empty():
 			dire.call("arrêt %d : aucune voie le long, sauté" % (k + 1))
 			lb.i += 1
@@ -3135,6 +3135,9 @@ func _ligne_bus_test() -> void:
 			continue
 		var voie: int = va[0]
 		var sa: float = va[1]
+		var gq: Array = ci._geo(voie, sa, 0)
+		dire.call("  arrêt %d : voie %d, à %.0f m de son début (longueur %.0f), recul %.0f, écart du poteau à la voie %.1f m" % [k + 1, voie, sa,
+			ci._longueur(voie), recul, Vector2(q.x - gq[0].x, q.z - gq[0].z).length()])
 		var g0: Array = ci._geo(voie, sa - recul, 0)
 		var p0: Vector3 = g0[0]
 		await _teleport(p0 + Vector3.UP * 0.6, rad_to_deg(atan2(g0[1].x, -g0[1].y)))
@@ -3151,7 +3154,7 @@ func _ligne_bus_test() -> void:
 		if libre:
 			dire.call("arrêt %d %s : personne à prendre ni à déposer, le bus passe sans s'arrêter" % [k + 1, lb.noms[k]])
 		while t < 60.0 and lb.actif and lb.i == k and lb.phase == "route":
-			var s_vise := sa + 40.0 if libre else sa - PORTE_BUS_Z
+			var s_vise := minf(sa + 16.0, ci._longueur(voie) - 0.5) if libre else sa - PORTE_BUS_Z
 			var gc: Array = ci._geo(voie, s_vise, 0)
 			var cible: Vector3 = gc[0]
 			var fwd := car.global_transform.basis.z

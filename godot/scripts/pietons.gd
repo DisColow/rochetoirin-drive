@@ -206,9 +206,37 @@ func peupler_arret(p: Vector3, nb: int) -> int:
 		if _genre[k] == 4 and point(k, longueur(k) * 0.5).distance_to(p) < 40.0 \
 				and (best < 0 or point(k, longueur(k) * 0.5).distance_to(p) < point(best, longueur(best) * 0.5).distance_to(p)):
 			best = k
-	if best < 0:
-		return 0
 	var n0 := passants.size()
+	if best < 0:
+		# arrêt sans ligne « arrêt de bus » (quai d'OSM à côté de la chaussée, ligne Ruban #149) : sur le trottoir ou le
+		# bord de rue le plus proche (25 m au plus), immobiles comme à un arrêt
+		var bd := 25.0
+		var bs := 0.0
+		var c0 := Vector2i(floori(p.x / CASE), floori(p.z / CASE))
+		for dx in [-1, 0, 1]:
+			for dz in [-1, 0, 1]:
+				for k in _grille.get(c0 + Vector2i(dx, dz), PackedInt32Array()):
+					if _genre[k] == 3:
+						continue
+					var L := longueur(k)
+					var u := 0.0
+					while u <= L:
+						var d := point(k, u).distance_to(p)
+						if d < bd:
+							bd = d
+							best = k
+							bs = u
+						u += 1.5
+		if best < 0:
+			return 0
+		for i in nb:
+			_poser(best, clampf(bs + (float(i) - (nb - 1) * 0.5) * 1.2, 0.0, longueur(best)), true)
+			if passants.size() > n0 + i:
+				var c: Dictionary = passants[-1]
+				c.pause = 1e9
+				c.lat = 0.0
+				c.arret = true
+		return passants.size() - n0
 	for i in nb:
 		_poser(best, longueur(best) * (0.5 + (float(i) - (nb - 1) * 0.5) * 0.3), true)
 	return passants.size() - n0
@@ -309,7 +337,8 @@ func bus_a_l_arret(p: Vector3, porte: Vector3, nb_desc := -1) -> Array:
 	var m0 := 0
 	var marche := 0.0
 	for c in passants:
-		if _genre[int(c.l)] == 4 and (c.n as Node3D).global_position.distance_to(p) < 15.0 and not c.has("monte"):
+		if (_genre[int(c.l)] == 4 or c.has("arret")) and (c.n as Node3D).global_position.distance_to(p) < (25.0 if c.has("arret") else 15.0) \
+				and not c.has("monte"):
 			c.monte = porte
 			c.pause = 0.0
 			m0 += 1
