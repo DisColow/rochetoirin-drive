@@ -46,8 +46,7 @@ func demarrer() -> bool:
 	for k in 8:
 		if circ == null or not r.is_empty():
 			break
-		r = circ.devant(p0, f.rotated(Vector3.UP, k * PI / 4.0), DEPART)
-	print("[gendarme] départ : circulation %s, route à %.1f m, devant %s" % [str(circ != null and circ.ok), p0.distance_to(car.global_position), str(not r.is_empty())])
+		r = circ.devant(p0, f.rotated(Vector3.UP, k * PI / 4.0), DEPART, -0.7)     # tous les virages, pas de demi-tour
 	if r.is_empty():
 		return false
 	car.construire("gendarme")

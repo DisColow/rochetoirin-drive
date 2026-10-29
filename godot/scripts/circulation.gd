@@ -643,9 +643,9 @@ func point_route(p: Vector3, r := 80.0) -> Vector3:
 	return best
 
 ## Gendarmes (#150, barrage) : point de la route `d` m devant p dans le sens de marche `dir` (voie la plus proche
-## orientée comme dir, puis tout droit autant que possible aux carrefours) : [position, direction (Vector2)] ; vide si
-## aucune voie ou impasse avant `d` m.
-func devant(p: Vector3, dir: Vector3, d: float) -> Array:
+## orientée comme dir, puis tout droit autant que possible aux carrefours, virages de cosinus `droit` au moins) :
+## [position, direction (Vector2)] ; vide si aucune voie ou impasse avant `d` m.
+func devant(p: Vector3, dir: Vector3, d: float, droit := 0.3) -> Array:
 	if not ok:
 		return []
 	var d2 := Vector2(dir.x, dir.z).normalized()
@@ -689,7 +689,7 @@ func devant(p: Vector3, dir: Vector3, d: float) -> Array:
 			var dd := t_fin.dot(_geo(w, 0.0, 0)[1])
 			if dd > md:
 				md = dd; meilleur = w
-		if meilleur < 0 or md < 0.3:
+		if meilleur < 0 or md < droit:              # droit : cosinus minimal du virage au carrefour
 			return []
 		voie = meilleur
 	return []
