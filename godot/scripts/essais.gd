@@ -3157,6 +3157,39 @@ func _gendarme_joueur_test() -> void:
 		return
 	dire.call("voiture du joueur : %s (%s) ; fuyard : %s à %.0f m" % [car.voiture, voitures_nom(car.voiture), gj.fuyard.modele,
 		car.global_position.distance_to(gj.fuyard.voiture.global_position)])
+	if OS.get_cmdline_user_args().has("--gj-coince"):
+		# barrage : la Gendarmerette en travers 30 m devant le fuyard, frein serré ; il vient buter dessus
+		var tw := 0.0
+		while tw < 0.4:                               # fin du maintien du départ (car.hold), qui annulerait la pose
+			await get_tree().physics_frame
+			tw += get_physics_process_delta_time()
+		var fz = gj.fuyard
+		var ch: PackedVector2Array = fz._chemin
+		var fp: Vector3 = fz.voiture.global_position
+		var bi := 0
+		for i in ch.size():
+			if ch[i].distance_squared_to(Vector2(fp.x, fp.z)) < ch[bi].distance_squared_to(Vector2(fp.x, fp.z)):
+				bi = i
+		var ia: int = clampi(fz._s.bsearch(fz._s[bi] + 30.0), 0, ch.size() - 2)      # 30 m devant lui sur son chemin
+		var q: Vector2 = ch[ia]
+		var q2: Vector2 = ch[ia + 1]
+		var dd := (q2 - q).normalized()
+		var y := Relief.hauteur(Vector3(q.x, 0, q.y))
+		car.place(Vector3(q.x, y + 0.4, q.y), rad_to_deg(atan2(dd.x, -dd.y)) + 90.0)
+		car.frein_parking = true
+		var tc := 0.0
+		while gj.actif and tc < 40.0:
+			await get_tree().physics_frame
+			tc += get_physics_process_delta_time()
+			if fmod(tc, 1.0) < get_physics_process_delta_time():
+				dire.call("coincé ? t %.0f s : fuyard à %.1f m, %.1f m/s, gaz %.1f frein %.1f, compteur %.1f s, dégâts %d %%" % [tc,
+					car.global_position.distance_to(fz.voiture.global_position), fz.voiture.linear_velocity.length(),
+					fz.voiture.touch_throttle, fz.voiture.touch_brake, gj._coince_t, int(gj.degats)])
+		car.frein_parking = false
+		dire.call("fin : actif %s, interpellé %s, statut « %s »" % [str(gj.actif), str(gj.interpelle), activities._status_l.text])
+		print("  [gendarme] FIN")
+		get_tree().quit()
+		return
 	var t := 0.0
 	var cap := false
 	var trace: Array[Vector3] = []
