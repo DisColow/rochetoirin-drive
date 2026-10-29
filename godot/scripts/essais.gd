@@ -3152,7 +3152,7 @@ func _ligne_bus_test() -> void:
 		if libre:
 			dire.call("arrêt %d %s : personne à prendre ni à déposer, le bus passe sans s'arrêter" % [k + 1, lb.noms[k]])
 		while t < 60.0 and lb.actif and lb.i == k and lb.phase == "route":
-			var s_vise := sa + 40.0 if libre else sa - PORTE_BUS_Z
+			var s_vise := minf(sa + 16.0, ci._longueur(voie) - 0.5) if libre else sa - PORTE_BUS_Z
 			var gc: Array = ci._geo(voie, s_vise, 0)
 			var cible: Vector3 = gc[0]
 			var fwd := car.global_transform.basis.z

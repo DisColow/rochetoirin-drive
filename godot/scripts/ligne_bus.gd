@@ -12,7 +12,7 @@ extends Node
 
 const NB_ARRETS := 6
 const PORTE := Vector3(-1.35, 0.0, 3.9)         # porte avant droite (repère du véhicule : avant +Z, droite -X)
-const R_ARRET := 6.0                            # porte à moins de ça du poteau
+const R_ARRET := 7.0                            # porte à moins de ça du poteau (quais d'OSM un peu en retrait)
 const D_MIN := 220.0                            # arrêt suivant : de D_MIN à D_MAX m à vol d'oiseau
 const D_MAX := 1000.0
 const R_DEPART := 1500.0                        # premier arrêt à moins de ça du joueur
@@ -145,14 +145,20 @@ func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
 	departs.sort_custom(func(a, b): return a[0] < b[0])
 	var meilleur := []
 	var m_li := -1
-	for dep in departs.slice(0, 40):
+	for dep in departs.slice(0, 60):
 		var li: int = dep[1]
 		var suite := []
 		var vus := {}
+		var long := 0.0
 		for j in range(int(dep[2]), cartes[li].size()):
 			var k: int = cartes[li][j]
 			if k < 0 or vus.has(k):
 				continue
+			if suite.size() > 0:                          # ligne de ville : ni grand trou, ni trop longue
+				var ecart := (_pos_ruban[k] as Vector3).distance_to(_pos_ruban[int(suite[-1][0])])
+				if ecart > 1200.0 or long + ecart > 4000.0:
+					break
+				long += ecart
 			var cle_d: Variant = ("r%d" % k) if k >= tous.size() else k
 			if not _desservis.has(cle_d):
 				var ci = main.get("circulation")
@@ -166,7 +172,7 @@ func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
 		if suite.size() > meilleur.size():
 			meilleur = suite
 			m_li = li
-		if meilleur.size() >= NB_ARRETS:
+		if meilleur.size() >= NB_ARRETS - 1:            # la plus proche qui en a au moins 5
 			break
 	if OS.get_cmdline_user_args().has("--ligne-bus-test"):
 		var raccordes := 0
@@ -301,7 +307,7 @@ func process(dt: float) -> void:
 		# arrêt dépassé : sans demande ni personne qui attend, desservi en passant ; sinon brûlé
 		var rel := q - car.global_position
 		_plus_pres = minf(_plus_pres, d)
-		if _plus_pres < 15.0 and d < 40.0 and rel.dot(car.global_transform.basis.z) < -8.0:
+		if _plus_pres < 15.0 and d > _plus_pres + 10.0 and rel.dot(car.global_transform.basis.z) < 0.0:
 			if libre:
 				var ecart := t - float(horaires[i])
 				if absf(ecart) <= ECART:
