@@ -345,6 +345,12 @@
   `BARRAGE_D` m devant le joueur lancé à plus de 50 km/h, toutes les `BARRAGE_T` s ; `circulation.devant(p, dir, d)` :
   voie orientée comme le joueur puis tout droit aux carrefours ; elles se lancent à 25 m ou après 40 s) et message
   radio « barrage en place ». Essai : 5e phase (capture `gendarmes_barrage.png`).
+  v7.12 : hélicoptère à 3 étoiles (`helico_gendarme.gd` : modèle `assets/aeronefs/helico.glb` du ciel teint en bleu,
+  arrive de 600 m derrière le joueur, tourne au-dessus à `ALT` m, `VMAX` 40 m/s : un joueur plus rapide le distance ;
+  voit le joueur à moins de `VUE` m, projecteur la nuit ; repart faire le plein après `DUREE` s, revient 60 s plus tard ;
+  géré par `gendarmes._helicoptere` à chaque pas, même après la poursuite) ; sous-titre des messages radio (bandeau
+  « Radio : … » quand l'autoradio est allumée, pour les appareils sans synthèse vocale). Essai `--helico-test`
+  (capture `helico.png`).
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
   `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,
