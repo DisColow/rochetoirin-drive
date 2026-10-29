@@ -322,6 +322,10 @@
   (`gendarmes.cible()` : piéton `main.pied.corps` ; `_libre` = balade libre, `_permis` = au volant pour les
   infractions et patrouilles), arrestation à moins de `ARRET_D` × 1,4 m du piéton ; essai : 4e phase à pied.
   Astuces du chargement complétées (`data/astuces.json` : bus, gendarmes, balade, météo, feux).
+  v7.08 : barrage à 3 étoiles (`gendarmes._barrer` : deux voitures en mode « barrage », en travers de la chaussée
+  `BARRAGE_D` m devant le joueur lancé à plus de 50 km/h, toutes les `BARRAGE_T` s ; `circulation.devant(p, dir, d)` :
+  voie orientée comme le joueur puis tout droit aux carrefours ; elles se lancent à 25 m ou après 40 s) et message
+  radio « barrage en place ». Essai : 5e phase (capture `gendarmes_barrage.png`).
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
   `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,

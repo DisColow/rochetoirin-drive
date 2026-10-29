@@ -3242,6 +3242,48 @@ func _gendarmes_test() -> void:
 			dire.call("  à pied, t %.0f s : à pied %s, étoiles %d, gendarme à %.0f m, %s" % [t, str(pied.actif), gd.etoiles,
 				g3.voiture.global_position.distance_to(pied.corps.global_position) if is_instance_valid(g3) else INF, gd._bandeau.text.replace("\n", " / ")])
 	dire.call("à pied : arrestation %s après %.0f s" % [str(gd.arrestations > arr1), t])
+	# 5) barrage à 3 étoiles : joueur lancé sur la rue, deux voitures en travers 230 m devant
+	pied.monter()
+	for k in 30:
+		await get_tree().physics_frame
+	await _teleport((gj[0] as Vector3) + Vector3.UP * 0.6, rad_to_deg(atan2(gj[1].x, -gj[1].y)))
+	for k in 30:
+		await get_tree().physics_frame
+	gd._infr_t = 0.0
+	gd.infraction("explosion", car.global_position)
+	car.linear_velocity = car.global_transform.basis.z * 16.0
+	gd._barrage_t = 0.0
+	var b0: int = gd.barrages
+	gd._barrer(0.0, car, car.global_position)
+	var bar: Array = gd.liste.filter(func(x): return is_instance_valid(x) and x.mode == "barrage")
+	dire.call("barrage : %s, %d voiture(s), %d étoile(s)" % [str(gd.barrages > b0), bar.size(), gd.etoiles])
+	if bar.size() == 2:
+		var q: Vector3 = gd.dernier_barrage[0]
+		var t2: Vector2 = gd.dernier_barrage[1]
+		var route := Vector3(t2.x, 0.0, t2.y)
+		for x in bar:
+			var f: Vector3 = x.voiture.global_transform.basis.z
+			dire.call("  voiture à %.0f m du joueur, %.1f m du milieu de la chaussée, en travers à %.0f° de la route" % [
+				x.voiture.global_position.distance_to(car.global_position), Vector2(x.voiture.global_position.x - q.x, x.voiture.global_position.z - q.z).length(),
+				rad_to_deg(acos(clampf(absf(f.dot(route)), 0.0, 1.0)))])
+		# vue de la route en amont du barrage, puis le joueur arrive : les voitures se lancent
+		var vue := Camera3D.new()
+		add_child(vue)
+		vue.global_position = q - route * 22.0 + Vector3.UP * 5.0
+		vue.look_at(q + Vector3.UP * 0.8)
+		vue.current = true
+		var avant: Vector3 = q - route * 18.0
+		var ha := Relief.hauteur(avant)
+		await _teleport(Vector3(avant.x, (ha if is_finite(ha) else q.y) + 0.6, avant.z), rad_to_deg(atan2(route.x, -route.z)))
+		vue.current = true
+		for k in 24:
+			car.frein_parking = true
+			await get_tree().physics_frame
+		get_viewport().get_texture().get_image().save_png("user://shots/gendarmes_barrage.png")
+		vue.queue_free()
+		dire.call("capture gendarmes_barrage.png ; modes après l'arrivée du joueur : %s" % ", ".join(bar.map(func(x): return x.mode if is_instance_valid(x) else "-")))
+		dire.call("message radio : « %s »" % gd.message)
+	car.frein_parking = false
 	print("  [gendarmes] fin : arrestations %d, semés %d" % [gd.arrestations, gd.semes])
 	get_tree().quit()
 
