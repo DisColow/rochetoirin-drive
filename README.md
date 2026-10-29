@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v7.03.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.03/RochetoirinSimulator-v7.03.apk)**
+**[RochetoirinSimulator-v7.04.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.04/RochetoirinSimulator-v7.04.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.03 :
-- **Ligne de bus** : un voyageur sonne « arrêt demandé » quand il veut descendre ; s'il n'y a personne à prendre ni à
-  déposer, vous pouvez passer l'arrêt sans vous arrêter. Un arrêt demandé brûlé fâche les voyageurs.
-- Les roues du bus ne sont plus bleues.
+Nouveautés de la v7.04 :
+- **Ligne de bus** : vous conduisez désormais les vraies lignes du réseau **Ruban** de Bourgoin-Jallieu et
+  L'Isle-d'Abeau (ligne 3 Saint-Michel > Fondbonnière…), avec leurs vrais arrêts et leurs noms.
+- Les voyageurs attendent aussi aux arrêts qui n'ont pas d'abri, sur le trottoir.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
