@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v7.10.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.10/RochetoirinSimulator-v7.10.apk)**
+**[RochetoirinSimulator-v7.11.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.11/RochetoirinSimulator-v7.11.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,9 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.10 :
-- L'onglet « Taxi » des Activités devient **« Métiers »** : taxi, chauffeur de bus et livreur de repas.
-- **Livreur de repas** : majoration de 30 % la nuit ; on s'arrête dans la rue devant le restaurant.
+Nouveautés de la v7.11 :
+- **Défi du jour** : chaque jour un nouveau défi (livrer 3 repas, semer les gendarmes, rouler 10 km de nuit…) et sa
+  prime, annoncé au lancement et suivi dans Activités > Succès.
+- Les statistiques ne perdent plus les dernières secondes de jeu quand on quitte.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
