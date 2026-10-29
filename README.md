@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v7.12.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.12/RochetoirinSimulator-v7.12.apk)**
+**[RochetoirinSimulator-v7.13.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.13/RochetoirinSimulator-v7.13.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.12 :
-- **Gendarmes** : à 3 étoiles, l'**hélicoptère** de la Gendarmerette vous suit d'en haut (projecteur la nuit) jusqu'à
-  ce qu'il reparte faire le plein. Roulez plus vite que lui pour le semer.
-- Les messages radio des gendarmes s'affichent aussi à l'écran.
+Nouveautés de la v7.13 :
+- **Métier de gendarme** (Activités > Métiers) : au volant de la voiture de la Gendarmerette, rattrapez un fuyard et
+  emboutissez-le jusqu'à l'immobiliser avant qu'il ne vous sème.
+- Les chocs contre les voitures des gendarmes sont mieux détectés.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

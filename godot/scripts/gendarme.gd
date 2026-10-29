@@ -29,6 +29,7 @@ const A_LAT := 6.0                  # accélération latérale admise en virage 
 const VOIE := 2.2
 const GYRO := 0.12                  # demi-période des éclats des gyrophares (s)
 const FUITE_V := 0.85               # fuyard : part de sa vitesse maximale
+const FUITE_MAX := 31.0             # fuyard : 110 km/h au plus (la Gendarmerette doit pouvoir le rattraper)
 
 var main: Node
 const MODELE := "p306"              # voiture provisoire (#150 : choix A ou B en attente)
@@ -50,6 +51,7 @@ var _chemin := PackedVector2Array()
 var _s := PackedFloat32Array()
 var _v := PackedFloat32Array()
 var _i := 0
+var _sg := -1.0                      # figée : abscisse sur l'itinéraire (en continu, pas d'un point à l'autre)
 var _off := 0.0
 var _off_but := 0.0
 var _replan_t := 0.0
@@ -260,17 +262,30 @@ func _pas(dt: float) -> void:
 			var q: Vector3 = pis[0] + (pis[1] as Vector3) * clampf(dj / 40.0, 0.5, 3.0)
 			aller(Vector2(q.x, q.z))
 	elif mode == "fuite":
-		# activité « Gendarme » : le fuyard file à l'opposé du joueur, nouvel itinéraire toutes les 4 s ou au bout du chemin
+		# activité « Gendarme » : le fuyard file loin du joueur, nouvel itinéraire toutes les 10 s ou au bout du chemin
 		_replan_t -= dt
-		if _replan_t <= 0.0 or _chemin.is_empty() or _i >= _chemin.size() - 6:
-			_replan_t = 4.0
+		if _replan_t <= 0.0 or (_i >= _chemin.size() - 6 and _replan_t < 8.0):     # (calcul en cours : 2 s de patience)
+			_replan_t = 10.0
+			# loin du joueur, mais plutôt devant soi : un but derrière imposerait un demi-tour (souvent raté contre un mur)
 			var loin := voiture.global_position - j.global_position
 			loin.y = 0.0
-			if loin.length() < 1.0:
-				loin = voiture.global_transform.basis.z
-			var a := atan2(loin.z, loin.x) + randf_range(-0.6, 0.6)
-			var q := voiture.global_position + Vector3(cos(a), 0.0, sin(a)) * 450.0
-			aller(Vector2(q.x, q.z))
+			var cap := voiture.linear_velocity if voiture.linear_velocity.length() > 3.0 else voiture.global_transform.basis.z
+			cap.y = 0.0
+			loin = loin.normalized() + cap.normalized() * 1.5
+			if loin.length() < 0.1:
+				loin = cap
+			# trajet sur les voies devant (sorties au hasard, circulation.trajet) : un but à vol d'oiseau tombait dans un champ,
+			# et l'itinéraire A* (nœuds aux carrefours seulement) y allait souvent par derrière (demi-tour au départ)
+			var circ = main.get("circulation")
+			var tr: PackedVector2Array = circ.trajet(voiture.global_position, loin, 350.0) if circ else PackedVector2Array()
+			if tr.size() < 10 and circ:
+				tr = circ.trajet(voiture.global_position, cap, 350.0)
+			if tr.size() >= 10:
+				_prendre(tr)
+			else:
+				var a := atan2(loin.z, loin.x) + randf_range(-0.5, 0.5)
+				var q := voiture.global_position + Vector3(cos(a), 0.0, sin(a)) * 450.0
+				aller(Vector2(q.x, q.z))
 	elif mode == "patrouille" and (_chemin.is_empty() or _i >= _chemin.size() - 3) and _replan_t <= 0.0:
 		_replan_t = 3.0
 		var a := randf() * TAU
@@ -310,12 +325,23 @@ func _prendre(r: PackedVector2Array) -> void:
 			u += PAS
 		reste = l - (u - PAS)
 	p.append(r[r.size() - 1])
+	# l'itinéraire part du nœud du graphe le plus proche, parfois derrière la voiture : aller-retour coupé (le chemin
+	# repasse à moins de 6 m du départ dans ses 150 premiers mètres, après s'en être éloigné) ; sinon, demi-tour inutile
+	var coupe := 0
+	var eloigne := 0.0
+	for i in range(1, mini(p.size(), int(150.0 / PAS))):
+		var e := p[i].distance_to(p[0])
+		eloigne = maxf(eloigne, e)
+		if eloigne > 10.0 and e < 6.0:
+			coupe = i
+	if coupe > 0:
+		p = p.slice(coupe)
 	var n := p.size()
 	_s.resize(n); _v.resize(n)
 	_s[0] = 0.0
 	for i in range(1, n):
 		_s[i] = _s[i - 1] + p[i - 1].distance_to(p[i])
-	var vm := _vmax if mode == "poursuite" else (_vmax * FUITE_V if mode == "fuite" else 14.0)
+	var vm := _vmax if mode == "poursuite" else (minf(_vmax * FUITE_V, FUITE_MAX) if mode == "fuite" else 14.0)
 	for i in n:
 		var i0 := maxi(i - 3, 0); var i1 := mini(i + 3, n - 1)
 		var k := 0.0
@@ -327,6 +353,7 @@ func _prendre(r: PackedVector2Array) -> void:
 		_v[i] = minf(_v[i], sqrt(_v[i + 1] * _v[i + 1] + 2.0 * 6.0 * (_s[i + 1] - _s[i])))
 	_chemin = p
 	_i = 0
+	_sg = -1.0
 	_suivre()
 
 func _au(d: float) -> Array:
@@ -400,6 +427,8 @@ func _piloter(dt: float, j: Node3D, dj: float) -> void:
 		q = c[0] + Vector2(c[1].y, -c[1].x) * _off
 	else:
 		q = Vector2(xf.origin.x, xf.origin.z) + Vector2(xf.basis.z.x, xf.basis.z.z) * 10.0
+		if mode == "fuite":
+			v_cible = 12.0                       # itinéraire pas encore prêt : le fuyard démarre quand même, tout droit
 	if mode == "repli":
 		v_cible = minf(v_cible, 8.0)
 	# circulation : écart pour contourner une voiture lente ou arrêtée devant (pas le joueur en poursuite)
@@ -501,14 +530,16 @@ func _figer() -> void:
 	fige = true
 	voiture.freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
 	voiture.freeze = true
+	_sg = -1.0
 
 ## Figée : avance sur l'itinéraire à l'allure du profil (posée sur le relief).
 func _glisser(dt: float) -> void:
 	if _chemin.size() < 2:
 		return
-	var s := _s[_i]
+	var s := _sg if _sg >= 0.0 else _s[mini(_i, _s.size() - 1)]
 	var v: float = maxf(float(_au(s)[2]), 4.0) * (0.5 if mode == "repli" else 1.0)
 	s = minf(s + v * dt, _s[_s.size() - 1])
+	_sg = s
 	_i = clampi(_s.bsearch(s), 0, _s.size() - 1)
 	var c: Array = _au(s)
 	var q: Vector2 = c[0]

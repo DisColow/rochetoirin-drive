@@ -3155,19 +3155,85 @@ func _gendarme_joueur_test() -> void:
 		car.global_position.distance_to(gj.fuyard.voiture.global_position)])
 	var t := 0.0
 	var cap := false
+	var trace: Array[Vector3] = []
+	for k in range(6, int(gj.DEPART), 6):         # la route jusqu'au point de départ du fuyard
+		var rr: Array = circulation.devant(car.global_position, gj.depart_dir, float(k), -0.7)
+		if not rr.is_empty():
+			trace.append(rr[0])
+	var bloque := 0.0
+	var recul := 0.0
+	var elan := 0.0
+	var deg_prec := 0.0
 	while gj.actif and t < 150.0:
 		var f: Vector3 = gj.fuyard.voiture.global_position
+		if trace.is_empty() or trace[trace.size() - 1].distance_to(f) > 2.0:
+			trace.append(f)                       # trace du fuyard : on le suit par où il est passé
+		var p2 := car.global_position
+		while trace.size() > 2 and (trace[0].distance_to(p2) < 9.0 or trace[1].distance_to(p2) < trace[0].distance_to(p2)):
+			trace.remove_at(0)
+		if p2.distance_to(f) > 25.0 and trace.size() > 1:
+			f = trace[mini(3 + int(car.kmh() / 15.0), trace.size() - 1)]
 		var l: Vector3 = car.global_transform.affine_inverse() * f
-		car.touch_steer = clampf(atan2(l.x, l.z) * 1.5, -1.0, 1.0)
-		car.touch_throttle = 1.0 if l.z > 0.0 else 0.3
+		var st := clampf(atan2(l.x, l.z) * 1.5, -1.0, 1.0)
+		bloque = bloque + get_physics_process_delta_time() if car.kmh() < 2.0 and recul <= 0.0 else 0.0
+		if bloque > 2.0:
+			recul = 1.5; bloque = 0.0
+		if recul > 0.0:                           # coincé : marche arrière, volant inversé (comme un joueur)
+			recul -= get_physics_process_delta_time()
+			car.touch_steer = -st; car.touch_throttle = 0.0; car.touch_brake = 1.0
+		else:
+			# allure d'un joueur : vite en ligne droite, ralenti dans les virages (angle vers le point visé)
+			var v_max := 45.0 if absf(st) < 0.15 else (22.0 if absf(st) < 0.4 else (13.0 if absf(st) < 0.7 else 8.0))
+			var v: float = car.kmh() / 3.6
+			var rap: float = (car.linear_velocity - gj.fuyard.voiture.linear_velocity).dot((gj.fuyard.voiture.global_position - car.global_position).normalized())
+			if gj.degats > deg_prec or (elan < -1.0 and car.global_position.distance_to(gj.fuyard.voiture.global_position) < 6.0 and rap < 2.0):
+				elan = 1.2                            # après un choc, ou collé sans élan : on lève le pied pour reprendre de l'élan
+			deg_prec = gj.degats
+			elan -= get_physics_process_delta_time()
+			car.touch_steer = st
+			car.touch_throttle = (1.0 if l.z > 0.0 else 0.3) if v < v_max and elan <= 0.0 else 0.0
+			car.touch_brake = 0.6 if v > v_max + 4.0 else 0.0
 		await get_tree().physics_frame
 		t += get_physics_process_delta_time()
 		if not gj.actif:
 			break
 		var d := car.global_position.distance_to(gj.fuyard.voiture.global_position)
+		if t < 5.0 and fmod(t, 0.5) < get_physics_process_delta_time() and OS.get_cmdline_user_args().has("--gj-debug"):
+			var fz = gj.fuyard
+			var fx: Transform3D = fz.voiture.global_transform
+			var ch: PackedVector2Array = fz._chemin
+			var vis := "aucun"
+			if ch.size() > 1:
+				var pv: Vector2 = ch[mini(fz._i + 6, ch.size() - 1)]
+				vis = str((fx.affine_inverse() * Vector3(pv.x, fx.origin.y, pv.y)).snapped(Vector3.ONE * 0.1))
+			dire.call("    t %.1f fuyard %s cap %s, %.0f km/h, gaz %.1f vol %.2f, chemin %d (i %d), point visé (repère du fuyard) %s, joueur %s" % [t,
+				str(fx.origin.round()), str(fx.basis.z.snapped(Vector3.ONE * 0.01)), fz.voiture.kmh(), fz.voiture.touch_throttle,
+				fz.voiture.touch_steer, ch.size(), fz._i, vis, str(car.global_position.round())])
 		if fmod(t, 3.0) < get_physics_process_delta_time():
 			dire.call("t %.0f s : fuyard à %.0f m, %.0f km/h (%s%s), joueur %.0f km/h, dégâts %d %%" % [t, d, gj.fuyard.voiture.kmh(),
 				gj.fuyard.mode, " figé" if gj.fuyard.fige else "", car.kmh(), int(gj.degats)])
+			if OS.get_cmdline_user_args().has("--gj-debug"):
+				var w := car.get_world_3d().direct_space_state
+				for vv in [car, gj.fuyard.voiture]:
+					var o3: Vector3 = vv.global_position + Vector3.UP * 0.6
+					var rq := PhysicsRayQueryParameters3D.create(o3, o3 + vv.global_transform.basis.z * 6.0)
+					rq.exclude = [vv.get_rid()]
+					var hit := w.intersect_ray(rq)
+					dire.call("    %s : pos %s, gaz %.1f frein %.1f vol %.2f parking %s freeze %s, devant : %s" % [vv.name, str(vv.global_position.round()),
+						vv.touch_throttle, vv.touch_brake, vv.touch_steer, str(vv.frein_parking), str(vv.freeze),
+						(str(hit.collider.get_path()) + " à %.1f m, normale %s, méta %s" % [o3.distance_to(hit.position), str(hit.normal.snapped(Vector3.ONE * 0.01)),
+							str(hit.collider.get_meta_list())]) if hit else "rien"])
+				if t < 3.5:
+					var vue := Camera3D.new()
+					add_child(vue)
+					vue.global_position = car.global_position - car.global_transform.basis.z * 8.0 + Vector3.UP * 5.0
+					vue.look_at(car.global_position + car.global_transform.basis.z * 6.0)
+					vue.current = true
+					for k in 3:
+						await get_tree().process_frame
+					get_viewport().get_texture().get_image().save_png("user://shots/gj_depart.png")
+					vue.queue_free()
+				dire.call("    cible %s, chemin du fuyard %d points (i %d)" % [str(f.round()), gj.fuyard._chemin.size(), gj.fuyard._i])
 		if not cap and d < 14.0:
 			cap = true
 			var vue := Camera3D.new()

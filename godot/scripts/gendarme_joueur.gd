@@ -1,23 +1,30 @@
 ## Activité « Gendarme » (v7.13, #150, hypothèse 4 de l'issue) : Activités > Métiers > « Prendre le service de
 ## gendarme » (activities._gendarme_start, mode « gendarme »). Le joueur prend la voiture de la Gendarmerette
-## (voitures.gd « gendarme », habillée par gendarme.habiller : livrée, gyrophares, sirène) ; un fuyard (gendarme.gd en
-## mode « fuite », voiture ordinaire du garage) démarre DEPART m devant et file à l'opposé.
-## - Chaque choc contre le fuyard l'abîme (vitesse de rapprochement × PAR_MS %) ; à 100 % il s'arrête : interpellé.
-##   Détruit (KA-BOOM) : interpellé aussi, prime réduite.
+## (voitures.gd « gendarme », habillée par gendarme.habiller : livrée, gyrophares, sirène), posée sur la route la plus
+## proche ; un fuyard (gendarme.gd en mode « fuite », voiture ordinaire du garage) démarre DEPART m devant et file loin
+## du joueur, plutôt devant lui.
+## - Chaque choc contre le fuyard l'abîme (vitesse de rapprochement × PAR_MS %, CHOC_MAX % au plus) ; à 100 % il s'arrête : interpellé.
+##   Détruit (KA-BOOM) : interpellé aussi, prime réduite. Coincé (arrêté à moins de COINCE_D m de la Gendarmerette
+##   pendant COINCE_T s) : interpellé.
 ## - Perdu : plus de PERDU m pendant PERDU_T s, ou plus de DUREE s.
 ## - Prime : BASE + TEMPS € par seconde d'avance sur DUREE.
 ## Essai : --drive-test --gendarme-joueur-test (essais.gd).
 extends Node
 
 const Gendarme := preload("res://scripts/gendarme.gd")
+const Relief := preload("res://scripts/relief.gd")
 const DEPART := 60.0
 const PAR_MS := 6.0                 # % de dégâts par m/s de rapprochement
 const CHOC_MIN := 3.0               # m/s
+const CHOC_MAX := 40.0              # % au plus par choc : il faut s'y reprendre à trois fois au moins
+const ELAN := 20.0                  # m/s : vitesse du fuyard au départ (il démarre lancé)
 const PERDU := 450.0
 const PERDU_T := 12.0
 const DUREE := 180.0
 const BASE := 120.0
 const TEMPS := 1.0
+const COINCE_D := 7.0                # fuyard immobilisé contre la Gendarmerette (m)…
+const COINCE_T := 3.0                # … pendant ce temps (s) : interpellé
 const MODELES := ["r5", "clio", "p206", "twingo"]
 
 var main: Node
@@ -27,11 +34,13 @@ var degats := 0.0
 var t := 0.0
 var interpelle := false
 var _perdu_t := 0.0
+var _coince_t := 0.0
 var _choc_cd := 0.0
 var _rel_prec := 0.0
 var _gyro: Array = []
 var _lueur: OmniLight3D
 var _sirene: AudioStreamPlayer3D
+var depart_dir := Vector3.FORWARD                 # sens de départ (essai : route jusqu'au fuyard)
 
 func _act():
 	return main.activities
@@ -42,14 +51,27 @@ func demarrer() -> bool:
 	# route devant la voiture, sinon dans une autre direction (voiture en travers, sur un parking…)
 	var r: Array = []
 	var f: Vector3 = car.global_transform.basis.z
-	var p0: Vector3 = circ.point_route(car.global_position) if circ else car.global_position     # route la plus proche
-	for k in 8:
-		if circ == null or not r.is_empty():
+	if circ == null:
+		return false
+	var vp: Array = circ.voie_proche(car.global_position)     # route la plus proche
+	var p0: Vector3 = vp[0]
+	var d0: Vector3 = vp[1]
+	if d0 == Vector3.ZERO:
+		return false
+	for k: int in [0, 1, -1, 2, -2, 3, -3, 4]:          # devant d'abord
+		if not r.is_empty():
 			break
-		r = circ.devant(p0, f.rotated(Vector3.UP, k * PI / 4.0), DEPART, -0.7)     # tous les virages, pas de demi-tour
+		depart_dir = f.rotated(Vector3.UP, k * PI / 4.0)
+		r = circ.devant(p0, depart_dir, DEPART, -0.7)     # tous les virages, pas de demi-tour
 	if r.is_empty():
 		return false
 	car.construire("gendarme")
+	# prise de service : la Gendarmerette sur la route, dans le sens du fuyard (pas dans un parking ou contre un mur)
+	if d0.dot(depart_dir) < 0.0:
+		d0 = -d0
+	var y := Relief.hauteur(p0)
+	car.place(Vector3(p0.x, (p0.y if is_nan(y) else maxf(p0.y, y)) + 0.4, p0.z), rad_to_deg(atan2(d0.x, -d0.z)))
+	car.hold(0.3)
 	var h := Gendarme.habiller(car, Color(0.1, 0.17, 0.42))
 	_gyro = h.gyro; _lueur = h.lueur; _sirene = h.sirene
 	_sirene.volume_db = -8.0                      # la sienne : moins forte que celles des autres
@@ -65,8 +87,14 @@ func demarrer() -> bool:
 	var q: Vector3 = r[0]
 	var dir: Vector2 = r[1]
 	fuyard.poser(Vector2(q.x, q.z), Vector2(q.x, q.z) + dir * 10.0)
-	fuyard._degeler()
-	degats = 0.0; t = 0.0; interpelle = false; _perdu_t = 0.0
+	var tr: PackedVector2Array = circ.trajet(q, Vector3(dir.x, 0.0, dir.y), 350.0)    # premier trajet : la route devant lui
+	if tr.size() >= 10:
+		fuyard._prendre(tr)
+		fuyard._replan_t = 10.0
+	fuyard._degeler()                              # lancé à l'allure de son trajet…
+	if fuyard.voiture.linear_velocity.length() > ELAN:
+		fuyard.voiture.linear_velocity = fuyard.voiture.linear_velocity.normalized() * ELAN     # … ELAN m/s au plus
+	degats = 0.0; t = 0.0; interpelle = false; _perdu_t = 0.0; _coince_t = 0.0
 	actif = true
 	return true
 
@@ -96,12 +124,16 @@ func process(dt: float) -> void:
 	act.marks = [{p = Vector2(fv.x, fv.z), col = Color(1.0, 0.3, 0.25), txt = "!", gps = true}]
 	var d := car.global_position.distance_to(fv)
 	_perdu_t = _perdu_t + dt if d > PERDU else 0.0
+	_coince_t = _coince_t + dt if d < COINCE_D and fuyard.voiture.linear_velocity.length() < 1.5 else 0.0
 	act._set_status("GENDARME · fuyard à %d m · dégâts %d %% · %s" % [int(d), int(degats), _mmss(DUREE - t)])
 	if fuyard.blown and not interpelle:
 		_fin(true, "Le fuyard est hors d'état de nuire… sa voiture aussi !")
 	elif degats >= 100.0 and not interpelle:
 		fuyard.mode = "arret"
 		_fin(true, "Fuyard immobilisé et interpellé !")
+	elif _coince_t > COINCE_T and not interpelle:
+		fuyard.mode = "arret"
+		_fin(true, "Fuyard coincé et interpellé !")
 	elif _perdu_t > PERDU_T or t > DUREE:
 		_fin(false, "Le fuyard vous a semé…")
 
@@ -145,6 +177,6 @@ func _physics_process(dt: float) -> void:
 	if r < CHOC_MIN:
 		return
 	_choc_cd = 0.6
-	degats = minf(degats + r * PAR_MS, 100.0)
+	degats = minf(degats + minf(r * PAR_MS, CHOC_MAX), 100.0)
 	main.get_node("HUD").toast("Choc ! Fuyard abîmé à %d %%" % int(degats), 1.5)
 	print("[gendarme] choc à %.1f m/s : dégâts %d %%" % [r, int(degats)])

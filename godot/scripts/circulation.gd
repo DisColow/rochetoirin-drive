@@ -623,10 +623,16 @@ func limite(p: Vector3, r := 10.0) -> float:
 
 ## Livreur (#151) : point de l'axe de route le plus proche de p (à moins de r m, cases voisines comprises) ; p sinon.
 func point_route(p: Vector3, r := 80.0) -> Vector3:
+	return voie_proche(p, r)[0]
+
+## Point le plus proche de p sur une voie (cases voisines, à r m au plus) et direction de ce segment de voie :
+## [point (p si rien), direction (Vector3, nulle si rien)].
+func voie_proche(p: Vector3, r := 80.0) -> Array:
 	if not ok:
-		return p
+		return [p, Vector3.ZERO]
 	var bd := r * r
 	var best := p
+	var dir := Vector3.ZERO
 	var c := Vector2i(floori(p.x / CASE), floori(p.z / CASE))
 	for dx in range(-1, 2):
 		for dz in range(-1, 2):
@@ -639,13 +645,62 @@ func point_route(p: Vector3, r := 80.0) -> Vector3:
 					var q := a + ab * f
 					var d := Vector2(q.x - p.x, q.z - p.z).length_squared()
 					if d < bd:
-						bd = d; best = q
-	return best
+						bd = d; best = q; dir = Vector3(ab.x, 0.0, ab.z).normalized()
+	return [best, dir]
 
 ## Gendarmes (#150, barrage) : point de la route `d` m devant p dans le sens de marche `dir` (voie la plus proche
-## orientée comme dir, puis tout droit autant que possible aux carrefours, virages de cosinus `droit` au moins) :
-## [position, direction (Vector2)] ; vide si aucune voie ou impasse avant `d` m.
-func devant(p: Vector3, dir: Vector3, d: float, droit := 0.3) -> Array:
+## orientée comme dir, puis tout droit autant que possible aux carrefours, virages de cosinus `droit` au moins ; avec
+## la probabilité `hasard`, une autre sortie permise du carrefour) : [position, direction (Vector2)] ; vide si aucune
+## voie ou impasse avant `d` m.
+func devant(p: Vector3, dir: Vector3, d: float, droit := 0.3, hasard := 0.0) -> Array:
+	var vs := _voie_vers(p, dir)
+	if vs.is_empty():
+		return []
+	var voie: int = vs[0]
+	var s: float = vs[1]
+	var reste := d
+	for _n in 30:
+		var L := _longueur(voie)
+		if s + reste <= L:
+			var g := _geo(voie, s + reste, 0)
+			var k := voie >> 1
+			# milieu de la chaussée : la position de la voie de droite décalée de dl vers la gauche
+			var t: Vector2 = g[1]
+			return [(g[0] as Vector3) + Vector3(t.y, 0.0, -t.x) * _dl[k], t]
+		reste -= L - s
+		s = 0.0
+		voie = _sortie(voie, droit, hasard)
+		if voie < 0:
+			return []
+	return []
+
+## Fuyard de l'activité « Gendarme » (v7.13) : trajet sur la voie de droite depuis p dans le sens `dir`, `d` m au plus
+## (moins avant une impasse), un point tous les `pas` m ; carrefours comme `devant`. Sans le graphe de l'itinéraire :
+## ses nœuds ne sont qu'aux carrefours, et le plus proche d'un but en pleine ligne droite peut être derrière soi.
+func trajet(p: Vector3, dir: Vector3, d: float, droit := -0.7, hasard := 0.5, pas := 4.0) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var vs := _voie_vers(p, dir)
+	if vs.is_empty():
+		return out
+	var voie: int = vs[0]
+	var s: float = vs[1]
+	var fait := 0.0
+	for _n in 40:
+		var L := _longueur(voie)
+		while s <= L and fait <= d:
+			var g: Vector3 = _geo(voie, s, 0)[0]
+			out.append(Vector2(g.x, g.z))
+			s += pas; fait += pas
+		if fait > d:
+			break
+		s -= L
+		voie = _sortie(voie, droit, hasard)
+		if voie < 0:
+			break
+	return out
+
+## Voie la plus proche de p (12 m, même case) orientée comme dir : [voie, abscisse] ou [].
+func _voie_vers(p: Vector3, dir: Vector3) -> Array:
 	if not ok:
 		return []
 	var d2 := Vector2(dir.x, dir.z).normalized()
@@ -665,34 +720,30 @@ func devant(p: Vector3, dir: Vector3, d: float, droit := 0.3) -> Array:
 				voie = (k << 1) | sens
 				var sk := c[i - _p0[k]] + ab.length() * f
 				s = sk if sens == 0 else c[c.size() - 1] - sk
-	if voie < 0:
-		return []
-	var reste := d
-	for _n in 30:
-		var L := _longueur(voie)
-		if s + reste <= L:
-			var g := _geo(voie, s + reste, 0)
-			var k := voie >> 1
-			# milieu de la chaussée : la position de la voie de droite décalée de dl vers la gauche
-			var t: Vector2 = g[1]
-			return [(g[0] as Vector3) + Vector3(t.y, 0.0, -t.x) * _dl[k], t]
-		reste -= L - s
-		s = 0.0
-		var n := _noeud_fin(voie)
-		var t_fin: Vector2 = _geo(voie, L, 0)[1]
-		var meilleur := -1
-		var md := -INF
-		for i in range(_sort_debut[n], _sort_debut[n + 1]):
-			var w := _sort[i]
-			if w == voie ^ 1:
-				continue
-			var dd := t_fin.dot(_geo(w, 0.0, 0)[1])
-			if dd > md:
-				md = dd; meilleur = w
-		if meilleur < 0 or md < droit:              # droit : cosinus minimal du virage au carrefour
-			return []
-		voie = meilleur
-	return []
+	return [voie, s] if voie >= 0 else []
+
+## Sortie du carrefour au bout de `voie` : la plus droite (pas de demi-tour), ou avec la probabilité `hasard` une autre
+## sortie dont le virage a un cosinus d'au moins `droit` ; -1 si aucune (impasse, virage trop serré).
+func _sortie(voie: int, droit: float, hasard: float) -> int:
+	var n := _noeud_fin(voie)
+	var t_fin: Vector2 = _geo(voie, _longueur(voie), 0)[1]
+	var meilleur := -1
+	var md := -INF
+	var permises: Array[int] = []
+	for i in range(_sort_debut[n], _sort_debut[n + 1]):
+		var w := _sort[i]
+		if w == voie ^ 1:
+			continue
+		var dd := t_fin.dot(_geo(w, 0.0, 0)[1])
+		if dd >= droit:
+			permises.append(w)
+		if dd > md:
+			md = dd; meilleur = w
+	if meilleur < 0 or md < droit:              # droit : cosinus minimal du virage au carrefour
+		return -1
+	if permises.size() > 1 and randf() < hasard:
+		meilleur = permises[randi() % permises.size()]
+	return meilleur
 
 ## Gendarmes (#150) : feu rouge franchi en allant de p0 à p1 (deux positions successives du joueur) : passage de la
 ## ligne du nœud du feu (à moins de 7 m de côté) dans le sens d'arrivée de la voie, feu au rouge (orange toléré).
