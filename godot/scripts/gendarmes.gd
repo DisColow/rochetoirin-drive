@@ -217,7 +217,8 @@ func _physics_process(dt: float) -> void:
 			actifs += 1
 	_renfort_t -= dt
 	# renforts appelés par ceux qui vous voient ; plus personne à vos trousses : une voiture vient fouiller le secteur
-	if _renfort_t <= 0.0 and ((actifs < etoiles and _vu_t < 3.0) or actifs == 0):
+	var fouille := actifs == 0 and _vu_pos.is_finite() and _vu_pos.distance_to(p) < R_DISPARITION - 150.0
+	if _renfort_t <= 0.0 and ((actifs < etoiles and _vu_t < 3.0) or fouille):
 		_renfort_t = RENFORT
 		_apparaitre("poursuite")
 	_poursuite(dt, car, p)
