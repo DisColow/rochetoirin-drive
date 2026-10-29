@@ -17,6 +17,7 @@ extends Node
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const Gendarme := preload("res://scripts/gendarme.gd")
+const Helico := preload("res://scripts/helico_gendarme.gd")
 const VU := 120.0
 const SEMER_D := 250.0
 const SEMER_T := 20.0
@@ -53,6 +54,8 @@ var _renfort_t := 0.0
 var _barrage_t := 10.0
 var barrages := 0                   # barrages posés (essais)
 var dernier_barrage: Array = []     # [milieu de la chaussée, direction de la route] (essais)
+var helico: Node3D                  # v7.12 : hélicoptère à 3 étoiles (helico_gendarme.gd)
+var _helico_t := 8.0                # attente avant son arrivée (et entre deux passages : le plein)
 var _prec := Vector3.INF
 var _vit_t := 0.0
 var _infr_t := 0.0                  # délai entre deux infractions comptées
@@ -214,6 +217,7 @@ func _pas(dt: float) -> void:
 		return
 	var p: Vector3 = cible().global_position
 	_menage(p)
+	_helicoptere(dt, p)                   # arrivée, départ et retrait, même après la poursuite
 	if not _libre():
 		if etoiles > 0 or not liste.is_empty():
 			_fin("")
@@ -298,6 +302,28 @@ func _barrer(dt: float, car: Node, p: Vector3) -> void:
 	print("[gendarmes] barrage à %.0f m devant" % q.distance_to(p))
 	_radio("À toutes les patrouilles : barrage en place, %s." % _lieu(q))
 
+## v7.12 : à 3 étoiles, l'hélicoptère arrive (après _helico_t s) et voit le joueur de haut ; au bout de Helico.DUREE s
+## il repart faire le plein (de retour 60 s plus tard s'il y a encore 3 étoiles).
+func _helicoptere(dt: float, p: Vector3) -> void:
+	if is_instance_valid(helico):
+		if not helico.depart and (etoiles < 3 or helico.age > Helico.DUREE):
+			helico.depart = true
+			if etoiles >= 3:
+				_radio("Hélicoptère : retour à la base pour le plein.")
+		if helico.depart and helico.global_position.distance_to(p) > 900.0:
+			helico.queue_free()
+			helico = null
+			_helico_t = 60.0
+		return
+	_helico_t -= dt
+	if etoiles >= 3 and _helico_t <= 0.0 and _libre():
+		helico = Helico.new()
+		helico.main = main
+		add_child(helico)
+		helico.poser(p, (main.car as RigidBody3D).linear_velocity)
+		print("[gendarmes] hélicoptère en route")
+		_radio("Hélicoptère de la Gendarmerette en route, %s." % _lieu(p))
+
 ## Pendant la poursuite : vu ou non, arrestation, semés, bandeau.
 func _poursuite(dt: float, car: Node, p: Vector3) -> void:
 	var dmin := INF
@@ -310,6 +336,8 @@ func _poursuite(dt: float, car: Node, p: Vector3) -> void:
 		dmin = minf(dmin, d)
 		if d < SEMER_D and (d < 40.0 or g.en_vue(q, p)):
 			vu = true
+	if is_instance_valid(helico) and helico.voit(p):
+		vu = true                          # vu d'en haut
 	_vu_t = 0.0 if vu else _vu_t + dt
 	if vu:
 		_vu_pos = p
@@ -353,6 +381,8 @@ func _radio(t: String) -> void:
 	var r = main.get("radio")
 	if r and r.has_method("message_gendarmes"):
 		r.message_gendarmes(t)
+	if r and int(r.get("station")) >= 0:             # v7.12 : sous-titre (pas de synthèse vocale sur tous les appareils)
+		main.get_node("HUD").toast("Radio : « %s »" % t, 4.0)
 
 func _vehicule() -> String:
 	var V := preload("res://scripts/voitures.gd")
@@ -386,6 +416,8 @@ func _fin(msg: String) -> void:
 		if is_instance_valid(g) and not g.blown:
 			g.mode = "repli"
 			g.voir_gyros(false)
+	if is_instance_valid(helico):
+		helico.depart = true
 
 ## Gendarmes détruits (explosion : rendus après 4 s), loin, ou repliés hors de vue : retirés.
 func _menage(p: Vector3) -> void:
