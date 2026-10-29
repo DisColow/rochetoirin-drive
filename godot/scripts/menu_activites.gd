@@ -279,6 +279,10 @@ func _taxi() -> void:
 	_texte(v, "Ligne de bus : prenez le volant du bus de ville et desservez 6 arrêts. Arrêtez la porte avant au "
 		+ "niveau du poteau, laissez monter les voyageurs, soyez à l'heure.")
 	_bouton(v, "Prendre une ligne de bus", act._bus_start)
+	# #151 : livreur de repas (livreur.gd)
+	_texte(v, "Livreur : récupérez 3 commandes dans les restaurants du coin et livrez-les à l'heure, sans renverser "
+		+ "le repas. Pourboire si vous êtes en avance.")
+	_bouton(v, "Livrer des repas", act._livreur_start)
 
 func _chasse() -> void:
 	var v := _colonne()

@@ -318,6 +318,8 @@ func _stop() -> void:
 		main.balade.arreter()
 	if main.get("ligne_bus") and main.ligne_bus.actif:
 		main.ligne_bus.arreter()
+	if main.get("livreur") and main.livreur.actif:
+		main.livreur.arreter()
 	_fin_concurrents(0.0)
 	_course_ia = false
 	if main.net and main.net.armes:
@@ -1049,6 +1051,19 @@ func _bus_start() -> void:
 	hud.toast("%s : %d arrêts, de %s à %s. Suivez le GPS." % [lb.ligne if lb.ligne != "" else "Vous prenez le volant du bus",
 		lb.arrets.size(), lb.noms[0], lb.noms[-1]], 5.0)
 
+## #151 : livreur de repas (livreur.gd), avec sa propre voiture.
+func _livreur_start() -> void:
+	_close_menu()
+	_stop()
+	if not main.livreur.demarrer():
+		_set_status("Pas de restaurant près d'ici : allez en ville (Bourgoin-Jallieu, La Tour-du-Pin…).")
+		_status_t = 6.0
+		return
+	mode = "livreur"
+	map.locked = true             # pas de téléportation pendant la tournée
+	hud._show_drive(true)
+	hud.toast("Tournée de %d livraisons. Première commande : %s. Suivez le GPS." % [main.livreur.NB, main.livreur.resto.nom], 5.0)
+
 func _taxi_start() -> void:
 	_close_menu()
 	_clear_world()
@@ -1490,6 +1505,8 @@ func _process_corps(dt: float) -> void:
 			_taxi_process(dt)
 		"bus":
 			main.ligne_bus.process(dt)
+		"livreur":
+			main.livreur.process(dt)
 
 func _physics_process(dt: float) -> void:
 	if get_tree().paused or car == null or mode != "taxi" or _phase != "course":

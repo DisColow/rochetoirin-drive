@@ -298,6 +298,16 @@
   à 15 m. Caméra poursuite reculée d'après `car.gabarit.z` (`camera_rig.gd`). Essai
   `--fixed-fps 8 -- --drive-test --ligne-bus-test --drive-from=-10975,236,-1100,90` (bus posé en amont de chaque arrêt
   et conduit jusqu'au poteau, capture `ligne_bus.png`).
+- **Livreur de repas** (v7.09, #151, initiative de Claude, `scripts/livreur.gd`, Activités > Taxi > « Livrer des
+  repas », `activities._livreur_start`, mode « livreur », sa propre voiture) : `NB` livraisons ; restaurant au hasard
+  parmi les 4 plus proches (`world/restos.json` de `pipeline/build_restos.py` : points OSM restaurant/fast_food, nom
+  de l'enseigne en jeu tiré comme `build_shops.sign_for` ; publié sur `donnees`), arrêt à `R_PRISE` m ; adresse =
+  nœud du graphe routier à `D_MIN`-`D_MAX` m sur une vraie rue (`_rue` : sans numéro de route, ni voie de service ni
+  chemin de terre ; limite ≤ 70 km/h), numéro au hasard ; délai = distance × `DETOUR` / `V_DELAI` + `MARGE` ; état du
+  repas −`CHOC` par choc (téléportation ignorée : saut de plus de 10 m), refus sous `REFUS` ; paiement `BASE` +
+  `PAR_KM` + pourboire selon l'avance, moitié en retard. Succès `tournees`, `livraisons`. Essai `--fixed-fps 8 --
+  --drive-test --livreur-test --drive-from=-10975,236,-1100,90` (à l'heure, deux chocs, en retard ; capture
+  `livreur.png`).
 - **Gendarmes** (v7.05, #150, initiative de Claude ; voiture et règles en attente du choix de l'utilisateur : planche
   `docs/apercus/planche_police.jpg`, A Focus de gendarmerie ou B 306 du garage repeinte ; voiture provisoire = B,
   `modele` « p306 » repeinte `couleur`) : `scripts/gendarmes.gd` (`main.gendarmes`, ⚙ > Conduite > Gendarmes,

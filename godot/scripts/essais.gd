@@ -495,6 +495,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_gendarmes_test()
 		return
+	if OS.get_cmdline_user_args().has("--livreur-test"):
+		if t == 300:
+			_livreur_test()
+		return
 	if OS.get_cmdline_user_args().has("--bus-test"):
 		if t == 300:
 			_bus_test()
@@ -3074,6 +3078,75 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Livreur de repas (#151) : -- --drive-test --livreur-test --drive-from=-10975,236,-1100,90. Trois livraisons,
+## voiture posée sur la route au plus près du restaurant puis de l'adresse : 1) à l'heure ; 2) après deux chocs ;
+## 3) en retard. Capture livreur.png à la première adresse.
+func _livreur_test() -> void:
+	var lv = livreur
+	var dire := func(x: String): print("  [livreur] " + x)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	for k in 120:
+		await get_tree().process_frame
+	var argent0: float = garage.argent
+	dire.call("%d restaurants chargés" % lv.restos.size())
+	activities._livreur_start()
+	if not lv.actif:
+		dire.call("ÉCHEC : tournée non démarrée")
+		get_tree().quit()
+		return
+	var it = preload("res://scripts/itineraire.gd").new()
+	var sur_route := func(q: Vector3) -> Vector3:
+		var i: int = it.plus_proche(Vector2(q.x, q.z))
+		var r := Vector3(it.nx[i], 0.0, it.nz[i])
+		var h := Relief.hauteur(r)
+		r.y = (h if is_finite(h) else car.global_position.y) + 0.6
+		return r
+	for k in lv.NB:
+		dire.call("commande %d : %s (%s), à %.0f m" % [k + 1, lv.resto.nom, lv.resto_rue, Vector2(lv.resto.x - car.global_position.x, lv.resto.z - car.global_position.z).length()])
+		await _teleport(sur_route.call(lv.cible()), 0.0)
+		var t := 0.0
+		while lv.phase == "resto" and t < 10.0:
+			car.frein_parking = true
+			await get_tree().physics_frame
+			t += get_physics_process_delta_time()
+		if lv.phase != "client":
+			dire.call("ÉCHEC : commande %d non récupérée (phase %s, à %.0f m)" % [k + 1, lv.phase, car.global_position.distance_to(lv.cible())])
+			break
+		dire.call("  récupérée en %.1f s : livrer au %s, à %.0f m, délai %s" % [t, lv.adresse,
+			Vector2(lv.dest.x - car.global_position.x, lv.dest.z - car.global_position.z).length(), lv._mmss(lv.delai)])
+		if k == 1:                                  # deux chocs
+			for c in 2:
+				car.frein_parking = false
+				car.linear_velocity = car.global_transform.basis.z * 8.0
+				await get_tree().physics_frame
+				car.linear_velocity = Vector3.ZERO
+				var tc := 0.0
+				while tc < 1.3:                       # au-delà du délai entre deux chocs comptés
+					await get_tree().physics_frame
+					tc += get_physics_process_delta_time()
+			dire.call("  après deux chocs : repas %d %%" % int(lv.etat))
+		if k == 2:
+			lv.t = lv.delai + 15.0                    # en retard
+		await _teleport(sur_route.call(lv.dest), 0.0)
+		var n0: int = lv.n
+		t = 0.0
+		while lv.actif and lv.n == n0 and t < 10.0:
+			car.frein_parking = true
+			await get_tree().physics_frame
+			t += get_physics_process_delta_time()
+			if k == 0 and t > 1.2 and t < 1.3:
+				get_viewport().get_texture().get_image().save_png("user://shots/livreur.png")
+		dire.call("  livraison %d : %s" % [k + 1, "faite" if lv.n > n0 or not lv.actif else "ÉCHEC (pas livrée : à %.1f m de l'adresse, %.1f km/h, repas %d %%)" % [
+			Vector2(car.global_position.x - lv.dest.x, car.global_position.z - lv.dest.z).length(), car.kmh(), int(lv.etat)]])
+	car.frein_parking = false
+	dire.call("fin : actif %s, %d livrées, %d en retard, %d refusées, gain %.2f €, argent %+.2f €, statut « %s »" % [str(lv.actif),
+		lv.livrees, lv.en_retard, lv.refusees, lv.gain, garage.argent - argent0, activities._status_l.text])
+	print("  [livreur] FIN")
+	get_tree().quit()
 
 ## Gendarmes (#150) : -- --drive-test --gendarmes-test --drive-from=-10975,236,-1100,90 (en ville). 1) patrouille
 ## posée 30 m derrière le joueur, qui accélère à fond sur sa voie : excès de vitesse vu, poursuite ; 2) le joueur
