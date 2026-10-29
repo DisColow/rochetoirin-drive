@@ -88,8 +88,7 @@ void fragment() {
 
 func _repeindre() -> void:
 	if voiture._paint_mat:
-		voiture._paint_mat.albedo_color = couleur
-		return
+		voiture._paint_mat.albedo_color = couleur          # carrosserie « paint » (sans effet sinon)
 	var corps: Node3D = voiture.get("_body")
 	if corps == null:
 		return
