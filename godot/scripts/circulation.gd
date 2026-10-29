@@ -594,6 +594,17 @@ func voie_arret(arret: Vector3, avant := 35.0) -> Array:
 						s += 2.0
 	return best
 
+## Arrêt ramené au bord de la voie qui le longe (quai d'OSM en retrait, ligne Ruban #149) : à hauteur du quai, de 1,5 à
+## `ecart` m à droite de l'axe de la voie ; inchangé s'il n'y a pas de voie.
+func bord_arret(arret: Vector3, ecart := 3.2) -> Vector3:
+	var va := voie_arret(arret, 0.0)
+	if va.is_empty():
+		return arret
+	var g := _geo(int(va[0]), float(va[1]), 0)
+	var p0: Vector3 = g[0]
+	var droite := Vector3(g[1].x, 0.0, g[1].y).cross(Vector3.UP).normalized()
+	return p0 + droite * clampf((arret - p0).dot(droite), 1.5, ecart)
+
 func _creer(voie: int, s: float, rang: int, m: int, g: Array) -> void:
 	var k := voie >> 1
 	var L := _longueur(voie)

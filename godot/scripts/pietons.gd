@@ -337,7 +337,8 @@ func bus_a_l_arret(p: Vector3, porte: Vector3, nb_desc := -1) -> Array:
 	var m0 := 0
 	var marche := 0.0
 	for c in passants:
-		if (_genre[int(c.l)] == 4 or c.has("arret")) and (c.n as Node3D).global_position.distance_to(p) < 15.0 and not c.has("monte"):
+		if (_genre[int(c.l)] == 4 or c.has("arret")) and (c.n as Node3D).global_position.distance_to(p) < (25.0 if c.has("arret") else 15.0) \
+				and not c.has("monte"):
 			c.monte = porte
 			c.pause = 0.0
 			m0 += 1

@@ -184,8 +184,12 @@ func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
 	if meilleur.size() < 4:
 		return false
 	arrets.clear()
+	var ci2 = main.get("circulation")
 	for e in meilleur:
-		arrets.append(_pos_ruban[int(e[0])])
+		var q: Vector3 = _pos_ruban[int(e[0])]
+		if int(e[0]) >= tous.size() and ci2 and ci2.ok:   # quai d'OSM : poteau ramené au bord de la voie
+			q = ci2.bord_arret(q)
+		arrets.append(q)
 		noms.append(String(e[1]) if String(e[1]) != "" else "Arrêt %d" % (noms.size() + 1))
 	ligne = "LIGNE %s · %s" % [_lignes[m_li].ref, _lignes[m_li].nom]
 	return true
@@ -289,7 +293,7 @@ func process(dt: float) -> void:
 	if d < PEUPLER and _peuple != i:
 		_peuple = i
 		if _attendent > 0:                               # au terminus, personne ne monte
-			main.pietons.peupler_arret(q, _attendent)
+			_attendent = main.pietons.peupler_arret(q, _attendent)    # ceux qui ont pu être posés
 	if _demande and not _sonne and d < 250.0 and phase == "route" and i < arrets.size() - 1:
 		_sonne = true
 		_sonnette()
