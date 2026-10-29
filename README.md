@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v7.08.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.08/RochetoirinSimulator-v7.08.apk)**
+**[RochetoirinSimulator-v7.09.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.09/RochetoirinSimulator-v7.09.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,9 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.08 :
-- **Gendarmes** : à 3 étoiles, la Gendarmerette dresse des **barrages** : deux voitures en travers de la route,
-  gyrophares allumés, quelques centaines de mètres devant vous. Contournez-les… ou tentez de passer.
+Nouveautés de la v7.09 :
+- **Livreur de repas** (Activités > Taxi) : récupérez des commandes dans les vrais restaurants du coin et livrez-les
+  à l'heure à des adresses de Bourgoin-Jallieu et des environs. Chaque choc abîme le repas ; en avance, pourboire.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
