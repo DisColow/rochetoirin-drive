@@ -3094,18 +3094,18 @@ func _gendarmes_test() -> void:
 	var argent0: float = garage.argent
 	var p0 := car.global_position
 	dire.call("vitesse autorisée ici : %.0f km/h, permis : %s" % [ci.limite(p0), str(gd._permis())])
-	# rue limitée à 50 km/h, la plus droite des longues voies à moins de 400 m (300 m droit devant)
+	# rue limitée à 50 km/h, la plus droite des longues voies à moins de 400 m (140 m droit devant)
 	var voie := -1
 	var meilleur := INF
 	var c0 := Vector2i(floori(p0.x / ci.CASE), floori(p0.z / ci.CASE))
 	for dx in range(-3, 4):
 		for dz in range(-3, 4):
 			for k: int in ci._grille.get(c0 + Vector2i(dx, dz), PackedInt32Array()):
-				if ci._v[k] * 3.6 > 55.0 or ci._longueur(k << 1) < 320.0:
+				if ci._v[k] * 3.6 > 55.0 or ci._longueur(k << 1) < 170.0:
 					continue
 				var a: Vector3 = ci._geo(k << 1, 20.0, 0)[0]
-				var b: Vector3 = ci._geo(k << 1, 320.0, 0)[0]
-				var ecart := 300.0 - Vector2(b.x - a.x, b.z - a.z).length()      # sinueuse : plus courte à vol d'oiseau
+				var b: Vector3 = ci._geo(k << 1, 160.0, 0)[0]
+				var ecart := 140.0 - Vector2(b.x - a.x, b.z - a.z).length()      # sinueuse : plus courte à vol d'oiseau
 				var sc := ecart * 10.0 + a.distance_to(p0) * 0.1
 				if a.distance_to(p0) < 400.0 and sc < meilleur:
 					meilleur = sc; voie = k << 1
@@ -3113,7 +3113,7 @@ func _gendarmes_test() -> void:
 		dire.call("ÉCHEC : aucune longue rue à 50 km/h ici")
 		get_tree().quit()
 		return
-	var sa := 40.0
+	var sa := 30.0
 	var gj: Array = ci._geo(voie, sa, 0)
 	var gg: Array = ci._geo(voie, sa - 30.0, 0)
 	await _teleport((gj[0] as Vector3) + Vector3.UP * 0.6, rad_to_deg(atan2(gj[1].x, -gj[1].y)))
