@@ -294,6 +294,25 @@ func _open_settings() -> void:
 					if c is Button:
 						c.button_pressed = c == b)
 			hc.add_child(b)
+	# gendarmes (#150) : patrouilles et courses-poursuites en balade libre
+	var gd = get_parent().get("gendarmes")
+	if gd:
+		var b_gd := Button.new()
+		b_gd.toggle_mode = true
+		b_gd.button_pressed = gd.actif
+		b_gd.custom_minimum_size = Vector2(560, 70)
+		b_gd.add_theme_font_size_override("font_size", 28)
+		b_gd.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var etat_gd := func(on: bool):
+			b_gd.icon = _pastille(Color(0.25, 0.9, 0.35) if on else Color(0.45, 0.45, 0.48))
+			b_gd.text = "  Gendarmes (courses-poursuites) : " + ("ACTIVÉS" if on else "désactivés")
+		etat_gd.call(b_gd.button_pressed)
+		b_gd.toggled.connect(func(on: bool):
+			etat_gd.call(on)
+			gd.set_actif(on)
+			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+			cfg.set_value("conduite", "gendarmes", on); cfg.save("user://reglages.cfg"))
+		v.add_child(b_gd)
 	# son : volumes de l'ambiance, des effets (voiture, voix) et de la musique (radio), de 0 à 150 %
 	var ls := Label.new(); ls.text = "Son"; ls.add_theme_font_size_override("font_size", 30); v.add_child(ls)
 	var hs := HBoxContainer.new(); hs.add_theme_constant_override("separation", 24); v.add_child(hs)

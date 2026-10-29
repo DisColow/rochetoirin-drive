@@ -491,6 +491,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_ligne_bus_test()
 		return
+	if OS.get_cmdline_user_args().has("--gendarmes-test"):
+		if t == 300:
+			_gendarmes_test()
+		return
 	if OS.get_cmdline_user_args().has("--bus-test"):
 		if t == 300:
 			_bus_test()
@@ -3070,6 +3074,143 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Gendarmes (#150) : -- --drive-test --gendarmes-test --drive-from=-10975,236,-1100,90 (en ville). 1) patrouille
+## posée 30 m derrière le joueur, qui accélère à fond sur sa voie : excès de vitesse vu, poursuite ; 2) le joueur
+## s'arrête : le gendarme arrive (capture gendarmes.png), arrestation et amende ; 3) nouvelle infraction (gendarme
+## embouti), le joueur est téléporté à 700 m : les gendarmes cherchent où il a été vu, semés au bout de 20 s.
+func _gendarmes_test() -> void:
+	var gd = gendarmes
+	var ci = circulation
+	var dire := func(x: String): print("  [gendarmes] " + x)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	ci.set_densite(1)
+	for k in 120:
+		await get_tree().process_frame
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://shots/gendarmes.png"))
+	var argent0: float = garage.argent
+	var p0 := car.global_position
+	dire.call("vitesse autorisée ici : %.0f km/h, permis : %s" % [ci.limite(p0), str(gd._permis())])
+	# rue limitée à 50 km/h, la plus droite des longues voies à moins de 400 m (140 m droit devant)
+	var voie := -1
+	var meilleur := INF
+	var c0 := Vector2i(floori(p0.x / ci.CASE), floori(p0.z / ci.CASE))
+	for dx in range(-3, 4):
+		for dz in range(-3, 4):
+			for k: int in ci._grille.get(c0 + Vector2i(dx, dz), PackedInt32Array()):
+				if ci._v[k] * 3.6 > 55.0 or ci._longueur(k << 1) < 170.0:
+					continue
+				var a: Vector3 = ci._geo(k << 1, 20.0, 0)[0]
+				var b: Vector3 = ci._geo(k << 1, 160.0, 0)[0]
+				var ecart := 140.0 - Vector2(b.x - a.x, b.z - a.z).length()      # sinueuse : plus courte à vol d'oiseau
+				var sc := ecart * 10.0 + a.distance_to(p0) * 0.1
+				if a.distance_to(p0) < 400.0 and sc < meilleur:
+					meilleur = sc; voie = k << 1
+	if voie < 0:
+		dire.call("ÉCHEC : aucune longue rue à 50 km/h ici")
+		get_tree().quit()
+		return
+	var sa := 30.0
+	var gj: Array = ci._geo(voie, sa, 0)
+	var gg: Array = ci._geo(voie, sa - 30.0, 0)
+	await _teleport((gj[0] as Vector3) + Vector3.UP * 0.6, rad_to_deg(atan2(gj[1].x, -gj[1].y)))
+	for k in 30:
+		await get_tree().physics_frame
+	var g = preload("res://scripts/gendarme.gd").new()
+	g.main = self
+	gd.add_child(g)
+	gd.liste.append(g)
+	g.poser(Vector2(gg[0].x, gg[0].z), Vector2(gj[0].x, gj[0].z))
+	g._degeler()
+	dire.call("voie %d (%.0f m), joueur à %.0f m de son début, patrouille 30 m derrière ; limite %.0f km/h" % [voie, ci._longueur(voie), sa, ci.limite(car.global_position)])
+	# 1) pleins gaz sur la voie (volant : point de la voie 15 m devant)
+	var t := 0.0
+	var s := sa
+	while t < 12.0 and gd.etoiles == 0:
+		s = minf(s + maxf(car.forward_speed(), 3.0) * get_physics_process_delta_time(), ci._longueur(voie) - 1.0)
+		var c: Array = ci._geo(voie, minf(s + 15.0, ci._longueur(voie) - 0.5), 0)
+		var l: Vector3 = car.global_transform.affine_inverse() * (c[0] as Vector3)
+		car.touch_steer = clampf(atan2(l.x, l.z) * 2.0, -1.0, 1.0)
+		car.touch_throttle = 1.0
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+		if fmod(t, 1.0) < get_physics_process_delta_time():
+			dire.call("  t %.0f s : %.0f km/h (limite %.0f), s %.0f m, gendarmes %d%s" % [t, car.kmh(), ci.limite(car.global_position), s,
+				gd.liste.size(), (", le premier à %.0f m (%s%s)" % [gd.liste[0].voiture.global_position.distance_to(car.global_position),
+				gd.liste[0].mode, ", en vue" if gd.liste[0].en_vue(gd.liste[0].voiture.global_position, car.global_position) else ", caché par " + gd.liste[0].obstacle]) if not gd.liste.is_empty() else ""])
+	car.touch_throttle = 0.0
+	car.touch_steer = 0.0
+	if not is_instance_valid(g):
+		g = gd.liste[0] if not gd.liste.is_empty() else null
+	dire.call("après %.1f s : %.0f km/h, %d étoile(s), infraction « %s », gendarme %s à %.0f m" % [t, car.kmh(), gd.etoiles, gd.dernier,
+		g.mode if g else "-", g.voiture.global_position.distance_to(car.global_position) if g else INF])
+	if gd.etoiles == 0:
+		dire.call("ÉCHEC : excès de vitesse non relevé")
+	# 2) arrêt : le gendarme arrive, arrestation
+	t = 0.0
+	var cap := false
+	var arr0: int = gd.arrestations
+	while t < 45.0 and gd.arrestations == arr0:
+		car.touch_brake = 1.0 if car.forward_speed() > 0.5 else 0.0     # à l'arrêt, le frein serait la marche arrière
+		car.frein_parking = car.forward_speed() <= 0.5
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+		if not is_instance_valid(g) and not gd.liste.is_empty():
+			g = gd.liste[0]
+		var d: float = g.voiture.global_position.distance_to(car.global_position) if is_instance_valid(g) else INF
+		if fmod(t, 2.0) < get_physics_process_delta_time():
+			dire.call("  t %.0f s : gendarme à %.0f m, %.0f km/h, %s%s%s, étoiles %d, %s" % [t, d,
+				g.voiture.kmh() if is_instance_valid(g) else 0.0, g.mode if is_instance_valid(g) else "-",
+				" figé" if is_instance_valid(g) and g.fige else "", " direct" if is_instance_valid(g) and g.direct else "",
+				gd.etoiles, gd._bandeau.text.replace("\n", " / ")])
+		if not cap and d < 14.0:
+			cap = true
+						# caméra derrière le gendarme, dans l'axe de la rue, en hauteur
+			var mil: Vector3 = (car.global_position + g.voiture.global_position) * 0.5
+			var ax: Vector3 = (g.voiture.global_position - car.global_position).normalized()
+			var vue := Camera3D.new()
+			add_child(vue)
+			vue.global_position = g.voiture.global_position + ax * 9.0 + Vector3.UP * 5.0
+			vue.look_at(mil + Vector3.UP * 0.8)
+			vue.current = true
+			for k in 4:
+				await get_tree().process_frame
+			get_viewport().get_texture().get_image().save_png("user://shots/gendarmes.png")
+			vue.queue_free()
+			dire.call("capture gendarmes.png (gendarme à %.0f m)" % d)
+	car.touch_brake = 0.0
+	car.frein_parking = false
+	dire.call("arrestation : %s après %.0f s, argent %+.2f €" % [str(gd.arrestations > arr0), t, garage.argent - argent0])
+	# 3) gendarme embouti, téléportation loin : semés
+	for k in 60:
+		await get_tree().physics_frame
+	var g2 = null
+	for x in gd.liste:
+		if is_instance_valid(x) and not x.blown:
+			g2 = x
+	if g2 == null:
+		gd._apparaitre("patrouille")
+		g2 = gd.liste[gd.liste.size() - 1] if not gd.liste.is_empty() else null
+	gd.infraction("gendarme", car.global_position)
+	dire.call("gendarme embouti : %d étoile(s)" % gd.etoiles)
+	var loin := car.global_position + Vector3(700, 0, 0)
+	var h := Relief.hauteur(loin)
+	await _teleport(Vector3(loin.x, (h if is_finite(h) else car.global_position.y) + 1.0, loin.z), 0.0)
+	var sem0: int = gd.semes
+	t = 0.0
+	while t < 40.0 and gd.semes == sem0:
+		car.touch_brake = 1.0 if car.forward_speed() > 0.5 else 0.0     # à l'arrêt, le frein serait la marche arrière
+		car.frein_parking = car.forward_speed() <= 0.5
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+		if fmod(t, 4.0) < get_physics_process_delta_time():
+			dire.call("  t %.0f s : %d gendarme(s), étoiles %d, %s" % [t, gd.liste.size(), gd.etoiles, gd._bandeau.text.replace("\n", " / ")])
+	dire.call("semés : %s après %.0f s, argent %+.2f € depuis le début" % [str(gd.semes > sem0), t, garage.argent - argent0])
+	print("  [gendarmes] fin : arrestations %d, semés %d" % [gd.arrestations, gd.semes])
+	get_tree().quit()
 
 ## Ligne de bus du joueur (#148) : -- --drive-test --ligne-bus-test --drive-from=-10975,236,-1100,90 (--fixed-fps 8
 ## conseillé) : Activités > « Prendre une ligne de bus » ; le bus accélère 6 s (vitesse relevée) ; puis, arrêt par

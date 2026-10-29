@@ -2,7 +2,8 @@
 (soucoupe, voiture, ambiances) sont faits par build_sons.py.
  - pluie.wav  : pluie sur la carrosserie, en boucle (bruissement + gouttes) ; pluie.ogg : d'après pluie_orage.mp3
  - bip.wav    : bip de péage et d'activités
- - klaxon.ogg : klaxon de voiture à deux tons (voitures de la circulation, #132)"""
+ - klaxon.ogg : klaxon de voiture à deux tons (voitures de la circulation, #132)
+ - sirene.ogg : avertisseur deux-tons des gendarmes (« pin-pon », #150), en boucle"""
 import os, wave
 import numpy as np
 
@@ -49,6 +50,7 @@ def main():
     b = np.r_[np.sin(2 * np.pi * 1046 * t1) * env(t1), np.zeros(int(SR * 0.05)), np.sin(2 * np.pi * 1568 * t2) * env(t2)]
     save("bip", b * 0.5)
     klaxon()
+    sirene()
     print("sons :", os.listdir(OUT))
 
 
@@ -99,6 +101,34 @@ def klaxon():
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", OUT + "/_klaxon.wav", "-c:a", "libvorbis", "-q:a", "5",
                     OUT + "/klaxon.ogg"], check=True)
     os.remove(OUT + "/_klaxon.wav")
+
+
+
+def sirene():
+    """Avertisseur deux-tons français (La 435 Hz / Ré 580 Hz, 0,55 s chacun) : trompe à compresseur (onde riche en
+    harmoniques, résonance du pavillon vers 1,6 kHz), glissement bref d'une note à l'autre ; 4 cycles bouclables
+    (chaque note commence et finit sur un fondu de 15 ms) -> sirene.ogg."""
+    import subprocess
+    T = 0.55
+
+    def note(f0):
+        n = int(SR * T); t = np.arange(n) / SR
+        f = f0 * (1.0 - 0.02 * np.exp(-t * 60))
+        ph = 2 * np.pi * np.cumsum(f) / SR
+        x = np.zeros(n)
+        for k in range(1, 14):
+            if f0 * k > 7000:
+                break
+            res = 1.0 + 2.0 * np.exp(-((f0 * k - 1600.0) / 600.0) ** 2)
+            x += np.sin(k * ph) * res / k ** 0.9
+        x = np.tanh(x * 0.8) + rng.normal(0, 0.01, n)
+        return x * np.minimum(1, t / 0.015) * np.minimum(1, (T - t) / 0.015)
+
+    y = np.concatenate([np.r_[note(435.0), note(580.0)] for _ in range(4)])
+    save("_sirene", y * 0.8)
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", OUT + "/_sirene.wav", "-c:a", "libvorbis", "-q:a", "5",
+                    OUT + "/sirene.ogg"], check=True)
+    os.remove(OUT + "/_sirene.wav")
 
 
 if __name__ == "__main__":
