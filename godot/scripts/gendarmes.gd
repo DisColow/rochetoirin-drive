@@ -13,6 +13,8 @@
 ## Essai : --drive-test --gendarmes-test (essais.gd).
 extends Node
 
+const PerfMon := preload("res://scripts/perf_monitor.gd")
+
 const Gendarme := preload("res://scripts/gendarme.gd")
 const VU := 120.0
 const SEMER_D := 250.0
@@ -38,6 +40,7 @@ var liste: Array = []               # gendarme.gd
 var semes := 0                      # essais
 var arrestations := 0
 var dernier := ""                   # dernière infraction relevée (essais)
+var message := ""                   # dernier message radio des patrouilles (essais)
 
 var _vu_t := 0.0                    # temps sans être vu (poursuite)
 var _vu_pos := Vector3.INF          # où le joueur a été vu pour la dernière fois
@@ -53,6 +56,11 @@ var _bandeau: Label
 
 func _ready() -> void:
 	_itin = preload("res://scripts/itineraire.gd").new()
+	# modèle de la voiture chargé en arrière-plan : pas d'à-coup à l'arrivée de la première patrouille (34 ms mesurés)
+	var dossier := String(preload("res://scripts/voitures.gd").CATALOGUE[Gendarme.MODELE].dossier)
+	for f in ["/body.glb", "/wheel.glb"]:
+		if ResourceLoader.exists(dossier + f):
+			ResourceLoader.load_threaded_request(dossier + f)
 	var cl := CanvasLayer.new()
 	cl.layer = 5
 	add_child(cl)
@@ -115,6 +123,8 @@ func infraction(motif: String, p: Vector3) -> void:
 			g.mode = "poursuite"
 			g.voir_gyros(true)
 	main.get_node("HUD").toast("Gendarmerette : %s ! %s" % [MOTIFS[motif], _etoiles_txt()], 3.0)
+	if etoiles > avant:
+		_radio("Avis à toutes les patrouilles. %s, %s, %s. Interpellez le conducteur." % [_vehicule(), MOTIFS[motif], _lieu(p)])
 	if avant == 0:
 		_renfort_t = 1.5
 	print("[gendarmes] infraction : %s, %d étoile(s)" % [motif, etoiles])
@@ -172,6 +182,11 @@ func _apparaitre(mode: String) -> void:
 	print("[gendarmes] %s à %.0f m" % [mode, p.distance_to(Vector2(j.x, j.z))])
 
 func _physics_process(dt: float) -> void:
+	var t0 := Time.get_ticks_usec()
+	_pas(dt)
+	PerfMon.note("gendarmes", Time.get_ticks_usec() - t0)
+
+func _pas(dt: float) -> void:
 	_infr_t = maxf(_infr_t - dt, 0.0)
 	_choc_t = maxf(_choc_t - dt, 0.0)
 	var car = main.get("car")
@@ -269,6 +284,29 @@ func _poursuite(dt: float, car: Node, p: Vector3) -> void:
 		if main.get("succes"):
 			main.succes.noter("semes")
 		_fin("Vous avez semé la Gendarmerette ! +%s" % _euros(prime))
+		_radio("À toutes les patrouilles : véhicule perdu de vue. Fin des recherches.")
+
+## Message des patrouilles sur l'autoradio (radio.gd : seulement si elle est allumée).
+func _radio(t: String) -> void:
+	message = t
+	var r = main.get("radio")
+	if r and r.has_method("message_gendarmes"):
+		r.message_gendarmes(t)
+
+func _vehicule() -> String:
+	var V := preload("res://scripts/voitures.gd")
+	var id := String(main.car.voiture)
+	return String(V.CATALOGUE[id].nom) if V.CATALOGUE.has(id) else "véhicule"
+
+func _lieu(p: Vector3) -> String:
+	var n = main.get_node("HUD").get("names")
+	if n == null:
+		return "secteur inconnu"
+	var rue: String = n.road_at(p)
+	var com: String = n.commune_at(p)
+	if rue != "" and com != "":
+		return "%s à %s" % [rue, com]
+	return rue if rue != "" else (com if com != "" else "secteur inconnu")
 
 func _euros(v: float) -> String:
 	return ("%.2f €" % v).replace(".", ",")

@@ -38,6 +38,7 @@ var _en_journal := false
 var _dernier_journal := -1e9       # heure (s) du dernier journal diffusé : un par quart d'heure au plus
 var _flash_t := 0.0                # flash lu par la voix du téléphone : temps restant
 var dernier_flash := ""            # texte du dernier flash (essais)
+var _gd_t := 0.0                    # message des gendarmes (#150) en cours : temps restant (musique baissée)
 
 ## 1 : quelqu'un parle dans la voiture (la radio baisse), 0 : volume normal.
 func set_duck(on: float) -> void:
@@ -113,7 +114,8 @@ func _process_corps(dt: float) -> void:
 	var parle := 1.0 if _en_journal else 0.0
 	if _lp:
 		_lp.cutoff_hz = lerpf(lerpf(2600.0, 6000.0, parle), 7000.0, _cockpit)
-	AudioServer.set_bus_volume_db(_bus, lerpf(-4.0, 2.0, _cockpit) - 9.0 * _duck + 9.0 * parle
+	_gd_t = maxf(_gd_t - dt, 0.0)
+	AudioServer.set_bus_volume_db(_bus, lerpf(-4.0, 2.0, _cockpit) - 9.0 * maxf(_duck, 1.0 if _gd_t > 0.0 else 0.0) + 9.0 * parle
 		+ preload("res://scripts/audio.gd").volume_db("musique"))
 	_fm_crackle(dt)
 	if station >= 0 and stations[station].get("infos", false):
@@ -256,6 +258,17 @@ func _tune_infos() -> void:
 		_player.stream = load(path)
 		title = m.titre
 		_player.play(0.0)
+
+## Gendarmes (#150) : message des patrouilles qui passe par-dessus la station allumée (voix d'homme du téléphone,
+## musique baissée), aux mêmes conditions que les flashs ; vrai s'il est lu.
+func message_gendarmes(t: String) -> bool:
+	if station < 0 or not flash_permis() or _gd_t > 0.0 or infos == null:
+		return false
+	var d: float = infos.lire_message(t, _vol_flash())
+	if d <= 0.0:
+		return false
+	_gd_t = d + 0.5
+	return true
 
 ## Flash lu par la voix du téléphone seulement si la musique n'est pas coupée (#111) et sans client à bord (#104).
 func flash_permis() -> bool:

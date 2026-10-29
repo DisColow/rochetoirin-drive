@@ -3183,6 +3183,7 @@ func _gendarmes_test() -> void:
 			dire.call("capture gendarmes.png (gendarme à %.0f m)" % d)
 	car.touch_brake = 0.0
 	car.frein_parking = false
+	dire.call("message radio : « %s »" % gd.message)
 	dire.call("arrestation : %s après %.0f s, argent %+.2f €" % [str(gd.arrestations > arr0), t, garage.argent - argent0])
 	# 3) gendarme embouti, téléportation loin : semés
 	for k in 60:
@@ -3208,6 +3209,7 @@ func _gendarmes_test() -> void:
 		t += get_physics_process_delta_time()
 		if fmod(t, 4.0) < get_physics_process_delta_time():
 			dire.call("  t %.0f s : %d gendarme(s), étoiles %d, %s" % [t, gd.liste.size(), gd.etoiles, gd._bandeau.text.replace("\n", " / ")])
+	dire.call("message radio : « %s »" % gd.message)
 	dire.call("semés : %s après %.0f s, argent %+.2f € depuis le début" % [str(gd.semes > sem0), t, garage.argent - argent0])
 	print("  [gendarmes] fin : arrestations %d, semés %d" % [gd.arrestations, gd.semes])
 	get_tree().quit()

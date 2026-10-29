@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 29/10/2026, 3 h (v6.84 #131 à v7.05 livrées)
+## État au 29/10/2026, 3 h (v6.84 #131 à v7.06 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -28,6 +28,8 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v7.06 (#150)** : message radio des patrouilles (« Avis à toutes les patrouilles… »), modèle des gendarmes
+  préchargé. NON VÉRIFIÉ dans l'essai : la voix elle-même (pas de synthèse vocale dans le conteneur).
 - **v7.05 (#150, `pending` : choix de la voiture A/B et des règles 1-5 attendus)** : gendarmes et courses-poursuites
   (voir CLAUDE.md « Gendarmes »), voiture provisoire = choix B (306 repeinte). Si l'utilisateur choisit A : importer
   « Ford Focus MK1 Gendarmerie » (szymonpasterczyk, CC BY, uid 0b2f13be68734710b620a87088b82ad3, normales

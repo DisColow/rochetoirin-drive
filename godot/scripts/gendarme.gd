@@ -11,6 +11,8 @@
 ##   l'itinéraire (posée sur le relief) ; redevient physique en approchant (PRES m).
 extends Node
 
+const PerfMon := preload("res://scripts/perf_monitor.gd")
+
 const Relief := preload("res://scripts/relief.gd")
 const Car := preload("res://scripts/car.gd")
 const PAS := 2.0                    # rééchantillonnage de l'itinéraire (m)
@@ -24,7 +26,8 @@ const VOIE := 2.2
 const GYRO := 0.12                  # demi-période des éclats des gyrophares (s)
 
 var main: Node
-var modele := "p306"
+const MODELE := "p306"              # voiture provisoire (#150 : choix A ou B en attente)
+var modele := MODELE
 var couleur := Color(0.1, 0.17, 0.42)
 var mode := "patrouille"
 var voiture: Car
@@ -205,6 +208,11 @@ func _joueur() -> Node3D:
 	return main.car if main.get("car") else null
 
 func _physics_process(dt: float) -> void:
+	var t0 := Time.get_ticks_usec()
+	_pas(dt)
+	PerfMon.note("gendarmes", Time.get_ticks_usec() - t0)
+
+func _pas(dt: float) -> void:
 	if not is_instance_valid(voiture):
 		return
 	if blown:

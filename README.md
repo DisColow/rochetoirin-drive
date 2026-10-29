@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v7.05.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.05/RochetoirinSimulator-v7.05.apk)**
+**[RochetoirinSimulator-v7.06.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.06/RochetoirinSimulator-v7.06.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,11 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.05 :
-- **Gendarmes** : des patrouilles de la « Gendarmerette » circulent. Excès de vitesse, feu rouge grillé ou accident
-  sous leurs yeux : gyrophares, sirène, et la poursuite commence (1 à 3 étoiles). Semez-les (20 s hors de vue) pour
-  une prime, ou arrêtez-vous et payez l'amende. Désactivables dans ⚙ > Conduite.
+Nouveautés de la v7.06 :
+- **Gendarmes** : radio allumée, vous entendez les patrouilles lancer l'avis de recherche (« Avis à toutes les
+  patrouilles : Fjord Rangeur Rapace, excès de vitesse, rue des Pivollets à Bourgoin-Jallieu… ») et abandonner quand
+  vous les avez semés.
+- La première patrouille arrive sans à-coup.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

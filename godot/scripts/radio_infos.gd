@@ -142,3 +142,13 @@ func lire_flash(t: String, volume: float) -> float:
 		return 0.0
 	VoixTel.dire(t, v, volume, true)
 	return VoixTel.duree(t, float(v.debit))
+
+## Message des gendarmes (#150) : voix d'homme, coupe ce qui se dit ; durée estimée (s), 0 si aucune voix.
+func lire_message(t: String, volume: float) -> float:
+	if t == "" or not VoixTel.dispo():
+		return 0.0
+	var v := VoixTel.choisir("m", 31)
+	if v.is_empty():
+		return 0.0
+	VoixTel.dire(t, v, volume, true)
+	return VoixTel.duree(t, float(v.debit))
