@@ -39,7 +39,13 @@ func _act():
 func demarrer() -> bool:
 	var car: VehicleBody3D = main.car
 	var circ = main.get("circulation")
-	var r: Array = circ.devant(car.global_position, car.global_transform.basis.z, DEPART) if circ else []
+	# route devant la voiture, sinon dans une autre direction (voiture en travers, sur un parking…)
+	var r: Array = []
+	var f: Vector3 = car.global_transform.basis.z
+	for k in 8:
+		if circ == null or not r.is_empty():
+			break
+		r = circ.devant(car.global_position, f.rotated(Vector3.UP, k * PI / 4.0), DEPART)
 	if r.is_empty():
 		return false
 	car.construire("gendarme")
