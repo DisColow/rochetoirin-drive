@@ -9,6 +9,7 @@
 extends Node
 
 const Voitures := preload("res://scripts/voitures.gd")
+const Chargement := preload("res://scripts/chargement.gd")
 const FICHIER := "user://succes.cfg"
 const SUCCES := [
 	{"id": "km1", "titre": "Premiers tours de roue", "texte": "Parcourir 1 km.", "stat": "km", "but": 1.0, "prime": 100},
@@ -59,8 +60,29 @@ const STATS := [["km", "Distance parcourue", "km"], ["km_nuit", "dont de nuit", 
 	["taxi5", "dont à 5 étoiles", ""], ["taxi_nuit", "dont au tarif de nuit", ""], ["lignes_bus", "Lignes de bus terminées", ""], ["semes", "Gendarmes semés", ""], ["livraisons", "Repas livrés", ""], ["arrestations", "Arrestations", ""], ["voyageurs", "Voyageurs transportés en bus", ""], ["chasses", "Chasses au lieu réussies", ""], ["ors", "Épreuves en or", ""],
 	["concurrents", "Concurrents détruits", ""], ["argent", "Argent gagné", "€"]]
 
+## Défi du jour (v7.11) : un défi par jour du calendrier, tiré dans cette liste d'après la date (le même pour tous
+## les joueurs ce jour-là) ; progrès = compteur du jour moins sa valeur au premier lancement du jour ; prime une fois.
+const DEFIS := [
+	{"stat": "livraisons", "but": 3.0, "texte": "Livrer 3 repas", "prime": 120},
+	{"stat": "taxi", "but": 3.0, "texte": "Faire 3 courses de taxi", "prime": 120},
+	{"stat": "lignes_bus", "but": 1.0, "texte": "Terminer une ligne de bus", "prime": 100},
+	{"stat": "semes", "but": 1.0, "texte": "Semer les gendarmes", "prime": 150},
+	{"stat": "km", "but": 25.0, "texte": "Rouler 25 km", "prime": 80},
+	{"stat": "casse", "but": 40.0, "texte": "Casser 40 éléments du décor", "prime": 80},
+	{"stat": "taxi5", "but": 1.0, "texte": "Réussir une course de taxi à 5 étoiles", "prime": 120},
+	{"stat": "voyageurs", "but": 15.0, "texte": "Transporter 15 voyageurs en bus", "prime": 120},
+	{"stat": "km_pied", "but": 1.0, "texte": "Marcher 1 km à pied", "prime": 60},
+	{"stat": "concurrents", "but": 2.0, "texte": "Détruire 2 concurrents pendant une course", "prime": 100},
+	{"stat": "km_nuit", "but": 10.0, "texte": "Rouler 10 km de nuit", "prime": 90},
+	{"stat": "arbres", "but": 10.0, "texte": "Coucher 10 arbres", "prime": 70},
+]
+
 var main: Node
 var stats := {}                    # compteurs (float)
+var defi_jour := -1                # jour du défi en cours (jours depuis 1970, heure locale)
+var defi_base := 0.0               # valeur du compteur du défi au début du jour
+var defi_fait := false
+var _defi_dit := false             # défi annoncé une fois après le chargement
 var obtenus := {}                  # succès -> date
 var vus := {}                      # communes traversées
 var _change := false
@@ -73,6 +95,13 @@ var _t_annonce := 0.0
 func _ready() -> void:
 	charger()
 
+## v7.11 : compteurs sauvegardés aussi en quittant le jeu ou quand le téléphone le met en arrière-plan (sinon les
+## 10 dernières secondes étaient perdues : repas livrés, ligne terminée juste avant de quitter…).
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT,
+			NOTIFICATION_EXIT_TREE] and _change:
+		sauver()
+
 func charger() -> void:
 	var c := ConfigFile.new()
 	if c.load(FICHIER) != OK:
@@ -80,12 +109,18 @@ func charger() -> void:
 	stats = c.get_value("succes", "stats", {})
 	obtenus = c.get_value("succes", "obtenus", {})
 	vus = c.get_value("succes", "communes", {})
+	defi_jour = int(c.get_value("defi", "jour", -1))
+	defi_base = float(c.get_value("defi", "base", 0.0))
+	defi_fait = bool(c.get_value("defi", "fait", false))
 
 func sauver() -> void:
 	var c := ConfigFile.new()
 	c.set_value("succes", "stats", stats)
 	c.set_value("succes", "obtenus", obtenus)
 	c.set_value("succes", "communes", vus)
+	c.set_value("defi", "jour", defi_jour)
+	c.set_value("defi", "base", defi_base)
+	c.set_value("defi", "fait", defi_fait)
 	c.save(FICHIER)
 	_change = false
 
@@ -174,6 +209,11 @@ func _process(dt: float) -> void:
 	if _t_verif <= 0.0:
 		_t_verif = 1.0
 		verifier()
+		if not _defi_dit and Chargement.fini and hud and defi_jour == jour():
+			_defi_dit = true
+			if not defi_fait:
+				var d := defi()
+				hud.toast("Défi du jour : %s  ·  +%d €\n(Activités > Succès)" % [d.texte, int(d.prime)], 5.0)
 	_t_annonce -= dt
 	if _t_annonce <= 0.0 and not _annonces.is_empty() and not get_tree().paused:
 		_t_annonce = 3.5
@@ -183,8 +223,44 @@ func _process(dt: float) -> void:
 		_t_sauve = 10.0
 		sauver()
 
+## Jour du calendrier (heure locale) : jours depuis le 1er janvier 1970.
+static func jour() -> int:
+	var tz: Dictionary = Time.get_time_zone_from_system()
+	return int(floor((Time.get_unix_time_from_system() + float(tz.get("bias", 0)) * 60.0) / 86400.0))
+
+## Défi du jour j : mélange fixe de la liste (deux jours de suite n'ont pas le même défi).
+static func defi(j := -1) -> Dictionary:
+	if j < 0:
+		j = jour()
+	return DEFIS[(j * 5 + 3) % DEFIS.size()]
+
+## Progrès du défi en cours (0 si un autre jour a commencé : il est remis en place par verifier).
+func defi_progres() -> float:
+	var d := defi()
+	return clampf(valeur(String(d.stat)) - defi_base, 0.0, float(d.but)) if defi_jour == jour() else 0.0
+
+func _verifier_defi() -> void:
+	var j := jour()
+	var d := defi(j)
+	if j != defi_jour:                       # nouveau jour : nouveau défi, compté à partir de maintenant
+		defi_jour = j
+		defi_base = valeur(String(d.stat))
+		defi_fait = false
+		_change = true
+		return
+	if defi_fait or valeur(String(d.stat)) - defi_base < float(d.but):
+		return
+	defi_fait = true
+	_change = true
+	var g = main.get("garage") if main else null
+	if g:
+		g.gagner(float(d.prime))
+	_annonces.append({"titre": "Défi du jour réussi", "texte": String(d.texte), "prime": d.prime})
+	print("[succès] défi du jour : ", d.texte)
+
 ## Succès atteints : notés, prime au garage, annonce.
 func verifier() -> void:
+	_verifier_defi()
 	for s in SUCCES:
 		if obtenus.has(s.id) or valeur(String(s.stat)) < but(s):
 			continue

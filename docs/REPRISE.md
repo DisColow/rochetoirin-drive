@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 29/10/2026, 3 h (v6.84 #131 à v7.10 livrées)
+## État au 29/10/2026, 3 h (v6.84 #131 à v7.11 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -28,6 +28,9 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **v7.11 (#152, `à tester`)** : défi du jour ; compteurs des succès sauvegardés en quittant (les 10 dernières
+  secondes étaient perdues). Piège d'essai : les compteurs de `_physics_process` d'essais.gd comptent des pas de
+  physique (~7 par image à `--fixed-fps 8`), pas des images.
 - **v7.10 (#151)** : onglet « Métiers », majoration de nuit des livraisons, arrêt dans la rue devant le restaurant
   (un restaurant à 33 m du nœud routier le plus proche ne pouvait pas être servi).
 - **v7.09 (#151, `à tester`)** : activité « Livreur de repas » (voir CLAUDE.md), `world/restos.json` publié sur

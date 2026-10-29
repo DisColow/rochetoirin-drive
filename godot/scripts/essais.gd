@@ -931,6 +931,33 @@ func _physics_process(_dt: float) -> void:
 	if OS.get_cmdline_user_args().has("--rails-test"):
 		_rails_test(t)
 		return
+	if OS.get_cmdline_user_args().has("--defi-test"):
+		# v7.11 (n compte les pas de physique) : défi du jour : défis des 7 jours qui viennent, défi réussi d'après son compteur, onglet Succès
+		if not Chargement.fini:
+			return
+		var n: int = get_meta("defi_t", 0) + 1
+		set_meta("defi_t", n)
+		var su = succes
+		if n == 30:
+			var j: int = su.jour()
+			print("  [défi] jeu en pause : %s" % str(get_tree().paused))
+			print("  [défi] aujourd'hui (jour %d) : %s ; semaine : %s" % [j, su.defi().texte, ", ".join(range(7).map(func(k): return su.defi(j + k).texte))])
+			su.defi_jour = j
+			su.defi_base = su.valeur(String(su.defi().stat))
+			su.defi_fait = false
+			set_meta("argent0", garage.argent)
+			su.noter(String(su.defi().stat), float(su.defi().but))
+			print("  [défi] compteur « %s » augmenté de %s : progrès %s" % [su.defi().stat, str(su.defi().but), str(su.defi_progres())])
+		if n == 200:
+			print("  [défi] réussi %s, argent %+.2f € (prime %d €)" % [str(su.defi_fait), garage.argent - float(get_meta("argent0")), int(su.defi().prime)])
+			activities.open_menu(7)
+			get_tree().paused = false
+		if n == 400:
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/defi.png")
+			print("  [défi] capture defi.png")
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--metiers-menu-test"):
 		# v7.10 : onglet « Métiers » (taxi, bus, livreur) : tout tient à l'écran ?
 		if not Chargement.fini:

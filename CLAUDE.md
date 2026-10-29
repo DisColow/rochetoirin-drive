@@ -298,6 +298,12 @@
   à 15 m. Caméra poursuite reculée d'après `car.gabarit.z` (`camera_rig.gd`). Essai
   `--fixed-fps 8 -- --drive-test --ligne-bus-test --drive-from=-10975,236,-1100,90` (bus posé en amont de chaque arrêt
   et conduit jusqu'au poteau, capture `ligne_bus.png`).
+- **Défi du jour** (v7.11, #152, initiative de Claude, `succes.gd` `DEFIS`, `defi()`, `_verifier_defi`) : un défi par
+  jour du calendrier (`jour()` : heure locale), tiré d'après la date dans `DEFIS` (compteur, but, prime) ; progrès =
+  compteur moins sa valeur au premier lancement du jour (`defi_base`), prime une fois (`defi_fait`), sauvegardé dans
+  `succes.cfg` [defi] ; annoncé par un bandeau après le chargement, affiché en tête de l'onglet Succès. Compteurs aussi
+  sauvegardés en quittant / en arrière-plan (`_notification`). Essai `--defi-test` (compte en pas de physique ;
+  capture `defi.png`).
 - **Livreur de repas** (v7.09, #151, initiative de Claude, `scripts/livreur.gd`, Activités > Métiers > « Livrer des
   repas », `activities._livreur_start`, mode « livreur », sa propre voiture) : `NB` livraisons ; restaurant au hasard
   parmi les 4 plus proches (`world/restos.json` de `pipeline/build_restos.py` : points OSM restaurant/fast_food, nom
