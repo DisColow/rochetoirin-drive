@@ -476,6 +476,19 @@ func _succes() -> void:
 	for s in su.SUCCES:
 		if su.obtenu(String(s.id)):
 			n += 1
+	# v7.11 : défi du jour
+	var dj: Dictionary = su.defi()
+	var pd := PanelContainer.new()
+	pd.add_theme_stylebox_override("panel", UI.panel(14, 8))
+	v.add_child(pd)
+	var vd := VBoxContainer.new()
+	pd.add_child(vd)
+	_texte(vd, "Défi du jour : %s" % str(dj.texte), 28, Color(0.55, 0.85, 1.0))
+	if su.defi_fait and su.defi_jour == su.jour():
+		_texte(vd, "Réussi ! +%d € · nouveau défi demain" % int(dj.prime), 22, Color(0.5, 1.0, 0.6))
+	else:
+		var pr: float = su.defi_progres()
+		_texte(vd, "%s sur %s · prime %d €" % [_nombre(pr), _nombre(float(dj.but)), int(dj.prime)], 22, Color(1, 1, 1, 0.75))
 	_texte(v, "%d succès sur %d" % [n, su.SUCCES.size()], 30, Color(1.0, 0.85, 0.45))
 	for s in su.SUCCES:
 		var ok: bool = su.obtenu(String(s.id))
