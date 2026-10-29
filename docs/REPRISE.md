@@ -28,6 +28,16 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   lancement (`accueil.gd`). Essais `--succes-test` (vraie conduite : 0,5 km, 164 km/h ; crochet de l'argent ; succès,
   primes, bandeau ; sauvegarde relue) et `--accueil-test`. Piège : `main` n'a pas de variable `hud` (variable locale
   de `_ready`) : `main.get_node("HUD")`.
+- **En cours : #153 sons de moteur par voiture** (initiative, tâche 186). `pipeline/fetch_moteurs.py` (candidats de
+  Wikimedia Commons, CC BY ; l'adresse de sortie du conteneur est limitée par Wikimedia : respecter Retry-After, souvent
+  10 min, jamais de contournement) -> `data/sons/moteurs/<clé>.wav` ; `pipeline/build_moteurs.py <clé>` (suivi continu
+  de la fréquence d'allumage, paliers, suivi fin, boucles -> `assets/sfx/moteurs/<clé>/`), `--voir <dossier> <clé>`
+  (spectrogramme de contrôle), `--ecoute <dossier>` (simulation d'audio.gd : ralenti, 0-100, pied levé). Jeu : champ
+  `son` de la fiche (voitures.gd) -> `audio._charger_moteur` ; essai `--moteurs-test --sons=deuche:2cv6`. Fait : 2CV
+  (boucles plates vérifiées au spectrogramme), essai en jeu OK. Reste : téléchargements, page d'écoute (Artifact),
+  choix de l'utilisateur, champ `son` par voiture, crédits, livraison. Piège : `build_sons.flatten_pitch` lit à
+  `F / fm` (doit être `fm / F`) : variation doublée au lieu d'annulée, sans effet notable sur le moteur d'origine
+  (paliers stables) ; non corrigé pour ne pas changer le son actuel sans accord.
 - **v7.13 (#150)** : activité « Gendarme » (le joueur poursuit un fuyard et l'emboutit), chocs relevés sur la
   voiture IA (celle du joueur n'a pas de `contact_monitor`). Pièges trouvés : A* du GPS mauvais pour un fuyard
   (nœuds aux carrefours seulement -> demi-tour ; `circulation.trajet` à la place), voiture figée qui glissait à

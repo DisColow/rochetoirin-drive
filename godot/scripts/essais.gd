@@ -507,6 +507,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_gendarme_joueur_test()
 		return
+	if OS.get_cmdline_user_args().has("--moteurs-test"):
+		if t == 300:
+			_moteurs_test()
+		return
 	if OS.get_cmdline_user_args().has("--bus-test"):
 		if t == 300:
 			_bus_test()
@@ -3251,6 +3255,47 @@ func _gendarme_joueur_test() -> void:
 	dire.call("fin après %.0f s : actif %s, interpellé %s, dégâts %d %%, argent %+.2f €, voiture rendue : %s, statut « %s »" % [t,
 		str(gj.actif), str(gj.interpelle), int(gj.degats), garage.argent - argent0, car.voiture, activities._status_l.text])
 	print("  [gendarme] FIN")
+	get_tree().quit()
+
+## Sons de moteur par voiture (#153) : -- --drive-test --moteurs-test [--sons=deuche:2cv6,gt3:gt3_992]
+## --drive-from=-8410.95,221,-7187.25,45.2. Pour chaque voiture : son jeu de boucles (champ « son » de la fiche), 8 s
+## pleins gaz puis 3 s pied levé ; journal : boucles chargées, régime simulé, rapport, fréquence voulue, boucles
+## audibles (volume, transposition).
+func _moteurs_test() -> void:
+	var dire := func(x: String): print("  [moteurs] " + x)
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	var paires := ["deuche:2cv6"]
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--sons="):
+			paires = a.trim_prefix("--sons=").split(",")
+	var depart := car.global_transform
+	for pr: String in paires:
+		var id := pr.get_slice(":", 0)
+		var son := pr.get_slice(":", 1)
+		car.global_transform = depart
+		car.construire(id)
+		car.fiche = car.fiche.duplicate()           # fiche du catalogue : constante
+		car.fiche["son"] = son
+		car.linear_velocity = Vector3.ZERO
+		car.hold(0.5)
+		for k in 60:
+			await get_tree().physics_frame
+		var t := 0.0
+		while t < 11.0:
+			car.touch_throttle = 1.0 if t < 8.0 else 0.0
+			await get_tree().physics_frame
+			t += get_physics_process_delta_time()
+			if fmod(t, 1.0) < get_physics_process_delta_time():
+				var aud := []
+				for L in sound._loops:
+					if L.on.volume_db > -40.0 or L.off.volume_db > -40.0:
+						aud.append("%.0f Hz ×%.2f (%.0f / %.0f dB)" % [L.f0, L.on.pitch_scale, L.on.volume_db, L.off.volume_db])
+				dire.call("%s (%s) t %.0f s : %.0f km/h, %s, boucles « %s » : %d, moteur %s ; audibles %s" % [id, son, t, car.kmh(),
+					sound.debug().get_slice(", surface", 0), sound._son, sound._loops.size(), str(sound._moteur), ", ".join(aud)])
+	car.touch_throttle = 0.0
+	print("  [moteurs] FIN")
 	get_tree().quit()
 
 func voitures_nom(id: String) -> String:

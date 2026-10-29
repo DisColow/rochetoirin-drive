@@ -47,18 +47,19 @@ def url_fichier(titre):
 
 
 def lire_url(url):
-    """Téléchargement poli : en cas de refus (429), attendre ce que demande Retry-After."""
+    """Téléchargement poli : un refus (429) attend tout ce que demande Retry-After (souvent 10 min : l'adresse de
+    sortie du conteneur est partagée et limitée par Wikimedia)."""
     import urllib.error
-    for k in range(8):
+    for k in range(30):
         try:
             return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=300).read()
         except urllib.error.HTTPError as e:
             if e.code == 404:
                 raise
-            att = int(e.headers.get("Retry-After") or 20 * 2 ** min(k, 4)) + 2
-            print("refus %d, nouvel essai dans %d s" % (e.code, att)); time.sleep(att)
+            att = int(e.headers.get("Retry-After") or 60 * 2 ** min(k, 3)) + 5
+            print("refus %d, nouvel essai dans %d s" % (e.code, att), flush=True); time.sleep(att)
         except Exception as e:
-            print("nouvel essai", e); time.sleep(20)
+            print("nouvel essai", e, flush=True); time.sleep(60)
     raise RuntimeError("téléchargement impossible : " + url)
 
 
@@ -85,7 +86,7 @@ def main(cles):
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", brut, "-ac", "1", "-ar", "44100", dst], check=True)
         os.remove(brut)
         print("%-10s %s" % (cle, desc), flush=True)
-        time.sleep(5.0)
+        time.sleep(30.0)                             # entre deux fichiers : rester discret
     # licences et auteurs (crédits) : une seule requête à l'API pour tous les fichiers
     old = json.load(open(OUT + "/credits.json")) if os.path.exists(OUT + "/credits.json") else {}
     manque = [c for c in cles if c not in old]
