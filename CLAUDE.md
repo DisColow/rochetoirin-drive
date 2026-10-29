@@ -315,7 +315,10 @@
   `ARRET_T` s (amende `garage.payer`, stat `arrestations`). Bandeau en bas de l'écran. `itineraire.gd` : graphe lu une
   fois (`_commun`). Essai `--fixed-fps 8 -- --drive-test --gendarmes-test --drive-from=-10975,236,-1100,90` (rue à 50
   km/h, patrouille derrière, excès vu, arrestation, gendarme embouti, téléportation à 700 m, semés ; capture
-  `gendarmes.png`). Piège : dans un essai, frein tenu à l'arrêt = marche arrière (`frein_parking`).
+  `gendarmes.png`). Piège : dans un essai, frein tenu à l'arrêt = marche arrière (`frein_parking`). v7.06 : message des
+  patrouilles sur l'autoradio allumée (`radio.message_gendarmes` -> `radio_infos.lire_message`, voix d'homme du
+  téléphone, musique baissée ; véhicule, motif, rue et commune), modèle préchargé en arrière-plan (à-coup de 34 ms à
+  la première patrouille), coût relevé dans `PerfMon` (« gendarmes » : 0,1-0,3 ms par image).
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
   `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,
