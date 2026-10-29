@@ -3090,7 +3090,13 @@ func _gendarmes_test() -> void:
 	ci.set_densite(1)
 	for k in 120:
 		await get_tree().process_frame
-	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://shots/gendarmes.png"))
+	var nom_capture := "gendarmes"
+	if OS.get_cmdline_user_args().has("--gendarmes-nuit"):      # de nuit : gyrophares et lueur bleue
+		set_time(3)
+		nom_capture = "gendarmes_nuit"
+		for k in 60:
+			await get_tree().process_frame
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://shots/%s.png" % nom_capture))
 	var argent0: float = garage.argent
 	var p0 := car.global_position
 	dire.call("vitesse autorisée ici : %.0f km/h, permis : %s" % [ci.limite(p0), str(gd._permis())])
@@ -3178,9 +3184,9 @@ func _gendarmes_test() -> void:
 			vue.current = true
 			for k in 4:
 				await get_tree().process_frame
-			get_viewport().get_texture().get_image().save_png("user://shots/gendarmes.png")
+			get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % nom_capture)
 			vue.queue_free()
-			dire.call("capture gendarmes.png (gendarme à %.0f m)" % d)
+			dire.call("capture %s.png (gendarme à %.0f m, lueur %.1f)" % [nom_capture, d, g._lueur.light_energy])
 	car.touch_brake = 0.0
 	car.frein_parking = false
 	dire.call("message radio : « %s »" % gd.message)
@@ -3211,6 +3217,31 @@ func _gendarmes_test() -> void:
 			dire.call("  t %.0f s : %d gendarme(s), étoiles %d, %s" % [t, gd.liste.size(), gd.etoiles, gd._bandeau.text.replace("\n", " / ")])
 	dire.call("message radio : « %s »" % gd.message)
 	dire.call("semés : %s après %.0f s, argent %+.2f € depuis le début" % [str(gd.semes > sem0), t, garage.argent - argent0])
+	# 4) à pied : on descend pendant une poursuite, elle continue ; le gendarme vient, arrestation
+	for k in 30:
+		await get_tree().physics_frame
+	var pt: Array = ci._geo(voie, sa + 60.0, 0)
+	await _teleport((pt[0] as Vector3) + Vector3.UP * 0.6, rad_to_deg(atan2(pt[1].x, -pt[1].y)))
+	for k in 30:
+		await get_tree().physics_frame
+	var g3 = preload("res://scripts/gendarme.gd").new()
+	g3.main = self
+	gd.add_child(g3)
+	gd.liste.append(g3)
+	var pg: Array = ci._geo(voie, sa + 20.0, 0)
+	g3.poser(Vector2(pg[0].x, pg[0].z), Vector2(pt[0].x, pt[0].z))
+	g3._degeler()
+	gd.infraction("gendarme", car.global_position)
+	pied.sortir()
+	var arr1: int = gd.arrestations
+	t = 0.0
+	while t < 40.0 and gd.arrestations == arr1:
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+		if fmod(t, 3.0) < get_physics_process_delta_time():
+			dire.call("  à pied, t %.0f s : à pied %s, étoiles %d, gendarme à %.0f m, %s" % [t, str(pied.actif), gd.etoiles,
+				g3.voiture.global_position.distance_to(pied.corps.global_position) if is_instance_valid(g3) else INF, gd._bandeau.text.replace("\n", " / ")])
+	dire.call("à pied : arrestation %s après %.0f s" % [str(gd.arrestations > arr1), t])
 	print("  [gendarmes] fin : arrestations %d, semés %d" % [gd.arrestations, gd.semes])
 	get_tree().quit()
 
