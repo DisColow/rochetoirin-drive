@@ -42,10 +42,11 @@ func demarrer() -> bool:
 	# route devant la voiture, sinon dans une autre direction (voiture en travers, sur un parking…)
 	var r: Array = []
 	var f: Vector3 = car.global_transform.basis.z
+	var p0: Vector3 = circ.point_route(car.global_position) if circ else car.global_position     # route la plus proche
 	for k in 8:
 		if circ == null or not r.is_empty():
 			break
-		r = circ.devant(car.global_position, f.rotated(Vector3.UP, k * PI / 4.0), DEPART)
+		r = circ.devant(p0, f.rotated(Vector3.UP, k * PI / 4.0), DEPART)
 	if r.is_empty():
 		return false
 	car.construire("gendarme")
