@@ -59,8 +59,7 @@ func _ready() -> void:
 	voiture.voiture = modele
 	voiture.name = "Gendarme"
 	main.add_child(voiture)
-	if voiture._paint_mat:
-		voiture._paint_mat.albedo_color = couleur
+	_repeindre()
 	voiture.contact_monitor = true
 	voiture.max_contacts_reported = 4
 	voiture.set_meta("gendarme", true)
@@ -72,6 +71,40 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	if is_instance_valid(voiture):
 		voiture.queue_free()
+
+## Livrée bleue : peinture « paint » de la carrosserie, ou carrosserie texturée (306 du garage) passée en niveaux de gris
+## et teintée de `couleur` (détails, vitres et feux gardent leurs nuances).
+const TEINTE := """shader_type spatial;
+uniform sampler2D tex : source_color, filter_linear_mipmap;
+uniform vec3 teinte : source_color;
+void fragment() {
+	vec3 c = texture(tex, UV).rgb;
+	float l = dot(c, vec3(0.3, 0.59, 0.11));
+	ALBEDO = teinte * clamp(l * 2.4, 0.0, 1.6);
+	ROUGHNESS = 0.35;
+	METALLIC = 0.25;
+}
+"""
+
+func _repeindre() -> void:
+	if voiture._paint_mat:
+		voiture._paint_mat.albedo_color = couleur
+		return
+	var corps: Node3D = voiture.get("_body")
+	if corps == null:
+		return
+	var sh := Shader.new()
+	sh.code = TEINTE
+	for mi in corps.find_children("*", "MeshInstance3D", true, false):
+		var m3 := mi as MeshInstance3D
+		for k in m3.mesh.get_surface_count():
+			var m := m3.get_active_material(k) as StandardMaterial3D
+			if m and m.albedo_texture and m.albedo_texture.resource_path.get_file().begins_with("body"):
+				var t := ShaderMaterial.new()
+				t.shader = sh
+				t.set_shader_parameter("tex", m.albedo_texture)
+				t.set_shader_parameter("teinte", couleur)
+				m3.set_surface_override_material(k, t)
 
 ## Rampe de gyrophares sur le toit : deux feux bleus et un témoin blanc, matériaux sans ombrage (éclats visibles de
 ## loin, la nuit comme le jour), lueur bleue la nuit.
