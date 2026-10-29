@@ -3090,7 +3090,13 @@ func _gendarmes_test() -> void:
 	ci.set_densite(1)
 	for k in 120:
 		await get_tree().process_frame
-	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://shots/gendarmes.png"))
+	var nom_capture := "gendarmes"
+	if OS.get_cmdline_user_args().has("--gendarmes-nuit"):      # de nuit : gyrophares et lueur bleue
+		set_time(3)
+		nom_capture = "gendarmes_nuit"
+		for k in 60:
+			await get_tree().process_frame
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://shots/%s.png" % nom_capture))
 	var argent0: float = garage.argent
 	var p0 := car.global_position
 	dire.call("vitesse autorisée ici : %.0f km/h, permis : %s" % [ci.limite(p0), str(gd._permis())])
@@ -3178,9 +3184,9 @@ func _gendarmes_test() -> void:
 			vue.current = true
 			for k in 4:
 				await get_tree().process_frame
-			get_viewport().get_texture().get_image().save_png("user://shots/gendarmes.png")
+			get_viewport().get_texture().get_image().save_png("user://shots/%s.png" % nom_capture)
 			vue.queue_free()
-			dire.call("capture gendarmes.png (gendarme à %.0f m)" % d)
+			dire.call("capture %s.png (gendarme à %.0f m, lueur %.1f)" % [nom_capture, d, g._lueur.light_energy])
 	car.touch_brake = 0.0
 	car.frein_parking = false
 	dire.call("message radio : « %s »" % gd.message)
