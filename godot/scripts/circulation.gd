@@ -621,6 +621,27 @@ func limite(p: Vector3, r := 10.0) -> float:
 				bd = d; best = k
 	return _v[best] * 3.6 if best >= 0 else -1.0
 
+## Livreur (#151) : point de l'axe de route le plus proche de p (à moins de r m, cases voisines comprises) ; p sinon.
+func point_route(p: Vector3, r := 80.0) -> Vector3:
+	if not ok:
+		return p
+	var bd := r * r
+	var best := p
+	var c := Vector2i(floori(p.x / CASE), floori(p.z / CASE))
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			for k: int in _grille.get(c + Vector2i(dx, dz), PackedInt32Array()):
+				for i in range(_p0[k], _p0[k] + _np[k] - 1):
+					var a := Vector3(_P[i * 3], _P[i * 3 + 1], _P[i * 3 + 2])
+					var b := Vector3(_P[i * 3 + 3], _P[i * 3 + 4], _P[i * 3 + 5])
+					var ab := b - a
+					var f := clampf(Vector2(p.x - a.x, p.z - a.z).dot(Vector2(ab.x, ab.z)) / maxf(Vector2(ab.x, ab.z).length_squared(), 1e-6), 0.0, 1.0)
+					var q := a + ab * f
+					var d := Vector2(q.x - p.x, q.z - p.z).length_squared()
+					if d < bd:
+						bd = d; best = q
+	return best
+
 ## Gendarmes (#150, barrage) : point de la route `d` m devant p dans le sens de marche `dir` (voie la plus proche
 ## orientée comme dir, puis tout droit autant que possible aux carrefours) : [position, direction (Vector2)] ; vide si
 ## aucune voie ou impasse avant `d` m.

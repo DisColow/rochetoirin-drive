@@ -6,7 +6,7 @@ extends Control
 
 const UI := preload("res://scripts/ui.gd")
 const Voitures := preload("res://scripts/voitures.gd")
-const ONGLETS := ["Épreuves", "Course libre", "Taxi", "Chasse au lieu", "Garage", "Multijoueur", "Carrière", "Succès"]
+const ONGLETS := ["Épreuves", "Course libre", "Métiers", "Chasse au lieu", "Garage", "Multijoueur", "Carrière", "Succès"]
 const ORDRE := [6, 0, 1, 2, 3, 4, 5, 7]       # ordre d'affichage des onglets (indices de ONGLETS : la carrière en tête)
 
 var act: Node
@@ -270,17 +270,21 @@ func _course() -> void:
 
 func _taxi() -> void:
 	var v := _colonne()
+	# v7.10 : onglet « Métiers » (taxi, bus, livreur), un titre par métier
+	_texte(v, "Taxi", 32, Color(1.0, 0.85, 0.4))
 	_texte(v, "Prenez des clients et déposez-les à destination, guidé par le GPS. Pourboire selon la conduite, le temps "
 		+ "et la conversation.")
 	if act._rides > 0:
 		_texte(v, "%d course(s), %s gagnés" % [act._rides, act._euros(act._total)], 26, Color(1.0, 0.9, 0.6))
 	_bouton(v, "Commencer le service", act._taxi_start)
 	# #148 : ligne de bus (ligne_bus.gd)
-	_texte(v, "Ligne de bus : prenez le volant du bus de ville et desservez 6 arrêts. Arrêtez la porte avant au "
-		+ "niveau du poteau, laissez monter les voyageurs, soyez à l'heure.")
+	_texte(v, "Chauffeur de bus", 32, Color(1.0, 0.85, 0.4))
+	_texte(v, "Prenez le volant du bus sur une vraie ligne du réseau Ruban. Arrêtez la porte avant au niveau du "
+		+ "poteau, laissez monter les voyageurs, soyez à l'heure.")
 	_bouton(v, "Prendre une ligne de bus", act._bus_start)
 	# #151 : livreur de repas (livreur.gd)
-	_texte(v, "Livreur : récupérez 3 commandes dans les restaurants du coin et livrez-les à l'heure, sans renverser "
+	_texte(v, "Livreur de repas", 32, Color(1.0, 0.85, 0.4))
+	_texte(v, "Récupérez 3 commandes dans les restaurants du coin et livrez-les à l'heure, sans renverser "
 		+ "le repas. Pourboire si vous êtes en avance.")
 	_bouton(v, "Livrer des repas", act._livreur_start)
 
