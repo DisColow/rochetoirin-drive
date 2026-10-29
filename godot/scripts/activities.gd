@@ -320,6 +320,8 @@ func _stop() -> void:
 		main.ligne_bus.arreter()
 	if main.get("livreur") and main.livreur.actif:
 		main.livreur.arreter()
+	if main.get("gendarme_joueur") and main.gendarme_joueur.actif:
+		main.gendarme_joueur.arreter()
 	_fin_concurrents(0.0)
 	_course_ia = false
 	if main.net and main.net.armes:
@@ -1051,6 +1053,19 @@ func _bus_start() -> void:
 	hud.toast("%s : %d arrêts, de %s à %s. Suivez le GPS." % [lb.ligne if lb.ligne != "" else "Vous prenez le volant du bus",
 		lb.arrets.size(), lb.noms[0], lb.noms[-1]], 5.0)
 
+## #150 : activité « Gendarme » (gendarme_joueur.gd) : voiture de la Gendarmerette, un fuyard à immobiliser.
+func _gendarme_start() -> void:
+	_close_menu()
+	_stop()
+	if not main.gendarme_joueur.demarrer():
+		_set_status("Pas de route assez longue ici : rejoignez une rue ou une route.")
+		_status_t = 6.0
+		return
+	mode = "gendarme"
+	map.locked = true
+	hud._show_drive(true)
+	hud.toast("Un fuyard démarre devant vous ! Percutez-le pour l'immobiliser.", 5.0)
+
 ## #151 : livreur de repas (livreur.gd), avec sa propre voiture.
 func _livreur_start() -> void:
 	_close_menu()
@@ -1507,6 +1522,8 @@ func _process_corps(dt: float) -> void:
 			main.ligne_bus.process(dt)
 		"livreur":
 			main.livreur.process(dt)
+		"gendarme":
+			main.gendarme_joueur.process(dt)
 
 func _physics_process(dt: float) -> void:
 	if get_tree().paused or car == null or mode != "taxi" or _phase != "course":

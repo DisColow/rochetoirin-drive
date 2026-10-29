@@ -36,6 +36,7 @@ const SUCCES := [
 	{"id": "taxinuit", "titre": "Taxi de nuit", "texte": "5 courses de taxi au tarif de nuit.", "stat": "taxi_nuit", "but": 5.0, "prime": 400},
 	{"id": "livreur1", "titre": "Livreur", "texte": "Finir une tournée de livraison de repas.", "stat": "tournees", "but": 1.0, "prime": 150},
 	{"id": "livreur50", "titre": "Roi du bitume", "texte": "Livrer 50 repas.", "stat": "livraisons", "but": 50.0, "prime": 1000},
+	{"id": "interpel1", "titre": "Force reste à la loi", "texte": "Interpeller un fuyard (activité Gendarme).", "stat": "interpellations", "but": 1.0, "prime": 150},
 	{"id": "semes1", "titre": "Courant d'air", "texte": "Semer les gendarmes.", "stat": "semes", "but": 1.0, "prime": 200},
 	{"id": "semes10", "titre": "Insaisissable", "texte": "Semer les gendarmes 10 fois.", "stat": "semes", "but": 10.0, "prime": 1000},
 	{"id": "bus1", "titre": "Machiniste", "texte": "Terminer une ligne de bus.", "stat": "lignes_bus", "but": 1.0, "prime": 150},
@@ -57,7 +58,7 @@ const STATS := [["km", "Distance parcourue", "km"], ["km_nuit", "dont de nuit", 
 	["vmax", "Vitesse maximale", "km/h"], ["temps", "Temps de jeu", "temps"], ["communes", "Communes traversées", ""],
 	["explosions", "Explosions", ""], ["casse", "Éléments du décor cassés", ""], ["arbres", "Arbres couchés", ""],
 	["circulation", "Voitures de la circulation percutées", ""], ["taxi", "Courses de taxi", ""],
-	["taxi5", "dont à 5 étoiles", ""], ["taxi_nuit", "dont au tarif de nuit", ""], ["lignes_bus", "Lignes de bus terminées", ""], ["semes", "Gendarmes semés", ""], ["livraisons", "Repas livrés", ""], ["arrestations", "Arrestations", ""], ["voyageurs", "Voyageurs transportés en bus", ""], ["chasses", "Chasses au lieu réussies", ""], ["ors", "Épreuves en or", ""],
+	["taxi5", "dont à 5 étoiles", ""], ["taxi_nuit", "dont au tarif de nuit", ""], ["lignes_bus", "Lignes de bus terminées", ""], ["semes", "Gendarmes semés", ""], ["livraisons", "Repas livrés", ""], ["arrestations", "Arrestations", ""], ["interpellations", "Fuyards interpellés", ""], ["voyageurs", "Voyageurs transportés en bus", ""], ["chasses", "Chasses au lieu réussies", ""], ["ors", "Épreuves en or", ""],
 	["concurrents", "Concurrents détruits", ""], ["argent", "Argent gagné", "€"]]
 
 ## Défi du jour (v7.11) : un défi par jour du calendrier, tiré dans cette liste d'après la date (le même pour tous

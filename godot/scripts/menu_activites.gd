@@ -287,6 +287,11 @@ func _taxi() -> void:
 	_texte(v, "Récupérez 3 commandes dans les restaurants du coin et livrez-les à l'heure, sans renverser "
 		+ "le repas. Pourboire si vous êtes en avance.")
 	_bouton(v, "Livrer des repas", act._livreur_start)
+	# #150 : gendarme (gendarme_joueur.gd)
+	_texte(v, "Gendarme", 32, Color(1.0, 0.85, 0.4))
+	_texte(v, "Prenez la voiture de la Gendarmerette : un fuyard démarre devant vous, immobilisez-le en le percutant "
+		+ "avant qu'il ne vous sème.")
+	_bouton(v, "Prendre le service de gendarme", act._gendarme_start)
 
 func _chasse() -> void:
 	var v := _colonne()

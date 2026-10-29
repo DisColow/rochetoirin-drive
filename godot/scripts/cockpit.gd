@@ -55,6 +55,9 @@ const FONT := {
 var voiture := ""
 func charger(id: String) -> void:
 	voiture = id
+	var fiche: Dictionary = preload("res://scripts/voitures.gd").CATALOGUE.get(id, {})
+	if fiche.has("cockpit"):              # véhicule de service sur la caisse d'une voiture du garage (gendarme)
+		id = String(fiche.cockpit)
 	var d := DIR if id == "ranger" or not FileAccess.file_exists(DIR + id + "/meta.json") else DIR + id + "/"
 	meta = JSON.parse_string(FileAccess.get_file_as_string(d + "meta.json"))
 	for n in ["dash", "glow", "glass", "top", "wheel", "pillar", "pine"]:

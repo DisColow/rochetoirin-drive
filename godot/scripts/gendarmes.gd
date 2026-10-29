@@ -244,7 +244,8 @@ func _pas(dt: float) -> void:
 	for g in liste:
 		if not is_instance_valid(g) or g.blown or g.fige:
 			continue
-		if g.voiture in car.get_colliding_bodies() and _choc_t <= 0.0:
+		# contacts relevés par la voiture du gendarme (celle du joueur n'a pas de contact_monitor)
+		if car in g.voiture.get_colliding_bodies() and _choc_t <= 0.0:
 			_choc_t = 2.0
 			var rel: Vector3 = car.linear_velocity - g.voiture.linear_velocity
 			if rel.dot((g.voiture.global_position - p).normalized()) > 4.0:

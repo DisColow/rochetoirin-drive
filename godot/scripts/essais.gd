@@ -503,6 +503,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_helico_test()
 		return
+	if OS.get_cmdline_user_args().has("--gendarme-joueur-test"):
+		if t == 300:
+			_gendarme_joueur_test()
+		return
 	if OS.get_cmdline_user_args().has("--bus-test"):
 		if t == 300:
 			_bus_test()
@@ -3128,6 +3132,64 @@ func _rails_test(t: int) -> void:
 				bilan.call("à travers le passage à niveau")
 				print("  [rails] bras défoncés : %d" % casses)
 				get_tree().quit()
+
+## Activité « Gendarme » (v7.13) : -- --drive-test --gendarme-joueur-test --drive-from=-10975,236,-1100,90. La
+## voiture du joueur (Gendarmerette) est pilotée droit sur le fuyard, pleins gaz, jusqu'à l'interpellation ; captures
+## gendarme_joueur.png (voiture du joueur et fuyard) et journal des chocs.
+func _gendarme_joueur_test() -> void:
+	var gj = gendarme_joueur
+	var dire := func(x: String): print("  [gendarme] " + x)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	for k in 120:
+		await get_tree().process_frame
+	var argent0: float = garage.argent
+	activities._gendarme_start()
+	if not gj.actif:
+		dire.call("ÉCHEC : activité non démarrée")
+		get_tree().quit()
+		return
+	dire.call("voiture du joueur : %s (%s) ; fuyard : %s à %.0f m" % [car.voiture, voitures_nom(car.voiture), gj.fuyard.modele,
+		car.global_position.distance_to(gj.fuyard.voiture.global_position)])
+	var t := 0.0
+	var cap := false
+	while gj.actif and t < 150.0:
+		var f: Vector3 = gj.fuyard.voiture.global_position
+		var l: Vector3 = car.global_transform.affine_inverse() * f
+		car.touch_steer = clampf(atan2(l.x, l.z) * 1.5, -1.0, 1.0)
+		car.touch_throttle = 1.0 if l.z > 0.0 else 0.3
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+		if not gj.actif:
+			break
+		var d := car.global_position.distance_to(gj.fuyard.voiture.global_position)
+		if fmod(t, 3.0) < get_physics_process_delta_time():
+			dire.call("t %.0f s : fuyard à %.0f m, %.0f km/h (%s%s), joueur %.0f km/h, dégâts %d %%" % [t, d, gj.fuyard.voiture.kmh(),
+				gj.fuyard.mode, " figé" if gj.fuyard.fige else "", car.kmh(), int(gj.degats)])
+		if not cap and d < 14.0:
+			cap = true
+			var vue := Camera3D.new()
+			add_child(vue)
+			vue.global_position = car.global_position - car.global_transform.basis.z * 9.0 + Vector3.UP * 4.0
+			vue.look_at((car.global_position + gj.fuyard.voiture.global_position) * 0.5)
+			vue.current = true
+			for k in 3:
+				await get_tree().process_frame
+			get_viewport().get_texture().get_image().save_png("user://shots/gendarme_joueur.png")
+			vue.queue_free()
+			dire.call("capture gendarme_joueur.png")
+	car.touch_throttle = 0.0
+	car.touch_steer = 0.0
+	dire.call("fin après %.0f s : actif %s, interpellé %s, dégâts %d %%, argent %+.2f €, voiture rendue : %s, statut « %s »" % [t,
+		str(gj.actif), str(gj.interpelle), int(gj.degats), garage.argent - argent0, car.voiture, activities._status_l.text])
+	print("  [gendarme] FIN")
+	get_tree().quit()
+
+func voitures_nom(id: String) -> String:
+	var V := preload("res://scripts/voitures.gd")
+	return String(V.CATALOGUE[id].nom) if V.CATALOGUE.has(id) else id
 
 ## Hélicoptère des gendarmes (v7.12) : -- --drive-test --helico-test --drive-from=-10975,236,-1100,90. 3 étoiles, le
 ## joueur reste sur place : l'hélicoptère arrive (capture helico.png), le voit d'en haut ; puis il repart faire le plein.

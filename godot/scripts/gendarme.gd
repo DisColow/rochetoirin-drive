@@ -6,6 +6,8 @@
 ##   m et en vue, fonce droit sur un point devant lui pour le percuter ou le coincer ; gyrophares et sirène.
 ## - « barrage » (3 étoiles) : arrêtée en travers de la route devant le joueur, gyrophares allumés, frein serré ;
 ##   repart en poursuite quand il est passé (gendarmes.gd).
+## - « fuite » (activité « Gendarme », livree = false) : voiture ordinaire qui file à l'opposé du joueur ; « arret » :
+##   immobilisée (gendarme_joueur.gd).
 ## - « repli » : la poursuite est finie : roule au pas puis disparaît hors de vue (gendarmes.gd).
 ## - Volant et pédales comme concurrent.gd (poursuite d'un point devant, vitesse visée d'après les virages à venir,
 ##   écart pour contourner la circulation, marche arrière quand la voiture est bloquée, remise sur la route).
@@ -26,12 +28,14 @@ const REPLAN := 2.0                 # poursuite : nouvel itinéraire toutes les 
 const A_LAT := 6.0                  # accélération latérale admise en virage (m/s²)
 const VOIE := 2.2
 const GYRO := 0.12                  # demi-période des éclats des gyrophares (s)
+const FUITE_V := 0.85               # fuyard : part de sa vitesse maximale
 
 var main: Node
 const MODELE := "p306"              # voiture provisoire (#150 : choix A ou B en attente)
 var modele := MODELE
 var couleur := Color(0.1, 0.17, 0.42)
 var mode := "patrouille"
+var livree := true                  # false : voiture ordinaire (fuyard de l'activité « Gendarme »)
 var voiture: Car
 var fige := false
 var cible := Vector2.ZERO           # bout de l'itinéraire en cours
@@ -65,12 +69,13 @@ func _ready() -> void:
 	voiture.voiture = modele
 	voiture.name = "Gendarme"
 	main.add_child(voiture)
-	_repeindre()
 	voiture.contact_monitor = true
 	voiture.max_contacts_reported = 4
-	voiture.set_meta("gendarme", true)
 	_vmax = float(voiture.vmax) / 3.6 * 0.95
-	_rampe()
+	if livree:
+		voiture.set_meta("gendarme", true)
+		var h := habiller(voiture, couleur)
+		_gyro = h.gyro; _lueur = h.lueur; _sirene = h.sirene
 	if main.get("car"):
 		voiture.set_lights(main.car.lights_on)
 
@@ -92,10 +97,16 @@ void fragment() {
 }
 """
 
-func _repeindre() -> void:
-	if voiture._paint_mat:
-		voiture._paint_mat.albedo_color = couleur          # carrosserie « paint » (sans effet sinon)
-	var corps: Node3D = voiture.get("_body")
+## Habille une voiture en gendarmerie (gendarmes de la poursuite, voiture du joueur dans l'activité « Gendarme ») :
+## livrée bleue, rampe de gyrophares, lueur et sirène ; rend {gyro: [[MeshInstance3D, matériau]], lueur, sirene}.
+static func habiller(v: Car, col: Color) -> Dictionary:
+	_repeindre(v, col)
+	return _rampe(v)
+
+static func _repeindre(v: Car, col: Color) -> void:
+	if v._paint_mat:
+		v._paint_mat.albedo_color = col          # carrosserie « paint » (sans effet sinon)
+	var corps: Node3D = v.get("_body")
 	if corps == null:
 		return
 	var sh := Shader.new()
@@ -109,26 +120,27 @@ func _repeindre() -> void:
 				var t := ShaderMaterial.new()
 				t.shader = sh
 				t.set_shader_parameter("tex", m.albedo_texture)
-				t.set_shader_parameter("teinte", couleur)
+				t.set_shader_parameter("teinte", col)
 				m3.set_surface_override_material(k, t)
 				repeint += 1
 	print("[gendarmes] livrée : %d surface(s) teintée(s)" % repeint)
 
 ## Haut de la carrosserie (repère de la voiture), d'après les boîtes des maillages ; gabarit à défaut.
-func _toit() -> float:
-	var corps: Node3D = voiture.get("_body")
+static func _toit(v: Car) -> float:
+	var corps: Node3D = v.get("_body")
 	var h := -INF
 	if corps:
-		var inv := voiture.global_transform.affine_inverse()
+		var inv := v.global_transform.affine_inverse()
 		for mi in corps.find_children("*", "MeshInstance3D", true, false):
 			var b: AABB = (inv * (mi as MeshInstance3D).global_transform) * (mi as MeshInstance3D).get_aabb()
 			h = maxf(h, b.end.y)
-	return h if is_finite(h) else voiture.gabarit.y
+	return h if is_finite(h) else v.gabarit.y
 
 ## Rampe de gyrophares sur le toit : deux feux bleus et un témoin blanc, matériaux sans ombrage (éclats visibles de
 ## loin, la nuit comme le jour), lueur bleue la nuit.
-func _rampe() -> void:
-	var g := voiture.gabarit
+static func _rampe(v: Car) -> Dictionary:
+	var gyro := []
+	var g := v.gabarit
 	var socle := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = Vector3(minf(g.x * 0.62, 1.2), 0.1, 0.24)
@@ -136,8 +148,8 @@ func _rampe() -> void:
 	var ms := StandardMaterial3D.new()
 	ms.albedo_color = Color(0.85, 0.86, 0.9)
 	socle.material_override = ms
-	socle.position = Vector3(0, _toit() + 0.04, -g.z * 0.05)
-	voiture.add_child(socle)
+	socle.position = Vector3(0, _toit(v) + 0.04, -g.z * 0.05)
+	v.add_child(socle)
 	for dx in [-1.0, 1.0]:
 		var f := MeshInstance3D.new()
 		var fm := BoxMesh.new()
@@ -149,28 +161,31 @@ func _rampe() -> void:
 		f.material_override = m
 		f.position = socle.position + Vector3(dx * bm.size.x * 0.3, 0.05, 0)
 		f.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		voiture.add_child(f)
-		_gyro.append([f, m])
-	_lueur = OmniLight3D.new()
-	_lueur.light_color = Color(0.25, 0.4, 1.0)
-	_lueur.omni_range = 14.0
-	_lueur.light_energy = 0.0
-	_lueur.shadow_enabled = false
-	_lueur.position = socle.position + Vector3(0, 0.4, 0)
-	voiture.add_child(_lueur)
-	_sirene = AudioStreamPlayer3D.new()
+		v.add_child(f)
+		gyro.append([f, m])
+	var lueur := OmniLight3D.new()
+	lueur.light_color = Color(0.25, 0.4, 1.0)
+	lueur.omni_range = 14.0
+	lueur.light_energy = 0.0
+	lueur.shadow_enabled = false
+	lueur.position = socle.position + Vector3(0, 0.4, 0)
+	v.add_child(lueur)
+	var sirene := AudioStreamPlayer3D.new()
 	if ResourceLoader.exists("res://assets/sfx/sirene.ogg"):
 		var st: AudioStream = (load("res://assets/sfx/sirene.ogg") as AudioStream).duplicate()
 		if st is AudioStreamOggVorbis:
 			(st as AudioStreamOggVorbis).loop = true
-		_sirene.stream = st
-	_sirene.unit_size = 18.0
-	_sirene.max_distance = 600.0
-	_sirene.volume_db = -2.0
-	_sirene.bus = "Monde"
-	voiture.add_child(_sirene)
+		sirene.stream = st
+	sirene.unit_size = 18.0
+	sirene.max_distance = 600.0
+	sirene.volume_db = -2.0
+	sirene.bus = "Monde"
+	v.add_child(sirene)
+	return {"gyro": gyro, "lueur": lueur, "sirene": sirene}
 
 func voir_gyros(on: bool) -> void:
+	if _sirene == null:
+		return
 	if on and _sirene.stream and not _sirene.playing:
 		_sirene.play(randf() * 4.0)
 	elif not on and _sirene.playing:
@@ -184,13 +199,16 @@ func _gyros(dt: float) -> void:
 	if mode != "poursuite" and mode != "barrage":
 		return
 	_gyro_t += dt
-	# double éclat alterné gauche / droite
-	var ph := int(_gyro_t / GYRO) % 8
-	for j in 2:
+	clignoter(_gyro, _lueur, _gyro_t, main.get("car") != null and main.car.lights_on)
+
+## Double éclat alterné gauche / droite des gyrophares à l'instant t ; lueur bleue la nuit.
+static func clignoter(gyro: Array, lueur: OmniLight3D, t: float, nuit: bool) -> void:
+	var ph := int(t / GYRO) % 8
+	for j in mini(2, gyro.size()):
 		var on := ph in ([0, 2] if j == 0 else [4, 6])
-		(_gyro[j][1] as StandardMaterial3D).albedo_color = Color(0.35, 0.55, 1.0) * 2.2 if on else Color(0.05, 0.08, 0.25)
-	var nuit: bool = main.get("car") != null and main.car.lights_on
-	_lueur.light_energy = (2.5 if ph in [0, 2, 4, 6] else 0.0) if nuit else 0.0
+		(gyro[j][1] as StandardMaterial3D).albedo_color = Color(0.35, 0.55, 1.0) * 2.2 if on else Color(0.05, 0.08, 0.25)
+	if lueur:
+		lueur.light_energy = (2.5 if ph in [0, 2, 4, 6] else 0.0) if nuit else 0.0
 
 ## Place la voiture (figée) au point p, cap vers `vers`.
 func poser(p: Vector2, vers: Vector2) -> void:
@@ -241,6 +259,18 @@ func _pas(dt: float) -> void:
 			var pis: Array = main.gendarmes.piste()
 			var q: Vector3 = pis[0] + (pis[1] as Vector3) * clampf(dj / 40.0, 0.5, 3.0)
 			aller(Vector2(q.x, q.z))
+	elif mode == "fuite":
+		# activité « Gendarme » : le fuyard file à l'opposé du joueur, nouvel itinéraire toutes les 4 s ou au bout du chemin
+		_replan_t -= dt
+		if _replan_t <= 0.0 or _chemin.is_empty() or _i >= _chemin.size() - 6:
+			_replan_t = 4.0
+			var loin := voiture.global_position - j.global_position
+			loin.y = 0.0
+			if loin.length() < 1.0:
+				loin = voiture.global_transform.basis.z
+			var a := atan2(loin.z, loin.x) + randf_range(-0.6, 0.6)
+			var q := voiture.global_position + Vector3(cos(a), 0.0, sin(a)) * 450.0
+			aller(Vector2(q.x, q.z))
 	elif mode == "patrouille" and (_chemin.is_empty() or _i >= _chemin.size() - 3) and _replan_t <= 0.0:
 		_replan_t = 3.0
 		var a := randf() * TAU
@@ -256,7 +286,7 @@ func _pas(dt: float) -> void:
 	elif dj > LOIN:
 		_figer()
 		return
-	if mode == "barrage":                 # en travers de la route, frein serré, en attendant le joueur
+	if mode == "barrage" or mode == "arret":   # en travers de la route (ou fuyard immobilisé), frein serré
 		voiture.touch_throttle = 0.0; voiture.touch_brake = 0.0; voiture.touch_steer = 0.0
 		voiture.frein_parking = true
 		_surveiller(dt)
@@ -285,7 +315,7 @@ func _prendre(r: PackedVector2Array) -> void:
 	_s[0] = 0.0
 	for i in range(1, n):
 		_s[i] = _s[i - 1] + p[i - 1].distance_to(p[i])
-	var vm := _vmax if mode == "poursuite" else 14.0
+	var vm := _vmax if mode == "poursuite" else (_vmax * FUITE_V if mode == "fuite" else 14.0)
 	for i in n:
 		var i0 := maxi(i - 3, 0); var i1 := mini(i + 3, n - 1)
 		var k := 0.0
