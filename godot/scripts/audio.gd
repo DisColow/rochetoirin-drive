@@ -339,7 +339,8 @@ func _physics_process(dt: float) -> void:
 		if kind != "" or dv.length() > 5.0:
 			impact(kind if kind != "" else "sol", dv.length(), car.global_position)
 			_hit_cd = 0.18
-			if kind in ["dur", "metal", "bois"] and dv.length() * 3.6 > car.VITESSE_BOUM:
+			if kind in ["dur", "metal", "bois"] and dv.length() * 3.6 > car.VITESSE_BOUM \
+					and not car.get_colliding_bodies().any(func(b): return car.est_vehicule(b)):    # #164 : car.juger
 				boum()
 				car.exploser()
 

@@ -1355,7 +1355,11 @@ func _accident(i: int, par: Node3D) -> void:
 	add_child(rb)
 	rb.global_transform = Transform3D(c.basis, c.pos)
 	rb.linear_velocity = (c.dir as Vector3) * float(c.v)
+	rb.set_meta("vehicule", true); rb.set_meta("epave", true); rb.set_meta("v_avant", float(c.v))
 	epaves.append({"rb": rb, "t": 0.0})
+	# #164 : le choc est jugé tout de suite (vitesse de la voiture de la circulation et du pilote avant le choc)
+	var vp: float = par.vitesse_avant() * 3.6 if par.has_method("vitesse_avant") else (par as RigidBody3D).linear_velocity.length() * 3.6
+	preload("res://scripts/car.gd").juger(rb, float(c.v) * 3.6, par, vp)
 	voitures.remove_at(i)
 	accidents += 1
 	if par == _joueur() and main.get("succes"):
@@ -1366,6 +1370,21 @@ func _accident(i: int, par: Node3D) -> void:
 		print("[circulation] choc : voiture %d devient une épave (%.0f km/h, percutée par %s) à (%.0f, %.0f), meneur %s, suite %d, sur le tracé %s" % [
 			int(c.id), float(c.v) * 3.6, par.name, (c.pos as Vector3).x, (c.pos as Vector3).z, c.leader, int(c.suite),
 			str(not _trace.is_empty() and _sur_trace(int(c.voie)))])
+
+## #164 : épave de la circulation, la plus lente d'un choc violent : KA-BOOM, elle disparaît.
+func exploser_epave(rb: Node) -> void:
+	for i in epaves.size():
+		if epaves[i].rb == rb:
+			var p: Vector3 = (rb as Node3D).global_position
+			var fx = preload("res://scripts/explosion.gd").new()
+			fx.style = "atomique"
+			fx.position = p - Vector3(0, 0.3, 0)
+			main.add_child(fx)
+			if main.get("sound") and main.sound.has_method("boum"):
+				main.sound.boum(p)
+			rb.queue_free()
+			epaves.remove_at(i)
+			return
 
 func _epaves(dt: float) -> void:
 	var p := target.global_position

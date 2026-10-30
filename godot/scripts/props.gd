@@ -234,6 +234,8 @@ func _activer(it: Dictionary) -> void:
 	var t: int = it.t
 	var rb := RigidBody3D.new()
 	rb.set_meta("matiere", "plastique" if t == 6 else "metal")
+	if t != 6:
+		rb.set_meta("vehicule", true); rb.set_meta("garee", true); rb.set_meta("v_avant", 0.0)     # #164 : Car.juger
 	rb.mass = MASSES[t]
 	rb.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 	rb.center_of_mass = Vector3(0, BOXES[t].y * 0.35, 0)
@@ -265,6 +267,24 @@ func _activer(it: Dictionary) -> void:
 	(it.mm as MultiMeshInstance3D).multimesh.set_instance_transform(it.i, Transform3D(Basis.from_scale(Vector3.ONE * 0.001), (it.xf as Transform3D).origin - Vector3(0, 50, 0)))
 	(it.cs as CollisionShape3D).disabled = true
 	it.rb = rb
+
+## #164 : voiture garée percutée à plus de 60 km/h (Car.juger) : KA-BOOM, elle disparaît (revient avec la tuile).
+func exploser_garee(rb: Node) -> void:
+	for k in items:
+		for it in items[k]:
+			if it.rb == rb:
+				var p: Vector3 = (rb as Node3D).global_position
+				var fx = preload("res://scripts/explosion.gd").new()
+				fx.style = "atomique"
+				fx.position = p - Vector3(0, 0.3, 0)
+				get_parent().add_child(fx)
+				var m := get_parent()
+				if m.get("sound") and m.sound.has_method("boum"):
+					m.sound.boum(p)
+				rb.queue_free()
+				it.rb = null
+				it.mm = null                                # ni réactivée ni réaffichée tant que la tuile reste chargée
+				return
 
 func _rendre(it: Dictionary) -> void:
 	var rb: RigidBody3D = it.rb

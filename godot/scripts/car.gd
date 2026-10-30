@@ -559,6 +559,63 @@ func blow_up() -> void:
 		q.visible = false
 	freeze = true
 
+## #164 (règle de l'utilisateur) : choc entre deux véhicules (voitures du joueur et des IA, circulation, voitures
+## garées) : explosion seulement si l'un roulait à plus de VITESSE_BOUM et que leurs vitesses (avant le choc)
+## diffèrent d'au moins ECART_BOUM ; c'est alors le plus lent qui explose. Un choc n'est jugé qu'une fois (les deux
+## voitures le voient).
+const ECART_BOUM := 30.0            # km/h
+var _vitesses := PackedFloat32Array([0.0, 0.0, 0.0])     # m/s aux trois derniers pas (la plus ancienne : avant le choc)
+static var _chocs_vus := {}         # paire d'instances -> instant (s)
+
+func vitesse_avant() -> float:
+	return _vitesses[0]
+
+static func est_vehicule(b: Object) -> bool:
+	return b is VehicleBody3D or (b is Node and (b as Node).has_meta("vehicule"))
+
+## Vitesse (km/h) d'un véhicule juste avant un choc : voiture (trois pas plus tôt), épave de la circulation (sa vitesse
+## au moment de l'accident), voiture garée (0).
+static func vitesse_de(b: Object) -> float:
+	if b is VehicleBody3D and b.has_method("vitesse_avant"):
+		return b.vitesse_avant() * 3.6
+	if b is Node and (b as Node).has_meta("v_avant"):
+		return float((b as Node).get_meta("v_avant")) * 3.6
+	return (b as RigidBody3D).linear_velocity.length() * 3.6 if b is RigidBody3D else 0.0
+
+## Juge le choc entre les véhicules a et b (km/h avant le choc : va, vb) ; fait exploser le plus lent, le renvoie (ou null).
+static func juger(a: Object, va: float, b: Object, vb: float) -> Object:
+	var ia := a.get_instance_id(); var ib := b.get_instance_id()
+	var cle := "%d-%d" % [mini(ia, ib), maxi(ia, ib)]
+	var now := Time.get_ticks_msec() / 1000.0
+	if _chocs_vus.has(cle) and now - float(_chocs_vus[cle]) < 1.5:
+		return null
+	if _chocs_vus.size() > 64:
+		_chocs_vus.clear()
+	_chocs_vus[cle] = now
+	if OS.get_cmdline_user_args().has("--choc-debug"):
+		print("[choc] véhicules : %.0f et %.0f km/h" % [va, vb])
+	if maxf(va, vb) < VITESSE_BOUM or absf(va - vb) < ECART_BOUM:
+		return null
+	var lent: Object = a if va < vb else b
+	_faire_exploser(lent)
+	return lent
+
+static func _faire_exploser(v: Object) -> void:
+	if not (v is Node) or not (v as Node).is_inside_tree():
+		return
+	var main: Node = (v as Node).get_tree().current_scene
+	if v is VehicleBody3D and v.has_method("exploser"):
+		if v.ia:
+			(v as Node).set_meta("boum", true)          # son pilote (gendarme.gd, concurrent.gd) s'en charge
+		else:
+			if main and main.get("sound") and main.sound.has_method("boum"):
+				main.sound.boum()
+			v.exploser()
+	elif (v as Node).has_meta("garee") and main and main.get("props"):
+		main.props.exploser_garee(v)
+	elif (v as Node).has_meta("epave") and main and main.get("circulation"):
+		main.circulation.exploser_epave(v)
+
 ## #121 : choc contre un obstacle indestructible au-delà de VITESSE_BOUM (vitesse perdue d'un coup, détectée par
 ## audio.gd) : explosion (#129, explosion.gd : champignon atomique), puis la voiture revient sur la route.
 const VITESSE_BOUM := 60.0          # km/h
@@ -744,6 +801,11 @@ func forward_speed() -> float:
 func _physics_process(dt: float) -> void:
 	if blown:
 		return
+	_vitesses[0] = _vitesses[1]; _vitesses[1] = _vitesses[2]; _vitesses[2] = linear_velocity.length()
+	if contact_monitor and not ia:
+		for b in get_colliding_bodies():                 # #164 : choc avec un autre véhicule
+			if est_vehicule(b) and juger(self, vitesse_avant() * 3.6, b, vitesse_de(b)) == self:
+				return
 	if carried:
 		_place_blob()
 		return

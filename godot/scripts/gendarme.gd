@@ -305,6 +305,10 @@ func _pas(dt: float) -> void:
 	elif dj > LOIN:
 		_figer()
 		return
+	if mode == "libre":                          # essai (#164) : commandes laissées à l'essai, chocs surveillés
+		voiture.frein_parking = false
+		_surveiller(dt)
+		return
 	if mode == "barrage" or mode == "arret":   # en travers de la route (ou fuyard immobilisé), frein serré
 		voiture.touch_throttle = 0.0; voiture.touch_brake = 0.0; voiture.touch_steer = 0.0
 		voiture.frein_parking = true
@@ -522,7 +526,15 @@ func _surveiller(dt: float) -> void:
 	var vel := voiture.linear_velocity
 	var dv := (_v_prec - vel).length() * 3.6
 	_v_prec = vel
-	if dv > Car.VITESSE_BOUM and not voiture.get_colliding_bodies().is_empty():
+	# #164 : choc avec un autre véhicule : le plus lent explose (Car.juger) ; contre le décor, ancienne règle
+	var vehicules := voiture.get_colliding_bodies().filter(func(b): return Car.est_vehicule(b))
+	for b in vehicules:
+		Car.juger(voiture, voiture.vitesse_avant() * 3.6, b, Car.vitesse_de(b))
+	if voiture.has_meta("boum"):
+		voiture.remove_meta("boum")
+		_exploser()
+		return
+	if dv > Car.VITESSE_BOUM and vehicules.is_empty() and not voiture.get_colliding_bodies().is_empty():
 		_exploser()
 		return
 	if not voiture.global_position.is_finite() or Relief.hauteur(voiture.global_position) - voiture.global_position.y > 4.0:

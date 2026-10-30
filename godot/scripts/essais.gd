@@ -495,6 +495,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_gendarmes_test()
 		return
+	if OS.get_cmdline_user_args().has("--choc-vehicules-test"):
+		if t == 300:
+			_choc_vehicules_test()
+		return
 	if OS.get_cmdline_user_args().has("--fuyard-test"):
 		if t == 300:
 			_fuyard_test()
@@ -3494,6 +3498,116 @@ func _helico_test() -> void:
 ## 3) en retard. Capture livreur.png à la première adresse.
 ## #156 : rien ne doit conduire dans les collines du bord (hors de la zone jouable). Itinéraires entre points proches
 ## de la limite (sans puis avec l'évitement), adresses du livreur, arrêts des lignes Ruban, fuite du gendarme, épreuves.
+## #164 : explosion entre véhicules (règle de l'utilisateur : l'un à plus de 60 km/h, écart de vitesse d'au moins
+## 30 km/h, le plus lent explose). -- --drive-test --choc-vehicules-test --drive-from=-10975,236,-1100,90 : la
+## Gendarmerette (joueur) et le fuyard posés sur la même voie, l'un lancé contre l'autre ; voiture garée percutée.
+func _choc_vehicules_test() -> void:
+	const CarS := preload("res://scripts/car.gd")
+	var gj = gendarme_joueur
+	var dire := func(x: String): print("  [chocs] " + x)
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	circulation.set_densite(0)
+	gendarmes.actif = false
+	car.aide_voie = false
+	var hud := get_node("HUD")
+	var ok_cas := 0
+	var n_cas := 0
+	# [nom, vitesse du joueur (km/h), vitesse du fuyard (km/h), qui doit exploser : "joueur", "fuyard", ""]
+	var cas := [["joueur 40 km/h contre fuyard arrêté", 40.0, 0.0, ""],
+		["joueur 70 km/h contre fuyard à 55 km/h (même sens)", 70.0, 55.0, ""],
+		["fuyard 90 km/h contre joueur arrêté", 0.0, 90.0, "joueur"],
+		["joueur 95 km/h contre fuyard arrêté", 95.0, 0.0, "fuyard"]]
+	for c in cas:
+		if not gj.actif:
+			activities._gendarme_start()
+			for f in 5:
+				await get_tree().process_frame
+			if hud.consigne_ouverte:
+				for b in hud.consigne_ouverte.find_children("*", "Button", true, false):
+					(b as Button).pressed.emit()
+			for f in 30:
+				await get_tree().physics_frame
+		var fu = gj.fuyard
+		if fu == null or not gj.actif:
+			dire.call("ÉCHEC : pas de fuyard")
+			break
+		# une voie droite : celle de la voiture du joueur
+		var vp: Array = circulation.voie_proche(car.global_position, 80.0)
+		var p0: Vector3 = vp[0]
+		var d: Vector3 = vp[1]
+		var cap := rad_to_deg(atan2(d.x, -d.z))
+		var vj: float = c[1] / 3.6; var vf: float = c[2] / 3.6
+		# le plus rapide derrière : il rattrape l'autre (même sens) ou fonce sur lui à l'arrêt
+		var pj := p0 if vj >= vf else p0 + d * 18.0
+		var pf := p0 + d * 18.0 if vj >= vf else p0
+		fu.mode = "arret" if vf == 0.0 else "fuite"
+		fu.voiture.place(pf + Vector3.UP * 0.5, cap)
+		car.place(pj + Vector3.UP * 0.5, cap)
+		for f in 20:
+			car.linear_velocity = Vector3.ZERO
+			fu.voiture.linear_velocity = Vector3.ZERO
+			await get_tree().physics_frame
+		fu.mode = "libre"                                 # plus de pilote : commandes tenues par l'essai
+		car.linear_velocity = d * vj
+		fu.voiture.linear_velocity = d * vf
+		var t := 0.0
+		while t < 3.0 and not car.blown and not fu.blown:
+			car.touch_throttle = 1.0 if vj > 0.0 else 0.0
+			car.frein_parking = vj == 0.0
+			fu.voiture.touch_throttle = 0.6 if vf > 0.0 else 0.0
+			fu.voiture.frein_parking = vf == 0.0
+			await get_tree().physics_frame
+			t += get_physics_process_delta_time()
+		car.touch_throttle = 0.0
+		var qui := "joueur" if car.blown else ("fuyard" if fu.blown else "")
+		n_cas += 1
+		ok_cas += 1 if qui == c[3] else 0
+		dire.call("%s : explose %s (attendu %s) %s" % [c[0], qui if qui != "" else "personne", c[3] if c[3] != "" else "personne", "OK" if qui == c[3] else "ÉCHEC"])
+		while car.blown:
+			await get_tree().physics_frame
+		for f in 90:                                      # réapparition : la voiture est maintenue 0,5 s
+			await get_tree().physics_frame
+	# voiture garée
+	var it_g = null
+	var bd := INF
+	for k in props.items:
+		for it in props.items[k]:
+			if it.mm != null and int(it.t) >= 1 and int(it.t) <= 4:
+				var o: Vector3 = (it.xf as Transform3D).origin
+				var dd := o.distance_to(car.global_position)
+				if dd < bd:
+					bd = dd; it_g = it
+	if it_g == null:
+		dire.call("voiture garée : aucune à proximité")
+	else:
+		if gj.actif:
+			gj.arreter()
+		var o: Vector3 = (it_g.xf as Transform3D).origin
+		var dirg := (it_g.xf as Transform3D).basis.z
+		dirg.y = 0.0
+		dirg = dirg.normalized()
+		var depart := o - dirg * 25.0
+		car.place(depart + Vector3.UP * 0.6, rad_to_deg(atan2(dirg.x, -dirg.z)))
+		for f in 20:
+			car.linear_velocity = Vector3.ZERO
+			await get_tree().physics_frame
+		car.linear_velocity = dirg * 26.0
+		var t := 0.0
+		while t < 3.0 and it_g.mm != null and not car.blown:
+			car.touch_throttle = 1.0
+			await get_tree().physics_frame
+			t += get_physics_process_delta_time()
+		car.touch_throttle = 0.0
+		var g_ok: bool = it_g.mm == null and not car.blown
+		n_cas += 1
+		ok_cas += 1 if g_ok else 0
+		dire.call("joueur 94 km/h contre voiture garée (à %.0f m) : garée détruite %s, joueur explosé %s %s" % [bd, str(it_g.mm == null), str(car.blown), "OK" if g_ok else "ÉCHEC"])
+	dire.call("règle : %s" % str([[100.0, 0.0], [65.0, 40.0], [50.0, 0.0], [90.0, 70.0], [90.0, 50.0]].map(func(v): return "%d/%d km/h -> %s" % [v[0], v[1], "le plus lent" if maxf(v[0], v[1]) >= CarS.VITESSE_BOUM and absf(v[0] - v[1]) >= CarS.ECART_BOUM else "rien"])))
+	dire.call("RÉSULTAT : %d/%d %s" % [ok_cas, n_cas, "OK" if ok_cas == n_cas else "ÉCHEC"])
+	get_tree().quit()
+
 ## #158-#160 : activité « Gendarme ». -- --drive-test --fuyard-test --drive-from=-10975,236,-1100,90 [--fuite-ancienne]
 ## Consigne au lancement (jeu figé jusqu'à OK, capture fuyard_consigne.png) ; Gendarmerette du joueur : livrée et
 ## roues d'origine même après un gain d'argent (garage.change), capture fuyard_voiture.png ; puis la fuite, la
