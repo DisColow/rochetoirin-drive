@@ -1,0 +1,23 @@
+{
+ "cylindres": 4,
+ "desc": "Seat Toledo",
+ "paliers": [
+  {
+   "nom": "p0",
+   "f0": 26.226,
+   "rpm": 787
+  },
+  {
+   "nom": "p1",
+   "f0": 63.905,
+   "rpm": 1917
+  },
+  {
+   "nom": "p2",
+   "f0": 96.782,
+   "rpm": 2903
+  }
+ ],
+ "ralenti": 512,
+ "rupteur": 5516
+}
