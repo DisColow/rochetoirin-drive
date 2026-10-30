@@ -11,7 +11,47 @@ static func add(m: ShaderMaterial) -> ShaderMaterial:
 	mats.append(m)
 	for k in vals:
 		m.set_shader_parameter(k, vals[k])
+	if bout_monde:
+		_basculer(m, true)
 	return m
+
+## Bord « cascade » (#157) : les matériaux opaques sans discard (relief, routes, bâtiments, lointain) passent à leur
+## variante « #define BOUT_MONDE » (le monde s'efface au-delà de la limite) ; en mode Collines, shaders d'origine.
+const VARIANTES := ["res://scripts/terrain.gdshader", "res://scripts/asphalt.gdshader",
+	"res://scripts/building.gdshader", "res://scripts/far.gdshader"]
+static var bout_monde := false
+static var _variantes := {}             # chemin du shader d'origine -> variante
+static var _origines := {}              # variante -> shader d'origine
+
+static func set_bout_monde(on: bool) -> void:
+	bout_monde = on
+	set_value("env_bout_monde", 1.0 if on else 0.0)
+	for m in mats:
+		_basculer(m, on)
+	if terrain_mat:
+		var sh = terrain_mat.get("shader_override")
+		var neuf: Shader = _choisir(sh, on) if sh is Shader else null
+		if neuf and neuf != sh:
+			terrain_mat.set("shader_override", neuf)
+
+static func _basculer(m: ShaderMaterial, on: bool) -> void:
+	if m.shader:
+		var neuf := _choisir(m.shader, on)
+		if neuf != m.shader:
+			m.shader = neuf
+
+static func _choisir(sh: Shader, on: bool) -> Shader:
+	if _origines.has(sh):
+		return sh if on else _origines[sh]
+	if not on or not sh.resource_path in VARIANTES:
+		return sh
+	if not _variantes.has(sh.resource_path):
+		var v := Shader.new()
+		var i := sh.code.find("\n", sh.code.find("shader_type"))
+		v.code = sh.code.substr(0, i + 1) + "#define BOUT_MONDE\n" + sh.code.substr(i + 1)
+		_variantes[sh.resource_path] = v
+		_origines[v] = sh
+	return _variantes[sh.resource_path]
 
 ## Matériau libéré (objet déchargé) : on l'oublie, sinon il garderait ses textures en mémoire (sur_mesure.gd).
 static func remove(m: ShaderMaterial) -> void:

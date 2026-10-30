@@ -19,9 +19,11 @@ void vertex() {
 }
 
 void fragment() {
-	if (env_hors_monde(v_wp)) {          // bord « cascade » (#157)
+#ifdef BOUT_MONDE
+	if (env_hors_monde(v_wp)) {          // bord « cascade » (#157) : variante chargée avec l'option (env.gd)
 		discard;
 	}
+#endif
 	vec3 c = texture(tex, UV).rgb;
 	ALBEDO = c * 0.95;
 	ROUGHNESS = 0.95;

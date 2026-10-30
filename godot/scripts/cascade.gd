@@ -78,7 +78,7 @@ func set_actif(on: bool) -> void:
 	if sdf_tex:
 		Env.set_value("env_zone_sdf", sdf_tex)
 		Env.set_value("env_zone_rect", sdf_rect)
-	Env.set_value("env_bout_monde", 1.0 if actif else 0.0)
+	Env.set_bout_monde(actif)
 	if not actif:
 		for k in _morceaux:
 			_morceaux[k].queue_free()

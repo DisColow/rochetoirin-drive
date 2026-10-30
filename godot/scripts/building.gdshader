@@ -27,9 +27,11 @@ float vnoise(vec2 p) {
 }
 
 void fragment() {
-	if (env_hors_monde(wpos)) {          // bord « cascade » (#157)
+#ifdef BOUT_MONDE
+	if (env_hors_monde(wpos)) {          // bord « cascade » (#157) : variante chargée avec l'option (env.gd)
 		discard;
 	}
+#endif
 	vec4 a = texture(albedo_tex, vec3(UV, layer));
 	vec4 n = texture(normal_tex, vec3(UV, layer));
 	// salissures douces à grande échelle (casse la répétition des textures), pas sur les vitres

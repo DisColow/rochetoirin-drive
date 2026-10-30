@@ -454,8 +454,10 @@
     `bord.set_cascade` libère le talus et allume `cascade.gd` : bande d'eau (14 derniers mètres) et rideau qui tombe
     dans une mer de nuages (`cascade_eau/rideau/nuages.gdshader`), morceaux de 256 m faits près de la caméra. Au-delà
     de la limite, le monde s'efface : `bout_monde.gdshaderinc` (inclus par env.gdshaderinc, dans `env_fade_keep` et
-    appelé à part par terrain, relief, routes, arbres, imposteurs, herbe, plants, bâtiments, lointain) lit
-    `world/zone_sdf.bin` (`pipeline/build_zone_sdf.py`, distance signée, cases de 16 m) ; poteaux et fils filtrés au
+    appelé à part par relief, arbres, imposteurs, herbe, plants) lit `world/zone_sdf.bin` (`pipeline/build_zone_sdf.py`,
+    distance signée, cases de 16 m). Shaders opaques sans discard (Terrain3D, routes, bâtiments, lointain) : test sous
+    `#ifdef BOUT_MONDE`, variante faite et posée par `Env.set_bout_monde` (un discard couperait l'early-Z sur
+    téléphone même en mode Collines ; une lecture de texture dans vertex() n'est pas liée en Compatibility) ; poteaux et fils filtrés au
     chargement (`poles.set_bout_monde`). Voiture freinée dans l'eau (gerbes, plouf), renvoyée vers l'intérieur à 2 m
     de la limite ; piéton arrêté aussi. Grondement : `ruisseau.ogg` ralenti. Données `world/cascade.bin`
     (`pipeline/build_cascade.py`, relief terrassé tous les 4 m le long de la limite). Essai `--cascade-test`.
