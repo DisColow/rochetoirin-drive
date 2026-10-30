@@ -46,10 +46,11 @@ var niveau_menu := 0                 # niveau choisi dans le menu des épreuves
 # temps de médaille (du niveau Normal) et facteur du temps visé : Normal entre argent et bronze, Difficile entre or et
 # argent, Extrême au-delà de l'or (proposition validée par l'utilisateur, #128). La médaille reste au chrono ; la place
 # à l'arrivée ajoute une part de la prime (BONUS_PLACE), chaque concurrent détruit rapporte PRIME_DETRUIT.
+# #166 (« concurrents trop lents ») : en Normal, le meneur vise l'or (avant : argent ; les autres argent et bronze)
 const CONCURRENTS := [
-	[["p106", "argent", 1.0], ["clio", "argent", 1.12], ["r5", "bronze", 1.0]],
-	[["p206", "or", 1.0], ["clio", "or", 1.12], ["p306", "argent", 1.0]],
-	[["gt3", "or", 0.9], ["p306", "or", 0.95], ["p206", "or", 1.0]],
+	[["p106", "or", 1.0], ["clio", "argent", 0.95], ["r5", "argent", 1.05]],
+	[["p206", "or", 0.93], ["clio", "or", 0.97], ["p306", "or", 1.02]],
+	[["gt3", "or", 0.85], ["p306", "or", 0.9], ["p206", "or", 0.94]],
 ]
 const NOMS_CONC := ["Josiane", "Gégé", "Momo", "Bernadette", "Dédé", "Jacky", "Nadine", "Riton"]
 const COUL_CONC := [Color(0.85, 0.12, 0.08), Color(0.1, 0.32, 0.85), Color(0.95, 0.72, 0.08)]

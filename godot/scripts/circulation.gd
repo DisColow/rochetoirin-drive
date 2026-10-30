@@ -42,7 +42,7 @@ const ROUES := ["rubber", "material"]
 const COULEURS := [Color(0.92, 0.92, 0.9), Color(0.92, 0.92, 0.9), Color(0.62, 0.64, 0.66), Color(0.62, 0.64, 0.66),
 	Color(0.05, 0.05, 0.06), Color(0.05, 0.05, 0.06), Color(0.3, 0.32, 0.34), Color(0.08, 0.14, 0.32), Color(0.55, 0.05, 0.05),
 	Color(0.12, 0.25, 0.16), Color(0.66, 0.6, 0.48), Color(0.75, 0.42, 0.08), Color(0.2, 0.42, 0.7)]
-const NOMBRE := [4, 8, 14, 20]                 # par niveau de performances (Économie, Équilibré, Élevée, Maximale)
+const NOMBRE := [6, 12, 18, 26]                # par niveau de performances (Économie, Équilibré, Élevée, Maximale ; #167 : 4, 8, 14, 20 avant)
 const DENSITES := [0.0, 0.5, 1.0, 1.6]         # ⚙ > Conduite > Circulation : aucune, peu, normale, dense
 const NOMS_DENSITES := ["Aucune", "Peu", "Normale", "Dense"]
 const R_LOIN := 380.0

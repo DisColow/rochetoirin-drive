@@ -508,6 +508,13 @@ func _materials(root: Node) -> void:
 			var nm := m.resource_name if m else ""
 			if by_name.has(nm):
 				mi.set_surface_override_material(s, by_name[nm])
+			elif m is BaseMaterial3D and not (m as BaseMaterial3D).transparency in [BaseMaterial3D.TRANSPARENCY_DISABLED, BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR] \
+					and (m as BaseMaterial3D).albedo_color.a >= 0.99:
+				# #165 : pièces opaques exportées en mélange alpha (2CV : carrosserie, intérieur) : triées comme du
+				# verre, elles disparaissaient par endroits sur téléphone ; découpe nette (trous des textures gardés)
+				var bm := m as BaseMaterial3D
+				bm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+				bm.alpha_scissor_threshold = 0.5
 
 var _body: Node3D
 var blown := false
