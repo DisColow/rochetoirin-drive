@@ -660,6 +660,12 @@
   uniques respectés, chemins de terre pénalisés ×2,5), calculé sur un fil de travail ; recalculé si la cible change
   ou si la voiture s'écarte de plus de 35 m. Tracé bleu cerné de noir sur la mini-carte (`gps.gd`) et la carte
   (`map.gd`), `activities.route_gps`. Capture : `{"act": "taxi"}`.
+- **Flèches d'itinéraire sur la route** (v7.17, #154, façon Forza Horizon, `scripts/fleches_route.gd` +
+  `fleches_route.gdshader`) : chevrons « Λ » bleus semi-transparents (MultiMesh, sans ombre ni lumière) le long de
+  `activities.route_gps`, tous les 7 m de 6 à 160 m devant (un de plus entre deux avant un virage), calés sur la
+  distance restante (ils ne glissent pas) ; hauteur par rayon vers le bas sur les surfaces fixes (les voitures sont
+  traversées) ; vague de lumière vers l'avant et fondus dans le shader. ⚙ > Conduite (`affichage/fleches_route`).
+  Essai `--fleches-test`.
 - **Aide au maintien dans la voie** (v6.25, demande de l'utilisateur, `scripts/voie.gd`, données
   `world/voies.bin` de `pipeline/build_voies.py`, après `build_map.py`) :
   - quand le joueur lâche le volant (0,8 s), léger braquage vers le milieu de la voie de droite (double sens) ou

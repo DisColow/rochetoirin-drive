@@ -272,6 +272,25 @@ func _open_settings() -> void:
 		var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
 		cfg.set_value("conduite", "aide_voie", on); cfg.save("user://reglages.cfg"))
 	v.add_child(b_voie)
+	# flèches d'itinéraire sur la route (#154)
+	var fl = get_parent().get("fleches_route")
+	if fl:
+		var b_fl := Button.new()
+		b_fl.toggle_mode = true
+		b_fl.button_pressed = fl.actif
+		b_fl.custom_minimum_size = Vector2(560, 70)
+		b_fl.add_theme_font_size_override("font_size", 28)
+		b_fl.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var etat_fl := func(on: bool):
+			b_fl.icon = _pastille(Color(0.25, 0.9, 0.35) if on else Color(0.45, 0.45, 0.48))
+			b_fl.text = "  Flèches d'itinéraire sur la route : " + ("ACTIVÉES" if on else "désactivées")
+		etat_fl.call(b_fl.button_pressed)
+		b_fl.toggled.connect(func(on: bool):
+			etat_fl.call(on)
+			fl.actif = on
+			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+			cfg.set_value("affichage", "fleches_route", on); cfg.save("user://reglages.cfg"))
+		v.add_child(b_fl)
 	# circulation (#132) et passants (v6.88, #135) : nombre de voitures et de piétons autour du joueur
 	var circ = get_parent().get("circulation")
 	if circ:

@@ -54,6 +54,7 @@ var balade: Node3D               # balade : la voiture roule toute seule, camér
 var ligne_bus: Node             # ligne de bus : le joueur conduit le bus d'arrêt en arrêt (#148, ligne_bus.gd)
 var gendarmes: Node             # patrouilles et courses-poursuites (#150, gendarmes.gd)
 var livreur: Node               # livreur de repas (#151, livreur.gd)
+var fleches_route: Node         # flèches d'itinéraire sur la route (#154)
 var gendarme_joueur: Node       # activité « Gendarme » (#150, gendarme_joueur.gd)
 var dust: Node3D
 var _trample: Node                 # cultures fauchées (trample.gd)
@@ -302,6 +303,8 @@ func _ready() -> void:
 	livreur = preload("res://scripts/livreur.gd").new()
 	livreur.main = self
 	add_child(livreur)
+	fleches_route = preload("res://scripts/fleches_route.gd").new()
+	add_child(fleches_route)
 	gendarmes = preload("res://scripts/gendarmes.gd").new()
 	gendarmes.main = self
 	gendarmes.actif = bool(cfg.get_value("conduite", "gendarmes", true))

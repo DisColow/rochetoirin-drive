@@ -495,6 +495,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_gendarmes_test()
 		return
+	if OS.get_cmdline_user_args().has("--fleches-test"):
+		if t == 300:
+			_fleches_test()
+		return
 	if OS.get_cmdline_user_args().has("--zone-test"):
 		if t == 300:
 			_zone_test()
@@ -3482,6 +3486,98 @@ func _helico_test() -> void:
 ## 3) en retard. Capture livreur.png à la première adresse.
 ## #156 : rien ne doit conduire dans les collines du bord (hors de la zone jouable). Itinéraires entre points proches
 ## de la limite (sans puis avec l'évitement), adresses du livreur, arrêts des lignes Ruban, fuite du gendarme, épreuves.
+## #154 : flèches d'itinéraire sur la route. -- --drive-test --fleches-test --drive-from=-10975,236,-1100,90 : tournée du
+## livreur (itinéraire vers le restaurant), voiture posée sur le tracé ; nombre de chevrons, écarts, hauteur au-dessus
+## du relief, chevrons calés (ils ne glissent pas quand la voiture avance), captures fleches_1/2/3.png (la 3 : de nuit).
+func _fleches_test() -> void:
+	var fl = fleches_route
+	var dire := func(x: String): print("  [flèches] " + x)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	circulation.set_densite(0)
+	for k in 60:
+		await get_tree().process_frame
+	# itinéraire calculé ici (sans activité, rien ne le remplace) : de la voiture vers un point à ~1,5 km
+	var it: Itin = Itin.new()
+	var c0 := Vector2(car.global_position.x, car.global_position.z)
+	it._calcul(c0, c0 + Vector2(1200.0, 700.0))
+	it.route = it._res
+	var rt: PackedVector2Array = it.route
+	dire.call("itinéraire : %d points, %.0f m" % [rt.size(), it._res_l])
+	var poses := func() -> Array:
+		var out := []
+		for i in fl.multimesh.visible_instance_count:
+			out.append(fl.multimesh.get_instance_transform(i).origin)
+		return out
+	var cum := 0.0
+	var vues := 0
+	for k in 3:
+		# voiture posée sur le tracé à 60 m, 260 m puis 460 m du départ, dans le sens de la route
+		var s_vise := 60.0 + 200.0 * k
+		var a := rt[0]; var b := rt[1]
+		cum = 0.0
+		for i in range(1, rt.size()):
+			var l := rt[i].distance_to(rt[i - 1])
+			if cum + l >= s_vise:
+				a = rt[i - 1]; b = rt[i]
+				a = a.lerp(b, (s_vise - cum) / maxf(l, 0.01))
+				break
+			cum += l
+		var d := (b - a).normalized()
+		var y: float = Relief.hauteur(Vector3(a.x, 0.0, a.y))
+		if k == 2:
+			set_time(3)
+		await _teleport(Vector3(a.x, y + 0.8, a.y), rad_to_deg(atan2(d.x, -d.y)))
+		for f in 90:
+			car.frein_parking = true
+			activities.route_gps = it.restant(Vector2(car.global_position.x, car.global_position.z))
+			await get_tree().physics_frame
+		var rg: PackedVector2Array = activities.route_gps
+		dire.call("  voiture à %.1f m du point visé ; tracé : %d points, départ à %.1f m de la voiture, %.0f m au total" % [
+			Vector2(car.global_position.x - a.x, car.global_position.z - a.y).length(), rg.size(),
+			rg[0].distance_to(Vector2(car.global_position.x, car.global_position.z)) if rg.size() > 0 else -1.0, _longueur2(rg)])
+		var p0: Array = poses.call()
+		var n: int = p0.size()
+		var ecarts := []
+		var haut := 0.0
+		for i in n:
+			var q: Vector3 = p0[i]
+			haut = maxf(haut, q.y - Relief.hauteur(q) - fl.HAUT)
+			if i > 0:
+				ecarts.append(snappedf(Vector2(q.x - p0[i - 1].x, q.z - p0[i - 1].z).length(), 0.1))
+		dire.call("vue %d : %d chevrons, premier à %.0f m de la voiture, écarts %s, chaussée jusqu'à %.2f m au-dessus du relief" % [k + 1, n,
+			Vector2(p0[0].x - car.global_position.x, p0[0].z - car.global_position.z).length() if n > 0 else -1.0, str(ecarts.slice(0, 12)), haut])
+		# la voiture avance de 10 m : les chevrons encore devant restent à la même place
+		car.global_position += Vector3(d.x, 0.0, d.y) * 10.0
+		for f in 30:
+			activities.route_gps = it.restant(Vector2(car.global_position.x, car.global_position.z))
+			await get_tree().process_frame
+		var p1: Array = poses.call()
+		var gardes := 0
+		for q: Vector3 in p1:
+			for r: Vector3 in p0:
+				if q.distance_to(r) < 0.05:
+					gardes += 1
+					break
+		dire.call("  après 10 m : %d chevrons, %d à la même place" % [p1.size(), gardes])
+		vues += 1 if n > 8 and gardes >= p1.size() - 2 else 0
+		get_viewport().get_texture().get_image().save_png("user://shots/fleches_%d.png" % (k + 1))
+	activities.route_gps = PackedVector2Array()
+	fl.actif = false
+	for f in 10:
+		await get_tree().process_frame
+	dire.call("option désactivée : %d chevrons" % fl.multimesh.visible_instance_count)
+	dire.call("RÉSULTAT : " + ("OK" if vues == 3 and fl.multimesh.visible_instance_count == 0 else "ÉCHEC"))
+	get_tree().quit()
+
+static func _longueur2(l: PackedVector2Array) -> float:
+	var d := 0.0
+	for i in range(1, l.size()):
+		d += l[i].distance_to(l[i - 1])
+	return d
+
 const ZoneJ := preload("res://scripts/zone.gd")
 const Itin := preload("res://scripts/itineraire.gd")
 func _zone_test() -> void:
