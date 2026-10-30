@@ -695,7 +695,9 @@
   gauche sous la carte (`activities.bas_carte()`) ; nom de la rue (`pill`) sous l'argent, calé à droite. Rétroviseur
   `scripts/retro.gd` (enfant du HUD) : caméra sur le toit regardant derrière, SubViewport 320 × 88 refait une image
   sur `PAS` (4), `LOIN` 220 m, image retournée ; masqué au poste de conduite (`cam_rig.mode == 1`), en pause et
-  quand le HUD de conduite est caché ; ⚙ > Conduite (`conduite/retroviseur`). Essai `--hud-test`.
+  quand le HUD de conduite est caché ; ⚙ > Conduite (`conduite/retroviseur`) ; en Économie une image sur 8, coupé
+  sous 24 img/s (v7.23). Carte et messages bornés en largeur (`CARTE_L`, 600 px) : retour à la ligne avant le
+  rétroviseur. Essai `--hud-test`.
 - **Flèches d'itinéraire sur la route** (v7.17, #154, façon Forza Horizon, `scripts/fleches_route.gd` +
   `fleches_route.gdshader`) : chevrons « Λ » bleus semi-transparents (MultiMesh, sans ombre ni lumière) le long de
   `activities.route_gps`, tous les 7 m de 6 à 160 m devant (un de plus entre deux avant un virage), calés sur la

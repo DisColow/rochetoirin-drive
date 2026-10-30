@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 30/10/2026 (v6.84 #131 à v7.22 livrées)
+## État au 30/10/2026 (v6.84 #131 à v7.23 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -31,7 +31,7 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - **v7.14 (#153)** : son de moteur propre à chaque voiture (voir CLAUDE.md « Son »), choix de l'utilisateur appliqué
   (même modèle sinon le plus proche). Boucles publiées sur `donnees` (8 jeux, `.import` faits dans un petit projet
   temporaire). Toledo préparé pour la Gendarmerette Focus (pas encore publié ni crédité).
-- **En cours (v7.23, branche `v723`, pas encore livrée)** : rétroviseur ménagé en Économie (une image sur 8, coupé
+- **v7.23** : rétroviseur ménagé en Économie (une image sur 8, coupé
   sous 24 img/s, promesse de l'hypothèse 3 de #163) ; carte d'activité et messages bornés en largeur (retour à la
   ligne avant le rétroviseur) ; essai `--gendarme-poursuite-test` (Gendarmerette conduite par le pilote des
   concurrents) : il ne rattrape pas le Twingo de la mission 1 (60-80 km/h, pilote prudent en virage) : pilote d'essai

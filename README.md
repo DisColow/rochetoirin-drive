@@ -16,9 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.22 :
-- **Gendarmerie en missions** : les missions s'enchaînent, de plus en plus dures (plus rapides, jusqu'à trois
-  fuyards), avec un gros compte à rebours et une médaille d'or, d'argent ou de bronze selon le temps.
+Nouveautés de la v7.23 :
+- **Rétroviseur** plus économe en réglage Économie (et coupé tant que le jeu rame).
+- **Carte d'activité et messages** : les textes longs passent à la ligne au lieu de déborder sur le rétroviseur.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
