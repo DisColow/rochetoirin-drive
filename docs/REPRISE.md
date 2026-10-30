@@ -33,9 +33,14 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   10 min, jamais de contournement) -> `data/sons/moteurs/<clé>.wav` ; `pipeline/build_moteurs.py <clé>` (suivi continu
   de la fréquence d'allumage, paliers, suivi fin, boucles -> `assets/sfx/moteurs/<clé>/`), `--voir <dossier> <clé>`
   (spectrogramme de contrôle), `--ecoute <dossier>` (simulation d'audio.gd : ralenti, 0-100, pied levé). Jeu : champ
-  `son` de la fiche (voitures.gd) -> `audio._charger_moteur` ; essai `--moteurs-test --sons=deuche:2cv6`. Fait : 2CV
-  (boucles plates vérifiées au spectrogramme), essai en jeu OK. Reste : téléchargements, page d'écoute (Artifact),
-  choix de l'utilisateur, champ `son` par voiture, crédits, livraison. Piège : `build_sons.flatten_pitch` lit à
+  `son` de la fiche (voitures.gd) -> `audio._charger_moteur` ; essai `--moteurs-test --sons=deuche:2cv6`. Téléchargement fait par l'action GitHub « Sons de moteur » (`.github/workflows/sons_moteurs.yml`, push sur la
+  branche `sons-moteurs` ; artefact `moteurs` récupéré par `gh run download`) : l'adresse du conteneur restait refusée
+  (429) même après des heures. Toutes les boucles faites ; tri : Clio RS, Mégane RS, RCZ écartés (bruit) ; page d'écoute
+  publiée (https://claude.ai/artifact/U1xfmvtJxw5PJk8psUjM8Z, `pipeline/page_moteurs.py` + gabarit `page_moteurs.html`,
+  rendus par `build_moteurs.py --ecoute`). **#153 en `pending`** : attendre le récapitulatif de l'utilisateur
+  (`deuche:A r5:actuel …`), puis champ `son` dans `voitures.gd`, crédits (⚙ > Crédits, `credits.json`), publication des
+  boucles (`publier_fichiers.sh assets/sfx/moteurs/...`, avec les `.import` faits dans un petit projet temporaire),
+  essai `--moteurs-test`, livraison. Piège : `build_sons.flatten_pitch` lit à
   `F / fm` (doit être `fm / F`) : variation doublée au lieu d'annulée, sans effet notable sur le moteur d'origine
   (paliers stables) ; non corrigé pour ne pas changer le son actuel sans accord.
 - **v7.13 (#150)** : activité « Gendarme » (le joueur poursuit un fuyard et l'emboutit), chocs relevés sur la
