@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 29/10/2026, 3 h (v6.84 #131 à v7.15 livrées)
+## État au 30/10/2026 (v6.84 #131 à v7.16 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -31,6 +31,14 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - **v7.14 (#153)** : son de moteur propre à chaque voiture (voir CLAUDE.md « Son »), choix de l'utilisateur appliqué
   (même modèle sinon le plus proche). Boucles publiées sur `donnees` (8 jeux, `.import` faits dans un petit projet
   temporaire). Toledo préparé pour la Gendarmerette Focus (pas encore publié ni crédité).
+- **v7.16 (#155, #156)** : menu Activités qui défile (`menu_activites._colonne` dans un ScrollContainer, boutons en
+  `MOUSE_FILTER_PASS`, bouton tenu neutralisé 0,3 s si on fait défiler ; essai `--menu-scroll-test`). Zone jouable
+  `scripts/zone.gd` (`dedans(p, marge)`, `distance_bord`) ; `world/graphe_hors.bin` (`pipeline/build_graphe_hors.py`,
+  publié sur `donnees`) : arcs à moins de 12 m de la limite évités par l'A*, nœuds en enclave jamais départ/arrivée ;
+  livreur (adresses et restaurants à 60 m), arrêts Ruban (30 m), fuite du gendarme (`circulation.trajet` s'arrête),
+  épreuve 5 (étape dans les collines retirée, temps réduits d'autant). Essai `--zone-test` (200 itinéraires près de
+  la limite : 46 passaient dehors, 0 après). Restent ouvertes : #154 (flèches d'itinéraire dans le monde) et #157
+  (option cascade façon Golden Sun 2 au bord : planche de propositions à faire avant de coder).
 - **v7.15 (#150)** : Focus de gendarmerie (choix A, règles 1-5 validées) pour les gendarmes et l'activité
   « Gendarme » ; son Toledo. Modèle `godot/import/voitures/gendarme/model.glb` (copié de la planche, Sketchfab uid
   0b2f13be68734710b620a87088b82ad3) ; conversion `blender_voitures_joueur.py -- gendarme` (toujours `--`, sinon toutes

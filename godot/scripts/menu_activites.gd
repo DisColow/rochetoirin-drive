@@ -121,11 +121,43 @@ func _aller(i: int) -> void:
 		5: _multi()
 		6: _carriere()
 		7: _succes()
+	_defilement()
+
+## #155 : listes défilables au doigt. Godot ne fait défiler un ScrollContainer que si le glisser lui arrive ; un bouton
+## (MOUSE_FILTER_STOP) le garde pour lui, et une liste faite de boutons ne défilait donc pas sur le téléphone. Les
+## commandes des zones défilables laissent passer le toucher (PASS) ; un bouton appuyé pendant que la liste défile est
+## relâché sans effet (_neutraliser).
+func _defilement() -> void:
+	for sc in _corps.find_children("*", "ScrollContainer", true, false):
+		var s := sc as ScrollContainer
+		s.scroll_deadzone = 12
+		for c in s.find_children("*", "Control", true, false):
+			if (c as Control).mouse_filter == Control.MOUSE_FILTER_STOP:
+				(c as Control).mouse_filter = Control.MOUSE_FILTER_PASS
+			if c is BaseButton:
+				var bb := c as BaseButton
+				bb.button_down.connect(func(): bb.set_meta("tenu", true))
+				bb.button_up.connect(func(): bb.remove_meta("tenu"))
+		s.get_v_scroll_bar().value_changed.connect(func(_v): _neutraliser(s))
+
+## La liste a bougé : le bouton qu'on tenait n'est plus visé (sinon, relâcher le doigt après un glisser le déclenchait).
+## Désactivé le temps du geste, il abandonne l'appui sans rien déclencher.
+func _neutraliser(s: ScrollContainer) -> void:
+	for b in s.find_children("*", "BaseButton", true, false):
+		var bb := b as BaseButton
+		if bb.has_meta("tenu") and not bb.disabled:
+			bb.remove_meta("tenu")
+			bb.disabled = true
+			get_tree().create_timer(0.3, true, false, true).timeout.connect(func(): if is_instance_valid(bb): bb.disabled = false)
 
 func _colonne() -> VBoxContainer:
+	var sc := ScrollContainer.new()                  # #155 : un onglet qui dépasse l'écran défile
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_corps.add_child(sc)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 14)
-	_corps.add_child(v)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(v)
 	return v
 
 # ---------------------------------------------------------------- épreuves

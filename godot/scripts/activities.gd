@@ -11,6 +11,7 @@
 extends CanvasLayer
 const UI := preload("res://scripts/ui.gd")
 const Relief := preload("res://scripts/relief.gd")
+const Zone := preload("res://scripts/zone.gd")
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const FONT_BIG := 34
@@ -150,6 +151,7 @@ func _ready() -> void:
 		places = JSON.parse_string(FileAccess.get_file_as_string("res://world/places.json"))
 	if FileAccess.file_exists("res://world/epreuves.json"):
 		epreuves = JSON.parse_string(FileAccess.get_file_as_string("res://world/epreuves.json"))
+		_epreuves_dans_zone()
 	_status = PanelContainer.new()
 	_status.add_theme_stylebox_override("panel", preload("res://scripts/ui.gd").panel(30, 14))
 	_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -680,12 +682,37 @@ func _course_process(dt: float) -> void:
 
 # ================================================================ épreuves (#59)
 ## Repères des départs d'épreuves pour la carte et le GPS (hors activité) : [{p, nom, med}].
+## #156 : une étape dans les collines du bord (hors de la zone jouable) est retirée, et les temps des médailles
+## raccourcis d'autant (rapport des longueurs à vol d'oiseau) ; une épreuve qui part ou arrive dehors est cachée.
+func _epreuves_dans_zone() -> void:
+	for e: Dictionary in epreuves:
+		var avant: Array = [e.a] + e.etapes + [e.b]
+		var etapes := []
+		for q in e.etapes:
+			if Zone.dedans(Vector2(q[0], q[1]), 40.0):
+				etapes.append(q)
+		if not Zone.dedans(Vector2(e.a[0], e.a[1]), 20.0) or not Zone.dedans(Vector2(e.b[0], e.b[1]), 20.0):
+			e["hors"] = true
+		elif etapes.size() < e.etapes.size():
+			var r := _longueur_xz([e.a] + etapes + [e.b]) / maxf(_longueur_xz(avant), 1.0)
+			e.etapes = etapes
+			for k in ["or", "argent", "bronze"]:
+				e[k] = roundi(float(e[k]) * r)
+			e.km = snappedf(float(e.km) * r, 0.1)
+
+static func _longueur_xz(l: Array) -> float:
+	var d := 0.0
+	for i in range(1, l.size()):
+		d += Vector2(l[i][0], l[i][1]).distance_to(Vector2(l[i - 1][0], l[i - 1][1]))
+	return d
+
 func reperes_epreuves() -> Array:
 	if mode != "" or map.pick_mode:
 		return []
 	var out := []
 	for e in epreuves:
-		out.append({p = Vector2(e.a[0], e.a[1]), nom = e.nom, med = _medaille(int(e.id))})
+		if not e.get("hors", false):
+			out.append({p = Vector2(e.a[0], e.a[1]), nom = e.nom, med = _medaille(int(e.id))})
 	return out
 
 ## Clé des médailles et records d'une épreuve à un niveau (Normal : l'identifiant seul, comme avant la v6.76).
@@ -714,7 +741,7 @@ func _balises_epreuves() -> void:
 	if mode == "":
 		for e in epreuves:
 			var p := Vector2(e.a[0], e.a[1])
-			if c.distance_to(p) < 700.0:
+			if c.distance_to(p) < 700.0 and not e.get("hors", false):
 				garder[int(e.id)] = true
 				if not _balises.has(int(e.id)):
 					var y: float = Relief.hauteur(Vector3(p.x, 0.0, p.y))
@@ -765,7 +792,7 @@ func _epreuve_proche() -> void:
 	var c := _car2()
 	var ici := -1
 	for e in epreuves:
-		if c.distance_to(Vector2(e.a[0], e.a[1])) < 25.0:          # #78 : rayon élargi
+		if c.distance_to(Vector2(e.a[0], e.a[1])) < 25.0 and not e.get("hors", false):          # #78 : rayon élargi
 			ici = int(e.id)
 	if ici < 0:
 		_offre_vue = -1

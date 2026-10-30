@@ -103,6 +103,7 @@ func demarrer() -> bool:
 ## dans le sens de la ligne, NB_ARRETS arrêts consécutifs (ceux hors de la carte sont sautés) ; vrais noms d'arrêts.
 const RACCORD := 35.0
 const Relief := preload("res://scripts/relief.gd")
+const Zone := preload("res://scripts/zone.gd")                  # #156 : arrêts dans les collines du bord sautés
 var _lignes = null
 var _pos_ruban: Array = []
 func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
@@ -122,7 +123,7 @@ func _ligne_ruban(tous: PackedVector3Array, p: Vector3) -> bool:
 		var c := PackedInt32Array()
 		for a in _lignes[li].arrets:
 			var q := Vector3(float(a[0]), 0.0, float(a[1]))
-			if absf(q.x - p.x) > 6000.0 or absf(q.z - p.z) > 6000.0:
+			if absf(q.x - p.x) > 6000.0 or absf(q.z - p.z) > 6000.0 or not Zone.dedans(Vector2(q.x, q.z), 30.0):
 				c.append(-1)
 				continue
 			var best := -1

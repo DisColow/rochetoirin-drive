@@ -25,6 +25,7 @@ extends Node3D
 
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 const Env := preload("res://scripts/env.gd")
+const Zone := preload("res://scripts/zone.gd")
 const MODELES := ["car1", "car3", "lourd_tracteur", "lourd_bus"]
 const BOITES := [Vector3(1.66, 1.48, 3.75), Vector3(1.76, 1.45, 4.45),     # comme props.gd (largeur, hauteur, longueur)
 	Vector3(2.28, 2.55, 7.4), Vector3(2.8, 2.85, 11.5)]
@@ -675,7 +676,7 @@ func devant(p: Vector3, dir: Vector3, d: float, droit := 0.3, hasard := 0.0) -> 
 	return []
 
 ## Fuyard de l'activité « Gendarme » (v7.13) : trajet sur la voie de droite depuis p dans le sens `dir`, `d` m au plus
-## (moins avant une impasse), un point tous les `pas` m ; carrefours comme `devant`. Sans le graphe de l'itinéraire :
+## (moins avant une impasse ou la limite de la carte, #156), un point tous les `pas` m ; carrefours comme `devant`. Sans le graphe de l'itinéraire :
 ## ses nœuds ne sont qu'aux carrefours, et le plus proche d'un but en pleine ligne droite peut être derrière soi.
 func trajet(p: Vector3, dir: Vector3, d: float, droit := -0.7, hasard := 0.5, pas := 4.0) -> PackedVector2Array:
 	var out := PackedVector2Array()
@@ -689,6 +690,8 @@ func trajet(p: Vector3, dir: Vector3, d: float, droit := -0.7, hasard := 0.5, pa
 		var L := _longueur(voie)
 		while s <= L and fait <= d:
 			var g: Vector3 = _geo(voie, s, 0)[0]
+			if not Zone.dedans(Vector2(g.x, g.z), 12.0):     # #156 : jamais dans les collines du bord
+				return out
 			out.append(Vector2(g.x, g.z))
 			s += pas; fait += pas
 		if fait > d:

@@ -16,9 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.15 :
-- **Gendarmes** : la Gendarmerette roule maintenant en Focus de gendarmerie bleue, avec gyrophares et sirène,
-  pour les poursuites comme pour le métier de gendarme.
+Nouveautés de la v7.16 :
+- **Activités** : le menu défile au doigt quand la liste dépasse l'écran.
+- **Bords de la carte** : plus aucun itinéraire, adresse de livraison, arrêt de bus ou fuyard ne mène dans les
+  collines du bord.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

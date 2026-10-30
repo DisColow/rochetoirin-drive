@@ -16,6 +16,9 @@ var arc_np := PackedInt32Array()
 var px := PackedFloat32Array()
 var pz := PackedFloat32Array()
 var grille := {}                        # case de 100 m -> PackedInt32Array de nœuds
+var arc_hors := PackedByteArray()       # 1 : l'arc sort de la zone jouable ou passe à moins de 12 m de sa limite
+                                        # (collines du bord, #156) ; évité
+var enclave := PackedByteArray()        # 1 : nœud que seuls des arcs évités relient au reste (ni départ, ni arrivée)
 const CASE := 100.0
 
 var route := PackedVector2Array()       # dernier itinéraire calculé (points de l'axe)
@@ -79,11 +82,21 @@ func _init() -> void:
 	px.resize(np_); pz.resize(np_)
 	for i in np_:
 		px[i] = pp[i * 2]; pz[i] = pp[i * 2 + 1]
+	# #156 : arcs qui sortent de la zone jouable ou la frôlent (pipeline/build_graphe_hors.py)
+	arc_hors.resize(na)
+	enclave.resize(nn)
+	if FileAccess.file_exists("res://world/graphe_hors.bin"):
+		var h := FileAccess.get_file_as_bytes("res://world/graphe_hors.bin").to_int32_array()
+		for i in range(1, h[0] + 1):
+			arc_hors[h[i]] = 1
+		for i in range(h[0] + 2, h.size()):
+			enclave[h[i]] = 1
 	ok = true
-	for k in ["nx", "nz", "adj_debut", "adj", "arc_a", "arc_b", "arc_l", "arc_p0", "arc_np", "px", "pz", "grille"]:
+	for k in ["nx", "nz", "adj_debut", "adj", "arc_a", "arc_b", "arc_l", "arc_p0", "arc_np", "px", "pz", "grille", "arc_hors", "enclave"]:
 		_commun[k] = get(k)
 
-func plus_proche(p: Vector2) -> int:
+## Nœud le plus proche de p (`relie` : hors des enclaves, #156).
+func plus_proche(p: Vector2, relie := false) -> int:
 	var c := Vector2i(floori(p.x / CASE), floori(p.y / CASE))
 	var best := -1
 	var bd := INF
@@ -93,6 +106,8 @@ func plus_proche(p: Vector2) -> int:
 				if maxi(absi(dx), absi(dz)) != r:
 					continue
 				for i: int in grille.get(c + Vector2i(dx, dz), PackedInt32Array()):
+					if relie and enclave[i]:
+						continue
 					var d := Vector2(nx[i] - p.x, nz[i] - p.y).length_squared()
 					if d < bd:
 						bd = d; best = i
@@ -117,8 +132,13 @@ func suivre() -> void:
 		pret = true
 
 func _calcul(depuis: Vector2, vers: Vector2) -> void:
-	var s := plus_proche(depuis)
-	var t := plus_proche(vers)
+	_chercher(depuis, vers, true)
+	if _res.is_empty():
+		_chercher(depuis, vers, false)          # départ ou arrivée hors zone : le seul chemin passe peut-être dehors
+
+func _chercher(depuis: Vector2, vers: Vector2, eviter: bool) -> void:
+	var s := plus_proche(depuis, eviter)
+	var t := plus_proche(vers, eviter)
 	_res = PackedVector2Array()
 	_res_l = 0.0
 	if s < 0 or t < 0:
@@ -145,7 +165,7 @@ func _calcul(depuis: Vector2, vers: Vector2) -> void:
 			var e := adj[j]
 			var k := e >> 1
 			var v := arc_b[k] if (e & 1) == 0 else arc_a[k]
-			if ferme[v]:
+			if ferme[v] or (eviter and arc_hors[k]):
 				continue
 			var ng := g[u] + arc_l[k]
 			if ng < g[v]:

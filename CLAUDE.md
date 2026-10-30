@@ -450,6 +450,12 @@
   - Au-delà de 26 m hors de la carte, ressort vers l'intérieur et rebond si on insiste.
   - Les champs s'arrêtent au bord (`build_crops.py`).
   - Essai : `-- --drive-test --bord-test [--bord-debug] [--snap]`. À relancer après `build_zone.py`.
+  - **Rien n'y mène** (v7.16, #156) : `scripts/zone.gd` (polygone de `world/zone.json`, `dedans(p, marge)`) ;
+    `world/graphe_hors.bin` (`pipeline/build_graphe_hors.py`, à relancer après `build_itineraire.py` ou
+    `build_zone.py`) : arcs à moins de 12 m de la limite évités par l'itinéraire (repli sans évitement si aucun
+    chemin), nœuds en enclave exclus des départs/arrivées. Livreur : adresses et restaurants à 60 m au moins de la
+    limite ; arrêts Ruban à 30 m ; `circulation.trajet` (fuyard) s'arrête à 12 m ; épreuve dont une étape est dehors :
+    étape retirée et temps réduits d'autant. Essai `--zone-test`.
   - **Soucoupe du gardien désactivée** (choix de l'utilisateur, code conservé : `guardian.process_mode` désactivé
     dans `main.gd`).
 - **Voitures garées physiques** (v6.23, `props.gd`, `_physique`) : à moins de 20 m du joueur, chaque voiture

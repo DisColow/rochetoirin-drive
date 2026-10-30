@@ -495,6 +495,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_gendarmes_test()
 		return
+	if OS.get_cmdline_user_args().has("--zone-test"):
+		if t == 300:
+			_zone_test()
+		return
 	if OS.get_cmdline_user_args().has("--livreur-test"):
 		if t == 300:
 			_livreur_test()
@@ -969,6 +973,10 @@ func _physics_process(_dt: float) -> void:
 			get_viewport().get_texture().get_image().save_png("user://shots/defi.png")
 			print("  [défi] capture defi.png")
 			get_tree().quit()
+		return
+	if OS.get_cmdline_user_args().has("--menu-scroll-test"):
+		if t == 300:
+			_menu_scroll_test()
 		return
 	if OS.get_cmdline_user_args().has("--metiers-menu-test"):
 		# v7.10 : onglet « Métiers » (taxi, bus, livreur) : tout tient à l'écran ?
@@ -3333,6 +3341,81 @@ func _moteurs_test() -> void:
 	print("  [moteurs] FIN")
 	get_tree().quit()
 
+## #155 : menu des activités défilable au doigt. -- --drive-test --menu-scroll-test : onglet Métiers ; glisser du doigt
+## vers le haut en partant d'un bouton (la liste défile, aucune activité ne démarre), puis toucher « Prendre le service
+## de gendarme » (l'activité démarre). Captures menu_scroll_0.png (avant) et menu_scroll_1.png (après le glisser).
+func _menu_scroll_test() -> void:
+	var dire := func(x: String): print("  [menu] " + x)
+	while not Chargement.fini:
+		await get_tree().process_frame
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	var vers_fenetre := func(p: Vector2) -> Vector2: return get_viewport().get_final_transform() * p   # interface 1920 x 1080
+	var toucher := func(p: Vector2, appui: bool) -> void:
+		var ev := InputEventScreenTouch.new(); ev.index = 0; ev.position = vers_fenetre.call(p); ev.pressed = appui
+		Input.parse_input_event(ev)
+	var glisser := func(p0: Vector2, dy: float) -> void:
+		toucher.call(p0, true)
+		await get_tree().process_frame
+		for k in 12:
+			var d := InputEventScreenDrag.new(); d.index = 0
+			d.position = vers_fenetre.call(p0 + Vector2(0, dy * (k + 1) / 12.0))
+			d.relative = vers_fenetre.call(Vector2(0, dy / 12.0)) - vers_fenetre.call(Vector2.ZERO); d.velocity = Vector2(0, dy)
+			Input.parse_input_event(d)
+			await get_tree().process_frame
+		toucher.call(p0 + Vector2(0, dy), false)
+		for k in 20:
+			await get_tree().process_frame
+	var zone := func() -> ScrollContainer:
+		for s in activities._menu.find_children("*", "ScrollContainer", true, false):
+			if (s as Control).is_visible_in_tree():
+				return s
+		return null
+	var boutons := func() -> Array:
+		var l: Array = []
+		for b in activities._menu.find_children("*", "Button", true, false):
+			if (b as Control).is_visible_in_tree():
+				l.append(b)
+		return l
+	for onglet in [0, 2]:
+		activities.open_menu(onglet)
+		get_tree().paused = false
+		for k in 30:
+			await get_tree().process_frame
+		var sc: ScrollContainer = zone.call()
+		var hc: float = sc.get_v_scroll_bar().max_value - sc.size.y if sc else 0.0
+		dire.call("onglet %d : zone défilable %s, contenu qui dépasse de %.0f px" % [onglet, str(sc != null), hc])
+		get_viewport().get_texture().get_image().save_png("user://shots/menu_scroll_%d_avant.png" % onglet)
+		if sc == null:
+			continue
+		# glisser vers le haut en partant d'un bouton de la liste (le 3e bouton défilable)
+		var dans: Array = (boutons.call() as Array).filter(func(b): return sc.is_ancestor_of(b))
+		var b0: Button = dans[min(3, dans.size() - 1)]
+		var choix0: int = activities._menu.choix
+		await glisser.call(b0.get_global_rect().get_center(), -300.0)
+		dire.call("onglet %d, glisser du doigt sur « %s » : défilement %d px, choix %d -> %d, activité « %s »" % [onglet,
+			b0.text if b0.text != "" else "ligne", sc.scroll_vertical, choix0, activities._menu.choix, activities.mode])
+		get_viewport().get_texture().get_image().save_png("user://shots/menu_scroll_%d_apres.png" % onglet)
+	# toucher sans glisser : le bouton répond (onglet Métiers, « Prendre le service de gendarme »)
+	var bg: Button = null
+	for b in boutons.call():
+		if (b as Button).text == "Prendre le service de gendarme":
+			bg = b
+	var sc2: ScrollContainer = zone.call()
+	if sc2:
+		sc2.ensure_control_visible(bg)
+		for k in 5:
+			await get_tree().process_frame
+	var pb := bg.get_global_rect().get_center()
+	toucher.call(pb, true)
+	for k in 3:
+		await get_tree().process_frame
+	toucher.call(pb, false)
+	for k in 30:
+		await get_tree().process_frame
+	dire.call("toucher du bouton gendarme (à %.0f px) : activité « %s »" % [pb.y, activities.mode])
+	print("  [menu] FIN")
+	get_tree().quit()
+
 func voitures_nom(id: String) -> String:
 	var V := preload("res://scripts/voitures.gd")
 	return String(V.CATALOGUE[id].nom) if V.CATALOGUE.has(id) else id
@@ -3397,6 +3480,113 @@ func _helico_test() -> void:
 ## Livreur de repas (#151) : -- --drive-test --livreur-test --drive-from=-10975,236,-1100,90. Trois livraisons,
 ## voiture posée sur la route au plus près du restaurant puis de l'adresse : 1) à l'heure ; 2) après deux chocs ;
 ## 3) en retard. Capture livreur.png à la première adresse.
+## #156 : rien ne doit conduire dans les collines du bord (hors de la zone jouable). Itinéraires entre points proches
+## de la limite (sans puis avec l'évitement), adresses du livreur, arrêts des lignes Ruban, fuite du gendarme, épreuves.
+const ZoneJ := preload("res://scripts/zone.gd")
+const Itin := preload("res://scripts/itineraire.gd")
+func _zone_test() -> void:
+	var dire := func(x: String): print("  [zone] " + x)
+	while not Chargement.fini:
+		await get_tree().process_frame
+	var hors_route := func(r: PackedVector2Array) -> int:
+		var n := 0
+		for q in r:
+			if not ZoneJ.dedans(q):
+				n += 1
+		return n
+	Itin._commun.clear()
+	var t0 := Time.get_ticks_msec()
+	var it: Itin = Itin.new()
+	dire.call("graphe relu en %d ms, %d arcs sur %d évités (hors zone ou à moins de 12 m de la limite)" % [Time.get_ticks_msec() - t0, Array(it.arc_hors).count(1), it.arc_hors.size()])
+	# itinéraires : paires de nœuds à 100-600 m de la limite, 1,5 à 8 km l'un de l'autre
+	seed(156)
+	var bord := PackedInt32Array()
+	while bord.size() < 1500:
+		var i := randi() % it.nx.size()
+		var q := Vector2(it.nx[i], it.nz[i])
+		if ZoneJ.dedans(q, 100.0) and ZoneJ.distance_bord(q, 600.0) < 600.0:
+			bord.append(i)
+	var n := 0; var avant := 0; var apres := 0; var pts_av := 0; var pts_ap := 0; var allonge := 0.0; var essais := 0
+	while n < 200 and essais < 5000:
+		essais += 1
+		var ia: int = bord[randi() % bord.size()]; var ib: int = bord[randi() % bord.size()]
+		var pa := Vector2(it.nx[ia], it.nz[ia]); var pb := Vector2(it.nx[ib], it.nz[ib])
+		if pa.distance_to(pb) < 1500.0 or pa.distance_to(pb) > 8000.0:
+			continue
+		it._chercher(pa, pb, false)
+		if it._res.is_empty():
+			continue
+		var l0: float = it._res_l
+		var h0: int = hors_route.call(it._res)
+		it._calcul(pa, pb)
+		var h1: int = hors_route.call(it._res)
+		n += 1
+		avant += 1 if h0 > 0 else 0; apres += 1 if h1 > 0 else 0
+		pts_av += h0; pts_ap += h1
+		allonge += it._res_l / maxf(l0, 1.0) - 1.0
+	dire.call("itinéraires près de la limite : %d ; passent dehors : avant %d (%d points), après %d (%d points) ; allongement moyen %.1f %%" % [n, avant, pts_av, apres, pts_ap, 100.0 * allonge / maxf(n, 1)])
+	# livreur : adresses tirées depuis des restaurants à moins d'1 km de la limite
+	var lv = livreur
+	var nh := 0; var nb := 0; var na := 0; var dmin := INF
+	for r: Dictionary in lv.restos:
+		var q := Vector2(float(r.x), float(r.z))
+		if ZoneJ.distance_bord(q, 600.0) >= 600.0:
+			continue
+		for k in 10:
+			if lv._adresse(Vector3(q.x, 0.0, q.y)):
+				na += 1
+				var d2 := Vector2(lv.dest.x, lv.dest.z)
+				if not ZoneJ.dedans(d2):
+					nh += 1
+				elif not ZoneJ.dedans(d2, lv.BORD):
+					nb += 1
+				dmin = minf(dmin, ZoneJ.distance_bord(d2, 600.0))
+	var noeuds_hors := 0
+	for i in it.nx.size():
+		if not ZoneJ.dedans(Vector2(it.nx[i], it.nz[i])):
+			noeuds_hors += 1
+	dire.call("livreur : %d adresses tirées depuis les restaurants à moins de 600 m de la limite, %d hors zone, %d à moins de %.0f m (plus près : %.0f m) ; nœuds du graphe hors zone (tirables avant) : %d sur %d" % [na, nh, nb, lv.BORD, dmin, noeuds_hors, it.nx.size()])
+	var nr := 0
+	for r: Dictionary in lv.restos:
+		if not ZoneJ.dedans(Vector2(float(r.x), float(r.z)), lv.BORD):
+			nr += 1
+	dire.call("restaurants exclus (à moins de %.0f m de la limite ou dehors) : %d sur %d" % [lv.BORD, nr, lv.restos.size()])
+	# arrêts des lignes Ruban
+	var lb = JSON.parse_string(FileAccess.get_file_as_string("res://world/lignes_bus.json"))
+	var ar := 0; var ah := 0
+	for l in lb:
+		for q in l.arrets:
+			ar += 1
+			if not ZoneJ.dedans(Vector2(float(q[0]), float(q[1])), 30.0):
+				ah += 1
+	dire.call("lignes Ruban : %d arrêts sur %d sautés (hors zone ou à moins de 30 m de la limite)" % [ah, ar])
+	# fuite du gendarme : trajets depuis des voies proches de la limite
+	var circ = circulation
+	var nt := 0; var th := 0; var tp := 0
+	for i in bord:
+		if nt >= 150:
+			break
+		var q := Vector2(it.nx[i], it.nz[i])
+		if ZoneJ.distance_bord(q, 400.0) >= 400.0:
+			continue
+		var vp: Array = circ.voie_proche(Vector3(q.x, 0.0, q.y), 20.0)
+		if (vp[1] as Vector3) == Vector3.ZERO:
+			continue
+		for dd: Vector3 in [vp[1], -vp[1]]:
+			var tr: PackedVector2Array = circ.trajet(vp[0], dd, 1500.0)
+			if tr.is_empty():
+				continue
+			nt += 1
+			tp += tr.size()
+			th += 1 if hors_route.call(tr) > 0 else 0
+	dire.call("fuite du gendarme : %d trajets près de la limite (%d points), %d passent dehors" % [nt, tp, th])
+	for e: Dictionary in activities.epreuves:
+		if e.id == 5 or e.get("hors", false):
+			dire.call("épreuve %d « %s » : %d étapes, %.1f km, or %d s%s" % [e.id, e.nom, e.etapes.size(), e.km, e.or, " (cachée)" if e.get("hors", false) else ""])
+	var ok := apres == 0 and nh == 0 and nb == 0 and th == 0
+	dire.call("RÉSULTAT : " + ("OK" if ok else "ÉCHEC"))
+	get_tree().quit()
+
 func _livreur_test() -> void:
 	var lv = livreur
 	var dire := func(x: String): print("  [livreur] " + x)

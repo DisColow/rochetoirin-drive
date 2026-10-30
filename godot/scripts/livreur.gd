@@ -21,6 +21,8 @@ const R_RESTO := 3000.0
 const V_DELAI := 9.7                # m/s (35 km/h de moyenne)
 const MARGE := 60.0
 const DETOUR := 1.35                # longueur de la route / distance à vol d'oiseau
+const BORD := 60.0                  # m : adresses et restaurants au moins à ça de la limite de la carte (#156)
+const Zone := preload("res://scripts/zone.gd")
 const CHOC := 15.0
 const REFUS := 40.0
 const BASE := 6.0
@@ -91,7 +93,7 @@ func _prochain_resto() -> bool:
 			continue
 		var r: Dictionary = restos[i]
 		var d := Vector2(float(r.x) - p.x, float(r.z) - p.z).length()
-		if d < R_RESTO:
+		if d < R_RESTO and Zone.dedans(Vector2(float(r.x), float(r.z)), BORD):
 			cand.append([d, i])
 	if cand.is_empty():
 		return false
@@ -121,9 +123,11 @@ func _adresse(depuis: Vector3) -> bool:
 		if l.is_empty():
 			continue
 		var i: int = l[randi() % l.size()]
+		if _itin.enclave.size() > i and _itin.enclave[i]:        # #156 : rue qu'on ne rejoint qu'en sortant de la carte
+			continue
 		var q := Vector3(_itin.nx[i], 0.0, _itin.nz[i])
 		var d := Vector2(q.x - depuis.x, q.z - depuis.z).length()
-		if d < D_MIN or d > D_MAX:
+		if d < D_MIN or d > D_MAX or not Zone.dedans(Vector2(q.x, q.z), BORD):
 			continue
 		q = _sol(q)
 		var rue := _rue(q)
