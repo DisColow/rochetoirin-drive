@@ -127,7 +127,7 @@ Cultures (Sketchfab) : « Maize Corn Plant » par gilles.schaeck, « Wheat — F
 Animaux (Sketchfab, licence CC BY 4.0) : « Cow » par JosueBoisvert, « Sheep » par kenchoo, « Horse Rigged (Game Ready) » par abhayexe.
 Voitures garées (Sketchfab, licence CC BY 4.0) : « Generic 80s european car » par henryviii, « Low Poly Small car » et « Low-Poly Sedan car » par scailman, « Blue Sedan | Stylized Low Poly » par R3indeer.
 Clients du taxi : « Low Poly Characters (PACK) » par micaelsampaio (Sketchfab, licence CC BY 4.0).
-Sons des moteurs des voitures du garage : enregistrements de Wikimedia Commons, « WWS CITROEN2CV6Charlestonengine » de Work With Sounds / Technical Museum of Slovenia (CC BY 4.0) ; « Renault 5 Turbo 2 - engine and exhaust sound (YouTube 9yqNZjwGvCo) » de ECHAPPEMENT LIBRE (YouTube) (CC BY 3.0) ; « Renault Twingo (2002) - engine and exhaust sound (YouTube 1iwuiuqE2QY) » de Sound Effects HD Indie Studios (YouTube) (CC BY 3.0) ; « Peugeot 106 Rallye - engine and exhaust sound (YouTube Z2iFd9mSyhE) » de B Coalla (YouTube) (CC BY 3.0) ; « Renault Laguna II V6 - engine and exhaust sound (YouTube F9eJ7lo4Zno) » de Abakab (YouTube) (CC BY 3.0) ; « Porsche 911 GT3 RS (991) - engine and exhaust sound (YouTube otznJ2rBoks) » de Automotion Media (YouTube) (CC BY 3.0) ; « Ford Bronco (1979) - engine and exhaust sound (YouTube h49p3ivoHYI) » de LUNI Classic Cars (YouTube) (CC BY 3.0) ; « WWS CityBusMANSG220engine » de Work With Sounds / Technical Museum of Slovenia (CC BY 4.0).
+Sons des moteurs des voitures du garage : enregistrements de Wikimedia Commons, « WWS CITROEN2CV6Charlestonengine » de Work With Sounds / Technical Museum of Slovenia (CC BY 4.0) ; « Renault 5 Turbo 2 - engine and exhaust sound (YouTube 9yqNZjwGvCo) » de ECHAPPEMENT LIBRE (YouTube) (CC BY 3.0) ; « Renault Twingo (2002) - engine and exhaust sound (YouTube 1iwuiuqE2QY) » de Sound Effects HD Indie Studios (YouTube) (CC BY 3.0) ; « Peugeot 106 Rallye - engine and exhaust sound (YouTube Z2iFd9mSyhE) » de B Coalla (YouTube) (CC BY 3.0) ; « Renault Laguna II V6 - engine and exhaust sound (YouTube F9eJ7lo4Zno) » de Abakab (YouTube) (CC BY 3.0) ; « Porsche 911 GT3 RS (991) - engine and exhaust sound (YouTube otznJ2rBoks) » de Automotion Media (YouTube) (CC BY 3.0) ; « Ford Bronco (1979) - engine and exhaust sound (YouTube h49p3ivoHYI) » de LUNI Classic Cars (YouTube) (CC BY 3.0) ; « WWS CityBusMANSG220engine » de Work With Sounds / Technical Museum of Slovenia (CC BY 4.0) ; « Seat Toledo - engine and exhaust sound (YouTube zxgRsS4UvfM) » de Sound Effects HD Indie Studios (YouTube) (CC BY 3.0).
 Musiques de la radio : Kevin MacLeod (incompetech.com), licence Creative Commons Attribution 4.0 — voir assets/radio/radio.json pour les titres.
 Polices de l'interface : « Pixelify Sans » (Stefie Justprince) et « DSEG » (Keshikan), licence SIL Open Font License 1.1.
 Textures : Poly Haven et ambientCG (CC0).
@@ -382,7 +382,12 @@ func _open_settings() -> void:
 	var V := preload("res://scripts/voitures.gd")
 	for id in V.ordre():
 		vc.append("%s : %s" % [V.CATALOGUE[id].nom, V.CATALOGUE[id].credit])
-	cr.text = CREDITS + "\nVoitures du garage (Sketchfab, noms et logos parodiés) : " + " ; ".join(vc) + "."
+	var vs := []                             # véhicules de service (Gendarmerette, bus) : hors du garage
+	for id in V.CATALOGUE:
+		if V.CATALOGUE[id].get("service", false):
+			vs.append("%s : %s" % [V.CATALOGUE[id].nom, V.CATALOGUE[id].credit])
+	cr.text = CREDITS + "\nVoitures du garage (Sketchfab, noms et logos parodiés) : " + " ; ".join(vc) + "." \
+		+ "\nVéhicules de service : " + " ; ".join(vs) + "."
 	cr.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	cr.custom_minimum_size = Vector2(900, 0)
 	cr.add_theme_font_size_override("font_size", 20)
