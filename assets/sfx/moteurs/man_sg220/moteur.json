@@ -1,0 +1,23 @@
+{
+ "cylindres": 6,
+ "desc": "autobus MAN SG 220, diesel",
+ "paliers": [
+  {
+   "nom": "p0",
+   "f0": 31.914,
+   "rpm": 638
+  },
+  {
+   "nom": "p1",
+   "f0": 36.417,
+   "rpm": 728
+  },
+  {
+   "nom": "p2",
+   "f0": 47.77,
+   "rpm": 955
+  }
+ ],
+ "ralenti": 415,
+ "rupteur": 1814
+}

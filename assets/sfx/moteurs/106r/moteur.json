@@ -1,0 +1,18 @@
+{
+ "cylindres": 4,
+ "desc": "Peugeot 106 Rallye",
+ "paliers": [
+  {
+   "nom": "p0",
+   "f0": 27.305,
+   "rpm": 819
+  },
+  {
+   "nom": "p1",
+   "f0": 32.127,
+   "rpm": 964
+  }
+ ],
+ "ralenti": 532,
+ "rupteur": 1832
+}

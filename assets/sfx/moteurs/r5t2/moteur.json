@@ -1,0 +1,23 @@
+{
+ "cylindres": 4,
+ "desc": "Renault 5 Turbo 2",
+ "paliers": [
+  {
+   "nom": "p0",
+   "f0": 31.4,
+   "rpm": 942
+  },
+  {
+   "nom": "p1",
+   "f0": 77.541,
+   "rpm": 2326
+  },
+  {
+   "nom": "p2",
+   "f0": 107.193,
+   "rpm": 3216
+  }
+ ],
+ "ralenti": 612,
+ "rupteur": 6110
+}

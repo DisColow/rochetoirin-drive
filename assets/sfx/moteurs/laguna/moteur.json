@@ -1,0 +1,23 @@
+{
+ "cylindres": 6,
+ "desc": "Renault Laguna II V6",
+ "paliers": [
+  {
+   "nom": "p0",
+   "f0": 28.984,
+   "rpm": 580
+  },
+  {
+   "nom": "p1",
+   "f0": 31.829,
+   "rpm": 637
+  },
+  {
+   "nom": "p2",
+   "f0": 44.23,
+   "rpm": 885
+  }
+ ],
+ "ralenti": 377,
+ "rupteur": 1682
+}

@@ -1,0 +1,28 @@
+{
+ "cylindres": 2,
+ "desc": "Citroën 2CV6 Charleston, bicylindre à plat",
+ "paliers": [
+  {
+   "nom": "p0",
+   "f0": 11.273,
+   "rpm": 676
+  },
+  {
+   "nom": "p1",
+   "f0": 15.418,
+   "rpm": 925
+  },
+  {
+   "nom": "p2",
+   "f0": 19.475,
+   "rpm": 1169
+  },
+  {
+   "nom": "p3",
+   "f0": 23.264,
+   "rpm": 1396
+  }
+ ],
+ "ralenti": 439,
+ "rupteur": 2652
+}
