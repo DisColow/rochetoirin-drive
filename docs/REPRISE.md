@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 30/10/2026 (v6.84 #131 à v7.19 livrées)
+## État au 30/10/2026 (v6.84 #131 à v7.20 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -31,6 +31,13 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - **v7.14 (#153)** : son de moteur propre à chaque voiture (voir CLAUDE.md « Son »), choix de l'utilisateur appliqué
   (même modèle sinon le plus proche). Boucles publiées sur `donnees` (8 jeux, `.import` faits dans un petit projet
   temporaire). Toledo préparé pour la Gendarmerette Focus (pas encore publié ni crédité).
+- **v7.20 (#164-#167)** : #164 `Car.juger` (règle de l'utilisateur : l'un à plus de 60 km/h, écart ≥ `ECART_BOUM`
+  30 km/h, le plus lent explose ; vitesses d'avant le choc : `_vitesses` sur 3 pas ; voitures du joueur/IA, épaves de
+  la circulation jugées dès `_accident`, voitures garées `props.exploser_garee`). Essai `--choc-vehicules-test`.
+  #167 `circulation.NOMBRE` +50 %. #166 concurrents : meneur au temps de l'or en Normal, `A_ACC` 4. #165 matériaux
+  opaques exportés en mélange alpha passés en découpe (`car._materials`), essai `--deuche-test`. En attente de
+  réponse : hypothèses de #161 (missions de gendarmerie), #162 (HUD, maquette `docs/apercus/maquette_hud_162.jpg`),
+  #163 (rétroviseur).
 - **v7.19 (#158, #159, #160)** : gendarmerie. #158 : tout `garage.change` (gain d'argent) relançait
   `tuning.appliquer()` sur la voiture conduite, Gendarmerette comprise (peinture noire, jantes et enseigne de taxi
   du pick-up) : véhicules de service (`fiche.service`, aussi le bus) exclus du tuning (`tuning._service`). #160 :

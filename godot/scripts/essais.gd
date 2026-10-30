@@ -495,6 +495,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_gendarmes_test()
 		return
+	if OS.get_cmdline_user_args().has("--deuche-test"):
+		if t == 300:
+			_deuche_test()
+		return
 	if OS.get_cmdline_user_args().has("--choc-vehicules-test"):
 		if t == 300:
 			_choc_vehicules_test()
@@ -3498,6 +3502,44 @@ func _helico_test() -> void:
 ## 3) en retard. Capture livreur.png à la première adresse.
 ## #156 : rien ne doit conduire dans les collines du bord (hors de la zone jouable). Itinéraires entre points proches
 ## de la limite (sans puis avec l'évitement), adresses du livreur, arrêts des lignes Ruban, fuite du gendarme, épreuves.
+## #165 : 2CV (pièces en mélange alpha, transparentes par endroits sur téléphone) : modes de transparence des
+## matériaux de la caisse après car.construire, et trois vues (deuche_1..3.png).
+func _deuche_test() -> void:
+	var dire := func(x: String): print("  [2cv] " + x)
+	while not Chargement.fini:
+		await get_tree().process_frame
+	car.construire("deuche")
+	var vp: Array = circulation.voie_proche(car.global_position, 80.0)
+	car.place((vp[0] as Vector3) + Vector3.UP * 0.4, rad_to_deg(atan2((vp[1] as Vector3).x, -(vp[1] as Vector3).z)))
+	car.hold(30.0)
+	for f in 60:
+		await get_tree().physics_frame
+	var modes := {}
+	for mi in car.find_children("*", "MeshInstance3D", true, false):
+		var m3 := mi as MeshInstance3D
+		if m3.mesh == null:
+			continue
+		for s in m3.mesh.get_surface_count():
+			var m := m3.get_active_material(s)
+			if m is BaseMaterial3D:
+				var nm := "%s:%s" % [m.resource_name, ["opaque", "mélange alpha", "découpe", "hachures", "pré-passe"][(m as BaseMaterial3D).transparency]]
+				modes[nm] = int(modes.get(nm, 0)) + 1
+	dire.call("matériaux de la 2CV : %s" % str(modes))
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	var cam := Camera3D.new()
+	cam.fov = 50.0
+	add_child(cam)
+	cam.current = true
+	var xf := car.global_transform
+	var vues := [xf.basis.x * 5.0 + Vector3.UP * 1.4, xf.basis.z * 4.5 + xf.basis.x * 3.0 + Vector3.UP * 1.6, -xf.basis.z * 5.0 - xf.basis.x * 2.0 + Vector3.UP * 1.8]
+	for k in vues.size():
+		cam.global_position = xf.origin + (vues[k] as Vector3)
+		cam.look_at(xf.origin + Vector3.UP * 0.7)
+		for f in 8:
+			await get_tree().process_frame
+		get_viewport().get_texture().get_image().save_png("user://shots/deuche_%d.png" % (k + 1))
+	get_tree().quit()
+
 ## #164 : explosion entre véhicules (règle de l'utilisateur : l'un à plus de 60 km/h, écart de vitesse d'au moins
 ## 30 km/h, le plus lent explose). -- --drive-test --choc-vehicules-test --drive-from=-10975,236,-1100,90 : la
 ## Gendarmerette (joueur) et le fuyard posés sur la même voie, l'un lancé contre l'autre ; voiture garée percutée.

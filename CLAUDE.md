@@ -354,6 +354,11 @@
   géré par `gendarmes._helicoptere` à chaque pas, même après la poursuite) ; sous-titre des messages radio (bandeau
   « Radio : … » quand l'autoradio est allumée, pour les appareils sans synthèse vocale). Essai `--helico-test`
   (capture `helico.png`).
+  v7.20 (#164) : **chocs entre véhicules** (`Car.juger`, règle de l'utilisateur) : explosion seulement si l'un roulait
+  à plus de `VITESSE_BOUM` (60 km/h) et que les vitesses d'avant le choc diffèrent d'au moins `ECART_BOUM` (30) ; le
+  plus lent explose (joueur : `exploser` ; IA : méta `boum` traitée par son pilote ; épave de la circulation :
+  `circulation.exploser_epave` ; voiture garée : `props.exploser_garee`). Contre le décor, règle d'avant (audio.gd).
+  Essai `--choc-vehicules-test` (mode `libre` de gendarme.gd : commandes tenues par l'essai).
   v7.19 (#158-#160) : **véhicules de service hors tuning** (`tuning._service` : ni peinture, ni jantes, ni pièces, ni
   fiche technique du garage ; avant, un gain d'argent repeignait la Focus) ; **consigne au lancement**
   (`hud.consigne`, jeu figé jusqu'à OK) ; **fuyard** : sorties suivies d'au moins `ISSUE` m de route
