@@ -31,6 +31,12 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - **v7.14 (#153)** : son de moteur propre à chaque voiture (voir CLAUDE.md « Son »), choix de l'utilisateur appliqué
   (même modèle sinon le plus proche). Boucles publiées sur `donnees` (8 jeux, `.import` faits dans un petit projet
   temporaire). Toledo préparé pour la Gendarmerette Focus (pas encore publié ni crédité).
+- **En cours (v7.23, branche `v723`, pas encore livrée)** : rétroviseur ménagé en Économie (une image sur 8, coupé
+  sous 24 img/s, promesse de l'hypothèse 3 de #163) ; carte d'activité et messages bornés en largeur (retour à la
+  ligne avant le rétroviseur) ; essai `--gendarme-poursuite-test` (Gendarmerette conduite par le pilote des
+  concurrents) : il ne rattrape pas le Twingo de la mission 1 (60-80 km/h, pilote prudent en virage) : pilote d'essai
+  à améliorer avant de juger l'équilibre des missions. Toutes les issues ouvertes sont « à tester » (#124 attend le
+  relevé du TCL).
 - **v7.22 (#161)** : service de gendarme en missions (`gendarme_joueur.gd` : `MISSIONS`, `parametres(n)`, `medaille`,
   `fuyards` [{g, degats, coince_t, pris, detruit}], pause `PAUSE` s, `_fin_service`), vitesse par fuyard
   (`gendarme.vmax_fuite`), chrono en gros et coloré (`activities._set_status(t, coul, gros)`), succès « Gendarme

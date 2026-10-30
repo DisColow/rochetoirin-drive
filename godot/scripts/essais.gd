@@ -495,6 +495,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_gendarmes_test()
 		return
+	if OS.get_cmdline_user_args().has("--gendarme-poursuite-test"):
+		if t == 300:
+			_gendarme_poursuite_test()
+		return
 	if OS.get_cmdline_user_args().has("--gendarme-missions-test"):
 		if t == 300:
 			_gendarme_missions_test()
@@ -3516,6 +3520,84 @@ func _helico_test() -> void:
 ## 3) en retard. Capture livreur.png à la première adresse.
 ## #156 : rien ne doit conduire dans les collines du bord (hors de la zone jouable). Itinéraires entre points proches
 ## de la limite (sans puis avec l'évitement), adresses du livreur, arrêts des lignes Ruban, fuite du gendarme, épreuves.
+## #159 #161 : vraie poursuite. -- --drive-test --gendarme-poursuite-test --drive-from=-10975,236,-1100,90 [--graine=N]
+## La Gendarmerette est conduite par le pilote des concurrents (concurrent.gd) sur l'itinéraire jusqu'au fuyard le
+## plus proche (refait quand il s'est éloigné de plus de 120 m du but, au plus toutes les 8 s), puis droit sur lui à
+## moins de 30 m pour l'emboutir ; jusqu'à la fin de la
+## 3e mission ou du service (6 min au plus) : temps et médaille de chaque mission, chocs, explosions.
+func _gendarme_poursuite_test() -> void:
+	var gj = gendarme_joueur
+	var dire := func(x: String): print("  [poursuite] " + x)
+	var hud := get_node("HUD")
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--graine="):
+			seed(int(a.trim_prefix("--graine=")))
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	circulation.set_densite(0)
+	gendarmes.actif = false
+	car.aide_voie = false
+	activities._gendarme_start()
+	for f in 5:
+		await get_tree().process_frame
+	for b in hud.consigne_ouverte.find_children("*", "Button", true, false):
+		(b as Button).pressed.emit()
+	var pilote = null
+	var replan := 0.0
+	var t := 0.0
+	var mission_t0 := 0.0
+	var mission := 1
+	var explosions := 0
+	var etait_blown := false
+	while gj.actif and t < 360.0 and gj.reussies < 3:
+		await get_tree().physics_frame
+		var dt := get_physics_process_delta_time()
+		t += dt
+		if car.blown and not etait_blown:
+			explosions += 1
+		etait_blown = car.blown
+		if gj.mission != mission:
+			dire.call("mission %d : %s en %.0f s ; médailles %s" % [mission, "réussie" if gj.reussies >= mission else "ratée", t - mission_t0, str(gj.medailles)])
+			mission = gj.mission
+			mission_t0 = t
+		if gj._pause_t > 0.0 or gj.fuyard == null or not is_instance_valid(gj.fuyard) or car.blown:
+			continue
+		var fv: Vector3 = gj.fuyard.voiture.global_position
+		var d := car.global_position.distance_to(fv)
+		if d < 30.0:
+			if is_instance_valid(pilote):
+				pilote.queue_free()
+				pilote = null
+			var l: Vector3 = car.global_transform.affine_inverse() * (fv + gj.fuyard.voiture.linear_velocity * 0.3)
+			car.touch_steer = clampf(atan2(l.x, l.z) * 1.5, -1.0, 1.0)
+			car.touch_throttle = 1.0 if l.z > 0.0 else 0.4
+			car.touch_brake = 0.0
+			continue
+		replan -= dt
+		var but_loin: bool = is_instance_valid(pilote) and (pilote.points[-1] as Vector2).distance_to(Vector2(fv.x, fv.z)) > 120.0
+		if not is_instance_valid(pilote) or pilote.fini or (but_loin and replan <= 0.0):
+			replan = 8.0
+			if is_instance_valid(pilote):
+				pilote.queue_free()
+			pilote = preload("res://scripts/concurrent.gd").new()
+			pilote.main = self
+			pilote.voiture = car
+			pilote.nom = "poursuite"
+			pilote.a_lat = 7.0
+			pilote.temps_cible = 1.0
+			pilote.doubler = true
+			pilote.points = [Vector2(car.global_position.x, car.global_position.z), Vector2(fv.x, fv.z)]
+			add_child(pilote)
+		elif pilote.pret and not pilote.parti:
+			pilote.parti = true
+		if int(t * 60.0) % 600 == 0:
+			dire.call("t %.0f s : mission %d, fuyard à %.0f m, %.0f km/h (lui %.0f km/h), dégâts %d %%" % [t, gj.mission, d, car.kmh(), gj.fuyard.voiture.kmh(), int(gj.degats)])
+	if is_instance_valid(pilote):
+		pilote.queue_free()
+	dire.call("fin après %.0f s : %d mission(s) réussie(s), médailles %s, gains %s, explosions de la Gendarmerette %d, service actif %s" % [t, gj.reussies, str(gj.medailles), activities._euros(gj.gains), explosions, str(gj.actif)])
+	get_tree().quit()
+
 ## #161 : service de gendarme en missions enchaînées. -- --drive-test --gendarme-missions-test
 ## --drive-from=-10975,236,-1100,90 : missions 1 à 4 (fuyards, vitesses, chronos), interpellations forcées (dégâts à
 ## 100 %) tôt (or) ou tard (bronze), pause entre deux missions, deux fuyards à la mission 3 (deux repères), chrono
