@@ -317,9 +317,12 @@
   au fond d'un bâtiment), majoration de nuit `NUIT` (`main.tarif_nuit`, essai `--livreur-nuit`). Onglet « Taxi » des
   Activités renommé « Métiers » (taxi, bus, livreur, un titre par métier ; essai `--metiers-menu-test`, capture
   `metiers_menu.png`).
-- **Gendarmes** (v7.05, #150, initiative de Claude ; voiture et règles en attente du choix de l'utilisateur : planche
-  `docs/apercus/planche_police.jpg`, A Focus de gendarmerie ou B 306 du garage repeinte ; voiture provisoire = B,
-  `modele` « p306 » repeinte `couleur`) : `scripts/gendarmes.gd` (`main.gendarmes`, ⚙ > Conduite > Gendarmes,
+- **Gendarmes** (v7.05, #150, initiative de Claude ; règles 1 à 5 validées et voiture A choisie par l'utilisateur le
+  30/10 : v7.15, Focus de gendarmerie « gendarme » de `voitures.gd`, `livree` : pas repeinte, rampe du jeu qui clignote ;
+  modèle « Ford Focus MK1 Gendarmerie » converti par `blender_voitures_joueur.py gendarme` : options `renommer`,
+  `souder`, `normales` (soupe de triangles convertie d'une image, normales personnalisées qui la rendaient noire),
+  `rotx`, `rayon` (roues repérées par les jantes), `roue_unie` + `pneu` (pneus gris clair du modèle passés en
+  caoutchouc) ; **ce script attend `--` avant les noms**, sinon il reconvertit toutes les voitures) : `scripts/gendarmes.gd` (`main.gendarmes`, ⚙ > Conduite > Gendarmes,
   `reglages.cfg` conduite/gendarmes) et `scripts/gendarme.gd` (une voiture : car.gd `ia`, pilotage repris de
   concurrent.gd, itinéraire `itineraire.gd` recalculé toutes les `REPLAN` s, droit sur le joueur à moins de `DIRECT`
   m s'il est en vue, arrêt à `ARRET` m d'un joueur arrêté (interpellation), marche arrière s'il est juste derrière ;

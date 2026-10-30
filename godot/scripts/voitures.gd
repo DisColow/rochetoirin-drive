@@ -54,11 +54,13 @@ const CATALOGUE := {
 		"masse": 1420.0, "kw": 368.0, "vmax": 310.0, "traction": "arriere", "cx": 0.45, "gps": true, "moteur": 1.5, "son": "gt3rs_991",
 		"annee": 2016, "texte": "La sportive ultime : moteur à plat à l'arrière, aileron géant, 310 km/h.",
 		"credit": "« Porsche 911 GT3 RS (991.1) '16 » de Car2022 (CC BY 4.0)"},
-	# voiture du joueur dans l'activité « Gendarme » (#150, provisoire : la 306 repeinte, choix B) : service
-	"gendarme": {"nom": "Gendarmerette (306)", "marque": "", "prix": 0, "dossier": "res://assets/voitures/p306", "service": true,
-		"cockpit": "p306", "masse": 1150.0, "kw": 170.0, "vmax": 210.0, "traction": "avant", "cx": 0.52, "gps": true, "moteur": 1.3, "son": "106r",
-		"annee": 1998, "texte": "La voiture de la Gendarmerette : gyrophares et sirène deux-tons.",
-		"credit": "« Lowpoly Peugeot 306 Maxi » de anxietybot (CC BY 4.0), repeinte pour le jeu"},
+	# voiture des gendarmes et du joueur dans l'activité « Gendarme » (#150, choix A de l'utilisateur) : service,
+	# déjà en livrée (gendarme.habiller ne la repeint pas, il ajoute la rampe qui clignote) ; poste de conduite de la 306
+	"gendarme": {"nom": "Gendarmerette", "marque": "", "prix": 0, "dossier": "res://assets/voitures/gendarme", "service": true,
+		"livree": true, "cockpit": "p306", "masse": 1200.0, "kw": 170.0, "vmax": 210.0, "traction": "avant", "cx": 0.52, "gps": true,
+		"moteur": 1.3, "son": "toledo",
+		"annee": 2002, "texte": "La voiture de la Gendarmerette : gyrophares et sirène deux-tons.",
+		"credit": "« Ford Focus MK1 Gendarmerie » de szymonpasterczyk (CC BY 4.0)"},
 	# bus de l'activité « Ligne de bus » (#148) : pas au garage (service), conduit le temps d'une ligne
 	"bus": {"nom": "Autobus B1", "marque": "", "prix": 0, "dossier": "res://assets/voitures/bus", "service": true,
 		"masse": 11000.0, "kw": 190.0, "force": 30000.0, "vmax": 90.0, "traction": "arriere", "cx": 3.2, "gps": false, "moteur": 0.7, "son": "man_sg220",

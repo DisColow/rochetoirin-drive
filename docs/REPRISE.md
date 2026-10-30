@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 29/10/2026, 3 h (v6.84 #131 à v7.14 livrées)
+## État au 29/10/2026, 3 h (v6.84 #131 à v7.15 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -31,9 +31,10 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - **v7.14 (#153)** : son de moteur propre à chaque voiture (voir CLAUDE.md « Son »), choix de l'utilisateur appliqué
   (même modèle sinon le plus proche). Boucles publiées sur `donnees` (8 jeux, `.import` faits dans un petit projet
   temporaire). Toledo préparé pour la Gendarmerette Focus (pas encore publié ni crédité).
-- **À faire : #150 voiture A** (Focus de gendarmerie, Sketchfab uid 0b2f13be68734710b620a87088b82ad3, réponse de
-  l'utilisateur du 30/10 : « Modèle A, règles 1 à 5 ok ») : `fetch_voitures_joueur.py` + `blender_voitures_joueur.py`,
-  inscriptions parodiées (Gendarmerette), fiche « gendarme » + son `toledo` (+ crédit), gendarmes de la poursuite.
+- **v7.15 (#150)** : Focus de gendarmerie (choix A, règles 1-5 validées) pour les gendarmes et l'activité
+  « Gendarme » ; son Toledo. Modèle `godot/import/voitures/gendarme/model.glb` (copié de la planche, Sketchfab uid
+  0b2f13be68734710b620a87088b82ad3) ; conversion `blender_voitures_joueur.py -- gendarme` (toujours `--`, sinon toutes
+  les voitures sont refaites ; restauration depuis `donnees` si besoin). Poste de conduite : celui de la 306.
 - **v7.13 (#150)** : activité « Gendarme » (le joueur poursuit un fuyard et l'emboutit), chocs relevés sur la
   voiture IA (celle du joueur n'a pas de `contact_monitor`). Pièges trouvés : A* du GPS mauvais pour un fuyard
   (nœuds aux carrefours seulement -> demi-tour ; `circulation.trajet` à la place), voiture figée qui glissait à

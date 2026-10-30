@@ -32,7 +32,7 @@ const FUITE_V := 0.85               # fuyard : part de sa vitesse maximale
 const FUITE_MAX := 31.0             # fuyard : 110 km/h au plus (la Gendarmerette doit pouvoir le rattraper)
 
 var main: Node
-const MODELE := "p306"              # voiture provisoire (#150 : choix A ou B en attente)
+const MODELE := "gendarme"          # Focus de gendarmerie (#150, choix A de l'utilisateur), voitures.gd
 var modele := MODELE
 var couleur := Color(0.1, 0.17, 0.42)
 var mode := "patrouille"
@@ -102,7 +102,8 @@ void fragment() {
 ## Habille une voiture en gendarmerie (gendarmes de la poursuite, voiture du joueur dans l'activité « Gendarme ») :
 ## livrée bleue, rampe de gyrophares, lueur et sirène ; rend {gyro: [[MeshInstance3D, matériau]], lueur, sirene}.
 static func habiller(v: Car, col: Color) -> Dictionary:
-	_repeindre(v, col)
+	if not v.fiche.get("livree", false):         # voiture déjà en livrée (la Focus) : sa peinture d'origine
+		_repeindre(v, col)
 	return _rampe(v)
 
 static func _repeindre(v: Car, col: Color) -> void:

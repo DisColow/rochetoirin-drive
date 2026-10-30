@@ -68,7 +68,7 @@ CARS = {
                      mats={"mat0": "paint", "material_0": "paint", "mat0_018": "glass", "mat0_010": "lamp",
                            "mat0_021": "tail", "mat0_016": "tail", "mat0_020": "orange", "mat0_015": "orange",
                            "mat0_024": "rubber", "mat0_001": "plastic", "mat0_019": "plastic", "mat0_017": "plastic"},
-                     cylindres=True, couleur=(0.05, 0.33, 0.52)),
+                     cylindres=True, couleur=(0.05, 0.33, 0.52), roue_unie=(0.62, 0.63, 0.66), pneu=0.70),   # pneus gris clairs du modèle
     "twingo": dict(marque="renaud", logos=[("av", 0.55, 0.13)], lh=(1.63, 1.42), L=3.43, rot=0, roues=["^object_0$", "^object_1$"], suppr=[], mats={}, couleur=None),
 }
 
@@ -368,7 +368,7 @@ def convertir(cid, c):
         w.data.materials.append(materiau("hubcap", c["roue_unie"], 0.6, 0.35))
         for f in w.data.polygons:                    # sommet le plus loin de l'axe : un grand disque plat qui couvre
             rmax = max((w.data.vertices[k].co.y ** 2 + w.data.vertices[k].co.z ** 2) ** 0.5 for k in f.vertices)
-            f.material_index = 0 if rmax > 0.62 * rayon else 1      # la roue est du pneu, pas de la jante
+            f.material_index = 0 if rmax > c.get("pneu", 0.62) * rayon else 1    # la roue est du pneu, pas de la jante
     alleger(w, 2500)
     # matériaux (ceux de la roue copiés : une jante peut partager le matériau de la caisse)
     for sl in w.material_slots:
