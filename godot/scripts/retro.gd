@@ -1,7 +1,8 @@
 ## Rétroviseur (#163, demande de l'utilisateur) : en vue extérieure, en haut au centre comme dans les jeux de course,
 ## l'arrière de la voiture vu par une petite caméra posée sur le toit (image retournée comme un miroir). Économie :
-## image de TAILLE pixels, refaite une image sur PAS (≈ 15 fois par seconde), vue jusqu'à LOIN m. Masqué au poste de
-## conduite, dans les menus et quand la vue extérieure n'est pas affichée. ⚙ > Conduite > Rétroviseur.
+## image de TAILLE pixels, refaite une image sur PAS (≈ 15 fois par seconde ; deux fois moins en Économie, et coupé
+## tant que le jeu y rame), vue jusqu'à LOIN m. Masqué au poste de conduite, dans les menus et quand la vue
+## extérieure n'est pas affichée. ⚙ > Conduite > Rétroviseur.
 extends Control
 const TAILLE := Vector2i(320, 88)
 const PAS := 4
@@ -71,6 +72,14 @@ func _process(_dt: float) -> void:
 	var o := xf.origin + xf.basis.y * (g.y + 0.25) - xf.basis.z * (g.z * 0.35)
 	_cam.global_transform = Transform3D(Basis.IDENTITY, o)
 	_cam.look_at(o - xf.basis.z * 30.0 + xf.basis.y * 0.5, xf.basis.y)
+	# réglage Économie : deux fois moins souvent, et plus du tout tant que le jeu rame (moins de 24 images par seconde)
+	var veg = main.get("vegetation")
+	var eco: bool = veg != null and int(veg.level) == 0
+	if eco and Engine.get_frames_per_second() < 24.0:
+		(get_child(1) as Control).visible = false
+		(get_child(2) as Control).visible = false
+		_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
+		return
 	_n += 1
-	if _n % PAS == 0:
+	if _n % (PAS * 2 if eco else PAS) == 0:
 		_vp.render_target_update_mode = SubViewport.UPDATE_ONCE

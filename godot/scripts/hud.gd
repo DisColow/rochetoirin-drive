@@ -150,7 +150,11 @@ func toast(text: String, secs := 3.5) -> void:
 		l.add_theme_color_override("font_color", Color(1.0, 0.88, 0.55))
 		_toast.add_child(l)
 		add_child(_toast)
-	(_toast.get_child(0) as Label).text = text
+	var lt := _toast.get_child(0) as Label
+	lt.text = text
+	var long := lt.get_theme_font("font").get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x > 600.0
+	lt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if long else TextServer.AUTOWRAP_OFF      # #162 : pas jusqu'au rétroviseur
+	lt.custom_minimum_size.x = 600.0 if long else 0.0
 	_toast.reset_size()
 	# #162 : à gauche, sous la carte d'activité (le milieu de l'écran reste libre)
 	var act = get_tree().get_first_node_in_group("activites")

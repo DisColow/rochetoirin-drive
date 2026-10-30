@@ -70,6 +70,7 @@ var _status_g: Label                # première ligne (grosse)
 var statut := ""                    # texte complet de la carte d'activité
 const COUL_CARTE := Color(1.0, 0.6, 0.12)
 const CARTE_Y := 132.0              # haut de la carte (sous la rangée d'icônes)
+const CARTE_L := 560.0              # largeur maximale du texte des lignes suivantes (le rétroviseur commence à x 702)
 var _stop_btn: Button
 var _bar: HBoxContainer
 var _beacons: Array = []
@@ -215,6 +216,13 @@ func _set_status(t: String, coul := Color.WHITE, gros := false) -> void:
 	_status_g.text = l[0]
 	_status_l.text = l[1] if l.size() > 1 else ""
 	_status_l.visible = _status_l.text != ""
+	# #162 : la carte s'arrête avant le rétroviseur (haut-centre) : lignes longues coupées
+	var f := _status_l.get_theme_font("font")
+	var large := false
+	for ligne in _status_l.text.split("\n"):
+		large = large or f.get_string_size(ligne, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x > CARTE_L
+	_status_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if large else TextServer.AUTOWRAP_OFF
+	_status_l.custom_minimum_size.x = CARTE_L if large else 0.0
 	_status.visible = t != ""
 	_stop_btn.visible = mode != "" and _status.visible
 	_status.reset_size()

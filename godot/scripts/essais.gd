@@ -3595,7 +3595,8 @@ func _hud_test() -> void:
 	for f in 30:
 		await get_tree().process_frame
 	dire.call("voiture : haut %s (1 : à plat)" % str(snappedf(car.global_transform.basis.y.y, 0.01)))
-	hud.toast("Commande récupérée : livrez au 12 rue de la République", 30.0)
+	hud.toast("Commande récupérée chez Le Comptoir des Saveurs : livrez au 12 rue de la République, Bourgoin-Jallieu, avant 18 h", 30.0)
+	activities._set_status("LIVREUR · commande 1/3\n→ Le Comptoir des Saveurs de la Place du Marché, avenue du Maréchal Leclerc : 1 184 m · délai 6:27")
 	var duree := func(n: int) -> float:
 		var t0 := Time.get_ticks_usec()
 		for f in n:
