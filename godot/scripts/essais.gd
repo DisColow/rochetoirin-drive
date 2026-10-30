@@ -507,6 +507,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_gendarme_joueur_test()
 		return
+	if OS.get_cmdline_user_args().has("--moteurs-test"):
+		if t == 300:
+			_moteurs_test()
+		return
 	if OS.get_cmdline_user_args().has("--bus-test"):
 		if t == 300:
 			_bus_test()
@@ -3153,6 +3157,39 @@ func _gendarme_joueur_test() -> void:
 		return
 	dire.call("voiture du joueur : %s (%s) ; fuyard : %s à %.0f m" % [car.voiture, voitures_nom(car.voiture), gj.fuyard.modele,
 		car.global_position.distance_to(gj.fuyard.voiture.global_position)])
+	if OS.get_cmdline_user_args().has("--gj-coince"):
+		# barrage : la Gendarmerette en travers 30 m devant le fuyard, frein serré ; il vient buter dessus
+		var tw := 0.0
+		while tw < 0.4:                               # fin du maintien du départ (car.hold), qui annulerait la pose
+			await get_tree().physics_frame
+			tw += get_physics_process_delta_time()
+		var fz = gj.fuyard
+		var ch: PackedVector2Array = fz._chemin
+		var fp: Vector3 = fz.voiture.global_position
+		var bi := 0
+		for i in ch.size():
+			if ch[i].distance_squared_to(Vector2(fp.x, fp.z)) < ch[bi].distance_squared_to(Vector2(fp.x, fp.z)):
+				bi = i
+		var ia: int = clampi(fz._s.bsearch(fz._s[bi] + 30.0), 0, ch.size() - 2)      # 30 m devant lui sur son chemin
+		var q: Vector2 = ch[ia]
+		var q2: Vector2 = ch[ia + 1]
+		var dd := (q2 - q).normalized()
+		var y := Relief.hauteur(Vector3(q.x, 0, q.y))
+		car.place(Vector3(q.x, y + 0.4, q.y), rad_to_deg(atan2(dd.x, -dd.y)) + 90.0)
+		car.frein_parking = true
+		var tc := 0.0
+		while gj.actif and tc < 40.0:
+			await get_tree().physics_frame
+			tc += get_physics_process_delta_time()
+			if fmod(tc, 1.0) < get_physics_process_delta_time():
+				dire.call("coincé ? t %.0f s : fuyard à %.1f m, %.1f m/s, gaz %.1f frein %.1f, compteur %.1f s, dégâts %d %%" % [tc,
+					car.global_position.distance_to(fz.voiture.global_position), fz.voiture.linear_velocity.length(),
+					fz.voiture.touch_throttle, fz.voiture.touch_brake, gj._coince_t, int(gj.degats)])
+		car.frein_parking = false
+		dire.call("fin : actif %s, interpellé %s, statut « %s »" % [str(gj.actif), str(gj.interpelle), activities._status_l.text])
+		print("  [gendarme] FIN")
+		get_tree().quit()
+		return
 	var t := 0.0
 	var cap := false
 	var trace: Array[Vector3] = []
@@ -3251,6 +3288,49 @@ func _gendarme_joueur_test() -> void:
 	dire.call("fin après %.0f s : actif %s, interpellé %s, dégâts %d %%, argent %+.2f €, voiture rendue : %s, statut « %s »" % [t,
 		str(gj.actif), str(gj.interpelle), int(gj.degats), garage.argent - argent0, car.voiture, activities._status_l.text])
 	print("  [gendarme] FIN")
+	get_tree().quit()
+
+## Sons de moteur par voiture (#153) : -- --drive-test --moteurs-test [--sons=deuche,gt3:gt3_992,r5:-] (id seul : son du
+## catalogue ; id:clé : jeu de boucles imposé ; id:- : moteur d'origine)
+## --drive-from=-8410.95,221,-7187.25,45.2. Pour chaque voiture : son jeu de boucles (champ « son » de la fiche), 8 s
+## pleins gaz puis 3 s pied levé ; journal : boucles chargées, régime simulé, rapport, fréquence voulue, boucles
+## audibles (volume, transposition).
+func _moteurs_test() -> void:
+	var dire := func(x: String): print("  [moteurs] " + x)
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	var paires := ["deuche"]
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--sons="):
+			paires = a.trim_prefix("--sons=").split(",")
+	var depart := car.global_transform
+	for pr: String in paires:
+		var id := pr.get_slice(":", 0)
+		car.global_transform = depart
+		car.construire(id)
+		if ":" in pr:                               # id:clé = jeu de boucles imposé ; id:- = moteur d'origine
+			car.fiche = car.fiche.duplicate()       # fiche du catalogue : constante
+			car.fiche["son"] = "" if pr.get_slice(":", 1) == "-" else pr.get_slice(":", 1)
+		var son := String(car.fiche.get("son", ""))
+		car.linear_velocity = Vector3.ZERO
+		car.hold(0.5)
+		for k in 60:
+			await get_tree().physics_frame
+		var t := 0.0
+		while t < 11.0:
+			car.touch_throttle = 1.0 if t < 8.0 else 0.0
+			await get_tree().physics_frame
+			t += get_physics_process_delta_time()
+			if fmod(t, 1.0) < get_physics_process_delta_time():
+				var aud := []
+				for L in sound._loops:
+					if L.on.volume_db > -40.0 or L.off.volume_db > -40.0:
+						aud.append("%.0f Hz ×%.2f (%.0f / %.0f dB)" % [L.f0, L.on.pitch_scale, L.on.volume_db, L.off.volume_db])
+				dire.call("%s (%s) t %.0f s : %.0f km/h, %s, boucles « %s » : %d, moteur %s ; audibles %s" % [id, son, t, car.kmh(),
+					sound.debug().get_slice(", surface", 0), sound._son, sound._loops.size(), str(sound._moteur), ", ".join(aud)])
+	car.touch_throttle = 0.0
+	print("  [moteurs] FIN")
 	get_tree().quit()
 
 func voitures_nom(id: String) -> String:

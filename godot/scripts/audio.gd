@@ -31,6 +31,8 @@ var _shift_t := 0.0
 var _load := 0.0
 var _start_t := 0.0
 var _loops := []                 # [{f0, on, off}] triées par fréquence
+var _son := ""                   # jeu de boucles chargé (#153) : clé de assets/sfx/moteurs/, "" = moteur d'origine
+var _moteur := {}                # moteur propre à la voiture : {cyl, ralenti, rupteur} ; vide = moteur d'origine
 var _roll := {}                  # surface -> AudioStreamPlayer
 var _wind: AudioStreamPlayer
 var _squeal: AudioStreamPlayer
@@ -70,10 +72,7 @@ func _ready() -> void:
 		set_process(false); set_physics_process(false)
 		return
 	# moteur
-	var man = JSON.parse_string(FileAccess.get_file_as_string("res://assets/sfx/moteur.json"))
-	for m in man:
-		_loops.append({f0 = float(m.f0), on = _player("moteur_%s_charge" % m.nom, _bus_car), off = _player("moteur_%s_lache" % m.nom, _bus_car)})
-	_loops.sort_custom(func(a, b): return a.f0 < b.f0)
+	_charger_moteur("")
 	for s in ["asphalte", "gravier", "herbe"]:
 		_roll[s] = _player("roule_" + s, _bus_car)
 	_wind = _player("vent", _bus_car)
@@ -140,6 +139,29 @@ static func _bus(name: String) -> int:
 		lp.cutoff_hz = 20000.0
 		AudioServer.add_bus_effect(i, lp)
 	return i
+
+## Boucles du moteur (#153) : celles de la voiture (champ « son » de sa fiche, voitures.gd : enregistrement d'un vrai
+## moteur, pipeline/build_moteurs.py -> assets/sfx/moteurs/<son>/), sinon le moteur d'origine (4 cylindres de 106).
+func _charger_moteur(son: String) -> void:
+	for L in _loops:
+		L.on.queue_free(); L.off.queue_free()
+	_loops.clear()
+	_moteur = {}
+	_son = son
+	var mj := "res://assets/sfx/moteurs/%s/moteur.json" % son
+	if son != "" and FileAccess.file_exists(mj):
+		var man = JSON.parse_string(FileAccess.get_file_as_string(mj))
+		if man is Dictionary:
+			_moteur = {cyl = float(man.cylindres), ralenti = float(man.ralenti), rupteur = float(man.rupteur)}
+			for m in man.paliers:
+				_loops.append({f0 = float(m.f0), on = _player("moteurs/%s/%s_charge" % [son, m.nom], _bus_car),
+					off = _player("moteurs/%s/%s_lache" % [son, m.nom], _bus_car)})
+	if _loops.is_empty():
+		_moteur = {}
+		var man = JSON.parse_string(FileAccess.get_file_as_string("res://assets/sfx/moteur.json"))
+		for m in man:
+			_loops.append({f0 = float(m.f0), on = _player("moteur_%s_charge" % m.nom, _bus_car), off = _player("moteur_%s_lache" % m.nom, _bus_car)})
+	_loops.sort_custom(func(a, b): return a.f0 < b.f0)
 
 func _stream(name: String, loop: bool) -> AudioStream:
 	if not ResourceLoader.exists(SFX % name):
@@ -226,7 +248,14 @@ func _physics_process(dt: float) -> void:
 	# boucles : les deux qui encadrent la fréquence d'allumage voulue, fondu à puissance constante (en log)
 	# voiture du garage (#95) : moteur plus aigu ou plus grave (2 CV bicylindre, GT3 flat-six…)
 	var fiche = car.get("fiche")
+	var son := String(fiche.get("son", "")) if fiche is Dictionary else ""
+	if son != _son:
+		_charger_moteur(son)
 	var f := rpm / 30.0 * (float(fiche.get("moteur", 1.0)) if fiche is Dictionary else 1.0)
+	if not _moteur.is_empty():
+		# moteur enregistré : régime simulé (IDLE-REDLINE) ramené à sa plage, fréquence d'allumage = cyl / 2 par tour
+		var reel: float = _moteur.ralenti + (rpm - IDLE) / (REDLINE - IDLE) * (_moteur.rupteur - _moteur.ralenti)
+		f = reel * _moteur.cyl / 120.0
 	var n := _loops.size()
 	var gains := []
 	gains.resize(n)

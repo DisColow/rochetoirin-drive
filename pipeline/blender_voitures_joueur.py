@@ -59,6 +59,16 @@ CARS = {
     "bus": dict(src="../lourds/bus/model.glb", L=11.5, rot=90, roues=[r"^material(_4)?$"], suppr=[r"^seat$", r"^wood$"],
                 mats={"glass": "glass", "light": "lamp"}, faces=40000, couleur=None, roue_unie=(0.62, 0.63, 0.66),
                 eye=[-0.75, 2.05, -3.7], steer=[-0.75, 1.6, -4.1]),     # poste de conduite tout à l'avant
+    # Gendarmerette (#150, choix A de l'utilisateur) : « Ford Focus MK1 Gendarmerie » de szymonpasterczyk, converti
+    # d'une image (sans texture, couché, soupe de triangles) ; coque noire de contour, antenne et rampe du modèle
+    # retirées (la rampe du jeu clignote : gendarme.gd _rampe) ; pas d'inscription sur le modèle
+    "gendarme": dict(src="gendarme/model.glb", renommer=True, souder=0.002, normales=True, rotx=90, rot=0, L=4.17,
+                     lh=(1.70, 1.43), roues=[r"^mat0_025$"], rayon=0.31,
+                     suppr=[r"^mat0_0(02|03|04|05|06|14)$"],
+                     mats={"mat0": "paint", "material_0": "paint", "mat0_018": "glass", "mat0_010": "lamp",
+                           "mat0_021": "tail", "mat0_016": "tail", "mat0_020": "orange", "mat0_015": "orange",
+                           "mat0_024": "rubber", "mat0_001": "plastic", "mat0_019": "plastic", "mat0_017": "plastic"},
+                     cylindres=True, couleur=(0.05, 0.33, 0.52)),
     "twingo": dict(marque="renaud", logos=[("av", 0.55, 0.13)], lh=(1.63, 1.42), L=3.43, rot=0, roues=["^object_0$", "^object_1$"], suppr=[], mats={}, couleur=None),
 }
 
@@ -203,6 +213,9 @@ def effacer_badges(b, c):
 def convertir(cid, c):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.gltf(filepath=os.path.join(SRC, c["src"]) if c.get("src") else os.path.join(SRC, cid, "scene.gltf"))
+    if c.get("renommer"):                   # noms « mat0.018 » : le point couperait le nom (split(".")[0] plus bas)
+        for m in bpy.data.materials:
+            m.name = m.name.replace(".", "_")
     for o in list(bpy.data.objects):
         if o.type == "MESH":
             mw = o.matrix_world.copy(); o.parent = None; o.matrix_world = mw
@@ -215,6 +228,23 @@ def convertir(cid, c):
         o.select_set(True)
     bpy.context.view_layer.objects.active = ms[0]
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    # modèle converti d'une image (soupe de triangles, normales personnalisées fausses : voiture noire) : sommets
+    # soudés, normales recalculées puis lissées selon l'angle
+    if c.get("souder") or c.get("normales"):
+        for o in ms:
+            bm = bmesh.new(); bm.from_mesh(o.data)
+            if c.get("souder"):
+                bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=c["souder"])
+            bm.to_mesh(o.data); bm.free()
+            if c.get("normales"):
+                bpy.context.view_layer.objects.active = o
+                try:
+                    bpy.ops.mesh.customdata_custom_splitnormals_clear()
+                except Exception as e:
+                    print("  normales :", e)
+        for o in ms:
+            o.select_set(True)
+        bpy.ops.object.shade_smooth_by_angle(angle=math.radians(40))
     # allègement par matériau (objet entier, d'après son matériau principal), avant de tout joindre
     if c.get("par_materiau"):
         for o in ms:
@@ -227,7 +257,7 @@ def convertir(cid, c):
             nom = o.data.materials[mi].name.split(".")[0] if o.data.materials else ""
             alleger(o, max(40, int(len(o.data.polygons) * c["par_materiau"].get(nom, 0.25))))
     # orientation et échelle (sur les données : objets à l'identité)
-    R = mathutils.Matrix.Rotation(math.radians(c["rot"]), 4, "Z")
+    R = mathutils.Matrix.Rotation(math.radians(c["rot"]), 4, "Z") @ mathutils.Matrix.Rotation(math.radians(c.get("rotx", 0)), 4, "X")
     for o in ms:
         o.data.transform(R)
     mn, mx = bornes(ms)
@@ -266,6 +296,8 @@ def convertir(cid, c):
         a = mathutils.Vector([min(p[i] for p in l) for i in range(3)])
         b = mathutils.Vector([max(p[i] for p in l) for i in range(3)])
         centres[k] = ((a + b) / 2, (b.z - a.z) / 2)
+    if c.get("rayon"):                      # roues repérées par leurs jantes seules : rayon réel du pneu
+        centres = {k: (ctr, c["rayon"]) for k, (ctr, rr) in centres.items()}
     wc, rayon = centres[(True, True)]
     sol = min(centres[k][0].z - centres[k][1] for k in centres)
     ar = (centres[(True, False)][0].y + centres[(False, False)][0].y) / 2

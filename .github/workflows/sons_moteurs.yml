@@ -1,0 +1,39 @@
+# Sons de moteur par voiture (#153) : téléchargement des enregistrements libres de Wikimedia Commons
+# (pipeline/fetch_moteurs.py, au rythme poli du script : 30 s entre deux fichiers, Retry-After respecté). L'adresse de
+# sortie des sessions Claude Code est partagée et limitée par Wikimedia ; ici, une machine de GitHub fait les
+# 14 requêtes. Résultat : artefact « moteurs » (wav mono 44,1 kHz + credits.json), repris par build_moteurs.py.
+# Déclenchée seulement par un push sur la branche sons-moteurs (ou à la main).
+name: Sons de moteur
+
+on:
+  push:
+    branches: [sons-moteurs]
+    paths:
+      - pipeline/fetch_moteurs.py
+      - .github/workflows/sons_moteurs.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  telecharger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: pipeline
+          lfs: false
+      - name: ffmpeg
+        run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+      - name: Téléchargement
+        working-directory: pipeline
+        run: python3 -u fetch_moteurs.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: moteurs
+          path: |
+            pipeline/data/sons/moteurs/*.wav
+            pipeline/data/sons/moteurs/credits.json
+          retention-days: 7

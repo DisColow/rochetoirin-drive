@@ -473,6 +473,18 @@
   roulement selon `meta « surface »` des corps de collision des routes (`roads.gd`, un corps par matériau), ambiances
   d'après `world/ambiance.bin`, sons ponctuels positionnés ; autoradio `scripts/radio.gd` (bus « Radio »). Essai :
   `-- --drive-test [--radio]` affiche régime, rapport, surface et ambiances dans le journal.
+  **Moteur propre à chaque voiture** (v7.14, #153, initiative de Claude, choix de l'utilisateur : « le son du même
+  modèle, sinon le plus proche ») : champ `son` des fiches de `voitures.gd` -> `audio._charger_moteur` (boucles
+  `assets/sfx/moteurs/<son>/p<n>_charge|lache.ogg` + `moteur.json` : cylindres, paliers, ralenti, rupteur) ; régime
+  simulé (IDLE-REDLINE) ramené à la plage ralenti-rupteur des paliers (transposition × 0,65 à × 1,9 comme le moteur
+  d'origine). Enregistrements de Wikimedia Commons (`pipeline/fetch_moteurs.py`, crédits `credits.json` -> ⚙ >
+  Crédits ; **l'adresse du conteneur est limitée par Wikimedia (429, Retry-After 10 min)** : télécharger par l'action
+  « Sons de moteur » (`sons_moteurs.yml`, push sur la branche `sons-moteurs`, artefact `moteurs`), jamais de
+  contournement) ; `pipeline/build_moteurs.py` : suivi continu de la fréquence d'allumage (programmation dynamique,
+  borné par `REGIME`), paliers, suivi fin, rééchantillonnage à `fm / f` (`build_sons.flatten_pitch` lit à l'envers),
+  `--voir` (spectrogramme de contrôle), `--ecoute` (simulation d'audio.gd) ; `page_moteurs.py` (page d'écoute).
+  Choix : Deuche 2CV6, Cinq R5 Turbo 2, Tango et Clia Twingo, 106/206/306/Gendarmerette 106 Rallye, Lagune et Espèce
+  Laguna V6, GT3 RS 911 GT3 RS, Rapace Bronco V8, bus MAN SG 220. Essai `--moteurs-test --sons=deuche,gt3,r5:-`.
 - **Interface** (`pipeline/build_ui.py` -> `assets/ui/`, thème du projet `assets/ui/theme.tres`, aide `scripts/ui.gd`) :
   planche de bord des années 80 en pixel art (boutons poussoirs avec témoin, bouton rouge « feux de détresse » pour la
   remise sur la route, cadres et touches des menus, police Pixelify Sans, afficheur LCD DSEG7 du compteur). Les

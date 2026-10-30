@@ -1,0 +1,175 @@
+<!-- Gabarit de la page d'écoute des sons de moteur (#153), rempli par page_moteurs.py -->
+<title>Banc moteur du garage</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Banc moteur : une courbe de compte-tours en tête, puis une fiche par voiture (son actuel + propositions), récapitulatif en bas */
+:root {
+  --bg: #eef1f2; --panel: #ffffff; --ink: #18252b; --muted: #5b6a71; --line: #cfd8dc;
+  --accent: #0d5c6e; --rouge: #d2481f; --choix: #e3f1f3;
+  --f-titre: "Barlow Semi Condensed", "Arial Narrow", sans-serif;
+  --f-texte: "Source Sans 3", "Segoe UI", sans-serif;
+  --f-chiffres: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111a1e; --panel: #182429; --ink: #e4ecee; --muted: #93a5ac; --line: #2c3b41;
+  --accent: #5cc2d6; --rouge: #ff7a4d; --choix: #17363d; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #111a1e; --panel: #182429; --ink: #e4ecee; --muted: #93a5ac; --line: #2c3b41;
+  --accent: #5cc2d6; --rouge: #ff7a4d; --choix: #17363d; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--f-texte); }
+.page { max-width: 980px; margin: 0 auto; padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 28px; }
+h1 { font: 700 2.1rem/1.1 var(--f-titre); margin: 0; letter-spacing: .01em; text-wrap: balance; }
+h2 { font: 700 1.25rem/1.2 var(--f-titre); margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+.intro { display: flex; flex-direction: column; gap: 10px; }
+.muted { color: var(--muted); }
+.banc { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px 10px; }
+.banc svg { width: 100%; height: auto; display: block; }
+.legende { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 600 .78rem var(--f-chiffres); color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em; margin-top: 6px; }
+.voitures { display: flex; flex-direction: column; gap: 14px; }
+.voiture { display: grid; grid-template-columns: 210px 1fr; gap: 12px 18px; align-items: start;
+  border-top: 1px solid var(--line); padding-top: 14px; }
+.voiture h2 { padding-top: 6px; }
+.choix { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; min-width: 0; }
+.son { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.son.garde { background: var(--choix); border-color: var(--accent); }
+.son .t { font: 700 .95rem var(--f-titre); letter-spacing: .02em; }
+.son .d { font-size: .86rem; color: var(--muted); line-height: 1.3; }
+.ligne { display: flex; align-items: center; gap: 10px; }
+button.lire { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--accent); color: var(--panel);
+  cursor: pointer; display: grid; place-items: center; flex: none; }
+button.lire svg { width: 14px; height: 14px; fill: currentColor; }
+button:focus-visible, input:focus-visible + span, .copier:focus-visible { outline: 2px solid var(--rouge); outline-offset: 2px; }
+label.garder { display: flex; align-items: center; gap: 6px; font-size: .9rem; cursor: pointer; }
+.recap { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px;
+  display: flex; flex-direction: column; gap: 10px; }
+.code { font: 600 .95rem/1.5 var(--f-chiffres); background: var(--bg); border-radius: 4px; padding: 10px 12px;
+  overflow-wrap: anywhere; user-select: all; }
+.copier { align-self: flex-start; font: 600 .9rem var(--f-texte); padding: 8px 14px; border-radius: 4px;
+  border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; }
+.credits { font-size: .82rem; color: var(--muted); }
+.credits ul { margin: 6px 0 0; padding-left: 18px; }
+@media (max-width: 640px) { .voiture { grid-template-columns: 1fr; } .voiture h2 { padding-top: 0; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="page">
+  <header class="intro">
+    <h1>Banc moteur du garage</h1>
+    <p>Aujourd'hui, toutes les voitures jouent le même 4 cylindres, seulement plus aigu ou plus grave. Ici, chaque
+      proposition est un vrai moteur enregistré, passé dans le moteur sonore du jeu sur le même parcours : la courbe
+      ci-dessous est le compte-tours, le curseur suit la lecture.</p>
+    <p class="muted">Pour chaque voiture, cochez « Je garde » sous le son préféré (le son actuel compte comme un choix),
+      puis copiez le récapitulatif en bas et collez-le dans la conversation ou dans l'issue #153.</p>
+  </header>
+
+  <section class="banc" aria-label="Compte-tours du parcours d'écoute">
+    <svg id="courbe" viewBox="0 0 960 200" role="img" aria-label="Régime moteur pendant le parcours d'écoute"></svg>
+    <div class="legende"><span>0-2 s : ralenti</span><span>2-11 s : pleins gaz jusqu'à 100 km/h</span>
+      <span>11-14 s : pied levé</span><span>14-16 s : freinage</span></div>
+  </section>
+
+  <section class="voitures" id="voitures"></section>
+
+  <section class="recap">
+    <h2>Votre choix</h2>
+    <div class="code" id="code"></div>
+    <button class="copier" id="copier" type="button">Copier le récapitulatif</button>
+  </section>
+
+  <footer class="credits">Enregistrements libres (crédités dans ⚙ > Crédits s'ils sont retenus) :
+    <ul><!--CREDITS--></ul></footer>
+</div>
+
+<script>
+const D = /*DONNEES*/null;
+const COURBE = /*COURBE*/null;
+const lecteur = new Audio();
+let enCours = null;
+
+// compte-tours : régime simulé (tr/min du jeu) sur 16 s
+(function () {
+  const svg = document.getElementById("courbe");
+  const W = 960, H = 200, g = 34, d = 10, h = 14, b = 26;
+  const tmax = COURBE.t[COURBE.t.length - 1], rmax = 7000;
+  const x = t => g + (W - g - d) * t / tmax, y = r => H - b - (H - b - h) * r / rmax;
+  let s = "";
+  for (const r of [0, 2000, 4000, 6000]) {
+    s += `<line x1="${g}" x2="${W - d}" y1="${y(r)}" y2="${y(r)}" stroke="var(--line)" stroke-width="1"/>`;
+    s += `<text x="${g - 6}" y="${y(r) + 4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="JetBrains Mono, monospace">${r / 1000}k</text>`;
+  }
+  for (let t = 0; t <= tmax; t += 2)
+    s += `<text x="${x(t)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="JetBrains Mono, monospace">${t} s</text>`;
+  s += `<rect x="${g}" y="${y(rmax)}" width="${W - g - d}" height="${y(6000) - y(rmax)}" fill="var(--rouge)" opacity=".12"/>`;
+  const pts = COURBE.t.map((t, i) => `${x(t).toFixed(1)},${y(COURBE.rpm[i]).toFixed(1)}`).join(" ");
+  s += `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  s += `<line id="curseur" x1="${g}" x2="${g}" y1="${h}" y2="${H - b}" stroke="var(--rouge)" stroke-width="2" opacity="0"/>`;
+  svg.innerHTML = s;
+  const cur = document.getElementById("curseur");
+  const pas = () => {
+    if (!lecteur.paused && lecteur.duration) {
+      const xx = x(Math.min(lecteur.currentTime, tmax));
+      cur.setAttribute("x1", xx); cur.setAttribute("x2", xx); cur.setAttribute("opacity", "1");
+    } else cur.setAttribute("opacity", "0");
+    requestAnimationFrame(pas);
+  };
+  requestAnimationFrame(pas);
+})();
+
+const LIRE = '<svg viewBox="0 0 14 14"><path d="M3 1.5v11l9-5.5z"/></svg>';
+const STOP = '<svg viewBox="0 0 14 14"><rect x="2.5" y="2.5" width="9" height="9"/></svg>';
+let choix = {};
+try { choix = JSON.parse(localStorage.getItem("banc_moteur") || "{}"); } catch (e) { choix = {}; }
+
+function rendre() {
+  const zone = document.getElementById("voitures");
+  zone.innerHTML = "";
+  for (const v of D.voitures) {
+    const art = document.createElement("article");
+    art.className = "voiture";
+    art.innerHTML = `<h2>${v.nom}</h2><div class="choix"></div>`;
+    const ch = art.querySelector(".choix");
+    for (const c of v.choix) {
+      if (!c.son) continue;
+      const id = `${v.id}-${c.cle}`;
+      const div = document.createElement("div");
+      div.className = "son" + (choix[v.id] === c.cle ? " garde" : "");
+      div.innerHTML = `<div class="ligne"><button class="lire" type="button" aria-label="Écouter ${c.titre}, ${v.nom}">${LIRE}</button>
+        <div><div class="t">${c.titre}</div><div class="d">${c.desc}</div></div></div>
+        <label class="garder"><input type="radio" name="${v.id}" id="${id}" ${choix[v.id] === c.cle ? "checked" : ""}><span>Je garde</span></label>`;
+      const bt = div.querySelector("button");
+      bt.addEventListener("click", () => {
+        if (enCours === bt) { lecteur.pause(); bt.innerHTML = LIRE; enCours = null; return; }
+        if (enCours) enCours.innerHTML = LIRE;
+        lecteur.src = D.sons[c.son]; lecteur.currentTime = 0;
+        lecteur.play().catch(() => {});
+        bt.innerHTML = STOP; enCours = bt;
+      });
+      div.querySelector("input").addEventListener("change", () => {
+        choix[v.id] = c.cle;
+        try { localStorage.setItem("banc_moteur", JSON.stringify(choix)); } catch (e) {}
+        rendre();
+      });
+      ch.appendChild(div);
+    }
+    zone.appendChild(art);
+  }
+  const code = D.voitures.map(v => `${v.id}:${choix[v.id] || "?"}`).join(" ");
+  document.getElementById("code").textContent = code;
+}
+lecteur.addEventListener("ended", () => { if (enCours) enCours.innerHTML = LIRE; enCours = null; });
+document.getElementById("copier").addEventListener("click", async () => {
+  const bt = document.getElementById("copier"), txt = document.getElementById("code").textContent;
+  try { await navigator.clipboard.writeText(txt); bt.textContent = "Copié"; }
+  catch (e) { const r = document.createRange(); r.selectNodeContents(document.getElementById("code"));
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r); bt.textContent = "Texte sélectionné : copiez-le"; }
+  setTimeout(() => { bt.textContent = "Copier le récapitulatif"; }, 2500);
+});
+rendre();
+</script>
