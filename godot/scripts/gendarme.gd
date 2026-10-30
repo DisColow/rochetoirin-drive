@@ -31,6 +31,7 @@ const GYRO := 0.12                  # demi-période des éclats des gyrophares (
 const FUITE_V := 0.85               # fuyard : part de sa vitesse maximale
 const FUITE_MAX := 31.0             # fuyard : 110 km/h au plus (la Gendarmerette doit pouvoir le rattraper ; #159 : 120 le faisait rater des virages)
 const ISSUE := 250.0                # fuyard : route qu'il doit y avoir derrière une sortie choisie (#159, pas d'impasse)
+var vmax_fuite := FUITE_MAX         # #161 : vitesse max de ce fuyard (missions de plus en plus rapides)
 static var fuite_v719 := true       # #159 : sorties sans impasse et évitement des murs (essai --fuite-ancienne : non)
 
 var main: Node
@@ -349,7 +350,7 @@ func _prendre(r: PackedVector2Array) -> void:
 	_s[0] = 0.0
 	for i in range(1, n):
 		_s[i] = _s[i - 1] + p[i - 1].distance_to(p[i])
-	var vm := _vmax if mode == "poursuite" else (minf(_vmax * FUITE_V, FUITE_MAX) if mode == "fuite" else 14.0)
+	var vm := _vmax if mode == "poursuite" else (minf(_vmax * FUITE_V, vmax_fuite) if mode == "fuite" else 14.0)
 	for i in n:
 		var i0 := maxi(i - 3, 0); var i1 := mini(i + 3, n - 1)
 		var k := 0.0
@@ -543,7 +544,9 @@ func _surveiller(dt: float) -> void:
 	if voiture.global_transform.basis.y.y < 0.5 and voiture.kmh() < 20.0:
 		_bloque_t += dt * 3.0
 	elif mode == "fuite" and fuite_v719 and voiture.kmh() < 12.0 and voiture.touch_throttle > 0.3 \
-			and voiture.get_colliding_bodies().any(func(b): return b is StaticBody3D):
+			and voiture.get_colliding_bodies().any(func(b): return b is StaticBody3D) \
+			and _joueur() and voiture.global_position.distance_to(_joueur().global_position) > 15.0:
+		# (coincé par la Gendarmerette, il ne se dégage pas tout seul : c'est le but du joueur)
 		_bloque_t += dt                                  # #159 : fuyard qui frotte un mur au pas : il recule plus tôt
 		if _bloque_t > 0.6 and _bloque_t - dt <= 0.6:
 			_recul_t = 1.2
@@ -580,6 +583,9 @@ func _exploser() -> void:
 		main.gendarmes.detruit(self)
 
 func _reposer() -> void:
+	if OS.get_cmdline_user_args().has("--gj-debug"):
+		print("[gendarmes] remise sur l'itinéraire : bloqué %.1f s, haut %.2f, %.0f km/h, relief %.1f m au-dessus" % [_bloque_t,
+			voiture.global_transform.basis.y.y, voiture.kmh(), Relief.hauteur(voiture.global_position) - voiture.global_position.y])
 	var c: Array = _au((_s[_i] if _i < _s.size() else 0.0) + 4.0)
 	var q: Vector2 = c[0]
 	var y := Relief.hauteur(Vector3(q.x, 0, q.y))

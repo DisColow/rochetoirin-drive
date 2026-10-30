@@ -495,6 +495,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_gendarmes_test()
 		return
+	if OS.get_cmdline_user_args().has("--gendarme-missions-test"):
+		if t == 300:
+			_gendarme_missions_test()
+		return
 	if OS.get_cmdline_user_args().has("--hud-test"):
 		if t == 300:
 			_hud_test()
@@ -3174,6 +3178,7 @@ func _rails_test(t: int) -> void:
 ## gendarme_joueur.png (voiture du joueur et fuyard) et journal des chocs.
 func _gendarme_joueur_test() -> void:
 	var gj = gendarme_joueur
+	preload("res://scripts/gendarme_joueur.gd").enchainer = false        # une seule mission (#161 : enchaînées sinon)
 	var dire := func(x: String): print("  [gendarme] " + x)
 	DirAccess.make_dir_recursive_absolute("user://shots")
 	while not Chargement.fini:
@@ -3183,6 +3188,11 @@ func _gendarme_joueur_test() -> void:
 		await get_tree().process_frame
 	var argent0: float = garage.argent
 	activities._gendarme_start()
+	await get_tree().process_frame
+	var hud_c = get_node("HUD").consigne_ouverte          # #160 : consigne au lancement (jeu figé jusqu'à OK)
+	if hud_c:
+		for b in hud_c.find_children("*", "Button", true, false):
+			(b as Button).pressed.emit()
 	if not gj.actif:
 		dire.call("ÉCHEC : activité non démarrée")
 		get_tree().quit()
@@ -3506,6 +3516,67 @@ func _helico_test() -> void:
 ## 3) en retard. Capture livreur.png à la première adresse.
 ## #156 : rien ne doit conduire dans les collines du bord (hors de la zone jouable). Itinéraires entre points proches
 ## de la limite (sans puis avec l'évitement), adresses du livreur, arrêts des lignes Ruban, fuite du gendarme, épreuves.
+## #161 : service de gendarme en missions enchaînées. -- --drive-test --gendarme-missions-test
+## --drive-from=-10975,236,-1100,90 : missions 1 à 4 (fuyards, vitesses, chronos), interpellations forcées (dégâts à
+## 100 %) tôt (or) ou tard (bronze), pause entre deux missions, deux fuyards à la mission 3 (deux repères), chrono
+## orange sous 30 s (capture gendarme_missions.png), puis chrono écoulé : fin du service et bilan.
+func _gendarme_missions_test() -> void:
+	var gj = gendarme_joueur
+	var dire := func(x: String): print("  [missions] " + x)
+	var hud := get_node("HUD")
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	circulation.set_densite(0)
+	gendarmes.actif = false
+	var argent0: float = garage.argent
+	activities._gendarme_start()
+	for f in 5:
+		await get_tree().process_frame
+	for b in hud.consigne_ouverte.find_children("*", "Button", true, false):
+		(b as Button).pressed.emit()
+	var ok := true
+	for m in range(1, 5):
+		while gj.mission != m or gj._pause_t > 0.0:
+			await get_tree().physics_frame
+		for f in 60:
+			await get_tree().physics_frame
+		var p: Dictionary = gj._p
+		var modeles: Array = gj.fuyards.map(func(f): return f.g.modele)
+		dire.call("mission %d : %d fuyard(s) %s, %d km/h au plus, chrono %s ; repères GPS %d ; carte « %s »" % [m, gj.fuyards.size(), str(modeles),
+			int(p.vmax * 3.6), gj._mmss(gj.duree), activities.marks.size(), activities.statut.replace("\n", " / ")])
+		ok = ok and gj.fuyards.size() == (p.modeles as Array).size() and activities.marks.size() == gj.fuyards.size()
+		if m == 3:
+			gj.t = gj.duree - 20.0                       # chrono qui presse : orange
+			for f in 10:
+				await get_tree().process_frame
+			var c: Color = activities._status_g.get_theme_color("font_color")
+			dire.call("chrono à %s : couleur %s" % [gj._mmss(gj.duree - gj.t), str(c)])
+			ok = ok and c.g < 0.8
+			get_viewport().get_texture().get_image().save_png("user://shots/gendarme_missions.png")
+		elif m == 2:
+			gj.t = gj.duree * 0.8                        # interpellé tard : bronze
+		for f in gj.fuyards:
+			f.degats = 100.0
+		var t0 := 0.0
+		while gj.reussies < m and t0 < 5.0:
+			await get_tree().physics_frame
+			t0 += get_physics_process_delta_time()
+		dire.call("  → réussies %d, médailles %s, gains %s, carte « %s »" % [gj.reussies, str(gj.medailles), activities._euros(gj.gains), activities.statut.replace("\n", " / ")])
+		ok = ok and gj.reussies == m
+	ok = ok and gj.medailles.bronze >= 1 and gj.medailles["or"] >= 1
+	while gj.mission != 5 or gj._pause_t > 0.0:
+		await get_tree().physics_frame
+	gj.t = gj.duree + 1.0
+	for f in 20:
+		await get_tree().process_frame
+	dire.call("chrono écoulé : service actif %s, carte « %s », argent %+.0f €" % [str(gj.actif), activities.statut.replace("\n", " / "), garage.argent - argent0])
+	ok = ok and not gj.actif
+	dire.call("série record : %s" % str(succes.stats.get("serie_gendarme", 0.0)))
+	dire.call("RÉSULTAT : " + ("OK" if ok else "ÉCHEC"))
+	get_tree().quit()
+
 ## #162 #163 : HUD des activités (carte en haut à gauche, messages dessous, nom de la rue à droite) et rétroviseur.
 ## -- --drive-test --hud-test --drive-from=-10975,236,-1100,90 : tournée du livreur lancée, un message ; captures
 ## hud_1.png (vue extérieure), hud_2.png (poste de conduite : pas de rétroviseur) ; durée d'une image avec et sans

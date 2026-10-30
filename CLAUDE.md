@@ -354,6 +354,12 @@
   géré par `gendarmes._helicoptere` à chaque pas, même après la poursuite) ; sous-titre des messages radio (bandeau
   « Radio : … » quand l'autoradio est allumée, pour les appareils sans synthèse vocale). Essai `--helico-test`
   (capture `helico.png`).
+  v7.22 (#161) : **service en missions** (`MISSIONS` : modèles des fuyards, vitesse max, chrono, dégâts max par choc,
+  prime ; au-delà de la 7e : chrono × 0,9 et prime × 1,5 par tour) ; mission réussie quand tous les fuyards sont
+  pris, médaille `medaille(t, duree)` (or ≤ ½, argent ≤ ¾ du chrono), prime × `PART_MEDAILLE` (moitié de la part
+  d'un fuyard détruit), suivante après `PAUSE` s ; échec (perdu ou chrono) : `_fin_service` (bilan). Carte : chrono en
+  60 px, orange sous 30 s, rouge clignotant sous 10 s. `enchainer` (essais à une mission). Essai
+  `--gendarme-missions-test`.
   v7.20 (#164) : **chocs entre véhicules** (`Car.juger`, règle de l'utilisateur) : explosion seulement si l'un roulait
   à plus de `VITESSE_BOUM` (60 km/h) et que les vitesses d'avant le choc diffèrent d'au moins `ECART_BOUM` (30) ; le
   plus lent explose (joueur : `exploser` ; IA : méta `boum` traitée par son pilote ; épave de la circulation :

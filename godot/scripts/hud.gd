@@ -989,6 +989,9 @@ func _process_corps(_dt: float) -> void:
 	if _toast and _toast.visible:
 		_toast_t -= _dt
 		_toast.modulate.a = clampf(_toast_t / 0.6, 0.0, 1.0)
+		var act = get_tree().get_first_node_in_group("activites")
+		if act:
+			_toast.position.y = act.bas_carte()             # la carte d'activité peut grandir (#162)
 		if _toast_t <= 0.0:
 			_toast.visible = false
 	if Input.is_action_just_pressed("carte") and not map.visible and not UI.saisie_active():

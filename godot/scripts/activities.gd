@@ -207,8 +207,10 @@ func _ready() -> void:
 func _vs() -> Vector2:
 	return get_viewport().get_visible_rect().size
 
-func _set_status(t: String) -> void:
+func _set_status(t: String, coul := Color.WHITE, gros := false) -> void:
 	statut = t
+	_status_g.add_theme_color_override("font_color", coul)
+	_status_g.add_theme_font_size_override("font_size", 60 if gros else 40)     # chrono des missions (#161)
 	var l := t.split("\n", true, 1)
 	_status_g.text = l[0]
 	_status_l.text = l[1] if l.size() > 1 else ""
@@ -1119,12 +1121,12 @@ func _gendarme_start() -> void:
 	var gj = main.gendarme_joueur
 	if main.get("cam_rig"):
 		main.cam_rig.snap()                   # la caméra derrière la Gendarmerette avant de figer le jeu
-	hud.consigne("Gendarmerie : un fuyard !", "Un chauffard vient de démarrer devant vous (point rouge sur le GPS). Rattrapez-le et immobilisez-le.",
-		PackedStringArray(["Percutez-le : chaque choc l'abîme ; à 100 %% de dégâts, il est interpellé." % [],
-			"Ou coincez-le : bloqué contre votre voiture pendant %d s, il se rend." % int(gj.COINCE_T),
-			"Ne le perdez pas : à plus de %d m pendant %d s, il s'échappe. Durée : %d min au plus." % [int(gj.PERDU), int(gj.PERDU_T), int(gj.DUREE / 60.0)],
-			"Prime : %d € + %d € par seconde gagnée sur les %d min." % [int(gj.BASE), int(gj.TEMPS), int(gj.DUREE / 60.0)]]),
-		func(): hud.toast("Sirène ! Rattrapez le fuyard.", 3.0))
+	hud.consigne("Gendarmerie : service de patrouille", "Mission après mission, des chauffards démarrent devant vous (points rouges sur le GPS). Immobilisez-les avant la fin du chrono.",
+		PackedStringArray(["Percutez-les : chaque choc les abîme ; à 100 %% de dégâts, interpellés." % [],
+			"Ou coincez-les : bloqués contre votre voiture pendant %d s, ils se rendent." % int(gj.COINCE_T),
+			"Chrono de chaque mission : or dans la première moitié, argent dans les trois quarts, bronze après.",
+			"De plus en plus dur : plus rapides, plusieurs à la fois. Un fuyard à plus de %d m pendant %d s, ou le chrono à zéro : fin du service." % [int(gj.PERDU), int(gj.PERDU_T)]]),
+		func(): hud.toast("Mission 1 : %s" % gj._annonce(), 4.0))
 
 ## #151 : livreur de repas (livreur.gd), avec sa propre voiture.
 func _livreur_start() -> void:
