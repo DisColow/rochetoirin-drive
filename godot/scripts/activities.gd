@@ -1090,8 +1090,15 @@ func _gendarme_start() -> void:
 		return
 	mode = "gendarme"
 	map.locked = true
-	hud._show_drive(true)
-	hud.toast("Un fuyard démarre devant vous ! Percutez-le pour l'immobiliser.", 5.0)
+	var gj = main.gendarme_joueur
+	if main.get("cam_rig"):
+		main.cam_rig.snap()                   # la caméra derrière la Gendarmerette avant de figer le jeu
+	hud.consigne("Gendarmerie : un fuyard !", "Un chauffard vient de démarrer devant vous (point rouge sur le GPS). Rattrapez-le et immobilisez-le.",
+		PackedStringArray(["Percutez-le : chaque choc l'abîme ; à 100 %% de dégâts, il est interpellé." % [],
+			"Ou coincez-le : bloqué contre votre voiture pendant %d s, il se rend." % int(gj.COINCE_T),
+			"Ne le perdez pas : à plus de %d m pendant %d s, il s'échappe. Durée : %d min au plus." % [int(gj.PERDU), int(gj.PERDU_T), int(gj.DUREE / 60.0)],
+			"Prime : %d € + %d € par seconde gagnée sur les %d min." % [int(gj.BASE), int(gj.TEMPS), int(gj.DUREE / 60.0)]]),
+		func(): hud.toast("Sirène ! Rattrapez le fuyard.", 3.0))
 
 ## #151 : livreur de repas (livreur.gd), avec sa propre voiture.
 func _livreur_start() -> void:

@@ -16,9 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.18 :
-- **Bord de la carte en cascade** : comme dans Golden Sun 2, le monde peut maintenant s'arrêter au bord d'une immense
-  chute d'eau qui tombe dans une mer de nuages (⚙ > Conduite > Bord de la carte : Collines ou Cascade).
+Nouveautés de la v7.19 :
+- **Gendarmerie** : la Focus du joueur garde sa livrée bleue et ses roues ; une fenêtre explique la mission au
+  lancement ; les fuyards évitent les impasses et les murs.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

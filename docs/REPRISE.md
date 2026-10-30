@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 30/10/2026 (v6.84 #131 à v7.18 livrées)
+## État au 30/10/2026 (v6.84 #131 à v7.19 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -31,6 +31,13 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - **v7.14 (#153)** : son de moteur propre à chaque voiture (voir CLAUDE.md « Son »), choix de l'utilisateur appliqué
   (même modèle sinon le plus proche). Boucles publiées sur `donnees` (8 jeux, `.import` faits dans un petit projet
   temporaire). Toledo préparé pour la Gendarmerette Focus (pas encore publié ni crédité).
+- **v7.19 (#158, #159, #160)** : gendarmerie. #158 : tout `garage.change` (gain d'argent) relançait
+  `tuning.appliquer()` sur la voiture conduite, Gendarmerette comprise (peinture noire, jantes et enseigne de taxi
+  du pick-up) : véhicules de service (`fiche.service`, aussi le bus) exclus du tuning (`tuning._service`). #160 :
+  `hud.consigne(titre, texte, points, fin)` (jeu figé jusqu'à OK). #159 : `circulation.trajet(..., issue)` (sorties
+  suivies d'au moins 250 m de route, `_portee`) et `gendarme._murs` (rayons avant gauche/droite/devant). Essai
+  `--fuyard-test --drive-from=-10975,236,-1100,90 [--graine=N] [--fuite-ancienne]` (images issues : `body_html` de
+  l'API REST donne des liens signés private-user-images qu'on télécharge sans jeton).
 - **v7.18 (#157)** : bord « cascade » façon Golden Sun 2 (voir CLAUDE.md « Bords de la carte »). Données
   `world/zone_sdf.bin` et `world/cascade.bin` (publiées sur `donnees`). Essai `--cascade-test
   --drive-from=8040,410,3206,90` (bord plat près d'une route ; ailleurs la voiture peut reculer dans une pente).

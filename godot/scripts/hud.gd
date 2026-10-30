@@ -154,6 +154,59 @@ func toast(text: String, secs := 3.5) -> void:
 	_toast.visible = true
 	_toast_t = secs
 
+## Consigne d'activité (#160) : fenêtre au milieu de l'écran, jeu figé (comme dans les menus) jusqu'à « OK » ;
+## `fin` est appelé après la fermeture. Les lignes de `points` sont précédées d'une puce.
+var consigne_ouverte: PanelContainer
+func consigne(titre: String, texte: String, points: PackedStringArray, fin := Callable()) -> void:
+	if consigne_ouverte and is_instance_valid(consigne_ouverte):
+		consigne_ouverte.queue_free()
+	_show_drive(false)
+	var pc := PanelContainer.new()
+	pc.process_mode = Node.PROCESS_MODE_ALWAYS
+	pc.add_theme_stylebox_override("panel", UI.panel(48, 36))
+	pc.add_to_group("ui_zone")
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 18)
+	pc.add_child(v)
+	var t := Label.new()
+	t.text = titre
+	t.add_theme_font_size_override("font_size", 46)
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(t)
+	var l := Label.new()
+	l.text = texte
+	l.add_theme_font_size_override("font_size", 30)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size.x = 980
+	v.add_child(l)
+	for p in points:
+		var lp := Label.new()
+		lp.text = "•  " + p
+		lp.add_theme_font_size_override("font_size", 28)
+		lp.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lp.custom_minimum_size.x = 980
+		v.add_child(lp)
+	var ok := Button.new()
+	ok.text = "OK, c'est parti !"
+	ok.custom_minimum_size = Vector2(420, 84)
+	ok.add_theme_font_size_override("font_size", 34)
+	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(ok)
+	add_child(pc)
+	consigne_ouverte = pc
+	var placer := func():
+		pc.reset_size()
+		var vs := get_viewport().get_visible_rect().size
+		pc.position = (vs - pc.size) * 0.5
+	placer.call_deferred()
+	ok.grab_focus.call_deferred()
+	ok.pressed.connect(func():
+		pc.queue_free()
+		consigne_ouverte = null
+		_show_drive(true)
+		if fin.is_valid():
+			fin.call())
+
 ## Réglages : densité de la végétation (mémorisée dans user://reglages.cfg).
 func _open_settings() -> void:
 	if settings and is_instance_valid(settings):

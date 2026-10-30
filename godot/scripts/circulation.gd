@@ -678,7 +678,7 @@ func devant(p: Vector3, dir: Vector3, d: float, droit := 0.3, hasard := 0.0) -> 
 ## Fuyard de l'activité « Gendarme » (v7.13) : trajet sur la voie de droite depuis p dans le sens `dir`, `d` m au plus
 ## (moins avant une impasse ou la limite de la carte, #156), un point tous les `pas` m ; carrefours comme `devant`. Sans le graphe de l'itinéraire :
 ## ses nœuds ne sont qu'aux carrefours, et le plus proche d'un but en pleine ligne droite peut être derrière soi.
-func trajet(p: Vector3, dir: Vector3, d: float, droit := -0.7, hasard := 0.5, pas := 4.0) -> PackedVector2Array:
+func trajet(p: Vector3, dir: Vector3, d: float, droit := -0.7, hasard := 0.5, pas := 4.0, issue := 0.0) -> PackedVector2Array:
 	var out := PackedVector2Array()
 	var vs := _voie_vers(p, dir)
 	if vs.is_empty():
@@ -697,7 +697,7 @@ func trajet(p: Vector3, dir: Vector3, d: float, droit := -0.7, hasard := 0.5, pa
 		if fait > d:
 			break
 		s -= L
-		voie = _sortie(voie, droit, hasard)
+		voie = _sortie(voie, droit, hasard, issue)
 		if voie < 0:
 			break
 	return out
@@ -727,15 +727,22 @@ func _voie_vers(p: Vector3, dir: Vector3) -> Array:
 
 ## Sortie du carrefour au bout de `voie` : la plus droite (pas de demi-tour), ou avec la probabilité `hasard` une autre
 ## sortie dont le virage a un cosinus d'au moins `droit` ; -1 si aucune (impasse, virage trop serré).
-func _sortie(voie: int, droit: float, hasard: float) -> int:
+func _sortie(voie: int, droit: float, hasard: float, issue := 0.0) -> int:
 	var n := _noeud_fin(voie)
 	var t_fin: Vector2 = _geo(voie, _longueur(voie), 0)[1]
 	var meilleur := -1
 	var md := -INF
 	var permises: Array[int] = []
+	# #159 (fuyard) : sorties suivies d'au moins `issue` m de route (pas d'impasse ni de sortie de la carte), s'il y en a
+	var ouvertes := {}
+	if issue > 0.0:
+		for i in range(_sort_debut[n], _sort_debut[n + 1]):
+			var w := _sort[i]
+			if w != voie ^ 1 and t_fin.dot(_geo(w, 0.0, 0)[1]) >= droit and _portee(w, issue, droit, 6) >= issue:
+				ouvertes[w] = true
 	for i in range(_sort_debut[n], _sort_debut[n + 1]):
 		var w := _sort[i]
-		if w == voie ^ 1:
+		if w == voie ^ 1 or (not ouvertes.is_empty() and not ouvertes.has(w)):
 			continue
 		var dd := t_fin.dot(_geo(w, 0.0, 0)[1])
 		if dd >= droit:
@@ -747,6 +754,25 @@ func _sortie(voie: int, droit: float, hasard: float) -> int:
 	if permises.size() > 1 and randf() < hasard:
 		meilleur = permises[randi() % permises.size()]
 	return meilleur
+
+## Longueur de route (m, plafonnée à `reste`) qu'on peut parcourir depuis le début de la voie sans demi-tour, sur
+## `prof` carrefours au plus ; une voie qui sort de la zone jouable s'arrête là (#156).
+func _portee(voie: int, reste: float, droit: float, prof: int) -> float:
+	var L := _longueur(voie)
+	var fin: Vector3 = _geo(voie, L, 0)[0]
+	if L >= reste or prof <= 0 or not Zone.dedans(Vector2(fin.x, fin.z), 12.0):
+		return minf(L, reste)
+	var n := _noeud_fin(voie)
+	var t_fin: Vector2 = _geo(voie, L, 0)[1]
+	var mieux := 0.0
+	for i in range(_sort_debut[n], _sort_debut[n + 1]):
+		var w := _sort[i]
+		if w == voie ^ 1 or t_fin.dot(_geo(w, 0.0, 0)[1]) < droit:
+			continue
+		mieux = maxf(mieux, _portee(w, reste - L, droit, prof - 1))
+		if L + mieux >= reste:
+			break
+	return L + mieux
 
 ## Gendarmes (#150) : feu rouge franchi en allant de p0 à p1 (deux positions successives du joueur) : passage de la
 ## ligne du nœud du feu (à moins de 7 m de côté) dans le sens d'arrivée de la voie, feu au rouge (orange toléré).

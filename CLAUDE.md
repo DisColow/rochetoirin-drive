@@ -354,6 +354,13 @@
   géré par `gendarmes._helicoptere` à chaque pas, même après la poursuite) ; sous-titre des messages radio (bandeau
   « Radio : … » quand l'autoradio est allumée, pour les appareils sans synthèse vocale). Essai `--helico-test`
   (capture `helico.png`).
+  v7.19 (#158-#160) : **véhicules de service hors tuning** (`tuning._service` : ni peinture, ni jantes, ni pièces, ni
+  fiche technique du garage ; avant, un gain d'argent repeignait la Focus) ; **consigne au lancement**
+  (`hud.consigne`, jeu figé jusqu'à OK) ; **fuyard** : sorties suivies d'au moins `ISSUE` m de route
+  (`circulation._portee`, ni impasse ni bord de carte), visée plus courte, `_murs` (rayons avant gauche/droite/devant :
+  mur à moins de `DEGAGE` m sur le côté, volant poussé à l'opposé ; mur droit devant, vitesse plafonnée), recul tôt
+  s'il frotte un mur, remis sur son trajet après 3 reculs en 10 s. 120 km/h essayés : virages ratés, on reste à 110.
+  Essai `--fuyard-test [--graine=N] [--fuite-ancienne]` (3 graines : 15 chocs et 3 arrêts avant, 0 après).
   v7.13 : **activité « Gendarme »** (hypothèse 4 de l'issue, `scripts/gendarme_joueur.gd`, Activités > Métiers >
   « Prendre le service de gendarme », `activities._gendarme_start`, mode « gendarme ») : le joueur prend la voiture
   « gendarme » (`voitures.gd` service, habillée par `Gendarme.habiller` : livrée, rampe, sirène), posée sur la route

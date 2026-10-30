@@ -53,6 +53,9 @@ func _ready() -> void:
 func lier() -> void:
 	if _peinture == null:
 		return                          # car.construire() au démarrage, avant le _ready de tuning
+	if _service():
+		_retirer()
+		return
 	var origine: Material = car.get("_paint_mat")
 	if origine:
 		_peinture.next_pass = origine.next_pass                # faces intérieures sombres (vue conducteur)
@@ -80,6 +83,24 @@ func lier() -> void:
 	if _neon:
 		_neon.queue_free(); _neon = null
 
+## Véhicule de service (Gendarmerette, bus : voitures.gd « service ») : il garde sa livrée, ses roues et sa fiche
+## technique ; rien du garage du joueur (#158 : Focus noire, jantes et enseigne de taxi du pick-up sur la Focus).
+func _service() -> bool:
+	var f = car.get("fiche")
+	return f is Dictionary and bool(f.get("service", false))
+
+func _retirer() -> void:
+	_roues_origine.clear(); _roues_y.clear()
+	for w in car.wheels:
+		_roues_origine.append(w.get_child(0))
+		_roues_y.append(w.position.y)
+	for r in _pieces.keys():
+		_pieces[r].queue_free()
+	_pieces.clear()
+	if _neon:
+		_neon.queue_free(); _neon = null
+	_peint = false
+
 ## Pièces du garage dessinées pour le pick-up (repère du Raptor) : ramenées au gabarit des autres voitures.
 func _echelle() -> Vector3:
 	var g: Vector3 = car.get("gabarit")
@@ -105,6 +126,8 @@ func mouille(w: float) -> void:
 	_finition()
 
 func appliquer() -> void:
+	if _service():
+		return                          # #158 : un gain d'argent (garage.change) repeignait la Gendarmerette du joueur
 	# technique
 	var mo: Array = MOTEUR[garage.choix("moteur")]
 	car.puissance = car.base_puissance * float(mo[0])

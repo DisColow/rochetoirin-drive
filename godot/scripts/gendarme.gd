@@ -29,7 +29,9 @@ const A_LAT := 6.0                  # accélération latérale admise en virage 
 const VOIE := 2.2
 const GYRO := 0.12                  # demi-période des éclats des gyrophares (s)
 const FUITE_V := 0.85               # fuyard : part de sa vitesse maximale
-const FUITE_MAX := 31.0             # fuyard : 110 km/h au plus (la Gendarmerette doit pouvoir le rattraper)
+const FUITE_MAX := 31.0             # fuyard : 110 km/h au plus (la Gendarmerette doit pouvoir le rattraper ; #159 : 120 le faisait rater des virages)
+const ISSUE := 250.0                # fuyard : route qu'il doit y avoir derrière une sortie choisie (#159, pas d'impasse)
+static var fuite_v719 := true       # #159 : sorties sans impasse et évitement des murs (essai --fuite-ancienne : non)
 
 var main: Node
 const MODELE := "gendarme"          # Focus de gendarmerie (#150, choix A de l'utilisateur), voitures.gd
@@ -278,9 +280,10 @@ func _pas(dt: float) -> void:
 			# trajet sur les voies devant (sorties au hasard, circulation.trajet) : un but à vol d'oiseau tombait dans un champ,
 			# et l'itinéraire A* (nœuds aux carrefours seulement) y allait souvent par derrière (demi-tour au départ)
 			var circ = main.get("circulation")
-			var tr: PackedVector2Array = circ.trajet(voiture.global_position, loin, 350.0) if circ else PackedVector2Array()
+			# #159 : seulement des sorties qui mènent quelque part (ISSUE m de route derrière : ni impasse, ni bord)
+			var tr: PackedVector2Array = circ.trajet(voiture.global_position, loin, 350.0, -0.7, 0.5, 4.0, ISSUE if fuite_v719 else 0.0) if circ else PackedVector2Array()
 			if tr.size() < 10 and circ:
-				tr = circ.trajet(voiture.global_position, cap, 350.0)
+				tr = circ.trajet(voiture.global_position, cap, 350.0, -0.7, 0.5, 4.0, ISSUE if fuite_v719 else 0.0)
 			if tr.size() >= 10:
 				_prendre(tr)
 			else:
@@ -424,6 +427,8 @@ func _piloter(dt: float, j: Node3D, dj: float) -> void:
 		if _i >= _chemin.size() - 2:
 			v_cible = 0.0
 		var vise := clampf(4.0 + maxf(v, 0.0) * 0.45, 4.0, 22.0)
+		if mode == "fuite" and fuite_v719:
+			vise = clampf(3.5 + maxf(v, 0.0) * 0.38, 3.5, 18.0)   # #159 : coupe moins les virages (murs des angles de rue)
 		var c: Array = _au(s + vise)
 		q = c[0] + Vector2(c[1].y, -c[1].x) * _off
 	else:
@@ -462,6 +467,10 @@ func _piloter(dt: float, j: Node3D, dj: float) -> void:
 		v_cible = minf(v_cible, 5.0)
 	var k := clampf(absf(v) * 3.6 / 130.0, 0.0, 1.0)
 	var st := clampf(delta / lerpf(Car.STEER_LOW, Car.STEER_HIGH, sqrt(k)), -1.0, 1.0)
+	if mode == "fuite" and fuite_v719 and v > 3.0 and not recule:
+		var m := _murs(xf, v)
+		st = clampf(st + m.x, -1.0, 1.0)
+		v_cible = minf(v_cible, m.y)
 	var thr := 0.0
 	var brk := 0.0
 	var e := v_cible - v
@@ -478,7 +487,37 @@ func _piloter(dt: float, j: Node3D, dj: float) -> void:
 	voiture.touch_brake = brk
 	voiture.touch_steer = st
 
+## #159 (fuyard) : rayons en avant à gauche, à droite et droit devant, à hauteur de pare-chocs : un mur à moins de
+## DEGAGE m sur le côté pousse le volant de l'autre (x, en part de braquage) ; un mur droit devant (angle de rue,
+## impasse) plafonne la vitesse (y, m/s) pour tourner sans s'y écraser. Les façades d'une rue ordinaire, plus loin
+## sur le côté, ne freinent pas.
+const DEGAGE := 2.2
+func _murs(xf: Transform3D, v: float) -> Vector2:
+	var espace := voiture.get_world_3d().direct_space_state
+	var o := xf.origin + Vector3.UP * 0.6 + xf.basis.z * voiture.gabarit.z * 0.45
+	var demi := voiture.gabarit.x * 0.5
+	var pousse := 0.0
+	var vmax := INF
+	for i in 3:
+		var a: float = [0.42, -0.42, 0.0][i]
+		var portee := (4.0 + v * 0.5) if i < 2 else (6.0 + v * 1.2)
+		var q := PhysicsRayQueryParameters3D.create(o, o + xf.basis.z.rotated(Vector3.UP, a) * portee)
+		q.exclude = [voiture.get_rid()]
+		q.collide_with_areas = false
+		var h := espace.intersect_ray(q)
+		if h.is_empty() or not h.collider is StaticBody3D or absf((h.normal as Vector3).y) > 0.6:
+			continue
+		var d := (h.position as Vector3).distance_to(o)
+		if i < 2:
+			var lat := d * sin(absf(a)) - demi                     # jour entre le flanc et le mur
+			var f := clampf((DEGAGE - lat) / DEGAGE, 0.0, 1.0)
+			pousse += f if i == 0 else -f
+		else:
+			vmax = maxf(5.0, sqrt(2.0 * 6.0 * maxf(d - 3.0, 0.0)))  # freiner à 6 m/s² avant le mur
+	return Vector2(-pousse * 0.9, vmax)
+
 ## Bloquée (marche arrière), retournée ou passée sous le relief : remise sur l'itinéraire.
+var _frottes := PackedFloat32Array()     # #159 : instants où le fuyard a reculé d'un mur (10 dernières secondes)
 func _surveiller(dt: float) -> void:
 	var vel := voiture.linear_velocity
 	var dv := (_v_prec - vel).length() * 3.6
@@ -491,6 +530,18 @@ func _surveiller(dt: float) -> void:
 		return
 	if voiture.global_transform.basis.y.y < 0.5 and voiture.kmh() < 20.0:
 		_bloque_t += dt * 3.0
+	elif mode == "fuite" and fuite_v719 and voiture.kmh() < 12.0 and voiture.touch_throttle > 0.3 \
+			and voiture.get_colliding_bodies().any(func(b): return b is StaticBody3D):
+		_bloque_t += dt                                  # #159 : fuyard qui frotte un mur au pas : il recule plus tôt
+		if _bloque_t > 0.6 and _bloque_t - dt <= 0.6:
+			_recul_t = 1.2
+			_frottes.append(age)
+			while not _frottes.is_empty() and age - _frottes[0] > 10.0:
+				_frottes.remove_at(0)
+			if _frottes.size() >= 3:                     # coincé contre le même mur : remis sur son trajet
+				_frottes.clear()
+				_reposer()
+				return
 	elif voiture.kmh() < 3.0 and voiture.touch_throttle > 0.3:
 		_bloque_t += dt
 		if _bloque_t > 1.5 and _bloque_t - dt <= 1.5:

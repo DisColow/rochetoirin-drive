@@ -495,6 +495,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_gendarmes_test()
 		return
+	if OS.get_cmdline_user_args().has("--fuyard-test"):
+		if t == 300:
+			_fuyard_test()
+		return
 	if OS.get_cmdline_user_args().has("--cascade-test"):
 		if t == 300:
 			_cascade_test()
@@ -3490,6 +3494,104 @@ func _helico_test() -> void:
 ## 3) en retard. Capture livreur.png à la première adresse.
 ## #156 : rien ne doit conduire dans les collines du bord (hors de la zone jouable). Itinéraires entre points proches
 ## de la limite (sans puis avec l'évitement), adresses du livreur, arrêts des lignes Ruban, fuite du gendarme, épreuves.
+## #158-#160 : activité « Gendarme ». -- --drive-test --fuyard-test --drive-from=-10975,236,-1100,90 [--fuite-ancienne]
+## Consigne au lancement (jeu figé jusqu'à OK, capture fuyard_consigne.png) ; Gendarmerette du joueur : livrée et
+## roues d'origine même après un gain d'argent (garage.change), capture fuyard_voiture.png ; puis la fuite, la
+## voiture du joueur reposée 50 m derrière le fuyard chaque seconde : vitesse moyenne, chocs contre le décor,
+## arrêts en bout de trajet (impasses), sur 45 s. --graine=N : même hasard d'une passe à l'autre. --fuite-ancienne : sorties prises sans regarder la suite (avant #159).
+func _fuyard_test() -> void:
+	var gj = gendarme_joueur
+	var dire := func(x: String): print("  [fuyard] " + x)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	circulation.set_densite(0)
+	if OS.get_cmdline_user_args().has("--fuite-ancienne"):
+		preload("res://scripts/gendarme.gd").fuite_v719 = false
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--graine="):
+			seed(int(a.trim_prefix("--graine=")))
+	for f in 60:
+		await get_tree().process_frame
+	activities._gendarme_start()
+	for f in 20:
+		await get_tree().process_frame
+	var hud := get_node("HUD")
+	var fige := get_tree().paused
+	var p_avant: Vector3 = gj.fuyard.voiture.global_position if gj.fuyard else Vector3.ZERO
+	get_viewport().get_texture().get_image().save_png("user://shots/fuyard_consigne.png")
+	for f in 30:
+		await get_tree().process_frame
+	var bouge := (gj.fuyard.voiture.global_position as Vector3).distance_to(p_avant) if gj.fuyard else -1.0
+	dire.call("consigne : ouverte %s, jeu figé %s, le fuyard a bougé de %.2f m pendant la consigne" % [str(hud.consigne_ouverte != null), str(fige), bouge])
+	for b in hud.consigne_ouverte.find_children("*", "Button", true, false):
+		(b as Button).pressed.emit()
+	await get_tree().process_frame
+	dire.call("après OK : jeu figé %s, consigne %s" % [str(get_tree().paused), str(hud.consigne_ouverte != null)])
+	# #158 : gain d'argent pendant le service (garage.change → tuning.appliquer) : la livrée reste
+	garage.gagner(1.0)
+	await get_tree().process_frame
+	var peint := 0
+	for mi in car.find_children("*", "MeshInstance3D", true, false):
+		for s in (mi as MeshInstance3D).mesh.get_surface_count() if (mi as MeshInstance3D).mesh else 0:
+			var m = (mi as MeshInstance3D).get_surface_override_material(s)
+			if m is ShaderMaterial and (m as ShaderMaterial).shader == preload("res://scripts/carrosserie.gdshader"):
+				peint += 1
+	dire.call("Gendarmerette : %d surface(s) à la peinture du garage, %d pièce(s) du garage, roues %s" % [peint, tuning._pieces.size(), str(car.wheels.map(func(w): return w.get_child(0).name))])
+	# capture de côté
+	var cam := Camera3D.new()
+	add_child(cam)
+	var xf := car.global_transform
+	cam.global_position = xf.origin + xf.basis.x * 6.0 + Vector3.UP * 1.6 + xf.basis.z * 2.0
+	cam.look_at(xf.origin + Vector3.UP * 0.8)
+	cam.current = true
+	for f in 6:
+		await get_tree().process_frame
+	get_viewport().get_texture().get_image().save_png("user://shots/fuyard_voiture.png")
+	cam.current = false
+	cam.queue_free()
+	# fuite : la voiture du joueur suit 50 m derrière (posée, figée), le fuyard fuit
+	var fu = gj.fuyard
+	var vmoy := 0.0
+	var n := 0
+	var chocs := 0
+	var arrets := 0
+	var t := 0.0
+	var prec := 0.0
+	var dist := 0.0
+	var pos_prec: Vector3 = fu.voiture.global_position
+	var lent_t := 0.0
+	while t < 45.0 and gj.actif:
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+		var vf: Vector3 = fu.voiture.global_position
+		dist += Vector2(vf.x - pos_prec.x, vf.z - pos_prec.z).length()
+		pos_prec = vf
+		for b in fu.voiture.get_colliding_bodies():
+			if b is StaticBody3D and t - prec > 1.0:
+				chocs += 1
+				prec = t
+				var q2 := Vector2(vf.x, vf.z)
+				var ecart := INF
+				for c2 in fu._chemin:
+					ecart = minf(ecart, q2.distance_to(c2))
+				var vc: float = fu._v[fu._i] if fu._i < fu._v.size() else -1.0
+				dire.call("  choc à t=%.1f s contre %s : %.0f km/h (consigne du tracé %.0f km/h), à %.1f m du tracé, point %d/%d" % [t, (b as Node).name, fu.voiture.linear_velocity.length() * 3.6, vc * 3.6, ecart, fu._i, fu._chemin.size()])
+		var kmh: float = fu.voiture.linear_velocity.length() * 3.6
+		lent_t = lent_t + get_physics_process_delta_time() if kmh < 8.0 else 0.0
+		if lent_t > 1.5 and lent_t - get_physics_process_delta_time() <= 1.5:
+			arrets += 1
+		if int(t * 60.0) % 60 == 0:
+			var d := (fu.voiture.global_transform.basis.z as Vector3)
+			d.y = 0.0
+			car.global_position = vf - d.normalized() * 50.0 + Vector3.UP * 0.5
+			car.linear_velocity = Vector3.ZERO
+			car.global_basis = fu.voiture.global_basis
+	dire.call("%s : %.0f s de fuite, %.0f m parcourus, %.0f km/h de moyenne, %d choc(s) contre le décor, %d arrêt(s) de plus de 1,5 s" % [
+		"avant #159" if OS.get_cmdline_user_args().has("--fuite-ancienne") else "après #159", t, dist, dist / maxf(t, 1.0) * 3.6, chocs, arrets])
+	get_tree().quit()
+
 ## #157 : bord « cascade » façon Golden Sun 2. -- --drive-test --cascade-test [--drive-from=…] : voiture posée à 60 m
 ## du point de la limite le plus proche, face au vide ; captures cascade_1 (derrière la voiture), cascade_2 (au-dessus
 ## de la lèvre), cascade_3 (depuis le vide, vers le monde ; cascade_5 : le soir), cascade_4 (dans l'eau) ; pleins gaz vers le vide : la
