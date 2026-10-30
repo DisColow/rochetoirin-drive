@@ -65,7 +65,11 @@ const COUL_MEDAILLE := {"or": Color(1.0, 0.8, 0.15), "argent": Color(0.8, 0.82, 
 
 var _menu: Control
 var _status: PanelContainer
-var _status_l: Label
+var _status_l: Label                # lignes suivantes (petites)
+var _status_g: Label                # première ligne (grosse)
+var statut := ""                    # texte complet de la carte d'activité
+const COUL_CARTE := Color(1.0, 0.6, 0.12)
+const CARTE_Y := 132.0              # haut de la carte (sous la rangée d'icônes)
 var _stop_btn: Button
 var _bar: HBoxContainer
 var _beacons: Array = []
@@ -153,28 +157,37 @@ func _ready() -> void:
 	if FileAccess.file_exists("res://world/epreuves.json"):
 		epreuves = JSON.parse_string(FileAccess.get_file_as_string("res://world/epreuves.json"))
 		_epreuves_dans_zone()
+	# #162 : carte d'activité en haut à gauche, sous les icônes (façon Forza Horizon) : première ligne en gros,
+	# les suivantes en petit ; filet de couleur à gauche ; « Arrêter » dessous. Le milieu de l'écran reste libre.
 	_status = PanelContainer.new()
-	_status.add_theme_stylebox_override("panel", preload("res://scripts/ui.gd").panel(30, 14))
+	var sb := preload("res://scripts/ui.gd").panel(26, 12)
+	if sb is StyleBoxFlat:
+		(sb as StyleBoxFlat).border_width_left = 9
+		(sb as StyleBoxFlat).border_color = COUL_CARTE
+		(sb as StyleBoxFlat).content_margin_left = 34
+		(sb as StyleBoxFlat).bg_color.a = 0.82
+	_status.add_theme_stylebox_override("panel", sb)
 	_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_status.mouse_filter = Control.MOUSE_FILTER_PASS
-	var sh := HBoxContainer.new(); sh.add_theme_constant_override("separation", 18)
-	_status.add_child(sh)
-	_status_l = Label.new(); _status_l.add_theme_font_size_override("font_size", 30)
-	_status_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status_l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	sh.add_child(_status_l)
+	var sv := VBoxContainer.new(); sv.add_theme_constant_override("separation", 0)
+	_status.add_child(sv)
+	_status_g = Label.new(); _status_g.add_theme_font_size_override("font_size", 40)
+	sv.add_child(_status_g)
+	_status_l = Label.new(); _status_l.add_theme_font_size_override("font_size", 26)
+	_status_l.add_theme_color_override("font_color", Color(0.86, 0.87, 0.9))
+	sv.add_child(_status_l)
+	_status.visible = false
+	add_child(_status)
 	# arrêter l'activité en cours (taxi, course, chasse) d'un seul toucher
 	_stop_btn = Button.new(); _stop_btn.text = "■ Arrêter"
-	_stop_btn.add_theme_font_size_override("font_size", 26)
-	_stop_btn.custom_minimum_size = Vector2(0, 64)
+	_stop_btn.add_theme_font_size_override("font_size", 24)
+	_stop_btn.custom_minimum_size = Vector2(0, 56)
 	_stop_btn.focus_mode = Control.FOCUS_NONE
 	_stop_btn.add_to_group("ui_zone")
 	_stop_btn.pressed.connect(func():
 		_stop()
 		hud.toast("Activité arrêtée.", 2.5))
-	sh.add_child(_stop_btn)
-	_status.visible = false
-	add_child(_status)
+	_stop_btn.visible = false
+	add_child(_stop_btn)
 	_bip = AudioStreamPlayer.new()
 	if ResourceLoader.exists("res://assets/sfx/bip.wav"):
 		_bip.stream = load("res://assets/sfx/bip.wav")
@@ -195,11 +208,23 @@ func _vs() -> Vector2:
 	return get_viewport().get_visible_rect().size
 
 func _set_status(t: String) -> void:
-	_status_l.text = t
-	_stop_btn.visible = mode != ""
+	statut = t
+	var l := t.split("\n", true, 1)
+	_status_g.text = l[0]
+	_status_l.text = l[1] if l.size() > 1 else ""
+	_status_l.visible = _status_l.text != ""
 	_status.visible = t != ""
+	_stop_btn.visible = mode != "" and _status.visible
 	_status.reset_size()
-	_status.position = Vector2((_vs().x - _status.get_combined_minimum_size().x) / 2, 122)
+	_status.position = Vector2(24, CARTE_Y)
+	_stop_btn.reset_size()
+	_stop_btn.position = Vector2(24, CARTE_Y + _status.get_combined_minimum_size().y + 10)
+
+## Bas de la carte d'activité et de son bouton (messages dessous, hud.toast) ; haut de la carte sans activité.
+func bas_carte() -> float:
+	if not _status.visible:
+		return CARTE_Y
+	return CARTE_Y + _status.get_combined_minimum_size().y + (10.0 + _stop_btn.get_combined_minimum_size().y if _stop_btn.visible else 0.0) + 12.0
 
 func _fmt(t: float) -> String:
 	var m := int(t / 60.0)

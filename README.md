@@ -16,9 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.20 :
-- **Chocs entre véhicules** : au-delà de 60 km/h et avec un vrai écart de vitesse, c'est le plus lent qui explose.
-- **Plus de circulation**, **concurrents plus rapides** dans les courses, **2CV** sans pièces transparentes.
+Nouveautés de la v7.21 :
+- **Nouvel affichage des activités** : la carte de l'activité passe en haut à gauche, les messages dessous, le nom de
+  la rue à droite : le milieu de l'écran reste libre.
+- **Rétroviseur** en vue extérieure, en haut au centre (⚙ > Conduite pour le masquer).
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

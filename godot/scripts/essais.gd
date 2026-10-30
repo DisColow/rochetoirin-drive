@@ -495,6 +495,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_gendarmes_test()
 		return
+	if OS.get_cmdline_user_args().has("--hud-test"):
+		if t == 300:
+			_hud_test()
+		return
 	if OS.get_cmdline_user_args().has("--deuche-test"):
 		if t == 300:
 			_deuche_test()
@@ -3214,7 +3218,7 @@ func _gendarme_joueur_test() -> void:
 					car.global_position.distance_to(fz.voiture.global_position), fz.voiture.linear_velocity.length(),
 					fz.voiture.touch_throttle, fz.voiture.touch_brake, gj._coince_t, int(gj.degats)])
 		car.frein_parking = false
-		dire.call("fin : actif %s, interpellé %s, statut « %s »" % [str(gj.actif), str(gj.interpelle), activities._status_l.text])
+		dire.call("fin : actif %s, interpellé %s, statut « %s »" % [str(gj.actif), str(gj.interpelle), activities.statut])
 		print("  [gendarme] FIN")
 		get_tree().quit()
 		return
@@ -3314,7 +3318,7 @@ func _gendarme_joueur_test() -> void:
 	car.touch_throttle = 0.0
 	car.touch_steer = 0.0
 	dire.call("fin après %.0f s : actif %s, interpellé %s, dégâts %d %%, argent %+.2f €, voiture rendue : %s, statut « %s »" % [t,
-		str(gj.actif), str(gj.interpelle), int(gj.degats), garage.argent - argent0, car.voiture, activities._status_l.text])
+		str(gj.actif), str(gj.interpelle), int(gj.degats), garage.argent - argent0, car.voiture, activities.statut])
 	print("  [gendarme] FIN")
 	get_tree().quit()
 
@@ -3502,6 +3506,50 @@ func _helico_test() -> void:
 ## 3) en retard. Capture livreur.png à la première adresse.
 ## #156 : rien ne doit conduire dans les collines du bord (hors de la zone jouable). Itinéraires entre points proches
 ## de la limite (sans puis avec l'évitement), adresses du livreur, arrêts des lignes Ruban, fuite du gendarme, épreuves.
+## #162 #163 : HUD des activités (carte en haut à gauche, messages dessous, nom de la rue à droite) et rétroviseur.
+## -- --drive-test --hud-test --drive-from=-10975,236,-1100,90 : tournée du livreur lancée, un message ; captures
+## hud_1.png (vue extérieure), hud_2.png (poste de conduite : pas de rétroviseur) ; durée d'une image avec et sans
+## rétroviseur (moyenne sur 60 images).
+func _hud_test() -> void:
+	var dire := func(x: String): print("  [hud] " + x)
+	var hud := get_node("HUD")
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	var vp: Array = circulation.voie_proche(car.global_position, 80.0)
+	await _teleport((vp[0] as Vector3) + Vector3.UP * 0.5, rad_to_deg(atan2((vp[1] as Vector3).x, -(vp[1] as Vector3).z)))
+	for f in 60:
+		await get_tree().process_frame
+	activities._livreur_start()
+	for f in 30:
+		await get_tree().process_frame
+	dire.call("voiture : haut %s (1 : à plat)" % str(snappedf(car.global_transform.basis.y.y, 0.01)))
+	hud.toast("Commande récupérée : livrez au 12 rue de la République", 30.0)
+	var duree := func(n: int) -> float:
+		var t0 := Time.get_ticks_usec()
+		for f in n:
+			await get_tree().process_frame
+		return (Time.get_ticks_usec() - t0) / 1000.0 / n
+	await duree.call(30)
+	var avec: float = await duree.call(60)
+	get_viewport().get_texture().get_image().save_png("user://shots/hud_1.png")
+	var r: Control = hud.retro
+	dire.call("carte d'activité : « %s » en %s, taille %s ; message en %s ; rétroviseur visible %s en %s, taille %s" % [
+		activities.statut.replace("\n", " / "), str(activities._status.position), str(activities._status.size),
+		str(hud._toast.position), str((r.get_child(2) as Control).visible), str(r.position), str(r.size)])
+	r.actif = false
+	await duree.call(30)
+	var sans: float = await duree.call(60)
+	r.actif = true
+	dire.call("durée d'une image : %.2f ms avec rétroviseur, %.2f ms sans (écart %.2f ms)" % [avec, sans, avec - sans])
+	cam_rig.set_mode(1)
+	for f in 20:
+		await get_tree().process_frame
+	get_viewport().get_texture().get_image().save_png("user://shots/hud_2.png")
+	dire.call("poste de conduite : rétroviseur visible %s" % str((r.get_child(2) as Control).visible))
+	cam_rig.set_mode(0)
+	get_tree().quit()
+
 ## #165 : 2CV (pièces en mélange alpha, transparentes par endroits sur téléphone) : modes de transparence des
 ## matériaux de la caisse après car.construire, et trois vues (deuche_1..3.png).
 func _deuche_test() -> void:
@@ -4109,7 +4157,7 @@ func _livreur_test() -> void:
 			Vector2(car.global_position.x - lv.dest.x, car.global_position.z - lv.dest.z).length(), car.kmh(), int(lv.etat)]])
 	car.frein_parking = false
 	dire.call("fin : actif %s, %d livrées, %d en retard, %d refusées, gain %.2f €, argent %+.2f €, statut « %s »" % [str(lv.actif),
-		lv.livrees, lv.en_retard, lv.refusees, lv.gain, garage.argent - argent0, activities._status_l.text])
+		lv.livrees, lv.en_retard, lv.refusees, lv.gain, garage.argent - argent0, activities.statut])
 	print("  [livreur] FIN")
 	get_tree().quit()
 
@@ -4492,7 +4540,7 @@ func _ligne_bus_test() -> void:
 	for f in 30:
 		await get_tree().physics_frame
 	dire.call("fin : ligne active %s, voiture %s, argent +%.2f €, statut « %s »" % [lb.actif, car.voiture,
-		garage.argent - argent0, activities._status_l.text.replace("\n", " / ") if activities._status_l else ""])
+		garage.argent - argent0, activities.statut.replace("\n", " / ")])
 	dire.call("succès : lignes %d, voyageurs %d" % [int(succes.valeur("lignes_bus")), int(succes.valeur("voyageurs"))])
 	dire.call("FIN")
 	get_tree().quit()

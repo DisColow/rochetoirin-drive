@@ -19,6 +19,7 @@ signal teleport(pos: Vector3, heading: float)
 
 var gps: Control
 var pill: Control
+var retro: Control                  # rétroviseur (#163, retro.gd)
 var speed_panel: Control
 var _road_text := ""
 var _where_text := ""
@@ -33,6 +34,9 @@ func _ready() -> void:
 	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pill.draw.connect(_draw_pill)
 	add_child(pill)
+	retro = preload("res://scripts/retro.gd").new()          # rétroviseur (#163)
+	retro.main = get_parent()
+	add_child(retro)
 	speed_panel = Control.new()
 	speed_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	speed_panel.draw.connect(_draw_speed)
@@ -134,7 +138,7 @@ Textures : Poly Haven et ambientCG (CC0).
 Données : © les contributeurs d'OpenStreetMap (ODbL) ; IGN (BD TOPO, RGE ALTI, LiDAR HD, BD ORTHO, Licence Ouverte Etalab).
 Modèles des commerces, équipements, haies, maisons, clôtures et sprite de la voiture : faits avec Blender pour le jeu ; boutons de la planche de bord dessinés pixel par pixel pour le jeu."""
 
-## Message bref au centre de l'écran (péage…), qui s'efface tout seul.
+## Message bref (péage, étape franchie…), à gauche sous la carte d'activité (#162), qui s'efface tout seul.
 var _toast: PanelContainer
 var _toast_t := 0.0
 func toast(text: String, secs := 3.5) -> void:
@@ -142,14 +146,15 @@ func toast(text: String, secs := 3.5) -> void:
 		_toast = PanelContainer.new()
 		_toast.add_theme_stylebox_override("panel", UI.panel(40, 18))
 		_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var l := Label.new(); l.add_theme_font_size_override("font_size", 34)
-		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var l := Label.new(); l.add_theme_font_size_override("font_size", 28)
+		l.add_theme_color_override("font_color", Color(1.0, 0.88, 0.55))
 		_toast.add_child(l)
 		add_child(_toast)
 	(_toast.get_child(0) as Label).text = text
 	_toast.reset_size()
-	var vs := get_viewport().get_visible_rect().size
-	_toast.position = Vector2((vs.x - _toast.get_combined_minimum_size().x) / 2, maxf(vs.y * 0.3, 230.0))
+	# #162 : à gauche, sous la carte d'activité (le milieu de l'écran reste libre)
+	var act = get_tree().get_first_node_in_group("activites")
+	_toast.position = Vector2(24, act.bas_carte() if act else 132.0)
 	_toast.modulate.a = 1.0
 	_toast.visible = true
 	_toast_t = secs
@@ -344,6 +349,24 @@ func _open_settings() -> void:
 				for c in hb.get_children():
 					c.button_pressed = c == b)
 			hb.add_child(b)
+	# rétroviseur (#163)
+	if retro:
+		var b_re := Button.new()
+		b_re.toggle_mode = true
+		b_re.button_pressed = retro.actif
+		b_re.custom_minimum_size = Vector2(560, 70)
+		b_re.add_theme_font_size_override("font_size", 28)
+		b_re.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var etat_re := func(on: bool):
+			b_re.icon = _pastille(Color(0.25, 0.9, 0.35) if on else Color(0.45, 0.45, 0.48))
+			b_re.text = "  Rétroviseur (vue extérieure) : " + ("ACTIVÉ" if on else "désactivé")
+		etat_re.call(b_re.button_pressed)
+		b_re.toggled.connect(func(on: bool):
+			etat_re.call(on)
+			retro.actif = on
+			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+			cfg.set_value("conduite", "retroviseur", on); cfg.save("user://reglages.cfg"))
+		v.add_child(b_re)
 	# flèches d'itinéraire sur la route (#154)
 	var fl = get_parent().get("fleches_route")
 	if fl:
@@ -641,7 +664,7 @@ func _draw_pill() -> void:
 		return
 	var f := pill.get_theme_default_font()
 	var w := maxf(f.get_string_size(_road_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 32).x, f.get_string_size(_where_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 19).x) + 56
-	var r := Rect2(pill.size.x / 2 - w / 2, 0, w, 84)
+	var r := Rect2(pill.size.x - w, 0, w, 84)          # calée à droite, sous l'argent (#162)
 	_panel(pill, r)
 	pill.draw_string(f, Vector2(r.position.x, 38), _road_text, HORIZONTAL_ALIGNMENT_CENTER, w, 32, Color.WHITE)
 	pill.draw_string(f, Vector2(r.position.x, 70), _where_text, HORIZONTAL_ALIGNMENT_CENTER, w, 19, Color(0.75, 0.77, 0.8))
@@ -846,7 +869,7 @@ func _layout() -> void:
 		b_frein_main.position = Vector2(s.x - 470 + 12, s.y - 230 - 100)
 		b_nitro.position = Vector2(s.x - 240 + 48, s.y - 260 - 112)
 		b_klaxon.position = Vector2(229, s.y - 322)
-	pill.position = Vector2(0, 20); pill.size = Vector2(s.x, 90)
+	pill.position = Vector2(s.x - gw - 24, 24 + gh + 14 + 96 + 10 + 58 + 10 + 64); pill.size = Vector2(gw, 90)
 	var pos := [Vector2(60, s.y - 230), Vector2(290, s.y - 230), Vector2(s.x - 470, s.y - 230), Vector2(s.x - 240, s.y - 260),
 		Vector2(214, 22), Vector2(90, 22), Vector2(338, 22), Vector2(462, 22), Vector2(586, 22)]
 	for i in buttons.size():
@@ -909,6 +932,8 @@ func _show_drive(on: bool) -> void:
 		_pli.visible = on
 	gps.visible = on
 	pill.visible = on
+	if retro:
+		retro.visible = on
 	speed_panel.visible = on
 	argent_panel.visible = on
 	if b_parking:

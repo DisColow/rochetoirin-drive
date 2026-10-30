@@ -683,6 +683,13 @@
   uniques respectés, chemins de terre pénalisés ×2,5), calculé sur un fil de travail ; recalculé si la cible change
   ou si la voiture s'écarte de plus de 35 m. Tracé bleu cerné de noir sur la mini-carte (`gps.gd`) et la carte
   (`map.gd`), `activities.route_gps`. Capture : `{"act": "taxi"}`.
+- **HUD des activités et rétroviseur** (v7.21, #162, #163) : plus rien au milieu de l'écran. Carte d'activité en
+  haut à gauche sous les icônes (`activities._set_status(t)` : 1re ligne de `t` en gros, la suite en petit, filet
+  `COUL_CARTE` ; texte complet dans `activities.statut`, lu par les essais), « Arrêter » dessous ; `hud.toast` à
+  gauche sous la carte (`activities.bas_carte()`) ; nom de la rue (`pill`) sous l'argent, calé à droite. Rétroviseur
+  `scripts/retro.gd` (enfant du HUD) : caméra sur le toit regardant derrière, SubViewport 320 × 88 refait une image
+  sur `PAS` (4), `LOIN` 220 m, image retournée ; masqué au poste de conduite (`cam_rig.mode == 1`), en pause et
+  quand le HUD de conduite est caché ; ⚙ > Conduite (`conduite/retroviseur`). Essai `--hud-test`.
 - **Flèches d'itinéraire sur la route** (v7.17, #154, façon Forza Horizon, `scripts/fleches_route.gd` +
   `fleches_route.gdshader`) : chevrons « Λ » bleus semi-transparents (MultiMesh, sans ombre ni lumière) le long de
   `activities.route_gps`, tous les 7 m de 6 à 160 m devant (un de plus entre deux avant un virage), calés sur la
