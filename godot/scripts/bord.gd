@@ -23,9 +23,23 @@ var _t := 0.0
 var _segs := {}                # case de 64 m -> Array de [a, b] (côtés de la limite proches)
 var _zone := PackedVector2Array()
 var _rebond_t := 0.0
+# #157 : bord « cascade » façon Golden Sun 2 au lieu des collines (⚙ > Conduite > Bord de la carte)
+const EAU := 14.0              # m : bande d'eau du bord (la voiture y est freinée)
+const MUR := 2.0               # m avant la limite : la voiture est renvoyée vers l'intérieur
+const RESTITUTION := 0.45
+const FREIN_EAU := 0.9         # s⁻¹ : freinage horizontal dans l'eau
+var cascade := false
+var cascade_node: Node3D
+var _dans_eau := false
+var _embruns_t := 0.0
 
 func _ready() -> void:
 	name = "Bord"
+	cascade_node = preload("res://scripts/cascade.gd").new()
+	add_child(cascade_node)
+	var cfg := ConfigFile.new()
+	if cfg.load("user://reglages.cfg") == OK and bool(cfg.get_value("affichage", "bord_cascade", false)):
+		set_cascade.call_deferred(true)
 	mat = ShaderMaterial.new()
 	mat.shader = preload("res://scripts/bord.gdshader")
 	preload("res://scripts/env.gd").add(mat)
@@ -51,6 +65,21 @@ func _ready() -> void:
 							_segs[k] = []
 						if _segs[k].is_empty() or _segs[k][-1] != i:
 							_segs[k].append(i)
+
+## Bord « cascade » (#157) ou collines : les tuiles du talus et leurs collisions sont libérées en mode cascade.
+func set_cascade(on: bool) -> void:
+	cascade = on
+	cascade_node.set_actif(on)
+	cascade = cascade_node.actif
+	var m := get_parent()
+	if m and m.get("poles"):
+		m.poles.set_bout_monde(cascade)
+	if cascade:
+		for k in loaded:
+			loaded[k].queue_free()
+		loaded.clear(); bodies.clear()
+		_chargeur.menage({})
+	_t = 0.0
 
 ## Distance signée à la limite (m, + hors de la carte) et direction vers l'intérieur ; [0, Vector2.ZERO] loin de la limite.
 func hors_carte(p: Vector3) -> Array:
@@ -82,6 +111,10 @@ func _suivre(dt: float) -> void:
 	if cam == null:
 		return
 	var c := cam.global_position
+	if cascade:
+		var hc: Array = hors_carte(c)
+		cascade_node.son(-float(hc[0]) if hc[1] != Vector2.ZERO else 1e4)
+		return
 	_t -= dt
 	if _t <= 0.0:
 		_t = 0.5
@@ -140,6 +173,9 @@ func _collisions() -> void:
 func _physics_process(dt: float) -> void:
 	if car == null or _zone.is_empty() or car.carried:
 		return
+	if cascade:
+		_physique_cascade(dt)
+		return
 	_rebond_t -= dt
 	var h: Array = hors_carte(car.global_position)
 	var d: float = h[0]
@@ -165,3 +201,50 @@ func _physics_process(dt: float) -> void:
 			print("[bord] catapulte à %.1f m hors de la carte, %.1f m/s vers l'extérieur" % [d, sortie])
 	if d > 120.0:                                        # filet de sécurité (ne devrait pas arriver)
 		car.reset_to_road()
+
+## Bord « cascade » (#157) : freinée dans la bande d'eau (gerbes, plouf en y entrant), la voiture est renvoyée vers
+## l'intérieur à MUR m de la limite (rebond amorti), jamais au-delà : le sol hors de la zone n'est plus dessiné.
+func _physique_cascade(dt: float) -> void:
+	var pd = get_parent().get("pied")
+	if pd and pd.actif and pd.corps:                   # à pied (#66) : arrêté au même endroit que la voiture
+		var hp: Array = hors_carte(pd.corps.global_position)
+		var w: Vector2 = hp[1]
+		if w != Vector2.ZERO and float(hp[0]) > -MUR:
+			pd.corps.global_position += Vector3(w.x, 0.0, w.y) * (float(hp[0]) + MUR)
+	var p := car.global_position
+	var h: Array = hors_carte(p)
+	var vers: Vector2 = h[1]
+	if vers == Vector2.ZERO:
+		_dans_eau = false
+		if not Geometry2D.is_point_in_polygon(Vector2(p.x, p.z), _zone):      # filet de sécurité
+			car.reset_to_road()
+		return
+	var d: float = h[0]
+	var v3 := Vector3(vers.x, 0.0, vers.y)
+	var m := get_parent()
+	if d > -EAU:
+		var vh := car.linear_velocity
+		vh.y = 0.0
+		car.apply_central_force(-vh * car.mass * FREIN_EAU)
+		if not _dans_eau and m and m.get("sound") and m.sound.has_method("_one_shot"):
+			m.sound._one_shot("plouf", p, clampf(vh.length() / 12.0, 0.4, 1.6), randf_range(0.95, 1.1), 30.0, 400.0)
+		_dans_eau = true
+		_embruns_t -= dt
+		var D = m.get("dust") if m else null
+		if D and _embruns_t <= 0.0 and vh.length() > 2.0:
+			_embruns_t = 0.08
+			var mat: Dictionary = D.MATIERES.get("eau", {})
+			if not mat.is_empty():
+				for i in 2:
+					var q := p + Vector3(randf_range(-1.2, 1.2), -0.4, randf_range(-1.2, 1.2))
+					D._nuage(mat, q, Vector3(vh.x * 0.25, randf_range(2.0, 4.0) + vh.length() * 0.12, vh.z * 0.25), 0.8)
+	else:
+		_dans_eau = false
+	if d > -MUR:
+		var sortie := -car.linear_velocity.dot(v3)
+		if sortie > 0.0:
+			car.linear_velocity += v3 * sortie * (1.0 + RESTITUTION)
+		if d > -MUR * 0.5:
+			car.global_position += v3 * (d + MUR * 0.5)
+		if OS.get_cmdline_user_args().has("--bord-debug"):
+			print("[bord] cascade : renvoyée à %.1f m de la limite, %.1f m/s vers l'extérieur" % [-d, sortie])

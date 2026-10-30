@@ -450,6 +450,15 @@
   - Au-delà de 26 m hors de la carte, ressort vers l'intérieur et rebond si on insiste.
   - Les champs s'arrêtent au bord (`build_crops.py`).
   - Essai : `-- --drive-test --bord-test [--bord-debug] [--snap]`. À relancer après `build_zone.py`.
+  - **Option « Cascade »** (v7.18, #157, façon Golden Sun 2 ; ⚙ > Conduite > Bord de la carte, `affichage/bord_cascade`) :
+    `bord.set_cascade` libère le talus et allume `cascade.gd` : bande d'eau (14 derniers mètres) et rideau qui tombe
+    dans une mer de nuages (`cascade_eau/rideau/nuages.gdshader`), morceaux de 256 m faits près de la caméra. Au-delà
+    de la limite, le monde s'efface : `bout_monde.gdshaderinc` (inclus par env.gdshaderinc, dans `env_fade_keep` et
+    appelé à part par terrain, relief, routes, arbres, imposteurs, herbe, plants, bâtiments, lointain) lit
+    `world/zone_sdf.bin` (`pipeline/build_zone_sdf.py`, distance signée, cases de 16 m) ; poteaux et fils filtrés au
+    chargement (`poles.set_bout_monde`). Voiture freinée dans l'eau (gerbes, plouf), renvoyée vers l'intérieur à 2 m
+    de la limite ; piéton arrêté aussi. Grondement : `ruisseau.ogg` ralenti. Données `world/cascade.bin`
+    (`pipeline/build_cascade.py`, relief terrassé tous les 4 m le long de la limite). Essai `--cascade-test`.
   - **Rien n'y mène** (v7.16, #156) : `scripts/zone.gd` (polygone de `world/zone.json`, `dedans(p, marge)`) ;
     `world/graphe_hors.bin` (`pipeline/build_graphe_hors.py`, à relancer après `build_itineraire.py` ou
     `build_zone.py`) : arcs à moins de 12 m de la limite évités par l'itinéraire (repli sans évitement si aucun

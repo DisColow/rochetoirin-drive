@@ -24,6 +24,8 @@ var head_mat: StandardMaterial3D
 var night := 0.0
 var pool := []
 var _t := 0.0
+var bout_monde := false        # bord « cascade » (#157) : rien hors de la zone jouable (matériaux standard, sans shader)
+const Zone := preload("res://scripts/zone.gd")
 
 func _ready() -> void:
 	if not DirAccess.dir_exists_absolute("res://world/poles"):
@@ -140,6 +142,16 @@ func _pylon(m: Material) -> Mesh:
 func _d(k: Vector2i, c: Vector3) -> float:
 	return Vector2((k.x + 0.5) * TILE - c.x, (k.y + 0.5) * TILE - c.z).length()
 
+## Bord « cascade » (#157) : supports et fils hors de la zone retirés (tuiles rechargées).
+func set_bout_monde(on: bool) -> void:
+	if on == bout_monde:
+		return
+	bout_monde = on
+	for k in loaded:
+		loaded[k].queue_free()
+	loaded.clear(); lamps.clear(); pieds.clear(); poteaux.clear(); poteaux_t.clear(); _fils.clear()
+	update_now()
+
 func update_now() -> void:
 	_t = 0.0
 	if target:
@@ -199,6 +211,8 @@ func _add(k: Vector2i) -> void:
 	var ptt := PackedByteArray()
 	for i in ns:
 		var t := int(sp.get_float()); var x := sp.get_float(); var y := sp.get_float(); var z := sp.get_float(); var cap := sp.get_float()
+		if bout_monde and not Zone.dedans(Vector2(x, z)):
+			continue
 		var b := Basis(Vector3.UP, PI - deg_to_rad(cap))
 		if not by.has(t):
 			by[t] = []
@@ -220,9 +234,12 @@ func _add(k: Vector2i) -> void:
 	for i in nw:
 		var n := sp.get_32()
 		var pts := PackedVector3Array()
+		var garder := true
 		for j in n:
 			pts.append(Vector3(sp.get_float(), sp.get_float(), sp.get_float()))
-		portees.append(pts)
+			garder = garder and (not bout_monde or Zone.dedans(Vector2(pts[j].x, pts[j].z)))
+		if garder:
+			portees.append(pts)
 	var wi := MeshInstance3D.new()
 	wi.mesh = _fils_mesh(portees)
 	wi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

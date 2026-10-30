@@ -44,6 +44,9 @@ void vertex() {
 }
 
 void fragment() {
+	if (env_hors_monde(v_wp)) {          // bord « cascade » (#157)
+		discard;
+	}
 	vec4 c = texture(albedo_atlas, UV);
 	// relais avec les vrais modèles (fondu tramé complémentaire de tree.gdshader, sur 8 m) et fondu au loin
 	float fin = clamp((v_dist - (near_cut - 4.0)) / 8.0, 0.0, 1.0);

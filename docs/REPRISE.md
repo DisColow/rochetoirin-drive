@@ -3,7 +3,7 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 30/10/2026 (v6.84 #131 à v7.17 livrées)
+## État au 30/10/2026 (v6.84 #131 à v7.18 livrées)
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours
@@ -31,6 +31,12 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
 - **v7.14 (#153)** : son de moteur propre à chaque voiture (voir CLAUDE.md « Son »), choix de l'utilisateur appliqué
   (même modèle sinon le plus proche). Boucles publiées sur `donnees` (8 jeux, `.import` faits dans un petit projet
   temporaire). Toledo préparé pour la Gendarmerette Focus (pas encore publié ni crédité).
+- **v7.18 (#157)** : bord « cascade » façon Golden Sun 2 (voir CLAUDE.md « Bords de la carte »). Données
+  `world/zone_sdf.bin` et `world/cascade.bin` (publiées sur `donnees`). Essai `--cascade-test
+  --drive-from=8040,410,3206,90` (bord plat près d'une route ; ailleurs la voiture peut reculer dans une pente).
+  Pièges : arbres, bâtiments et herbe n'appellent pas `env_fade_keep` (test `env_hors_monde` ajouté à leur shader) ;
+  lampadaires et fils en StandardMaterial3D (filtrés au chargement, `poles.set_bout_monde`). Disque de session plein
+  pendant le travail : venv et fichiers de travail finis supprimés du brouillon.
 - **v7.17 (#154)** : flèches d'itinéraire sur la route (`fleches_route.gd` + `.gdshader`, voir CLAUDE.md). Essai
   `--fleches-test --drive-from=-10975,236,-1100,90` (itinéraire calculé par l'essai : sans activité, rien ne remplace
   `activities.route_gps`). Pièges : chevrons à plat trop fins vus de la caméra (carré allongé à 4,2 m) ; sens du
@@ -41,8 +47,7 @@ recyclé). Mis à jour et poussé après chaque livraison et chaque étape impor
   publié sur `donnees`) : arcs à moins de 12 m de la limite évités par l'A*, nœuds en enclave jamais départ/arrivée ;
   livreur (adresses et restaurants à 60 m), arrêts Ruban (30 m), fuite du gendarme (`circulation.trajet` s'arrête),
   épreuve 5 (étape dans les collines retirée, temps réduits d'autant). Essai `--zone-test` (200 itinéraires près de
-  la limite : 46 passaient dehors, 0 après). Reste ouverte : #157 (option cascade façon Golden
-  Sun 2 au bord ; hypothèses publiées dans l'issue).
+  la limite : 46 passaient dehors, 0 après). #157 livrée en v7.18.
 - **v7.15 (#150)** : Focus de gendarmerie (choix A, règles 1-5 validées) pour les gendarmes et l'activité
   « Gendarme » ; son Toledo. Modèle `godot/import/voitures/gendarme/model.glb` (copié de la planche, Sketchfab uid
   0b2f13be68734710b620a87088b82ad3) ; conversion `blender_voitures_joueur.py -- gendarme` (toujours `--`, sinon toutes

@@ -495,6 +495,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_gendarmes_test()
 		return
+	if OS.get_cmdline_user_args().has("--cascade-test"):
+		if t == 300:
+			_cascade_test()
+		return
 	if OS.get_cmdline_user_args().has("--fleches-test"):
 		if t == 300:
 			_fleches_test()
@@ -3486,6 +3490,101 @@ func _helico_test() -> void:
 ## 3) en retard. Capture livreur.png à la première adresse.
 ## #156 : rien ne doit conduire dans les collines du bord (hors de la zone jouable). Itinéraires entre points proches
 ## de la limite (sans puis avec l'évitement), adresses du livreur, arrêts des lignes Ruban, fuite du gendarme, épreuves.
+## #157 : bord « cascade » façon Golden Sun 2. -- --drive-test --cascade-test [--drive-from=…] : voiture posée à 60 m
+## du point de la limite le plus proche, face au vide ; captures cascade_1 (derrière la voiture), cascade_2 (au-dessus
+## de la lèvre), cascade_3 (depuis le vide, vers le monde ; cascade_5 : le soir), cascade_4 (dans l'eau) ; pleins gaz vers le vide : la
+## voiture doit rester dans la zone ; retour aux collines (tuiles du talus rechargées).
+func _cascade_test() -> void:
+	var bd: Node = get_node("Bord")
+	var cs = bd.cascade_node
+	var dire := func(x: String): print("  [cascade] " + x)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	circulation.set_densite(0)
+	car.aide_voie = false
+	var c0 := Vector2(car.global_position.x, car.global_position.z)
+	var bi := 0
+	var bdist := INF
+	for i in cs._n:
+		var d := c0.distance_to(Vector2(cs._d[i * 9], cs._d[i * 9 + 1]))
+		if d < bdist:
+			bdist = d; bi = i
+	var p := Vector2(cs._d[bi * 9], cs._d[bi * 9 + 1])
+	var nr := Vector2(cs._d[bi * 9 + 2], cs._d[bi * 9 + 3])
+	var h0: float = cs._d[bi * 9 + 4]
+	dire.call("limite la plus proche à %.0f m : (%.0f, %.0f), lèvre à %.0f m, nuages à %.0f m" % [bdist, p.x, p.y, h0, cs.y_nuages])
+	var t0 := Time.get_ticks_usec()
+	bd.set_cascade(true)
+	dire.call("option activée en %.1f ms : actif %s" % [(Time.get_ticks_usec() - t0) / 1000.0, str(bd.cascade)])
+	var q := p - nr * 60.0
+	await _teleport(Vector3(q.x, Relief.hauteur(Vector3(q.x, 0.0, q.y)) + 1.0, q.y), rad_to_deg(atan2(nr.x, -nr.y)))
+	for f in 120:
+		car.frein_parking = true
+		await get_tree().physics_frame
+	dire.call("morceaux de cascade : %d, talus chargés : %d" % [cs._morceaux.size(), bd.loaded.size()])
+	var fw := car.global_transform.basis.z
+	dire.call("voiture : avant (%.2f, %.2f), vers le vide (%.2f, %.2f), à %.1f m de la limite" % [fw.x, fw.z, nr.x, nr.y, -float(bd.hors_carte(car.global_position)[0])])
+	get_viewport().get_texture().get_image().save_png("user://shots/cascade_1.png")
+	var cam := Camera3D.new()
+	cam.fov = 60.0
+	cam.far = 30000.0
+	add_child(cam)
+	var cam0 := get_viewport().get_camera_3d()
+	var vues := [[p - nr * 30.0, h0 + 14.0, p + nr * 40.0, h0 - 60.0], [p + nr * 90.0, h0 + 25.0, p - nr * 40.0, h0 - 10.0]]
+	for k in vues.size():
+		var v: Array = vues[k]
+		var a: Vector2 = v[0]; var b: Vector2 = v[2]
+		cam.current = true
+		cam.global_position = Vector3(a.x, float(v[1]), a.y)
+		cam.look_at(Vector3(b.x, float(v[3]), b.y))
+		for f in 12:
+			await get_tree().process_frame
+		get_viewport().get_texture().get_image().save_png("user://shots/cascade_%d.png" % (k + 2))
+	var heure: int = time_of_day
+	set_time(2)                                       # au soir, depuis le vide
+	for f in 30:
+		await get_tree().process_frame
+	get_viewport().get_texture().get_image().save_png("user://shots/cascade_5.png")
+	set_time(heure)
+	cam0.current = true
+	# pleins gaz vers le vide
+	var dmax := -INF
+	var eau := false
+	var vmax := 0.0
+	var t := 0.0
+	var pris := false
+	while t < 12.0:
+		car.frein_parking = false
+		car.touch_throttle = 1.0
+		car.touch_steer = 0.0
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+		var hc: Array = bd.hors_carte(car.global_position)
+		if hc[1] != Vector2.ZERO:
+			dmax = maxf(dmax, float(hc[0]))
+		eau = eau or bd._dans_eau
+		if int(t * 60.0) % 60 == 0:
+			dire.call("  t=%.0f s : %.0f km/h, à %.1f m de la limite" % [t, car.kmh(), -float(hc[0]) if hc[1] != Vector2.ZERO else INF])
+		vmax = maxf(vmax, car.kmh())
+		if bd._dans_eau and not pris and t > 0.3:
+			pris = true
+			for f in 4:
+				await get_tree().process_frame
+			get_viewport().get_texture().get_image().save_png("user://shots/cascade_4.png")
+	car.touch_throttle = 0.0
+	var dedans := ZoneJ.dedans(Vector2(car.global_position.x, car.global_position.z))
+	dire.call("pleins gaz 12 s vers le vide : %.0f km/h au plus, dans l'eau %s, au plus près à %.1f m de la limite, dans la zone à la fin %s" % [vmax, str(eau), -dmax, str(dedans)])
+	var pe = PerfMon._sys.get("cascade", [0, 0, 1])
+	dire.call("cascade.gd : %.3f ms par image en moyenne, pire %.2f ms (tranche en cours)" % [float(pe[0]) / maxf(float(pe[2]), 1.0) / 1000.0, float(pe[1]) / 1000.0])
+	bd.set_cascade(false)
+	for f in 60:
+		await get_tree().process_frame
+	dire.call("retour aux collines : actif %s, talus chargés %d, morceaux de cascade %d" % [str(bd.cascade), bd.loaded.size(), cs._morceaux.size()])
+	dire.call("RÉSULTAT : " + ("OK" if dedans and dmax < -0.5 and eau and bd.loaded.size() > 0 else "ÉCHEC"))
+	get_tree().quit()
+
 ## #154 : flèches d'itinéraire sur la route. -- --drive-test --fleches-test --drive-from=-10975,236,-1100,90 : tournée du
 ## livreur (itinéraire vers le restaurant), voiture posée sur le tracé ; nombre de chevrons, écarts, hauteur au-dessus
 ## du relief, chevrons calés (ils ne glissent pas quand la voiture avance), captures fleches_1/2/3.png (la 3 : de nuit).

@@ -260,6 +260,9 @@ void accumulate_material(const vec3 base_ddx, const vec3 base_ddy, const float w
 }
 
 void fragment() {
+	if (env_hors_monde(v_vertex)) {          // bord « cascade » (#157)
+		discard;
+	}
 
  vec2 uv = UV;
  vec2 uv2 = UV2;

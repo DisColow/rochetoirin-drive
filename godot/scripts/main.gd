@@ -1170,6 +1170,7 @@ func _far() -> void:
 		var mat := ShaderMaterial.new()
 		mat.shader = sh
 		mat.set_shader_parameter("tex", tex)
+		preload("res://scripts/env.gd").add(mat)           # bord « cascade » (#157) : env_bout_monde, env_zone_sdf
 		for mi in n.find_children("*", "MeshInstance3D", true, false):
 			mi.material_override = mat
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

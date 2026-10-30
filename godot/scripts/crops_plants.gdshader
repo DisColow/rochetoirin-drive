@@ -52,6 +52,9 @@ void vertex() {
 }
 
 void fragment() {
+	if (env_hors_monde(v_wp)) {          // bord « cascade » (#157)
+		discard;
+	}
 	// fondu large (dernier 40 % de la portée) : les plants s'éclaircissent peu à peu au lieu de finir en mur
 	float dc = length(v_wp - env_cam);
 	if (fade_far > 0.0 && !env_dither_keep(clamp((fade_far - dc) / (fade_far * 0.4), 0.0, 1.0), FRAGCOORD.xy)) {

@@ -37,6 +37,9 @@ void vertex() {
 
 void fragment() {
 	vec2 p = v_xz;
+	if (env_hors_monde(vec3(p.x, 0.0, p.y))) {          // bord « cascade » (#157)
+		discard;
+	}
 	if (charge(p)) {
 		vec2 f = p - floor(p / REG) * REG;
 		bool bord = (f.x < BORD && !charge(p - vec2(REG, 0.0))) || (f.x > REG - BORD && !charge(p + vec2(REG, 0.0)))

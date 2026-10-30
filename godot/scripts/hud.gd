@@ -272,6 +272,25 @@ func _open_settings() -> void:
 		var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
 		cfg.set_value("conduite", "aide_voie", on); cfg.save("user://reglages.cfg"))
 	v.add_child(b_voie)
+	# bord de la carte (#157) : collines (Motocross Madness) ou cascade (Golden Sun 2)
+	var bd = get_parent().get_node_or_null("Bord")
+	if bd and bd.cascade_node and bd.cascade_node._n > 0:
+		var lb := Label.new(); lb.text = "Bord de la carte"; lb.add_theme_font_size_override("font_size", 28); v.add_child(lb)
+		var hb := HBoxContainer.new(); hb.add_theme_constant_override("separation", 12); v.add_child(hb)
+		for i in 2:
+			var b := Button.new()
+			b.text = ["Collines", "Cascade"][i]
+			b.toggle_mode = true
+			b.button_pressed = (i == 1) == bd.cascade
+			b.custom_minimum_size = Vector2(220, 70)
+			b.add_theme_font_size_override("font_size", 28)
+			b.pressed.connect(func():
+				bd.set_cascade(i == 1)
+				var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+				cfg.set_value("affichage", "bord_cascade", i == 1); cfg.save("user://reglages.cfg")
+				for c in hb.get_children():
+					c.button_pressed = c == b)
+			hb.add_child(b)
 	# flèches d'itinéraire sur la route (#154)
 	var fl = get_parent().get("fleches_route")
 	if fl:

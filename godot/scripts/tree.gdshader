@@ -33,6 +33,9 @@ void vertex() {
 }
 
 void fragment() {
+	if (env_hors_monde(v_wp)) {          // bord « cascade » (#157)
+		discard;
+	}
 	// s'efface là où l'imposteur apparaît : mêmes pixels de la trame, en négatif
 	if (env_dither_keep(clamp((v_cd - (near_cut - 4.0)) / 8.0, 0.0, 1.0), FRAGCOORD.xy)) {
 		discard;

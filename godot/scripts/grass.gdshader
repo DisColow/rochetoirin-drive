@@ -36,6 +36,9 @@ float bayer(vec2 p) {
 }
 
 void fragment() {
+	if (env_hors_monde(v_wp)) {          // bord « cascade » (#157)
+		discard;
+	}
 	vec4 c = texture(atlas, UV);
 	float f = clamp((v_dist - fade_start) / (fade_end - fade_start), 0.0, 1.0);
 	if (c.a < 0.5 || f > bayer(FRAGCOORD.xy) * 0.999 + 0.0005 && f > 0.0) {

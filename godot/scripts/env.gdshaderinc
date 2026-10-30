@@ -24,6 +24,7 @@ vec3 env_casse(vec3 wp) {
 	return wp;
 }
 uniform vec3 env_cam = vec3(0.0);
+#include "res://scripts/bout_monde.gdshaderinc"
 
 // Phares factices (réglage Économie, #124) : pas de vraie lampe (en Compatibility, chaque lampe redessine une fois de
 // plus chaque objet qu'elle touche) ; le sol, les routes et les murs ajoutent eux-mêmes la lumière des phares du joueur.
@@ -86,6 +87,7 @@ bool env_far_keep(float d, float far, vec2 fc) {
 	return env_dither_keep(clamp((far - d) / band, 0.0, 1.0), fc);
 }
 // Fondu au loin d'un point du monde, pour ce matériau : if (!env_fade_keep(v_wp, FRAGCOORD.xy)) { discard; }
+// (et rien au-delà de la limite de la carte avec le bord « cascade », #157)
 bool env_fade_keep(vec3 wp, vec2 fc) {
-	return env_far_keep(length(wp - env_cam), fade_far, fc);
+	return !env_hors_monde(wp) && env_far_keep(length(wp - env_cam), fade_far, fc);
 }

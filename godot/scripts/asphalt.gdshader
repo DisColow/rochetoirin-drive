@@ -25,6 +25,9 @@ float vnoise(vec2 p) {
 
 void fragment() {
 	vec2 p = wpos.xz;
+	if (env_hors_monde(wpos)) {          // bord « cascade » (#157)
+		discard;
+	}
 	vec2 u1 = p * scale;
 	vec2 u2 = mat2(vec2(0.8, 0.6), vec2(-0.6, 0.8)) * p * scale * 0.37 + vec2(0.31, 0.17);
 	float m = smoothstep(0.3, 0.7, vnoise(p * 0.05));

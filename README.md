@@ -16,9 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.17 :
-- **Itinéraire sur la route** : façon Forza Horizon, des flèches bleues animées posées sur la chaussée montrent le
-  chemin du GPS pendant les activités (⚙ > Conduite pour les masquer).
+Nouveautés de la v7.18 :
+- **Bord de la carte en cascade** : comme dans Golden Sun 2, le monde peut maintenant s'arrêter au bord d'une immense
+  chute d'eau qui tombe dans une mer de nuages (⚙ > Conduite > Bord de la carte : Collines ou Cascade).
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
