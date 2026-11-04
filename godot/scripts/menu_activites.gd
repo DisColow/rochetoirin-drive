@@ -553,11 +553,16 @@ func _succes() -> void:
 			j.custom_minimum_size = Vector2(380, 34)
 			t.add_child(j)
 			_texte(t, "Prime : %d €" % int(s.prime), 18, Color(1.0, 0.9, 0.6))
+	# statistiques dans leur propre zone défilable : 30 lignes et plus dépassaient le bas de l'écran (play test du 04/11)
+	var sc2 := ScrollContainer.new()
+	sc2.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(sc2)
 	var pc2 := PanelContainer.new()
 	pc2.add_theme_stylebox_override("panel", UI.panel(18, 12))
 	pc2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pc2.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	h.add_child(pc2)
+	sc2.add_child(pc2)
 	var sv := VBoxContainer.new()
 	sv.add_theme_constant_override("separation", 6)
 	pc2.add_child(sv)

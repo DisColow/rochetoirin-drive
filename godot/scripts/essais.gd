@@ -507,6 +507,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_hud_test()
 		return
+	if OS.get_cmdline_user_args().has("--explore-test"):
+		if t == 300:
+			_explore_test()
+		return
 	if OS.get_cmdline_user_args().has("--deuche-test"):
 		if t == 300:
 			_deuche_test()
@@ -5786,5 +5790,143 @@ func _pietons_test() -> void:
 			eloignes, proches])
 	releve.call("fin")
 	cam.queue_free()
+	dire.call("FIN")
+	get_tree().quit()
+
+# ---------------------------------------------------------------- essai : --explore-test (play test, recherche de bugs)
+## Joue comme un joueur : tous les onglets du menu Activités et les réglages (captures, texte qui sort de l'écran),
+## puis chaque activité lancée, conduite 12 s vers le GPS, une autre lancée par-dessus, arrêtée : ce qui reste
+## derrière (mode, voiture, carte verrouillée, carte d'activité, GPS, activités encore actives) est relevé.
+func _explore_test() -> void:
+	var dire := func(x: String): print("  [explore] " + x)
+	var hud := get_node("HUD")
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	var vp: Array = circulation.voie_proche(car.global_position, 80.0)
+	await _teleport((vp[0] as Vector3) + Vector3.UP * 0.5, rad_to_deg(atan2((vp[1] as Vector3).x, -(vp[1] as Vector3).z)))
+	for f in 60:
+		await get_tree().process_frame
+	var ecran: Vector2 = get_viewport().get_visible_rect().size
+	var cap := func(nom: String) -> void:
+		get_viewport().get_texture().get_image().save_png("user://shots/explore_%s.png" % nom)
+	var hors := func(racine: Node) -> Array:
+		var l: Array = []
+		for c in racine.find_children("*", "Control", true, false):
+			var cc := c as Control
+			if not cc.is_visible_in_tree() or cc is ScrollContainer:
+				continue
+			var r := cc.get_global_rect()
+			var dans_defil := false
+			var pa := cc.get_parent()
+			while pa:
+				if pa is ScrollContainer:
+					dans_defil = true
+					break
+				pa = pa.get_parent()
+			if dans_defil:
+				continue
+			if r.end.x > ecran.x + 2 or r.end.y > ecran.y + 2 or r.position.x < -2 or r.position.y < -2:
+				var txt: String = str(cc.get("text")) if cc.get("text") != null else ""
+				l.append("%s « %s » %s" % [cc.get_class(), txt.left(40), str(r)])
+		return l
+	# 1. menus
+	var menu_act = preload("res://scripts/menu_activites.gd")
+	for i in menu_act.ONGLETS.size():
+		activities.open_menu(i)
+		get_tree().paused = false
+		for f in 40:
+			await get_tree().process_frame
+		cap.call("menu_%d" % i)
+		var h: Array = hors.call(activities._menu)
+		dire.call("onglet %s : %d éléments hors de l'écran %s" % [menu_act.ONGLETS[i], h.size(), str(h.slice(0, 3))])
+		activities._resume()
+		for f in 5:
+			await get_tree().process_frame
+	hud._open_settings()
+	get_tree().paused = false
+	for f in 40:
+		await get_tree().process_frame
+	cap.call("reglages")
+	dire.call("réglages : %d éléments hors de l'écran %s" % [hors.call(hud.settings).size(), str(hors.call(hud.settings).slice(0, 3))])
+	hud._fermer_reglages()
+	for f in 10:
+		await get_tree().process_frame
+	dire.call("après les menus : pause %s, conduite visible %s" % [get_tree().paused, hud.speed_panel.visible])
+	# 2. activités
+	var voiture0: String = car.voiture
+	var actives := func() -> String:
+		var l: Array = []
+		for n in ["balade", "ligne_bus", "livreur", "gendarme_joueur"]:
+			var o = get(n)
+			if o and bool(o.get("actif")):
+				l.append(n)
+		return ",".join(l)
+	var conduire := func(duree: float) -> void:
+		var t0 := 0.0
+		while t0 < duree:
+			await get_tree().physics_frame
+			t0 += get_physics_process_delta_time()
+			if hud.consigne_ouverte:
+				for b in hud.consigne_ouverte.find_children("*", "Button", true, false):
+					(b as Button).pressed.emit()
+			if activities.mode == "balade":
+				continue
+			var rg: PackedVector2Array = activities.route_gps
+			var p := Vector2(car.global_position.x, car.global_position.z)
+			var cible := p + Vector2(-car.global_transform.basis.z.x, -car.global_transform.basis.z.z) * 20.0
+			for q in rg:
+				if q.distance_to(p) > 15.0:
+					cible = q
+					break
+			var av := Vector2(-car.global_transform.basis.z.x, -car.global_transform.basis.z.z)
+			var ang := av.angle_to(cible - p)
+			car.touch_steer = clampf(ang * 2.0, -1.0, 1.0)
+			car.touch_throttle = 0.6 if car.kmh() < 40.0 else 0.0
+			car.touch_brake = 0.0
+	var starts := [["taxi", activities._taxi_start], ["livreur", activities._livreur_start], ["bus", activities._bus_start],
+		["gendarme", activities._gendarme_start], ["balade", activities._balade_start], ["chasse", activities._hunt_random]]
+	for st in starts:
+		var argent0: float = garage.argent
+		(st[1] as Callable).call()
+		for f in 20:
+			await get_tree().process_frame
+		get_tree().paused = false
+		await conduire.call(12.0)
+		cap.call("act_%s" % st[0])
+		dire.call("%s : mode « %s », voiture %s, actives [%s], carte « %s », GPS %d points, carte verrouillée %s" % [st[0],
+			activities.mode, car.voiture, actives.call(), activities.statut.replace("\n", " / ").left(90), activities.route_gps.size(), activities.map.locked])
+		var h2: Array = hors.call(hud)
+		if not h2.is_empty():
+			dire.call("  HUD : %d éléments hors de l'écran %s" % [h2.size(), str(h2.slice(0, 3))])
+		# une autre activité lancée par-dessus (menu Activités ouvert pendant l'activité)
+		var autre: Array = starts[0] if st[0] != "taxi" else starts[1]
+		(autre[1] as Callable).call()
+		for f in 20:
+			await get_tree().process_frame
+		if hud.consigne_ouverte:
+			for b in hud.consigne_ouverte.find_children("*", "Button", true, false):
+				(b as Button).pressed.emit()
+		get_tree().paused = false
+		dire.call("  + %s lancé par-dessus : mode « %s », voiture %s, actives [%s]" % [autre[0], activities.mode, car.voiture, actives.call()])
+		activities._stop()
+		for f in 60:
+			await get_tree().physics_frame
+		car.touch_throttle = 0.0
+		car.touch_steer = 0.0
+		var pb: Array = []
+		if activities.mode != "": pb.append("mode « %s »" % activities.mode)
+		if car.voiture != voiture0: pb.append("voiture %s au lieu de %s" % [car.voiture, voiture0])
+		if actives.call() != "": pb.append("encore actives [%s]" % actives.call())
+		if activities.map.locked: pb.append("carte verrouillée")
+		if activities.statut != "": pb.append("carte « %s »" % activities.statut.left(60))
+		if not activities.route_gps.is_empty(): pb.append("GPS restant")
+		if activities._beacons.size() > 0: pb.append("%d balises" % activities._beacons.size())
+		if get_tree().paused: pb.append("jeu en pause")
+		dire.call("  arrêt : %s (argent %+.2f €)" % ["propre" if pb.is_empty() else "PROBLÈME " + ", ".join(pb), garage.argent - argent0])
+		if car.voiture != voiture0:
+			garage.conduire(voiture0)
+		for f in 30:
+			await get_tree().process_frame
 	dire.call("FIN")
 	get_tree().quit()
