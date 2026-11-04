@@ -40,7 +40,10 @@ func _ready() -> void:
 func peut_sortir() -> bool:
 	var car = main.car
 	var act = main.get("activities")
-	return not actif and car.kmh() < 3.0 and (act == null or str(act.mode) == "")
+	# ni activité ni menu ouvert : le garage laisse le jeu tourner (caméra autour de la voiture) et la touche « à pied »
+	# y faisait descendre (play test du 04/11 : plantage du moteur à la remontée après des achats au garage)
+	var menu = act.get("_menu") if act else null
+	return not actif and car.kmh() < 3.0 and (act == null or str(act.mode) == "") and not (menu and is_instance_valid(menu))
 
 func pres_de_la_voiture() -> bool:
 	return actif and corps and corps.global_position.distance_to(main.car.global_position) < PORTEE_MONTER
@@ -50,6 +53,8 @@ func basculer() -> void:
 		monter()                                       # d'où qu'on soit : retour direct dans la voiture
 	elif peut_sortir():
 		sortir()
+	elif main.get("activities") and main.activities.get("_menu") and is_instance_valid(main.activities._menu):
+		return                                          # menu ou garage ouvert : la touche ne fait rien
 	else:
 		main.get_node("HUD").toast("Arrêtez-vous (et l'activité en cours) pour descendre.", 2.5)
 

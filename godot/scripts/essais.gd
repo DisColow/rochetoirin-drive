@@ -6000,6 +6000,33 @@ func _explore2_test() -> void:
 			get_tree().paused = false
 		dire.call("%s : %d boutons pressés" % [nom, faits.size()])
 	# réglages
+	if OS.get_cmdline_user_args().has("--explore2-garage-pied"):
+		# touche « à pied » pressée garage ouvert (le garage ne met pas le jeu en pause), puis de nouveau pour monter
+		car.hold(1.0)
+		for f in 30:
+			await get_tree().physics_frame
+		activities._garage()
+		for f in 30:
+			await get_tree().process_frame
+		dire.call("garage ouvert : menu %s, pause %s, peut sortir %s" % [str(activities._menu), get_tree().paused, pied.peut_sortir()])
+		pied.basculer()
+		for f in 120:
+			await get_tree().physics_frame
+		dire.call("touche à pied dans le garage : à pied %s" % str(pied.actif))
+		pied.basculer()
+		for f in 60:
+			await get_tree().physics_frame
+		dire.call("touche de nouveau : à pied %s ; garage %s" % [str(pied.actif), str(activities._menu)])
+		if activities._menu and is_instance_valid(activities._menu):
+			for b in activities._menu.find_children("*", "Button", true, false):
+				if (b as Button).text == "Quitter":
+					(b as Button).pressed.emit()
+					break
+		for f in 60:
+			await get_tree().process_frame
+		dire.call("garage quitté, FIN")
+		get_tree().quit()
+		return
 	if seul_pied:
 		pass
 	else:
