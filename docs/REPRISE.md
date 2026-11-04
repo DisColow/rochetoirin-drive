@@ -3,7 +3,25 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 30/10/2026 (v6.84 #131 à v7.23 livrées)
+## État au 04/11/2026 (v6.84 #131 à v7.24 livrées)
+- **v7.24 : play tests** (demande de l'utilisateur du 04/11 : « fais des play tests pour découvrir les bugs et les
+  corriger, une issue par bug »). Bugs trouvés et corrigés, une issue chacun, « à tester » : #168 statistiques de
+  l'onglet Succès coupées (zone défilable), #169 taxi / balade / dernier tracé lancés pendant une autre activité
+  (les deux tournaient : `act._stop()` dans les boutons du menu), #170 rampe et sirène du gendarme restées sur la
+  voiture du joueur (`habiller` rend `noeuds`, retirés par `arreter`), #171 erreur « action klaxon » au chargement,
+  #172 descente à pied possible garage ouvert, #173 **plantage** à la remontée dans la voiture (Terrain3D garde un
+  pointeur brut vers la caméra : `terrain.set_camera(cam_rig.cam)` avant de libérer la caméra du piéton ou de la
+  balade ; avant : plantage en 1 à 25 allers-retours, après : 25 et 50 sans plantage).
+  **Jouer sans l'import du monde** (conteneur neuf, ~2 Go importés impossibles ici) : télécharger la version
+  Steam Deck de la release (`gh api .../releases/assets/<id>`, tar.gz : binaire + `.pck`), extraire le `.pck`
+  dans un dossier avec un petit script (`godot --headless --main-pack X.pck --script extraire.gd` : copie de
+  `res://` fichier par fichier), retirer les `scripts/*.gdc` et `*.gd.remap`, y copier `scripts/*.gd`, `addons/`,
+  `tools/` et `project.godot` du dépôt (retirer `project.binary`) : `godot --path <dossier>` lance le jeu avec les
+  scripts du dépôt. Essais d'exploration : `--explore-test [--explore-act=taxi,bus,…]` (onglets, réglages,
+  activités lancées puis arrêtées : ce qui reste derrière) et `--explore2-test [--explore2-pied]
+  [--explore2-pied-n=N] [--explore2-garage-pied]` (boutons des réglages et du garage, à pied, carte).
+  Piège : l'essai `--drive-test` simple finit à 15 s de jeu, avant la fin du chargement ici (rendu logiciel).
+
 - Branche `godot`, worktree `rochetoirin-godot`. Tirer : `GIT_LFS_SKIP_SMUDGE=1 git pull --rebase origin godot`.
   Sauvegarde du travail en cours : `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:refs/heads/<branche neuve>` (ex. `v691` ;
   jamais de push forcé ; pousser `godot/` sur `godot` déclenche l'APK). Quota Git LFS dépassé : toujours

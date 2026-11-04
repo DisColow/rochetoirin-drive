@@ -698,6 +698,9 @@
   quand le HUD de conduite est caché ; ⚙ > Conduite (`conduite/retroviseur`) ; en Économie une image sur 8, coupé
   sous 24 img/s (v7.23). Carte et messages bornés en largeur (`CARTE_L`, 600 px) : retour à la ligne avant le
   rétroviseur. Essai `--hud-test`.
+- **Play tests** (v7.24) : essais `--explore-test` et `--explore2-test` (voir docs/REPRISE.md) ; **toute caméra
+  temporaire (piéton, balade…) : rendre `cam_rig.cam` au relief (`terrain.set_camera`) avant de la libérer**
+  (Terrain3D garde un pointeur brut : plantage du moteur sinon, #173).
 - **Flèches d'itinéraire sur la route** (v7.17, #154, façon Forza Horizon, `scripts/fleches_route.gd` +
   `fleches_route.gdshader`) : chevrons « Λ » bleus semi-transparents (MultiMesh, sans ombre ni lumière) le long de
   `activities.route_gps`, tous les 7 m de 6 à 160 m devant (un de plus entre deux avant un virage), calés sur la

@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v7.15.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.15/RochetoirinSimulator-v7.15.apk)**
+**[RochetoirinSimulator-v7.24.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.24/RochetoirinSimulator-v7.24.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,9 +16,11 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.23 :
-- **Rétroviseur** plus économe en réglage Économie (et coupé tant que le jeu rame).
-- **Carte d'activité et messages** : les textes longs passent à la ligne au lieu de déborder sur le rétroviseur.
+Nouveautés de la v7.24 (corrections trouvées en jouant) :
+- **Plus de plantage** en remontant dans la voiture après une balade à pied.
+- **Activités** : lancer le taxi ou une balade pendant une autre activité arrête bien la première.
+- **Gendarme** : la rampe de gyrophares et la sirène ne restent plus sur votre voiture après le service.
+- **Succès** : la liste des statistiques défile jusqu'en bas ; plus de descente à pied depuis le garage.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
