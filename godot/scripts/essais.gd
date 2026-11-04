@@ -5834,9 +5834,13 @@ func _explore_test() -> void:
 				var txt: String = str(cc.get("text")) if cc.get("text") != null else ""
 				l.append("%s « %s » %s" % [cc.get_class(), txt.left(40), str(r)])
 		return l
-	# 1. menus
+	# 1. menus (--explore-act=a,b : activités choisies seulement, sans les menus)
+	var choix: Array = []
+	for x in OS.get_cmdline_user_args():
+		if x.begins_with("--explore-act="):
+			choix = Array(x.trim_prefix("--explore-act=").split(","))
 	var menu_act = preload("res://scripts/menu_activites.gd")
-	for i in menu_act.ONGLETS.size():
+	for i in (0 if not choix.is_empty() else menu_act.ONGLETS.size()):
 		activities.open_menu(i)
 		get_tree().paused = false
 		for f in 40:
@@ -5892,6 +5896,8 @@ func _explore_test() -> void:
 	var starts := [["taxi", activities._taxi_start], ["livreur", activities._livreur_start], ["bus", activities._bus_start],
 		["gendarme", activities._gendarme_start], ["balade", activities._balade_start], ["chasse", activities._hunt_random]]
 	for st in starts:
+		if not choix.is_empty() and not choix.has(st[0]):
+			continue
 		var argent0: float = garage.argent
 		(st[1] as Callable).call()
 		for f in 20:
