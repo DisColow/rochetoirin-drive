@@ -5855,6 +5855,7 @@ func _explore_test() -> void:
 	dire.call("après les menus : pause %s, conduite visible %s" % [get_tree().paused, hud.speed_panel.visible])
 	# 2. activités
 	var voiture0: String = car.voiture
+	var enfants0 := car.get_child_count()
 	var actives := func() -> String:
 		var l: Array = []
 		for n in ["balade", "ligne_bus", "livreur", "gendarme_joueur"]:
@@ -5901,7 +5902,17 @@ func _explore_test() -> void:
 			dire.call("  HUD : %d éléments hors de l'écran %s" % [h2.size(), str(h2.slice(0, 3))])
 		# une autre activité lancée par-dessus (menu Activités ouvert pendant l'activité)
 		var autre: Array = starts[0] if st[0] != "taxi" else starts[1]
-		(autre[1] as Callable).call()
+		if autre[0] == "taxi":           # comme le joueur : menu Activités > Métiers > « Commencer le service »
+			activities.open_menu(2)
+			get_tree().paused = false
+			for f in 10:
+				await get_tree().process_frame
+			for b in activities._menu.find_children("*", "Button", true, false):
+				if (b as Button).text == "Commencer le service":
+					(b as Button).pressed.emit()
+					break
+		else:
+			(autre[1] as Callable).call()
 		for f in 20:
 			await get_tree().process_frame
 		if hud.consigne_ouverte:
@@ -5923,6 +5934,11 @@ func _explore_test() -> void:
 		if not activities.route_gps.is_empty(): pb.append("GPS restant")
 		if activities._beacons.size() > 0: pb.append("%d balises" % activities._beacons.size())
 		if get_tree().paused: pb.append("jeu en pause")
+		var en_plus := car.get_children().filter(func(n): return not n.is_queued_for_deletion()).size() - enfants0
+		if en_plus != 0: pb.append("%+d nœud(s) sur la voiture" % en_plus)
+		var sons := car.get_children().filter(func(n): return n is AudioStreamPlayer3D and not n.is_queued_for_deletion() \
+			and (n as AudioStreamPlayer3D).playing and (n as AudioStreamPlayer3D).max_distance >= 600.0)
+		if not sons.is_empty(): pb.append("sirène qui tourne")
 		dire.call("  arrêt : %s (argent %+.2f €)" % ["propre" if pb.is_empty() else "PROBLÈME " + ", ".join(pb), garage.argent - argent0])
 		if car.voiture != voiture0:
 			garage.conduire(voiture0)

@@ -187,7 +187,8 @@ static func _rampe(v: Car) -> Dictionary:
 	sirene.volume_db = -2.0
 	sirene.bus = "Monde"
 	v.add_child(sirene)
-	return {"gyro": gyro, "lueur": lueur, "sirene": sirene}
+	# noeuds : tout ce qui a été ajouté à la voiture (à retirer quand le joueur reprend sa voiture)
+	return {"gyro": gyro, "lueur": lueur, "sirene": sirene, "noeuds": [socle, lueur, sirene] + gyro.map(func(e): return e[0])}
 
 func voir_gyros(on: bool) -> void:
 	if _sirene == null:

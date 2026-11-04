@@ -57,6 +57,7 @@ var _choc_cd := 0.0
 var _gyro: Array = []
 var _lueur: OmniLight3D
 var _sirene: AudioStreamPlayer3D
+var _habits: Array = []             # rampe, lueur et sirène posées sur la voiture du joueur (retirées à la fin)
 var depart_dir := Vector3.FORWARD                 # sens de départ (essai : route jusqu'au fuyard)
 
 func _act():
@@ -96,6 +97,7 @@ func demarrer() -> bool:
 	car.hold(0.3)
 	var h := Gendarme.habiller(car, Color(0.1, 0.17, 0.42))
 	_gyro = h.gyro; _lueur = h.lueur; _sirene = h.sirene
+	_habits = h.noeuds
 	_sirene.volume_db = -8.0                      # la sienne : moins forte que celles des autres
 	if _sirene.stream:
 		_sirene.play()
@@ -161,6 +163,13 @@ func arreter() -> void:
 			f.g.queue_free()
 	fuyards.clear()
 	fuyard = null
+	# la rampe est enfant de la voiture du joueur, pas du modèle : elle restait sur le toit de la voiture reprise
+	# (play test du 04/11)
+	for n in _habits:
+		if is_instance_valid(n):
+			(n as Node).queue_free()
+	_habits.clear()
+	_gyro = []; _lueur = null; _sirene = null
 	var g = main.get("garage")
 	if g:
 		g.vue_changee.emit(g.vue)                 # on reprend sa voiture (comme après la ligne de bus)
