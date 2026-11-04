@@ -117,6 +117,10 @@ func monter() -> void:
 	main.suivre(car)
 	main.cam_rig.set_process(true)
 	main.cam_rig.cam.make_current()
+	# le relief (Terrain3D) garde un pointeur brut vers la caméra : rendu tout de suite, avant que la caméra libérée
+	# ne disparaisse (sinon lecture d'une caméra détruite à l'image suivante : plantage du moteur, play test du 04/11)
+	if main.terrain:
+		main.terrain.set_camera(main.cam_rig.cam)
 	if corps:
 		corps.queue_free()
 	corps = null

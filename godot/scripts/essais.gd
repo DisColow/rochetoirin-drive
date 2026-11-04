@@ -6078,6 +6078,18 @@ func _explore2_menus(hud: Node, presser: Callable, dire: Callable) -> void:
 		dire.call("garage quitté : menu %s, pause %s" % [str(activities._menu), get_tree().paused])
 
 func _explore2_pied(dire: Callable) -> void:
+	var n := 1
+	for x in OS.get_cmdline_user_args():
+		if x.begins_with("--explore2-pied-n="):
+			n = int(x.trim_prefix("--explore2-pied-n="))
+	for k in n - 1:                       # descentes et remontées enchaînées (plantage aléatoire à la remontée)
+		pied.sortir()
+		for f in 40:
+			await get_tree().physics_frame
+		pied.monter()
+		for f in 20:
+			await get_tree().physics_frame
+		print("  [explore2] aller-retour à pied %d/%d" % [k + 1, n])
 	if get("pied"):
 		pied.sortir()
 		for f in 120:

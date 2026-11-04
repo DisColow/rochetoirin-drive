@@ -73,6 +73,10 @@ func arreter() -> void:
 		_cam.queue_free()
 		_cam = null
 	main.cam_rig.cam.current = true
+	# le relief (Terrain3D) garde un pointeur brut vers la caméra : rendu tout de suite, avant que la caméra libérée
+	# ne disparaisse (sinon lecture d'une caméra détruite à l'image suivante : plantage du moteur, play test du 04/11)
+	if main.terrain:
+		main.terrain.set_camera(main.cam_rig.cam)
 	var hud = main.get_node_or_null("HUD")
 	if hud and hud.has_method("commandes_visibles"):
 		hud.commandes_visibles(true)
