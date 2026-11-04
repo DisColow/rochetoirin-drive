@@ -288,17 +288,19 @@ func _fiche(h: Control, e: Dictionary) -> void:
 	ret.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 # ---------------------------------------------------------------- autres onglets
+# Taxi, balade et « Recommencer le dernier tracé » n'arrêtaient pas l'activité en cours : lancés depuis le menu
+# pendant une tournée de livreur ou une ligne de bus, les deux tournaient ensemble (play test du 04/11) -> act._stop().
 func _course() -> void:
 	var v := _colonne()
 	_texte(v, "Posez un départ, des étapes si vous voulez, et une arrivée sur la carte : portes lumineuses, compte à "
 		+ "rebours et chrono.")
 	_bouton(v, "Créer un tracé", act._course_setup)
 	if not act._last_route.is_empty():
-		_bouton(v, "Recommencer le dernier tracé" + ("" if act._best == INF else "  (record " + act._fmt(act._best) + ")"), act._course_again)
+		_bouton(v, "Recommencer le dernier tracé" + ("" if act._best == INF else "  (record " + act._fmt(act._best) + ")"), func(): act._stop(); act._course_again())
 	# v6.98 : balade (balade.gd)
 	_texte(v, "Balade : la voiture roule toute seule d'un lieu à l'autre, en respectant les limitations, et la caméra "
 		+ "filme comme au cinéma. Touchez l'écran pour reprendre le volant.")
-	_bouton(v, "Partir en balade", act._balade_start)
+	_bouton(v, "Partir en balade", func(): act._stop(); act._balade_start())
 
 func _taxi() -> void:
 	var v := _colonne()
@@ -308,7 +310,7 @@ func _taxi() -> void:
 		+ "et la conversation.")
 	if act._rides > 0:
 		_texte(v, "%d course(s), %s gagnés" % [act._rides, act._euros(act._total)], 26, Color(1.0, 0.9, 0.6))
-	_bouton(v, "Commencer le service", act._taxi_start)
+	_bouton(v, "Commencer le service", func(): act._stop(); act._taxi_start())
 	# #148 : ligne de bus (ligne_bus.gd)
 	_texte(v, "Chauffeur de bus", 32, Color(1.0, 0.85, 0.4))
 	_texte(v, "Prenez le volant du bus sur une vraie ligne du réseau Ruban. Arrêtez la porte avant au niveau du "
