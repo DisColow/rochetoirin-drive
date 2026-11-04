@@ -507,6 +507,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_hud_test()
 		return
+	if OS.get_cmdline_user_args().has("--explore2-test"):
+		if t == 300:
+			_explore2_test()
+		return
 	if OS.get_cmdline_user_args().has("--explore-test"):
 		if t == 300:
 			_explore_test()
@@ -5944,5 +5948,91 @@ func _explore_test() -> void:
 			garage.conduire(voiture0)
 		for f in 30:
 			await get_tree().process_frame
+	dire.call("FIN")
+	get_tree().quit()
+
+# ---------------------------------------------------------------- essai : --explore2-test (play test : boutons)
+## Presse un à un les boutons des réglages et du garage (sauf envois, signalements, fermeture), sort à pied et
+## remonte, téléporte par la carte : les erreurs du journal et l'état relevé après chaque étape disent ce qui casse.
+func _explore2_test() -> void:
+	var dire := func(x: String): print("  [explore2] " + x)
+	var hud := get_node("HUD")
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	var vp: Array = circulation.voie_proche(car.global_position, 80.0)
+	await _teleport((vp[0] as Vector3) + Vector3.UP * 0.5, rad_to_deg(atan2((vp[1] as Vector3).x, -(vp[1] as Vector3).z)))
+	for f in 60:
+		await get_tree().process_frame
+	var interdits := ["Envoyer", "Signaler", "Formule", "Copier", "Fermer", "✕", "Quitter", "Héberger", "Rejoindre"]
+	var presser := func(racine_f: Callable, nom: String) -> void:
+		var faits := {}
+		for tour in 400:
+			var racine: Node = racine_f.call()
+			if racine == null or not is_instance_valid(racine):
+				break
+			var cible: Button = null
+			for b in racine.find_children("*", "Button", true, false):
+				var bb := b as Button
+				if not bb.is_visible_in_tree() or bb.disabled:
+					continue
+				var k := "%s|%s" % [bb.text, str(bb.get_path()).get_file()]
+				if faits.has(k) or interdits.any(func(x): return bb.text.contains(x)):
+					continue
+				cible = bb
+				faits[k] = true
+				break
+			if cible == null:
+				break
+			print("  [explore2] %s : « %s »" % [nom, cible.text.left(50)])
+			cible.pressed.emit()
+			if cible.toggle_mode:
+				cible.button_pressed = not cible.button_pressed
+			for f in 8:
+				await get_tree().process_frame
+			get_tree().paused = false
+		dire.call("%s : %d boutons pressés" % [nom, faits.size()])
+	# réglages
+	hud._open_settings()
+	await presser.call(func(): return hud.settings if hud.settings and hud.settings.is_visible_in_tree() else null, "réglages")
+	get_viewport().get_texture().get_image().save_png("user://shots/explore2_reglages.png")
+	if hud.settings and hud.settings.is_visible_in_tree():
+		hud._fermer_reglages()
+	for f in 20:
+		await get_tree().process_frame
+	dire.call("après les réglages : pause %s, conduite visible %s, niveau %s" % [get_tree().paused, hud.speed_panel.visible, str(get("niveau"))])
+	# garage
+	car.hold(1.0)
+	for f in 30:
+		await get_tree().physics_frame
+	activities._garage()
+	for f in 30:
+		await get_tree().process_frame
+	await presser.call(func(): return activities._menu if activities._menu and is_instance_valid(activities._menu) else null, "garage")
+	get_viewport().get_texture().get_image().save_png("user://shots/explore2_garage.png")
+	if activities._menu and is_instance_valid(activities._menu) and activities._menu.has_signal("ferme"):
+		for b in activities._menu.find_children("*", "Button", true, false):
+			if (b as Button).text.contains("Fermer") or (b as Button).text.contains("✕"):
+				(b as Button).pressed.emit()
+				break
+	for f in 30:
+		await get_tree().process_frame
+	dire.call("après le garage : voiture %s, argent %.0f, pause %s, menu %s" % [car.voiture, garage.argent, get_tree().paused, str(activities._menu)])
+	# à pied
+	if get("pied"):
+		pied.sortir()
+		for f in 120:
+			await get_tree().physics_frame
+		dire.call("à pied : actif %s" % str(pied.get("actif")))
+		pied.monter()
+		for f in 60:
+			await get_tree().physics_frame
+		dire.call("remonté : à pied %s, voiture sous contrôle %s" % [str(pied.get("actif")), str(car.controle)])
+	# carte et téléportation
+	hud._open_map()
+	for f in 30:
+		await get_tree().process_frame
+	get_viewport().get_texture().get_image().save_png("user://shots/explore2_carte.png")
+	dire.call("carte ouverte : pause %s" % get_tree().paused)
 	dire.call("FIN")
 	get_tree().quit()
