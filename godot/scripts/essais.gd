@@ -5970,6 +5970,7 @@ func _explore2_test() -> void:
 	await _teleport((vp[0] as Vector3) + Vector3.UP * 0.5, rad_to_deg(atan2((vp[1] as Vector3).x, -(vp[1] as Vector3).z)))
 	for f in 60:
 		await get_tree().process_frame
+	var seul_pied := OS.get_cmdline_user_args().has("--explore2-pied")     # à pied seulement (plantage à la remontée)
 	var interdits := ["Envoyer", "Signaler", "Formule", "Copier", "Fermer", "✕", "Quitter", "Héberger", "Rejoindre"]
 	var presser := func(racine_f: Callable, nom: String) -> void:
 		var faits := {}
@@ -5999,6 +6000,22 @@ func _explore2_test() -> void:
 			get_tree().paused = false
 		dire.call("%s : %d boutons pressés" % [nom, faits.size()])
 	# réglages
+	if seul_pied:
+		pass
+	else:
+		await _explore2_menus(hud, presser, dire)
+	# à pied
+	await _explore2_pied(dire)
+	# carte et téléportation
+	hud._open_map()
+	for f in 30:
+		await get_tree().process_frame
+	get_viewport().get_texture().get_image().save_png("user://shots/explore2_carte.png")
+	dire.call("carte ouverte : pause %s" % get_tree().paused)
+	dire.call("FIN")
+	get_tree().quit()
+
+func _explore2_menus(hud: Node, presser: Callable, dire: Callable) -> void:
 	hud._open_settings()
 	await presser.call(func(): return hud.settings if hud.settings and hud.settings.is_visible_in_tree() else null, "réglages")
 	get_viewport().get_texture().get_image().save_png("user://shots/explore2_reglages.png")
@@ -6024,21 +6041,24 @@ func _explore2_test() -> void:
 	for f in 30:
 		await get_tree().process_frame
 	dire.call("après le garage : voiture %s, argent %.0f, pause %s, menu %s" % [car.voiture, garage.argent, get_tree().paused, str(activities._menu)])
-	# à pied
+	if activities._menu and is_instance_valid(activities._menu):     # « Quitter » du garage (évité par presser)
+		for b in activities._menu.find_children("*", "Button", true, false):
+			if (b as Button).text == "Quitter":
+				(b as Button).pressed.emit()
+				break
+		for f in 30:
+			await get_tree().process_frame
+		dire.call("garage quitté : menu %s, pause %s" % [str(activities._menu), get_tree().paused])
+
+func _explore2_pied(dire: Callable) -> void:
 	if get("pied"):
 		pied.sortir()
 		for f in 120:
 			await get_tree().physics_frame
 		dire.call("à pied : actif %s" % str(pied.get("actif")))
+		print("  [explore2] remontée…")
 		pied.monter()
+		print("  [explore2] monter() rendu")
 		for f in 60:
 			await get_tree().physics_frame
 		dire.call("remonté : à pied %s, voiture sous contrôle %s" % [str(pied.get("actif")), str(car.controle)])
-	# carte et téléportation
-	hud._open_map()
-	for f in 30:
-		await get_tree().process_frame
-	get_viewport().get_texture().get_image().save_png("user://shots/explore2_carte.png")
-	dire.call("carte ouverte : pause %s" % get_tree().paused)
-	dire.call("FIN")
-	get_tree().quit()
