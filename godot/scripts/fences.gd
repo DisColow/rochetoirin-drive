@@ -28,7 +28,8 @@ var tiles := {}
 var loaded := {}          # Vector2i -> Node3D
 var tasks := {}           # Vector2i -> identifiant de tâche
 var results := {}         # Vector2i -> [opaque, découpe, collisions] (écrit par le fil)
-var bodies := {}
+var bodies := {}                 # Vector2i -> Node3D « collisions » (corps « lot<n> » de LOT boîtes)
+var _lots_restants := {}         # Vector2i -> prochain lot à poser
 var colfaces := {}        # Vector2i -> PackedVector3Array
 var lignes := {}          # Vector2i -> PackedVector3Array (segments a, b des clôtures cassables : casse.gd)
 var colgenres := {}       # genres des tronçons encore solides (alignés sur colfaces, brèches retirées)
@@ -124,8 +125,13 @@ func _process_corps(dt: float) -> void:
 		if WorkerThreadPool.is_task_completed(tasks[k]):
 			WorkerThreadPool.wait_for_task_completion(tasks[k])
 			tasks.erase(k)
+			var t0 := Time.get_ticks_usec()
 			_finish(k)
+			if OS.get_environment("PERF_TOUS") != "":
+				print("[clôtures] pose %s : %.1f ms" % [k, (Time.get_ticks_usec() - t0) / 1000.0])
 			break
+	if not _lots_restants.is_empty():
+		_collisions()                    # un lot de collisions par image tant qu'il en reste (#174)
 	_t -= dt
 	if _t > 0:
 		return
@@ -145,6 +151,7 @@ func _process_corps(dt: float) -> void:
 			loaded[k].queue_free()
 			loaded.erase(k)
 			bodies.erase(k)
+			_lots_restants.erase(k)
 			colfaces.erase(k)
 			lignes.erase(k)
 			genres.erase(k)
@@ -210,34 +217,44 @@ func breche(p: Vector3, r: float) -> void:
 	if not colfaces.has(k):
 		return
 	var f: PackedVector3Array = colfaces[k]
-	var g := PackedVector3Array()
-	var ge: PackedByteArray = colgenres.get(k, PackedByteArray())
-	var ng := PackedByteArray()
 	var c := Vector2(p.x, p.z)
+	var lots := {}
 	for i in range(0, f.size() - 5, 6):                 # par tronçon entier (6 sommets = une boîte)
+		if f[i].is_equal_approx(f[i + 1]):
+			continue                                     # déjà défoncé
 		# #105 : distance au tronçon lui-même (un long tronçon touché en son milieu restait en place : arrêt net)
 		var q := Geometry2D.get_closest_point_to_segment(c, Vector2(f[i].x, f[i].z), Vector2(f[i + 1].x, f[i + 1].z))
 		if q.distance_to(c) < r:
-			continue
-		for j in 6:
-			g.append(f[i + j])
-		if i / 6 < ge.size():
-			ng.append(ge[i / 6])
-	colfaces[k] = g
-	colgenres[k] = ng
+			# #174 : tronçon neutralisé sur place (pied b ramené sur a : _corps le saute), les indices des autres restent
+			f[i + 1] = f[i]
+			lots[i / 6 / LOT] = true
+	colfaces[k] = f
 	if bodies.has(k):
-		# #105 : retiré tout de suite (queue_free laissait l'ancien corps une image de plus : la voiture le heurtait)
-		bodies[k].get_parent().remove_child(bodies[k])
-		bodies[k].queue_free()
-		bodies[k] = _corps(colfaces[k], ng)
-		loaded[k].add_child(bodies[k])
+		# #174 : seuls les lots de LOT boîtes qui contiennent un tronçon défoncé sont refaits (avant : toute la tuile,
+		# des milliers de boîtes, à chaque clôture traversée) ; #105 : retirés tout de suite (queue_free laissait
+		# l'ancien corps une image de plus : la voiture le heurtait)
+		var h: Node3D = bodies[k]
+		for l in lots:
+			if _lots_restants.has(k) and l >= int(_lots_restants[k]):
+				continue                 # lot pas encore posé : il le sera avec la brèche
+			var ancien := h.get_node_or_null("lot%d" % l)
+			if ancien:
+				h.remove_child(ancien)
+				ancien.queue_free()
+			var sb := _corps(f, colgenres.get(k, PackedByteArray()), l)
+			h.add_child(sb)
 
 ## Collisions en boîtes (v6.19 : BoxShape3D seulement) : chaque tronçon de clôture ou de haie (2 triangles de 6
 ## sommets dans colfaces : pied a, b, haut b2, a2) devient une boîte fine de 20 cm, alignée sur le tronçon.
 const MATIERES := ["bois", "haie", "dur"]      # genres (0 clôture, 1 haie, 2 muret) -> son des chocs (audio.gd)
-static func _corps(f: PackedVector3Array, g := PackedByteArray()) -> StaticBody3D:
+const LOT := 256                 # boîtes par corps de collision (un lot posé par image, #174)
+static func _corps(f: PackedVector3Array, g := PackedByteArray(), lot := -1) -> StaticBody3D:
 	var sb := StaticBody3D.new()
-	for i in range(0, f.size() - 5, 6):
+	var i0 := 0 if lot < 0 else lot * LOT * 6
+	var i1 := f.size() if lot < 0 else mini(f.size(), (lot + 1) * LOT * 6)
+	if lot >= 0:
+		sb.name = "lot%d" % lot
+	for i in range(i0, i1 - 5, 6):
 		var a := f[i]; var b := f[i + 1]; var b2 := f[i + 2]
 		var d := Vector3(b.x - a.x, 0, b.z - a.z)
 		var L := d.length()
@@ -258,13 +275,31 @@ func _collisions(tout := false) -> void:
 	var p := target.global_position
 	for k in loaded.keys():
 		var need := _d(k, p) < COLL + TILE * 0.71
-		if need and not bodies.has(k) and colfaces.has(k) and colfaces[k].size() > 0:
-			var sb := _corps(colfaces[k], colgenres.get(k, PackedByteArray()))
-			loaded[k].add_child(sb)
-			bodies[k] = sb
-			if not tout:
-				return                   # une tuile par passage (0,25 s) : des centaines de boîtes par tuile (#174)
+		if need and colfaces.has(k) and colfaces[k].size() > 0 and (not bodies.has(k) or _lots_restants.has(k)):
+			# #174 : corps faits par lots de LOT boîtes, un lot par image (une tuile peut en compter des milliers :
+			# 140 ms d'un coup mesurés en balade) ; tout d'un coup au démarrage et à la téléportation (tout)
+			if not bodies.has(k):
+				var h := Node3D.new()
+				h.name = "collisions"
+				loaded[k].add_child(h)
+				bodies[k] = h
+				_lots_restants[k] = 0
+			var nl := int(ceil(colfaces[k].size() / 6.0 / LOT))
+			while _lots_restants.has(k):
+				var l: int = _lots_restants[k]
+				var t0 := Time.get_ticks_usec()
+				var sb := _corps(colfaces[k], colgenres.get(k, PackedByteArray()), l)
+				(bodies[k] as Node3D).add_child(sb)
+				if OS.get_environment("PERF_TOUS") != "":
+					print("[clôtures] collisions %s lot %d/%d : %d boîtes, %.1f ms" % [k, l + 1, nl, sb.get_child_count(), (Time.get_ticks_usec() - t0) / 1000.0])
+				if l + 1 >= nl:
+					_lots_restants.erase(k)
+				else:
+					_lots_restants[k] = l + 1
+				if not tout:
+					return
 		elif not need and bodies.has(k):
+			_lots_restants.erase(k)
 			bodies[k].queue_free()
 			bodies.erase(k)
 
