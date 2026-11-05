@@ -183,7 +183,16 @@ func _ajouter(loc: Vector2i, res) -> void:
 
 ## Textures de Terrain3D refaites, masque du remplaçant mis à jour (même image).
 func _appliquer() -> void:
-	terrain.data.update_maps()
+	if OS.get_environment("PERF_TOUS") != "":
+		# essais (#174) : coût de chaque carte (hauteurs, matières, couleurs) mesuré à part
+		var tt := []
+		for ty in 3:
+			var t0 := Time.get_ticks_usec()
+			terrain.data.update_maps(ty)
+			tt.append((Time.get_ticks_usec() - t0) / 1000.0)
+		print("[relief] mise à jour de %d régions : hauteurs %.1f ms, matières %.1f ms, couleurs %.1f ms" % [charge.size(), tt[0], tt[1], tt[2]])
+	else:
+		terrain.data.update_maps()
 	_masque.fill(Color.BLACK)
 	for loc in charge:
 		var c: Vector2i = loc + Vector2i(16, 16)
