@@ -112,6 +112,7 @@ func _tranche() -> Dictionary:
 		"appels": Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
 		"prims": Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000.0,
 		"objets": Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
+		"phys": Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,   # dernière image (#174)
 		"kmh": car.kmh() if car and car.has_method("kmh") else 0.0,
 		"pos": "%d,%d" % [p.x, p.z],
 		"zone": zone,
@@ -131,8 +132,8 @@ func _systemes() -> String:
 	return ", ".join(out)
 
 func _ligne(t: Dictionary) -> String:
-	return "%.0f img/s (1 %% bas %.0f, pire %.0f ms, %d à-coups) · %d appels, %.0fk prim., %d objets · %d km/h · %s (%s)" % [
-		t.fps, t.bas, t.pire, t.acoups, t.appels, t.prims, t.objets, t.kmh, t.zone, t.pos] + \
+	return "%.0f img/s (1 %% bas %.0f, pire %.0f ms, %d à-coups) · %d appels, %.0fk prim., %d objets · %d km/h · %s (%s) · physique %.1f ms" % [
+		t.fps, t.bas, t.pire, t.acoups, t.appels, t.prims, t.objets, t.kmh, t.zone, t.pos, t.get("phys", 0.0)] + \
 		("\n    systèmes (moy/pire ms) : " + str(t.get("sys", "")) if t.get("sys", "") != "" else "")
 
 ## Relevé lisible : synthèse, puis tranche par tranche.
