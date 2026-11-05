@@ -28,7 +28,9 @@ void vertex() {
 		float f = sin(TIME * 7.0 + wp.x * 2.1 + wp.z * 1.7 + wp.y * 1.3) * sin(TIME * 4.3 + wp.y * 2.7);
 		w += vec3(0.4, 1.0, 0.3) * f * 0.03 * (0.3 + wind.z) * (0.4 + g) * h;
 	}
-	VERTEX += inverse(mat3(MODEL_MATRIX)) * w;
+	// rotation autour de la verticale et échelle uniforme : l'inverse est la transposée divisée par s² (une inversion
+	// de matrice par sommet coûtait cher sur un processeur graphique de téléphone, #174)
+	VERTEX += transpose(mat3(MODEL_MATRIX)) * w / (s * s);
 	v_wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 

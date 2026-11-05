@@ -200,6 +200,7 @@ func _ready() -> void:
 	perf_auto = bool(cfg.get_value("affichage", "perf_auto", true))
 	eco_60 = bool(cfg.get_value("affichage", "eco_60", false))
 	vegetation.level = int(cfg.get_value("affichage", "vegetation", 1))    # défaut : Équilibré (puis automatique)
+	vegetation.leger = bool(cfg.get_value("affichage", "leger", false))   # réglage « Léger » = Économie + arbres (#174)
 	add_child(vegetation)
 	vegetation.target = car
 	vegetation.update_now()
@@ -670,13 +671,21 @@ func _perf_auto(dt: float) -> void:
 	var f: float = perf.get_fps_moyen(4)
 	if f <= 0.0:
 		return
-	var l: int = vegetation.level
-	if f < 24.0 and l > 0:
-		get_node("HUD").appliquer_niveau(l - 1)
-		print("[perf] niveau automatique : %.0f img/s -> %d" % [f, l - 1])
-	elif f > 50.0 and l < 2:
-		get_node("HUD").appliquer_niveau(l + 1)
-		print("[perf] niveau automatique : %.0f img/s -> %d" % [f, l + 1])
+	# échelle d'Auto : Économie < Léger (Économie + arbres, #174) < Équilibré < Élevée
+	var marches := [[0, false], [0, true], [1, false], [2, false]]
+	var j := 0
+	for m in marches.size():
+		if marches[m][0] == vegetation.level and (vegetation.level != 0 or marches[m][1] == vegetation.leger):
+			j = m
+	var nj := j
+	if f < 24.0 and j > 0:
+		nj = j - 1
+	elif f > 50.0 and j < marches.size() - 1:
+		nj = j + 1
+	if nj != j:
+		vegetation.leger = marches[nj][1]
+		get_node("HUD").appliquer_niveau(marches[nj][0])
+		print("[perf] niveau automatique : %.0f img/s -> %d%s" % [f, marches[nj][0], " (léger)" if marches[nj][1] else ""])
 
 # ---------------------------------------------------------------- heure de la journée (Réglages)
 const TIMES := ["Midi", "Après-midi", "Coucher", "Nuit", "Cycle"]

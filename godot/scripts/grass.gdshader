@@ -22,12 +22,12 @@ void vertex() {
 	float ph = INSTANCE_CUSTOM.z * 6.283 + TIME * (1.7 + v_gust * 2.0);
 	vec3 sway = vec3(sin(ph) * 0.04 + sin(ph * 2.3 + 1.0) * 0.02, 0.0, cos(ph * 0.8) * 0.03) * (0.4 + wind.z);
 	sway += vec3(wind.x, 0.0, wind.y) * (0.03 + 0.14 * v_gust) * wind.z;
-	VERTEX += (inverse(mat3(MODEL_MATRIX)) * (sway * top * top));
+	VERTEX += env_inv_rs(mat3(MODEL_MATRIX), (sway * top * top));
 	UV = vec2((mod(cell, 4.0) + clamp(UV.x, 0.004, 0.996)) / 4.0, (floor(cell / 4.0) + clamp(UV.y, 0.004, 0.996)) / 2.0);
 	v_tint = INSTANCE_CUSTOM.y;
 	v_dist = length((MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz);
 	// éclairage doux : normale vers le haut (pas de plans noirs vus de côté)
-	NORMAL = normalize(mix(NORMAL, (inverse(mat3(MODEL_MATRIX)) * vec3(0.0, 1.0, 0.0)), 0.75));
+	NORMAL = normalize(mix(NORMAL, env_inv_rs(mat3(MODEL_MATRIX), vec3(0.0, 1.0, 0.0)), 0.75));
 }
 
 float bayer(vec2 p) {

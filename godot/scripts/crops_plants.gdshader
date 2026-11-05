@@ -31,7 +31,7 @@ void vertex() {
 			vec3 r = INV_VIEW_MATRIX[0].xyz;          // droite de l'écran, ramenée à l'horizontale
 			r = normalize(vec3(r.x, 0.0, r.z) + vec3(1e-4, 0.0, 0.0));
 			vec3 decal = r * VERTEX.x * length(MODEL_MATRIX[0].xyz) + vec3(0.0, VERTEX.y * MODEL_MATRIX[1].y, 0.0);
-			VERTEX = inverse(mat3(MODEL_MATRIX)) * decal;
+			VERTEX = env_inv_rs(mat3(MODEL_MATRIX), decal);
 		}
 	}
 	v_gust = env_gust(base.xz);
@@ -39,7 +39,7 @@ void vertex() {
 	float top = 1.0 - UV.y;                       // UV.y : 0 en haut du sprite, 1 au pied
 	vec3 w = vec3(wind.x, 0.0, wind.y) * top * top * (0.03 + 0.16 * v_gust) * wind.z * min(h, 2.0);
 	w += vec3(wind.x, 0.0, wind.y) * top * 0.025 * sin(TIME * 2.3 + base.x * 1.7 + base.z * 1.3) * wind.z;
-	VERTEX += inverse(mat3(MODEL_MATRIX)) * w;
+	VERTEX += env_inv_rs(mat3(MODEL_MATRIX), w);
 	if (trample_zone.w > 0.5) {
 		vec2 tuv = (base.xz - trample_zone.xy) / trample_zone.z;
 		if (tuv.x > 0.0 && tuv.y > 0.0 && tuv.x < 1.0 && tuv.y < 1.0 && textureLod(trample_tex, tuv, 0.0).b > 0.3) {

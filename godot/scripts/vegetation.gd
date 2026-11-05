@@ -15,11 +15,21 @@ const LEVELS := [
 	{"name": "Élevée", "frac": 0.8, "far": 1650.0, "near": 70.0, "max_near": 140},
 	{"name": "Maximale", "frac": 1.0, "far": 2200.0, "near": 80.0, "max_near": 220},
 ]
+# Réglage « Léger » (#174) : Économie avec les arbres, à la façon des jeux de conduite sur téléphone (GTA San Andreas
+# mobile, Asphalt) : presque tout en imposteurs (un appel de dessin par tuile), une poignée de modèles 3D tout près
+# (sans ombre : Économie n'en a pas), portée courte noyée dans la brume d'Économie.
+const LEGER := {"name": "Léger", "frac": 0.5, "far": 600.0, "near": 26.0, "max_near": 12}
+var leger := false        # niveau 0 + leger : réglage « Léger » (main.arbres_legers)
+
+## Réglages de densité du niveau l (Léger à la place de Faible quand leger est mis).
+func niv(l: int) -> Dictionary:
+	return LEGER if l == 0 and leger else LEVELS[l]
 
 var target: Node3D
 var level := 2
 var tiles := {}          # Vector2i -> chemin
 var data := {}           # Vector2i -> PackedFloat32Array (8 valeurs par arbre)
+var grilles := {}        # Vector2i -> Array de PackedInt32Array (arbres par case de CASE m, _grille)
 var mmi := {}            # Vector2i -> MultiMeshInstance3D
 var pending := []
 var _tache := -1                 # tâche en cours sur un fil de travail (WorkerThreadPool)
@@ -90,7 +100,7 @@ func _wind_materials(mesh: Mesh) -> void:
 
 func set_level(l: int) -> void:
 	level = clampi(l, 0, LEVELS.size() - 1)
-	var L: Dictionary = LEVELS[level]
+	var L: Dictionary = niv(level)
 	_set_cut(L.near)
 	imp_mat.set_shader_parameter("far_cut", L.far)
 	for k in mmi.keys():
@@ -113,7 +123,7 @@ func update_now() -> void:
 	_update_near()
 
 func _wanted(c: Vector3) -> Array:
-	var far: float = LEVELS[level].far
+	var far: float = niv(level).far
 	var r := int(ceil(far / TILE)) + 1
 	var kc := Vector2i(floori(c.x / TILE), floori(c.z / TILE))
 	var out := []
@@ -134,7 +144,7 @@ func _load(k: Vector2i) -> void:
 ## Tampon MultiMesh d'une tuile (calcul pur : peut tourner sur un fil de travail, sans toucher à la scène).
 func _tampon(path: String, lvl: int, cache: PackedFloat32Array) -> Array:
 	var a: PackedFloat32Array = cache if cache.size() > 0 else FileAccess.get_file_as_bytes(path).to_float32_array()
-	var n := int(a.size() / 8 * float(LEVELS[lvl].frac))
+	var n := int(a.size() / 8 * float(niv(lvl).frac))
 	var buf := PackedFloat32Array()
 	buf.resize(n * 16)
 	for i in n:
@@ -146,13 +156,33 @@ func _tampon(path: String, lvl: int, cache: PackedFloat32Array) -> Array:
 		buf[b + 5] = s; buf[b + 7] = a[o + 1] - 0.02 * s
 		buf[b + 10] = s; buf[b + 11] = a[o + 2]
 		buf[b + 12] = sp / 8.0; buf[b + 13] = a[o + 4] / TAU; buf[b + 14] = a[o + 7]
-	return [n, buf, a]
+	return [n, buf, a, _grille(a)]
+
+## Arbres d'une tuile rangés par cases de CASE m (indices), pour _update_near : il ne parcourt plus que les cases
+## proches au lieu de tous les arbres des 9 tuiles toutes les 0,2 s (#174 : à-coups sur un processeur de téléphone).
+const CASE := 32.0
+const NC := int(TILE / CASE)
+func _grille(a: PackedFloat32Array) -> Array:
+	var g := []
+	g.resize(NC * NC)
+	for j in NC * NC:
+		g[j] = PackedInt32Array()
+	if a.size() < 8:
+		return g
+	var x0 := floorf(a[0] / TILE) * TILE
+	var z0 := floorf(a[2] / TILE) * TILE
+	for i in a.size() / 8:
+		var cx := clampi(int((a[i * 8] - x0) / CASE), 0, NC - 1)
+		var cz := clampi(int((a[i * 8 + 2] - z0) / CASE), 0, NC - 1)
+		g[cz * NC + cx].append(i)
+	return g
 
 ## Pose d'une tuile préparée (fil principal).
 func _pose(k: Vector2i, r: Array) -> void:
 	if mmi.has(k):
 		return
 	data[k] = r[2]
+	grilles[k] = r[3]
 	var n: int = r[0]
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -204,6 +234,7 @@ func _process_corps(dt: float) -> void:
 				mmi[k].queue_free()
 				mmi.erase(k)
 				data.erase(k)
+				grilles.erase(k)
 	_near_t -= dt
 	if _near_t <= 0.0:
 		_near_t = 0.2
@@ -214,7 +245,7 @@ func _process_corps(dt: float) -> void:
 func visibles(k: Vector2i) -> int:
 	if not data.has(k):
 		return 0
-	return int(data[k].size() / 8 * float(LEVELS[level].frac))
+	return int(data[k].size() / 8 * float(niv(level).frac))
 
 ## Arbre renversé (casse.gd) : retiré des modèles 3D proches et des imposteurs ; renvoie [modèle, hauteur, lacet].
 func casser(k: Vector2i, i: int) -> Array:
@@ -242,7 +273,7 @@ func _set_cut(d: float) -> void:
 func _update_near() -> void:
 	var cam := get_viewport().get_camera_3d()
 	var c := cam.global_position if cam else target.global_position
-	var L: Dictionary = LEVELS[level]
+	var L: Dictionary = niv(level)
 	var R: float = L.near + 4.0 + NEAR_MARGIN
 	var r2: float = R * R
 	var found := []
@@ -254,13 +285,26 @@ func _update_near() -> void:
 				continue
 			var a: PackedFloat32Array = data[k]
 			var n := int(a.size() / 8 * float(L.frac))
-			for i in n:
-				var o := i * 8
-				var ddx := a[o] - c.x
-				var ddz := a[o + 2] - c.z
-				var d := ddx * ddx + ddz * ddz
-				if d < r2 and a[o + 3] > 0.0:          # hauteur 0 : arbre renversé (casse.gd)
-					found.append([d, a[o], a[o + 1], a[o + 2], a[o + 3], a[o + 4], int(a[o + 5]), a[o + 7]])
+			var g: Array = grilles.get(k, [])
+			if g.is_empty():
+				continue
+			# cases de la tuile que le cercle de rayon R touche
+			var x0 := k.x * TILE; var z0 := k.y * TILE
+			var c0x := clampi(int((c.x - R - x0) / CASE), 0, NC - 1); var c1x := clampi(int((c.x + R - x0) / CASE), 0, NC - 1)
+			var c0z := clampi(int((c.z - R - z0) / CASE), 0, NC - 1); var c1z := clampi(int((c.z + R - z0) / CASE), 0, NC - 1)
+			if c.x + R < x0 or c.x - R > x0 + TILE or c.z + R < z0 or c.z - R > z0 + TILE:
+				continue
+			for cz in range(c0z, c1z + 1):
+				for cx in range(c0x, c1x + 1):
+					for i: int in g[cz * NC + cx]:
+						if i >= n:
+							continue
+						var o := i * 8
+						var ddx := a[o] - c.x
+						var ddz := a[o + 2] - c.z
+						var d := ddx * ddx + ddz * ddz
+						if d < r2 and a[o + 3] > 0.0:          # hauteur 0 : arbre renversé (casse.gd)
+							found.append([d, a[o], a[o + 1], a[o + 2], a[o + 3], a[o + 4], int(a[o + 5]), a[o + 7]])
 	found.sort_custom(func(p, q): return p[0] < q[0])
 	if found.size() > int(L.max_near):
 		found.resize(int(L.max_near))

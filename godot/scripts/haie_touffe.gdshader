@@ -16,7 +16,7 @@ void vertex() {
 	float amp = 0.035 * (0.3 + wind.z) * (0.4 + g);
 	vec3 off = vec3(wind.x, 0.0, wind.y) * amp * sin(TIME * 2.3 + dot(org.xz, vec2(0.7, 1.3)))
 		+ vec3(0.0, 0.012, 0.0) * sin(TIME * 3.1 + org.x);
-	VERTEX += (inverse(mat3(MODEL_MATRIX)) * off) * clamp(length(VERTEX) * 2.0, 0.0, 1.0);
+	VERTEX += (env_inv_rs(mat3(MODEL_MATRIX), off) * clamp(length(VERTEX) * 2.0, 0.0, 1.0));
 	// normale « en dôme » : la touffe s'éclaire comme une boule de feuillage, pas comme des cartes plates
 	NORMAL = normalize(mix(NORMAL, normalize(VERTEX + vec3(0.0, 0.0, 0.25)), 0.75));
 	v_wp = wp;

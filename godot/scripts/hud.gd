@@ -249,19 +249,26 @@ func _open_settings() -> void:
 	var h := HBoxContainer.new(); h.add_theme_constant_override("separation", 12); v.add_child(h)
 	var main_n = get_parent()
 	var boutons := []
+	# boutons : [texte, niveau (0 Économie … 3 Maximale, -1 Auto), arbres légers] ; « Léger » (#174) = Économie + arbres
+	var choix := [["Économie", 0, false], ["Léger", 0, true], ["Équilibré", 1, false], ["Élevée", 2, false],
+		["Maximale", 3, false], ["Auto", -1, false]]
 	var maj := func():
 		for j in boutons.size():
-			boutons[j].button_pressed = (j == 4 and main_n.perf_auto) or (j < 4 and not main_n.perf_auto and j == veg.level)
-	for i in 5:
+			var c: Array = choix[j]
+			boutons[j].button_pressed = (c[1] < 0 and main_n.perf_auto) or (c[1] >= 0 and not main_n.perf_auto
+				and c[1] == veg.level and (c[1] != 0 or bool(c[2]) == veg.leger))
+	for i in choix.size():
 		var b := Button.new()
-		b.text = ["Économie", "Équilibré", "Élevée", "Maximale", "Auto"][i]
+		var c: Array = choix[i]
+		b.text = c[0]
 		b.toggle_mode = true
-		b.custom_minimum_size = Vector2(170, 70)
+		b.custom_minimum_size = Vector2(150, 70)
 		b.add_theme_font_size_override("font_size", 28)
 		b.pressed.connect(func():
-			main_n.perf_auto = i == 4
-			if i < 4:
-				appliquer_niveau(i)
+			main_n.perf_auto = c[1] < 0
+			if c[1] >= 0:
+				veg.leger = bool(c[2])
+				appliquer_niveau(int(c[1]))
 			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
 			cfg.set_value("affichage", "perf_auto", main_n.perf_auto); cfg.save("user://reglages.cfg")
 			maj.call())
@@ -481,7 +488,7 @@ func _open_settings() -> void:
 				VT.dire("Bonjour ! Vous m'emmenez à Rochetoirin ?", VT.choisir(sx[0], 1), float(AU2.volumes["voix"]), true))
 			hv.add_child(bv)
 	var note := Label.new()
-	note.text = "Auto : le jeu choisit le niveau selon sa fluidité. Économie = le plus fluide.\nVersion %s (mises à jour automatiques au lancement)" % str(Engine.get_meta("version_jeu", ProjectSettings.get_setting("application/config/version", "")))
+	note.text = "Auto : le jeu choisit le niveau selon sa fluidité. Économie = le plus fluide ; Léger = Économie avec les arbres.\nVersion %s (mises à jour automatiques au lancement)" % str(Engine.get_meta("version_jeu", ProjectSettings.get_setting("application/config/version", "")))
 	note.add_theme_font_size_override("font_size", 22); note.modulate = Color(1, 1, 1, 0.7); v.add_child(note)
 	# éditeur de monde : champ de la formule magique (dictée au micro du clavier, ou saisie)
 	var fm := Button.new(); fm.text = "Formule magique…"; fm.custom_minimum_size = Vector2(0, 64)
@@ -891,7 +898,8 @@ func appliquer_niveau(i: int) -> void:
 	m.grass.set_level(i)
 	m.set_post(i)
 	var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
-	cfg.set_value("affichage", "vegetation", i); cfg.save("user://reglages.cfg")
+	cfg.set_value("affichage", "vegetation", i)
+	cfg.set_value("affichage", "leger", m.vegetation.leger); cfg.save("user://reglages.cfg")
 
 ## Fin d'un relevé de performances : bandeau « Envoyer » (ticket GitHub pré-rempli) / « Copier ».
 func releve_perf_fini(texte: String) -> void:

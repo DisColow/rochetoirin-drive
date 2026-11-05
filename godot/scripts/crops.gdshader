@@ -26,7 +26,7 @@ void vertex() {
 		// haut de la bande penché dans le sens du vent, plus fort dans les rafales
 		float top = 1.0 - UV.y;
 		vec3 w = vec3(wind.x, 0.0, wind.y) * top * (0.04 + 0.22 * v_gust) * wind.z * min(h, 1.5);
-		VERTEX += inverse(mat3(MODEL_MATRIX)) * w;
+		VERTEX += env_inv_rs(mat3(MODEL_MATRIX), w);
 	}
 	if (trample_zone.w > 0.5) {
 		vec2 tuv = (wp.xz - trample_zone.xy) / trample_zone.z;
@@ -53,7 +53,7 @@ void vertex() {
 					// nappe du dessus : découpée dans la trace (fragment), descendue au sol au bord
 					d = vec3(0.0, -0.7 * tr.b, 0.0);
 				}
-				VERTEX += inverse(mat3(MODEL_MATRIX)) * d;
+				VERTEX += env_inv_rs(mat3(MODEL_MATRIX), d);
 			}
 		}
 	}

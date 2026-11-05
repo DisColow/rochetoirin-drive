@@ -50,6 +50,13 @@ vec3 env_phares_lum(vec3 wp) {
 	return env_phares_coul * env_phares.w * cone * att;
 }
 
+// inverse(m) * v pour une matrice sans cisaillement (rotation et échelle par axe, cas de tous les objets posés) :
+// transposée divisée par le carré de l'échelle de chaque axe. Une inversion de matrice par sommet coûte cher sur un
+// processeur graphique de téléphone (#174).
+vec3 env_inv_rs(mat3 m, vec3 v) {
+	return (transpose(m) * v) / vec3(dot(m[0], m[0]), dot(m[1], m[1]), dot(m[2], m[2]));
+}
+
 // Rafales qui traversent le paysage dans le sens du vent (0 … 1).
 float env_gust(vec2 p) {
 	vec2 d = wind.xy;
