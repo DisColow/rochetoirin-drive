@@ -3,7 +3,7 @@ extends Node3D
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
-const VIEW := 1500.0
+var VIEW := 1500.0          # × distance du niveau de performances (main.set_post, #174)
 
 var target: Node3D
 var tiles := {}

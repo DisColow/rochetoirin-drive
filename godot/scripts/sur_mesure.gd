@@ -12,7 +12,7 @@ const PerfMon := preload("res://scripts/perf_monitor.gd")
 const R_CHARGE := 1100.0
 const R_LIBERE := 1400.0
 const R_IMMEDIAT := 350.0
-const VUE := 1300.0                    # comme les bâtiments génériques (buildings.gd, VIEW)
+var VUE := 1300.0                      # comme les bâtiments génériques (buildings.gd, VIEW) ; × distance du niveau (main.set_post)
 
 var _defs := {}                        # id -> entrée de sur_mesure.json
 var _poses := {}                       # id -> [modèle, corps, matériau]
@@ -26,6 +26,12 @@ func _ready() -> void:
 	if not FileAccess.file_exists("res://world/sur_mesure.json"):
 		return
 	_defs = JSON.parse_string(FileAccess.get_file_as_string("res://world/sur_mesure.json"))
+
+## Portée d'affichage changée (niveau de performances, #174) : appliquée aux bâtiments déjà posés.
+func appliquer_vue() -> void:
+	for k in _poses:
+		for m in (_poses[k][0] as Node).find_children("*", "MeshInstance3D", true, false):
+			(m as MeshInstance3D).visibility_range_end = VUE
 
 func _camera() -> Vector3:
 	var c := get_viewport().get_camera_3d()

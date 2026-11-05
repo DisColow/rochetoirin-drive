@@ -18,6 +18,7 @@ var poles: Node3D
 var post: ColorRect
 var fences: Node3D
 var water: Node3D
+var sur_mesure: Node3D          # bâtiments refaits d'après Street View (sur_mesure.gd)
 var cam_rig: Node3D
 var birds: Node3D
 var ciel: Node3D            # aéronefs de passage (#46)
@@ -254,7 +255,8 @@ func _ready() -> void:
 	add_child(shops)
 	shops.target = car
 	shops.update_now()
-	add_child(preload("res://scripts/sur_mesure.gd").new())      # bâtiments refaits d'après Street View (boulangerie)
+	sur_mesure = preload("res://scripts/sur_mesure.gd").new()
+	add_child(sur_mesure)      # bâtiments refaits d'après Street View (boulangerie)
 	await _etape("Terrains de sport")
 	sport = preload("res://scripts/sport.gd").new()
 	sport.terrain = terrain
@@ -594,6 +596,12 @@ func set_post(level: int) -> void:
 	Engine.max_physics_steps_per_frame = 8 if Engine.physics_ticks_per_second >= 120 else 4
 	if _sun:
 		_sun.shadow_enabled = N.ombre > 0.0
+	# relief Terrain3D (#174) : anneaux du maillage plus petits en Économie et Léger (32 au lieu de 48 : ~2,2 fois moins
+	# de triangles ; la portée du dernier anneau, ~4 km, couvre encore les régions chargées à 1,8 km)
+	if terrain:
+		var ms := 32 if level == 0 else 48
+		if terrain.mesh_size != ms:
+			terrain.mesh_size = ms
 	if circulation:
 		circulation.set_niveau(level)
 	if pietons:
@@ -604,17 +612,19 @@ func set_post(level: int) -> void:
 		_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS if N.split else DirectionalLight3D.SHADOW_ORTHOGONAL
 		RenderingServer.directional_shadow_atlas_set_size(N.carte, true)
 	# distances d'affichage des objets posés par tuiles (valeurs de base gardées au premier appel)
-	for sysn in ["buildings", "props", "fences", "poles", "shops", "roads"]:
+	for sysn in ["buildings", "props", "fences", "poles", "shops", "roads", "sur_mesure", "water"]:
 		var sy = get(sysn)
 		if sy == null:
 			continue
-		for prop in ["VIEW", "VIEW_CUT", "TOUFFE_VIEW", "DETAIL"]:
+		for prop in ["VIEW", "VIEW_CUT", "TOUFFE_VIEW", "DETAIL", "VUE"]:
 			if sy.get(prop) == null:
 				continue
 			var key: String = sysn + "." + prop
 			if not _vues_base.has(key):
 				_vues_base[key] = float(sy.get(prop))
 			sy.set(prop, _vues_base[key] * N.dist)
+		if sy.has_method("appliquer_vue"):
+			sy.appliquer_vue()
 	if fences and fences.get("mat"):
 		var Env := preload("res://scripts/env.gd")
 		Env.fade(fences.mat, fences.VIEW)
