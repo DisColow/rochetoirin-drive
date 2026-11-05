@@ -18,6 +18,7 @@ var _defs := {}                        # id -> entrée de sur_mesure.json
 var _poses := {}                       # id -> [modèle, corps, matériau]
 var _chargeur = preload("res://scripts/chargeur.gd").new()
 var _t := 0.0
+var _attente: Array = []               # [distance, id] des bâtiments à moins de R_CHARGE pas encore posés (_suivre)
 var _dernier := Vector3(1e9, 0, 1e9)
 
 func _ready() -> void:
@@ -47,6 +48,7 @@ func _suivre(dt: float) -> void:
 	_t = 0.5
 	_dernier = p
 	var voulus := {}
+	_attente.clear()
 	for k in _defs:
 		var e: Dictionary = _defs[k]
 		var d := Vector2(e.pos[0] - p.x, e.pos[2] - p.z).length()
@@ -58,24 +60,30 @@ func _suivre(dt: float) -> void:
 			continue
 		if d < R_CHARGE:
 			voulus[e.glb] = true; voulus[e.atlas] = true
+			_attente.append([d, k])
 			if d < R_IMMEDIAT and saut:
 				_poser(k, load(e.glb), load(e.atlas))
+	_attente.sort_custom(func(a, b): return a[0] < b[0])         # les plus proches d'abord
 	_chargeur.menage(voulus)
 	_poser_prets(p)
 
-## Pose au plus un bâtiment par image, dès que son modèle et son atlas sont lus.
-func _poser_prets(p: Vector3) -> void:
-	for k in _defs:
+## Pose au plus un bâtiment par image, dès que son modèle et son atlas sont lus. Seulement parmi les bâtiments en
+## attente relevés par _suivre toutes les 0,5 s (#174 : parcourir les 1 762 bâtiments à chaque image coûtait ~3 ms).
+func _poser_prets(_p: Vector3) -> void:
+	var i := 0
+	while i < mini(_attente.size(), 12):          # les 12 plus proches : lectures lancées par lots, pas toutes à la fois
+		var k: String = _attente[i][1]
 		if _poses.has(k):
+			_attente.remove_at(i)
 			continue
 		var e: Dictionary = _defs[k]
-		if Vector2(e.pos[0] - p.x, e.pos[2] - p.z).length() >= R_CHARGE:
-			continue
 		var sc := _chargeur.pret(e.glb) as PackedScene
 		var tx := _chargeur.pret(e.atlas) as Texture2D
 		if sc != null and tx != null:
 			_poser(k, sc, tx)
+			_attente.remove_at(i)
 			return
+		i += 1
 
 func _poser(k: String, sc: PackedScene, atlas: Texture2D) -> void:
 	if sc == null or _poses.has(k):

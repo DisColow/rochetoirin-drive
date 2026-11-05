@@ -125,7 +125,8 @@ func _systemes() -> String:
 		l.append([k, float(e[0]) / maxi(e[2], 1) / 1000.0, e[1] / 1000.0])
 	l.sort_custom(func(a, b): return a[1] + a[2] * 0.2 > b[1] + b[2] * 0.2)
 	var out := PackedStringArray()
-	for i in mini(5, l.size()):
+	# PERF_TOUS=1 (essais, #174) : tous les systèmes, pas seulement les 5 plus coûteux
+	for i in (l.size() if OS.get_environment("PERF_TOUS") != "" else mini(5, l.size())):
 		out.append("%s %.1f/%.0f" % l[i])
 	return ", ".join(out)
 

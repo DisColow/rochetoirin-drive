@@ -4,8 +4,9 @@ extends Node3D
 const PerfMon := preload("res://scripts/perf_monitor.gd")
 
 const TILE := 256.0
-const VIEW := 1400.0          # tuiles affichées jusqu'à cette distance (au-delà : sol coloré)
-const DETAIL := 450.0          # portée des panneaux et marquages
+# portées mises à l'échelle du niveau de performances par main.set_post (#174 : Économie 40 %, cachée par la brume)
+var VIEW := 1400.0            # tuiles affichées jusqu'à cette distance (au-delà : sol coloré)
+var DETAIL := 450.0           # portée des panneaux et marquages
 const Cells := preload("res://scripts/cells.gd")
 const COLL := 320.0           # collisions jusqu'à cette distance
 

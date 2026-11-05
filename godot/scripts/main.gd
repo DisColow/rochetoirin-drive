@@ -604,11 +604,11 @@ func set_post(level: int) -> void:
 		_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS if N.split else DirectionalLight3D.SHADOW_ORTHOGONAL
 		RenderingServer.directional_shadow_atlas_set_size(N.carte, true)
 	# distances d'affichage des objets posés par tuiles (valeurs de base gardées au premier appel)
-	for sysn in ["buildings", "props", "fences", "poles", "shops"]:
+	for sysn in ["buildings", "props", "fences", "poles", "shops", "roads"]:
 		var sy = get(sysn)
 		if sy == null:
 			continue
-		for prop in ["VIEW", "VIEW_CUT", "TOUFFE_VIEW"]:
+		for prop in ["VIEW", "VIEW_CUT", "TOUFFE_VIEW", "DETAIL"]:
 			if sy.get(prop) == null:
 				continue
 			var key: String = sysn + "." + prop
