@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v7.24.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.24/RochetoirinSimulator-v7.24.apk)**
+**[RochetoirinSimulator-v7.25.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.25/RochetoirinSimulator-v7.25.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,11 +16,11 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.24 (corrections trouvées en jouant) :
-- **Plus de plantage** en remontant dans la voiture après une balade à pied.
-- **Activités** : lancer le taxi ou une balade pendant une autre activité arrête bien la première.
-- **Gendarme** : la rampe de gyrophares et la sirène ne restent plus sur votre voiture après le service.
-- **Succès** : la liste des statistiques défile jusqu'en bas ; plus de descente à pied depuis le garage.
+Nouveautés de la v7.25 (performances sur petit téléphone) :
+- **Nouveau réglage « Léger »** (⚙ > Performances) : Économie avec les arbres, pour les téléphones d'entrée de gamme.
+- **Moins de saccades en roulant** : chargements des routes, bâtiments, clôtures, champs, animaux et avions étalés ou faits en arrière-plan.
+- **Économie et Léger plus légers** : sol simplifié, routes et bâtiments lointains cachés par la brume, relief chargé moins loin.
+- Résolution automatique qui n'oscille plus.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
