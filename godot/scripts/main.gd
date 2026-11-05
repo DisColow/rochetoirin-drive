@@ -590,6 +590,8 @@ func set_post(level: int) -> void:
 	var tm = preload("res://scripts/env.gd").terrain_mat
 	if tm:
 		tm.set_shader_param("terre_labouree", 1.0 if level == 0 else 0.0)
+		tm.set_shader_param("econome", level == 0)                       # sol à une matière par case (#174)
+		tm.set_shader_param("enable_macro_variation", level != 0)        # 2 lectures de bruit en moins
 	_res_t = 0.0
 	Engine.max_fps = (60 if eco_60 else int(N.fps)) if N.has("fps") else 0
 	Engine.physics_ticks_per_second = int(N.get("physique", 120))

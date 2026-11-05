@@ -37,6 +37,7 @@ uniform highp sampler2DArray _texture_array_normal : hint_normal, filter_linear_
 
 uniform float blend_sharpness : hint_range(0, 1) = 0.5;
 uniform bool flat_terrain_normals = false;
+uniform bool econome = false;          // réglages Économie et Léger (#174, main.set_post)
 uniform bool enable_projection = true;
 uniform float projection_threshold : hint_range(0.0, 0.99, 0.01) = 0.8;
 
@@ -292,7 +293,9 @@ void fragment() {
  vec3 base_ddy =  dFdy(v_vertex) ;
 
  float region_mip = log2(max(length(base_ddx.xz), length(base_ddy.xz)) * _vertex_density);
- bool bilerp = region_mip < 0.0 && region_uv.z > -1.;
+ // Économie et Léger (#174) : matière du coin le plus proche seulement (comme Terrain3D le fait déjà au loin) : ~4 fois
+ // moins de lectures de textures pour le sol, qui couvre la moitié de l'écran d'un téléphone
+ bool bilerp = !econome && region_mip < 0.0 && region_uv.z > -1.;
 
  vec3 index_normal[4];
  float h[4];
