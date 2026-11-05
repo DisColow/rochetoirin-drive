@@ -3,7 +3,27 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 04/11/2026 (v6.84 #131 à v7.24 livrées)
+## État au 05/11/2026 (v6.84 #131 à v7.25 livrées)
+- **v7.25 (#174, `à tester`)** : demande du 05/11 (/goal) « 30 img/s sans saccade sur smartphone entrée de gamme avec
+  les arbres ». Réglage **Léger** (⚙ > Performances, entre Économie et Équilibré ; `vegetation.leger` + niveau 0,
+  `LEGER` de vegetation.gd : 50 % des arbres, imposteurs à 600 m, 12 modèles 3D à 26 m ; sauvegardé
+  `affichage/leger` ; échelle d'Auto : Économie < Léger < Équilibré < Élevée). Saccades : `sur_mesure` ne parcourt
+  plus ses 1 762 bâtiments à chaque image (liste `_attente`), avions du ciel lus en arrière-plan (338 ms), animaux,
+  détails des maisons (`buildings._kit`) et parcelles des champs (`crops._champs_prets`) préparés sur un fil,
+  collisions des routes/bâtiments/clôtures une tuile (clôtures : un lot de 256 boîtes) par passage, brèche des
+  clôtures limitée au lot touché (avant : toute la tuile refaite à chaque clôture traversée), arbres proches cherchés
+  par cases de 32 m. Économie et Léger : relief chargé à 700 m (chaque ajout de région refait les textures de TOUTES
+  les régions : `update_maps` de Terrain3D 1.0.2 ; 9 régions = 21 ms ici, contre ~80 ms avant), maillage Terrain3D
+  32 au lieu de 48, sol à une matière par case (`econome` de terrain.gdshader) sans variation macro ; portées des
+  routes, détails, bâtiments sur mesure et eau à l'échelle du niveau (`set_post`). Résolution auto : attente doublée
+  après une remontée ratée. Shaders : plus d'`inverse()` par sommet (`env_inv_rs`). Mesures : `PERF_TOUS=1` (tous
+  les systèmes dans `[perf]`), `scratchpad/outils/analyse.py` (non versionné : moyenne/pire par système),
+  `[relief] mise à jour` et `[clôtures]` dans le journal avec PERF_TOUS. Balade D522 en roulant (temps fixe) :
+  systèmes 86 -> 2,7 ms par image, pire pic 190 ms -> 18 ms. Bourgoin Économie 618 -> 512 appels, 996 -> 845 k
+  triangles (Léger : 524 / 855 k). **NON VÉRIFIÉ** : img/s réelles sur le TCL (relevé demandé dans #174). Pistes
+  restantes : bâtiments (108 appels), commerces (60) et voitures garées (61) regroupés par tuile (pipeline),
+  relief : 21 ms par ajout de région (Terrain3D), à revoir avec une version de Terrain3D qui met à jour une région seule.
+
 - **v7.24 : play tests** (demande de l'utilisateur du 04/11 : « fais des play tests pour découvrir les bugs et les
   corriger, une issue par bug »). Bugs trouvés et corrigés, une issue chacun, « à tester » : #168 statistiques de
   l'onglet Succès coupées (zone défilable), #169 taxi / balade / dernier tracé lancés pendant une autre activité

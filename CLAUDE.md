@@ -698,6 +698,10 @@
   quand le HUD de conduite est caché ; ⚙ > Conduite (`conduite/retroviseur`) ; en Économie une image sur 8, coupé
   sous 24 img/s (v7.23). Carte et messages bornés en largeur (`CARTE_L`, 600 px) : retour à la ligne avant le
   rétroviseur. Essai `--hud-test`.
+- **Réglage Léger et saccades** (v7.25, #174) : Léger = niveau 0 + `vegetation.leger` (voir docs/REPRISE.md) ; tout
+  chargement en roulant se prépare sur un fil ou s'étale (une tuile, un lot de collisions par passage) ; toute
+  portée d'affichage passe par `set_post` (`VIEW`, `DETAIL`, `VUE`, × `N.dist`) ; jamais d'`inverse()` par sommet
+  dans un shader (`env_inv_rs`) ; mesures `PERF_TOUS=1`.
 - **Play tests** (v7.24) : essais `--explore-test` et `--explore2-test` (voir docs/REPRISE.md) ; **toute caméra
   temporaire (piéton, balade…) : rendre `cam_rig.cam` au relief (`terrain.set_camera`) avant de la libérer**
   (Terrain3D garde un pointeur brut : plantage du moteur sinon, #173).
