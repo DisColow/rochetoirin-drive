@@ -88,7 +88,7 @@ func update_now() -> void:
 	for k in _wanted(target.global_position):
 		if _d(k, target.global_position) < 600.0:
 			_add(k)
-	_collisions()
+	_collisions(true)
 
 func _process(dt: float) -> void:
 	var t0_perf := Time.get_ticks_usec()
@@ -99,15 +99,30 @@ func _process_corps(dt: float) -> void:
 	if target == null:
 		return
 	# tuiles lues en arrière-plan (scripts/chargeur.gd), posées une par image au plus (pas d'à-coup)
-	for k in pending.keys():
-		if loaded.has(k):
-			pending.erase(k)
-			continue
-		var sc := _chargeur.pret(tiles[k]) as PackedScene
-		if sc != null:
-			_add(k, sc)
-			pending.erase(k)
-			break
+	if _tache >= 0 and WorkerThreadPool.is_task_completed(_tache):
+		WorkerThreadPool.wait_for_task_completion(_tache)
+		_tache = -1
+		if pending.has(_tache_k) and _scenes.has(_tache_k) and not loaded.has(_tache_k):
+			_add(_tache_k, _scenes[_tache_k], _tache_res)
+			pending.erase(_tache_k)
+		_scenes.erase(_tache_k)
+		_tache_res = {}
+	elif _tache < 0:
+		for k in pending.keys():
+			if loaded.has(k):
+				pending.erase(k)
+				continue
+			var sc := _chargeur.pret(tiles[k]) as PackedScene
+			if sc != null:
+				if kit_meshes.is_empty():
+					_add(k, sc)
+					pending.erase(k)
+				else:
+					_scenes[k] = sc
+					_tache_k = k
+					var kk: Vector2i = k
+					_tache = WorkerThreadPool.add_task(func(): _tache_res = _kit(kk))
+				break
 	_t -= dt
 	if _t > 0:
 		return
@@ -131,7 +146,44 @@ func _process_corps(dt: float) -> void:
 			bodies.erase(k)
 	_collisions()
 
-func _add(k: Vector2i, sc: PackedScene = null) -> void:
+## Détails des maisons d'une tuile (k_*.bin) en tampons MultiMesh par [modèle, case de 48 m] : calcul pur, sur un fil
+## de travail en roulant (#174 : fait sur le fil principal, la boucle sur des milliers de détails faisait des à-coups).
+func _kit(k: Vector2i) -> Dictionary:
+	var kf := "res://world/buildings/k_%d_%d.bin" % [k.x, k.y]
+	var by := {}
+	if not FileAccess.file_exists(kf):
+		return by
+	var a := FileAccess.get_file_as_bytes(kf)
+	var cnt := a.decode_s32(0)
+	var f := a.slice(4).to_float32_array()
+	const CELLK := 48.0
+	var listes := {}
+	for i in cnt:
+		var o := i * 17
+		var m := int(f[o])
+		var cx := floori(f[o + 10] / CELLK); var cz := floori(f[o + 12] / CELLK)
+		var key := Vector3i(m, cx, cz)
+		if not listes.has(key):
+			listes[key] = PackedFloat32Array()
+		var ox := (cx + 0.5) * CELLK; var oz := (cz + 0.5) * CELLK
+		# base en colonnes (X, Y, Z) + origine (relative à la case) -> tampon MultiMesh (lignes) + couleur
+		var l: PackedFloat32Array = listes[key]
+		l.append_array(PackedFloat32Array([f[o + 1], f[o + 4], f[o + 7], f[o + 10] - ox, f[o + 2], f[o + 5], f[o + 8], f[o + 11],
+			f[o + 3], f[o + 6], f[o + 9], f[o + 12] - oz, f[o + 13], f[o + 14], f[o + 15], 1.0]))
+		listes[key] = l
+	return listes
+
+var _tache := -1                 # décodage des détails sur un fil de travail
+var _tache_k := Vector2i.ZERO
+var _tache_res := {}
+var _scenes := {}                # Vector2i -> PackedScene lue, en attente de ses détails
+
+func _exit_tree() -> void:
+	if _tache >= 0:
+		WorkerThreadPool.wait_for_task_completion(_tache)
+		_tache = -1
+
+func _add(k: Vector2i, sc: PackedScene = null, kit = null) -> void:
 	if loaded.has(k):
 		return
 	if sc == null:
@@ -146,30 +198,15 @@ func _add(k: Vector2i, sc: PackedScene = null) -> void:
 		mi.material_override = mat
 		mi.visibility_range_end = VIEW
 		mi.visibility_range_end_margin = 100.0
-	var kf := "res://world/buildings/k_%d_%d.bin" % [k.x, k.y]
-	if not kit_meshes.is_empty() and FileAccess.file_exists(kf):
-		var a := FileAccess.get_file_as_bytes(kf)
-		var cnt := a.decode_s32(0)
-		var f := a.slice(4).to_float32_array()
-		var by := {}
-		const CELLK := 48.0
-		for i in cnt:
-			var o := i * 17
-			var m := int(f[o])
-			var cx := floori(f[o + 10] / CELLK); var cz := floori(f[o + 12] / CELLK)
-			var key := Vector3i(m, cx, cz)
-			if not by.has(key):
-				by[key] = []
-			var ox := (cx + 0.5) * CELLK; var oz := (cz + 0.5) * CELLK
-			# base en colonnes (X, Y, Z) + origine (relative à la case) -> tampon MultiMesh (lignes) + couleur
-			(by[key] as Array).append_array([f[o + 1], f[o + 4], f[o + 7], f[o + 10] - ox, f[o + 2], f[o + 5], f[o + 8], f[o + 11],
-				f[o + 3], f[o + 6], f[o + 9], f[o + 12] - oz, f[o + 13], f[o + 14], f[o + 15], 1.0])
+	const CELLK := 48.0
+	if not kit_meshes.is_empty():
+		var by: Dictionary = kit if kit != null else _kit(k)
 		for key in by:
 			var mm := MultiMesh.new()
 			mm.transform_format = MultiMesh.TRANSFORM_3D
 			mm.use_colors = true
 			mm.mesh = kit_meshes[key.x]
-			var buf := PackedFloat32Array(by[key])
+			var buf: PackedFloat32Array = by[key]
 			mm.instance_count = buf.size() / 16
 			mm.buffer = buf
 			var mi := MultiMeshInstance3D.new()
@@ -183,7 +220,7 @@ func _add(k: Vector2i, sc: PackedScene = null) -> void:
 	add_child(n)
 	loaded[k] = n
 
-func _collisions() -> void:
+func _collisions(tout := false) -> void:
 	var p := target.global_position
 	for k in loaded.keys():
 		var need := _d(k, p) < COLL + TILE * 0.71
@@ -202,6 +239,8 @@ func _collisions() -> void:
 				sb.add_child(cs)
 			loaded[k].add_child(sb)
 			bodies[k] = sb
+			if not tout:
+				return                   # une tuile par passage (0,25 s) : pas d'à-coup quand plusieurs arrivent (#174)
 		elif not need and bodies.has(k):
 			bodies[k].queue_free()
 			bodies.erase(k)

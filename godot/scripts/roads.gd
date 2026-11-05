@@ -116,7 +116,7 @@ func update_now() -> void:
 	for k in _wanted(target.global_position):
 		if Vector2((k.x + 0.5) * TILE - target.global_position.x, (k.y + 0.5) * TILE - target.global_position.z).length() < 600.0:
 			_add(k, load(tiles[k]))
-	_update_collisions()
+	_update_collisions(true)
 
 func _process(dt: float) -> void:
 	var t0_perf := Time.get_ticks_usec()
@@ -193,7 +193,7 @@ func _add(k: Vector2i, sc: PackedScene) -> void:
 	add_child(n)
 	loaded[k] = n
 
-func _update_collisions() -> void:
+func _update_collisions(tout := false) -> void:
 	var p := target.global_position
 	for k in loaded.keys():
 		var d := Vector2((k.x + 0.5) * TILE - p.x, (k.y + 0.5) * TILE - p.z).length()
@@ -227,6 +227,8 @@ func _update_collisions() -> void:
 				holder.add_child(sb)
 			loaded[k].add_child(holder)
 			bodies[k] = holder
+			if not tout:
+				return                   # une tuile par passage (0,25 s) : formes en maillage coûteuses (#174)
 		elif not need and bodies.has(k):
 			bodies[k].queue_free()
 			bodies.erase(k)

@@ -81,31 +81,65 @@ func _process_corps(dt: float) -> void:
 	if _t > 0.0:
 		return
 	_t = 0.5
+	# #174 : tuile préparée sur un fil de travail (lecture, collisions, lots), posée ici quand elle est prête : la
+	# préparation sur le fil principal faisait des à-coups (358 ms mesurés en balade)
+	if _tache >= 0:
+		if not WorkerThreadPool.is_task_completed(_tache):
+			_t = 0.05
+			return
+		WorkerThreadPool.wait_for_task_completion(_tache)
+		_tache = -1
+		var lu: Array = _tache_res
+		_tache_res = []
+		var r: Array = _construire(lu) if not lu.is_empty() and not loaded.has(lu[0]) else []
+		if not r.is_empty():
+			add_child(r[1])
+			loaded[r[0]] = r[1]
+			if not (r[2] as Dictionary).is_empty():
+				travees[r[0]] = r[2]
 	var ws := {}
-	var n := 0
 	for k in _wanted(target.global_position):
 		ws[k] = true
-		if not loaded.has(k) and n < 1:
-			_add(k); n += 1
+		if not loaded.has(k) and _tache < 0:
+			var kk: Vector2i = k
+			_tache = WorkerThreadPool.add_task(func(): _tache_res = _lire(kk))
 	for k in loaded.keys():
 		if not ws.has(k):
 			loaded[k].queue_free()
 			loaded.erase(k)
 			travees.erase(k)
 
+var _tache := -1
+var _tache_res: Array = []
+
+func _exit_tree() -> void:
+	if _tache >= 0:
+		WorkerThreadPool.wait_for_task_completion(_tache)
+		_tache = -1
+
 func _add(k: Vector2i) -> void:
 	if loaded.has(k):
 		return
+	var r := _preparer(k)
+	add_child(r[1])
+	loaded[k] = r[1]
+	if not (r[2] as Dictionary).is_empty():
+		travees[k] = r[2]
+
+## Tuile k préparée hors de la scène (peut tourner sur un fil de travail) : [k, nœud racine, travées].
+func _preparer(k: Vector2i) -> Array:
+	return _construire(_lire(k))
+
+## Lecture et calculs d'une tuile (fil de travail possible : ni nœud ni ressource partagée) :
+## [k, objets par modèle, boîtes [taille, transform], travées, grille].
+func _lire(k: Vector2i) -> Array:
 	var a := FileAccess.get_file_as_bytes(tiles[k])
 	var cnt := a.decode_s32(0)
 	var f := a.slice(4).to_float32_array()
-	var root := Node3D.new()
-	var body := StaticBody3D.new()
-	body.set_meta("matiere", "sol")                 # bêtes : choc sourd (audio.gd)
-	root.add_child(body)
 	var by := {}
 	var spans := []
 	var grille := {}
+	var boites := []
 	for i in cnt:
 		var o := i * 17
 		var m := int(f[o])
@@ -132,15 +166,23 @@ func _add(k: Vector2i) -> void:
 						grille[gk] = PackedInt32Array()
 					grille[gk].append(ix)
 			continue
+		var sz: Vector3 = [Vector3(0.8, 1.4, 2.4), Vector3(0.6, 0.8, 1.1), Vector3(0.7, 1.6, 2.3)][m]
+		boites.append([sz, xf * Transform3D(Basis.IDENTITY, Vector3(0, sz.y / 2, 0))])
+	return [k, by, boites, spans, grille]
+
+## Nœuds d'une tuile lue (fil principal) : [k, nœud racine, travées].
+func _construire(r: Array) -> Array:
+	var k: Vector2i = r[0]
+	var by: Dictionary = r[1]
+	var root := Node3D.new()
+	var body := StaticBody3D.new()
+	body.set_meta("matiere", "sol")                 # bêtes : choc sourd (audio.gd)
+	root.add_child(body)
+	for bx in r[2]:
 		var cs := CollisionShape3D.new()
 		var bs := BoxShape3D.new()
-		if m == 3:
-			var L := b.x.length()
-			bs.size = Vector3(L, 1.3, 0.12)
-			cs.transform = Transform3D(Basis(Vector3.UP, atan2(-b.x.z, b.x.x)), xf * Vector3(0.5, 0.65, 0))
-		else:
-			bs.size = [Vector3(0.8, 1.4, 2.4), Vector3(0.6, 0.8, 1.1), Vector3(0.7, 1.6, 2.3)][m]
-			cs.transform = xf * Transform3D(Basis.IDENTITY, Vector3(0, bs.size.y / 2, 0))
+		bs.size = bx[0]
+		cs.transform = bx[1]
 		cs.shape = bs
 		body.add_child(cs)
 	var mis3 := []
@@ -148,10 +190,8 @@ func _add(k: Vector2i) -> void:
 		var mis := Cells.add(root, meshes[m], by[m], 380.0 if m < 3 else 300.0, m < 3)
 		if m == 3:
 			mis3 = mis
-	add_child(root)
-	loaded[k] = root
-	if not spans.is_empty():
-		travees[k] = {"spans": spans, "grille": grille, "mis": mis3}
+	var spans: Array = r[3]
+	return [k, root, {"spans": spans, "grille": r[4], "mis": mis3} if not spans.is_empty() else {}]
 
 ## Clôtures des prés défonçables (issue #27, demande de l'utilisateur) : la voiture qui touche une travée (devant ou
 ## milieu de la caisse à moins de 1,2 m du fil) l'arrache : travée cachée, éclats de bois, craquement de branche

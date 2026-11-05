@@ -598,6 +598,13 @@ func set_post(level: int) -> void:
 		_sun.shadow_enabled = N.ombre > 0.0
 	# relief Terrain3D (#174) : anneaux du maillage plus petits en Économie et Léger (32 au lieu de 48 : ~2,2 fois moins
 	# de triangles ; la portée du dernier anneau, ~4 km, couvre encore les régions chargées à 1,8 km)
+	# régions du relief gardées dans Terrain3D (#174) : chaque ajout refait les textures de TOUTES les régions chargées
+	# (Terrain3D 1.0.2, update_maps) ; en Économie et Léger, moins de régions (rayon 700 m au lieu de 1,8 km, ~3 fois
+	# moins), le lointain est fait par le relief de remplacement cuit, sous la brume
+	if relief:
+		relief.r_charge = 700.0 if level == 0 else Relief.R_CHARGE
+		relief.r_garde = 1400.0 if level == 0 else Relief.R_GARDE
+		relief.r_lire = 1500.0 if level == 0 else Relief.R_LIRE
 	if terrain:
 		var ms := 32 if level == 0 else 48
 		if terrain.mesh_size != ms:
