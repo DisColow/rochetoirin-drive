@@ -66,6 +66,9 @@ func _ready() -> void:
 	cross = st.commit()
 
 func _exit_tree() -> void:
+	for k in _lectures:
+		WorkerThreadPool.wait_for_task_completion(_lectures[k][0])
+	_lectures.clear()
 	for tc in _taches:
 		WorkerThreadPool.wait_for_task_completion(tc[0])
 	_taches.clear()
@@ -83,6 +86,29 @@ func set_level(l: int) -> void:
 func _tile_fields(k: Vector2i) -> Array:
 	if fields.has(k):
 		return fields[k]
+	fields[k] = _lire_champs(k)
+	return fields[k]
+
+## Parcelles d'une tuile lues d'avance sur un fil de travail (#174 : la lecture d'une grande tuile faisait un à-coup
+## de 270 ms sur le fil principal) ; vrai quand elles sont prêtes, sinon la lecture est lancée.
+var _lectures := {}              # Vector2i -> [id de tâche, résultat]
+func _champs_prets(k: Vector2i) -> bool:
+	if fields.has(k):
+		return true
+	if not _lectures.has(k):
+		var res := {}
+		var kk := k
+		_lectures[k] = [WorkerThreadPool.add_task(func(): res["r"] = _lire_champs(kk), false, "champs"), res]
+		return false
+	var l: Array = _lectures[k]
+	if not WorkerThreadPool.is_task_completed(l[0]):
+		return false
+	WorkerThreadPool.wait_for_task_completion(l[0])
+	fields[k] = (l[1] as Dictionary).get("r", [])
+	_lectures.erase(k)
+	return true
+
+static func _lire_champs(k: Vector2i) -> Array:
 	var out := []
 	var path := "res://world/crops/c_%d_%d.bin" % [k.x, k.y]
 	if FileAccess.file_exists(path):
@@ -107,12 +133,14 @@ func _tile_fields(k: Vector2i) -> Array:
 				net.resize(net.size() - 1)
 			if net.size() >= 3:
 				out.append([t, d, net, r])
-	fields[k] = out
 	return out
 
 ## Type de culture sous un point (x, z), -1 hors des champs (trample.gd : la trace n'est peinte que dans les champs).
 func field_at(p: Vector2) -> int:
-	for f in _tile_fields(Vector2i(floori(p.x / TILE), floori(p.y / TILE))):
+	var tk := Vector2i(floori(p.x / TILE), floori(p.y / TILE))
+	if not _champs_prets(tk):
+		return -1                    # tuile en cours de lecture (fil de travail)
+	for f in fields[tk]:
 		if (f[3] as Rect2).grow(0.01).has_point(p) and Geometry2D.is_point_in_polygon(p, f[2]):
 			return f[0]
 	return -1
@@ -202,6 +230,8 @@ func _lancer(k: Vector2i) -> void:
 	var x0 := k.x * CELL; var z0 := k.y * CELL
 	var rect := Rect2(x0, z0, CELL, CELL)
 	var tk := Vector2i(floori(x0 / TILE), floori(z0 / TILE))
+	if not _champs_prets(tk):
+		return                       # parcelles en cours de lecture : la case attend (réessayée à l'image suivante)
 	var fs := []
 	for f in _tile_fields(tk):
 		if f[3].intersects(rect):

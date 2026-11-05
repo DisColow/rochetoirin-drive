@@ -109,7 +109,7 @@ func update_now() -> void:
 			else:
 				_build(k, FileAccess.get_file_as_bytes(tiles[k]).to_float32_array())
 			_finish(k)
-	_collisions()
+	_collisions(true)
 
 func _process(dt: float) -> void:
 	var t0_perf := Time.get_ticks_usec()
@@ -254,7 +254,7 @@ static func _corps(f: PackedVector3Array, g := PackedByteArray()) -> StaticBody3
 		sb.add_child(cs)
 	return sb
 
-func _collisions() -> void:
+func _collisions(tout := false) -> void:
 	var p := target.global_position
 	for k in loaded.keys():
 		var need := _d(k, p) < COLL + TILE * 0.71
@@ -262,6 +262,8 @@ func _collisions() -> void:
 			var sb := _corps(colfaces[k], colgenres.get(k, PackedByteArray()))
 			loaded[k].add_child(sb)
 			bodies[k] = sb
+			if not tout:
+				return                   # une tuile par passage (0,25 s) : des centaines de boîtes par tuile (#174)
 		elif not need and bodies.has(k):
 			bodies[k].queue_free()
 			bodies.erase(k)

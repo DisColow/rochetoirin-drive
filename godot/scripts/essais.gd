@@ -26,6 +26,7 @@ func _shots(path: String) -> void:
 	for s in list:
 		if s.has("niveau"):
 			perf_auto = false
+			vegetation.leger = bool(s.get("leger", false))        # réglage « Léger » (#174)
 			get_node("HUD").appliquer_niveau(int(s.niveau))
 			for i in 30:
 				await get_tree().process_frame
