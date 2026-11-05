@@ -646,6 +646,8 @@ func set_post(level: int) -> void:
 ## on remonte de 5 points (jusqu'à 80 %), pas avant 20 s après une baisse.
 var _res_auto := false
 var _res_t := 0.0
+var _res_hausse_t := 1e6          # s depuis la dernière remontée de la résolution
+var _res_echecs := 0              # remontées suivies d'une baisse (attente doublée à chaque fois)
 var _res_baisse_t := 0.0
 func _resolution_auto(dt: float) -> void:
 	if not _res_auto or perf == null or get_tree().paused:
@@ -660,11 +662,19 @@ func _resolution_auto(dt: float) -> void:
 		return
 	var vp := get_viewport()
 	var cible := float(Engine.max_fps) if Engine.max_fps > 0 else 60.0
+	# chaque changement réalloue les tampons de l'image (un à-coup) : une remontée suivie d'une baisse dans les 30 s
+	# double l'attente avant la suivante (20 s, 40 s, 80 s… jusqu'à 10 min), pour ne pas osciller autour de la
+	# limite du téléphone (#174)
 	if f < cible * 0.93 and vp.scaling_3d_scale > 0.5:
 		vp.scaling_3d_scale = maxf(0.5, vp.scaling_3d_scale - 0.05)
+		if _res_hausse_t < 30.0:
+			_res_echecs = mini(_res_echecs + 1, 5)
 		_res_baisse_t = 0.0
-	elif f >= cible * 0.98 and vp.scaling_3d_scale < 0.8 and _res_baisse_t > 20.0 and int(Time.get_ticks_msec() / 2000) % 3 == 0:
+	elif f >= cible * 0.98 and vp.scaling_3d_scale < 0.8 and _res_baisse_t > 20.0 * pow(2.0, _res_echecs) \
+			and int(Time.get_ticks_msec() / 2000) % 3 == 0:
 		vp.scaling_3d_scale = minf(0.8, vp.scaling_3d_scale + 0.05)
+		_res_hausse_t = 0.0
+	_res_hausse_t += 2.0
 
 ## Niveau automatique : on part d'Équilibré ; toutes les 30 s, d'après les images/s mesurées (perf_monitor.gd), on
 ## descend d'un cran sous 24 img/s, on remonte (jusqu'à Élevée) au-dessus de 50 img/s.
