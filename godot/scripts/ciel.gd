@@ -53,6 +53,17 @@ func _ready() -> void:
 	_son.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
 	_son.bus = "Monde"
 	add_child(_son)
+	# #174 : modèles et sons lus d'avance en arrière-plan (le premier passage les lisait d'un coup sur le fil principal :
+	# à-coup de 338 ms mesuré en balade)
+	for k in TYPES:
+		for f in [TYPES[k][0], TYPES[k][3]]:
+			if f != "" and ResourceLoader.exists(f):
+				_charge.pret(f)
+var _charge = preload("res://scripts/chargeur.gd").new()
+
+## Ressource lue d'avance si elle est prête, sinon null (lecture lancée au premier appel).
+func _pret(f: String) -> Resource:
+	return _charge.pret(f) if f != "" else null
 
 func _process(dt: float) -> void:
 	var t0_perf := Time.get_ticks_usec()
@@ -71,8 +82,15 @@ func _process_corps(dt: float) -> void:
 			return
 		_t -= dt
 		if _t <= 0.0:
+			var ty := force if force != "" else _tirer()
+			if not _modeles.has(ty) and TYPES.has(ty):
+				var sc = _pret(TYPES[ty][0])
+				if sc == null:
+					_t = 2.0                               # pas encore lu : on réessaie bientôt
+					return
+				_modeles[ty] = sc
 			_t = _rng.randf_range(70.0, 160.0)
-			_lancer(force if force != "" else _tirer())
+			_lancer(ty)
 		return
 	_vie -= dt
 	if _type == "planeur" and _spirale > 0.0:
@@ -96,7 +114,8 @@ func _process_corps(dt: float) -> void:
 		var restant: float = rel.dot(_v.normalized()) / max(_v.length(), 1.0)
 		if restant <= info[4]:
 			_son_lance = true
-			_son.stream = load(info[3])
+			var st = _pret(info[3])
+			_son.stream = st if st else load(info[3])
 			_son.volume_db = _vol_db
 			_son.play(clamp(info[4] - restant, 0.0, 5.0))
 	_son.global_position = _p
