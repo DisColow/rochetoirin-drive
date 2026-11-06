@@ -10,8 +10,8 @@ shader_type spatial;
 render_mode cull_disabled, specular_schlick_ggx;
 #include "res://scripts/env.gdshaderinc"
 
-uniform vec3 deep : source_color = vec3(0.020, 0.085, 0.090);
-uniform vec3 shallow : source_color = vec3(0.060, 0.190, 0.170);
+uniform vec3 deep : source_color = vec3(0.015, 0.070, 0.085);
+uniform vec3 shallow : source_color = vec3(0.045, 0.160, 0.155);
 uniform vec3 ciel = vec3(0.62, 0.74, 0.88);           // couleur du ciel à l'horizon (water.gd)
 
 varying vec3 wpos;
@@ -70,7 +70,7 @@ void fragment() {
 	// reflet du ciel (Fresnel de Schlick, eau : F0 = 0,02)
 	float cv = clamp(dot(NORMAL, VIEW), 0.0, 1.0);
 	float fres = 0.02 + 0.98 * pow(1.0 - cv, 5.0);
-	vec3 c = mix(corps, ciel * 0.9, clamp(fres, 0.0, 0.85));
+	vec3 c = mix(corps, ciel * 0.72, clamp(fres, 0.0, 0.6));
 	// écume des cours d'eau rapides, sur les crêtes et les rides
 	float ecume = courant ? smoothstep(0.72, 0.95, crete * 0.6 + r0 * 0.5) * clamp(length(flow), 0.0, 1.0) * 0.6 : 0.0;
 	c = mix(c, vec3(0.9, 0.93, 0.95), ecume);
