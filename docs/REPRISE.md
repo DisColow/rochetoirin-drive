@@ -3,7 +3,24 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 05/11/2026 (v6.84 #131 à v7.25 livrées)
+## État au 06/11/2026 (v6.84 #131 à v7.26 livrées)
+- **v7.26 (#175 #176 #177 #178 #179, `à tester`)** : issues du 06/11 (vidéo commune non envoyée). #176 : l'« encart vide »
+  est le message bref « Défi du jour » (`hud.toast`) : libellé à retour à la ligne mesuré sur 0 px au premier calcul
+  -> PanelContainer de 680 × 3 250 px, texte hors écran ; taille refaite en différé et à chaque image (`_process`),
+  même garde pour la carte d'activité (`activities._set_status`). #178 : `econome` (v7.25) lisait la matière du coin
+  bas-gauche : triangles nets ; coin le plus proche décalé par un bruit calculé (`bruit_bord`, hash22 sans sinus,
+  sans lecture de texture). #179 : la Focus garde sa rampe noire et son antenne d'origine ; `gendarme._toit` = médiane
+  des sommets les plus hauts par case de 10 cm (1,41 m au lieu de 1,80 m, sommet de l'antenne) ; essai `--rampe-test` ;
+  planche de modèles libres `docs/apercus/planche_179.jpg` (A Kenney, B rgsdev, C garder la Focus : choix de
+  l'utilisateur). #175 : `gendarmes._au_poste` : poste le plus proche (places.json : « Gendarmerie… », « Police
+  nationale », 5 lieux), point de route le plus proche, `main._teleport`, puis `hud.consigne(…, "Compris")` (nouveau
+  paramètre `bouton`) ; vérifié dans `--gendarmes-test`. #177 : cause non trouvée sans la vidéo (routes sur un plan
+  d'eau : 0 sur 81 172 points, `--eau-routes-test` ; polygone de la cascade : tous les points de route dedans) ;
+  `car.reset_to_road(raison)` : toast « Remise sur la route : … » et ligne `[remise]` pour chaque remise automatique,
+  `[remise] bouton ou touche « replacer » (source)` pour le bouton. `--flip-test` déclenché après le chargement
+  (`t == 240` tombait pendant le chargement, l'essai ne faisait plus rien). Pièges : les essais `t == N` ratent leur
+  image quand la physique démarre après N ; deux Xvfb sur le même numéro d'affichage se tuent (demarrage.sh DISP).
+  `--gendarmes-test` : « barrage : false » déjà en v7.24 (essai de référence), à examiner.
 - **v7.25 (#174, `à tester`)** : demande du 05/11 (/goal) « 30 img/s sans saccade sur smartphone entrée de gamme avec
   les arbres ». Réglage **Léger** (⚙ > Performances, entre Économie et Équilibré ; `vegetation.leger` + niveau 0,
   `LEGER` de vegetation.gd : 50 % des arbres, imposteurs à 600 m, 12 modèles 3D à 26 m ; sauvegardé
