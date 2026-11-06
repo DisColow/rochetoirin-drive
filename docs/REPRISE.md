@@ -3,7 +3,16 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 06/11/2026 (v6.84 #131 à v7.29 livrées)
+## État au 06/11/2026 (v6.84 #131 à v7.30 livrées)
+- **v7.30 (#180 livraison 3 sur 3, `à tester`)** : `cascade_nuages.gdshader` refait (unshaded) : relief des cumulus
+  lu dans une `NoiseTexture2D` sans couture (512 px, FastNoiseLite simplex FBM 4 octaves, faite par `cascade.gd`),
+  hauteur `sqrt(smoothstep(0,30, 0,86, n))` × `hmax` 60 m, motif de 1 / `echelle` = 1 250 m ; parallaxe : 20 pas
+  (40 m au plus) + 4 de dichotomie (sans elle : stries en vue rasante), `textureLod` au niveau tiré de la distance
+  (lectures dans des boucles à branches) ; normale par différences (10 m), 3 pas d'ombre vers un soleil abaissé pour
+  les nuages seuls (à midi il écrasait les ombres), creux bleutés, liseré à contre-jour, brume vers `ciel_coul`.
+  `cascade._lumiere_nuages` (toutes les 0,5 s) : `main._sun` (direction, couleur × énergie) et
+  `main._env.fog_light_color`. Essai `--cascade-test` : nouvelle vue `cascade_6.png` depuis la lèvre vers le large.
+  **Piège** : pousser sur `godot` pendant un build l'annule (v7.28 annulée, contenu livré par la v7.29).
 - **v7.29 (#180 livraison 2 sur 3)** : `cascade_eau.gdshader` (courant : abscisse emportée `s = d(1 + 0,18 d)/2 + t·vit`,
   vit 1,6 -> 7,1 m/s vers la lèvre ; stries étirées dans le sens du courant ; relief par gradient de surface à
   l'écran (Mikkelsen : dFdx/dFdy de VERTEX et de la hauteur, sans tangentes ni texture) ; vert profond -> turquoise,
