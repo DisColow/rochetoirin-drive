@@ -62,7 +62,16 @@ CARS = {
     # Gendarmerette (#150, choix A de l'utilisateur) : « Ford Focus MK1 Gendarmerie » de szymonpasterczyk, converti
     # d'une image (sans texture, couché, soupe de triangles) ; coque noire de contour, antenne et rampe du modèle
     # retirées (la rampe du jeu clignote : gendarme.gd _rampe) ; pas d'inscription sur le modèle
-    "gendarme": dict(src="gendarme/model.glb", renommer=True, souder=0.002, normales=True, rotx=90, rot=0, L=4.17,
+    # Gendarmerette (#179, choix B de l'utilisateur le 06/11) : « Police Sedan » du « Free Low Poly Vehicles Pack » de
+    # Rgsdev (CC0, OpenGameArt), FBX de fetch_voitures_joueur.py ; caisse noire -> peinture bleu nuit,
+    # blanc gardé ; feux de toit du modèle renommés gyro_g / gyro_d (gendarme.gd les fait clignoter, plus de rampe)
+    "gendarme": dict(src="gendarme_rgs/Police Sedan.fbx", L=4.55, rot=180, lh=(1.80, 1.48), roues=[r"wheel"], suppr=[],
+                     mats={"body black": "paint", "body white": (0.92, 0.93, 0.95), "windows": "glass",
+                           "headlights": "lamp", "rear lights": "tail", "tires": "rubber", "wheels": "hubcap",
+                           "flashers siren blue": "gyro_d", "flashers siren red": "gyro_g"},
+                     couleur=(0.03, 0.10, 0.30)),
+    # ancienne Gendarmerette (v7.15-v7.26) : « Ford Focus MK1 Gendarmerie » de szymonpasterczyk (CC BY 4.0)
+    "gendarme_focus": dict(src="gendarme/model.glb", renommer=True, souder=0.002, normales=True, rotx=90, rot=0, L=4.17,
                      lh=(1.70, 1.43), roues=[r"^mat0_025$"], rayon=0.31,
                      suppr=[r"^mat0_0(02|03|04|05|06|14)$"],
                      mats={"mat0": "paint", "material_0": "paint", "mat0_018": "glass", "mat0_010": "lamp",
@@ -212,7 +221,11 @@ def effacer_badges(b, c):
 
 def convertir(cid, c):
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    bpy.ops.import_scene.gltf(filepath=os.path.join(SRC, c["src"]) if c.get("src") else os.path.join(SRC, cid, "scene.gltf"))
+    src = os.path.join(SRC, c["src"]) if c.get("src") else os.path.join(SRC, cid, "scene.gltf")
+    if src.endswith(".fbx"):
+        bpy.ops.import_scene.fbx(filepath=src)
+    else:
+        bpy.ops.import_scene.gltf(filepath=src)
     if c.get("renommer"):                   # noms « mat0.018 » : le point couperait le nom (split(".")[0] plus bas)
         for m in bpy.data.materials:
             m.name = m.name.replace(".", "_")
