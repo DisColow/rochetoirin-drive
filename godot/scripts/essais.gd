@@ -1660,6 +1660,12 @@ func _physics_process(_dt: float) -> void:
 					bd = d; bi = i
 			var cible := Vector2(pr[bi], pr[bi + 1]) + dr * decal
 			car.touch_steer = clampf((cible - q).dot(-dr) / 12.0 * 2.5, -1.0, 1.0)      # > 0 : à gauche
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--rouler-pic=") and tr >= float(a.trim_prefix("--rouler-pic=")) and not has_meta("pic"):
+				set_meta("pic", true)                   # pic de vitesse simulé (#177) : 150 m/s vers l'avant
+				print("  [rouler] pic simulé à t=%.2f s : %d km/h, %s" % [tr, int(car.kmh()), car.global_position.snapped(Vector3(0.1, 0.1, 0.1))])
+				car.linear_velocity = car.global_basis.z * 150.0
+				return
 		var vp: float = get_meta("vprec", 0.0)
 		if absf(car.linear_velocity.length() - vp) > 8.0:
 			print("  [rouler] saut de vitesse %.1f -> %.1f m/s à t=%.2f s, %s, haut %.2f, contacts %s" % [vp, car.linear_velocity.length(), tr,
