@@ -155,6 +155,10 @@ func toast(text: String, secs := 3.5) -> void:
 	var long := lt.get_theme_font("font").get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x > 600.0
 	lt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if long else TextServer.AUTOWRAP_OFF      # #162 : pas jusqu'au rétroviseur
 	lt.custom_minimum_size.x = 600.0 if long else 0.0
+	# #176 : largeur donnée au libellé avant le calcul de la taille (sinon, retour à la ligne sur 0 px : un caractère
+	# par ligne, panneau de 3 000 px de haut au texte hors de l'écran)
+	lt.size = Vector2(lt.custom_minimum_size.x, 0.0)
+	_toast.size = Vector2.ZERO
 	_toast.reset_size()
 	# #162 : à gauche, sous la carte d'activité (le milieu de l'écran reste libre)
 	var act = get_tree().get_first_node_in_group("activites")
