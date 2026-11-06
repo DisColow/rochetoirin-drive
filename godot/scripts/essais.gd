@@ -4086,40 +4086,56 @@ func _cascade_test() -> void:
 	get_viewport().get_texture().get_image().save_png("user://shots/cascade_5.png")
 	set_time(heure)
 	cam0.current = true
-	# pleins gaz vers le vide
-	var dmax := -INF
+	# pleins gaz vers le vide : #180, la voiture passe la lèvre et tombe du bout du monde (chute.gd)
+	var ch = bd.chute
 	var eau := false
 	var vmax := 0.0
 	var t := 0.0
 	var pris := false
-	while t < 12.0:
-		car.frein_parking = false
-		car.touch_throttle = 1.0
-		car.touch_steer = 0.0
+	var caps := 0
+	var hud_c = get_node("HUD")
+	while t < 30.0 and hud_c.consigne_ouverte == null:
+		if not ch.actif:
+			car.frein_parking = false
+			car.touch_throttle = 1.0
+			car.touch_steer = 0.0
 		await get_tree().physics_frame
 		t += get_physics_process_delta_time()
-		var hc: Array = bd.hors_carte(car.global_position)
-		if hc[1] != Vector2.ZERO:
-			dmax = maxf(dmax, float(hc[0]))
 		eau = eau or bd._dans_eau
-		if int(t * 60.0) % 60 == 0:
-			dire.call("  t=%.0f s : %.0f km/h, à %.1f m de la limite" % [t, car.kmh(), -float(hc[0]) if hc[1] != Vector2.ZERO else INF])
 		vmax = maxf(vmax, car.kmh())
 		if bd._dans_eau and not pris and t > 0.3:
 			pris = true
 			for f in 4:
 				await get_tree().process_frame
 			get_viewport().get_texture().get_image().save_png("user://shots/cascade_4.png")
+		# captures pendant la chute : début, milieu, fermeture du cercle, noir
+		if ch.actif and ch._phase == "chute" and caps < 4 and ch._t >= [0.4, 1.6, 2.6, 3.2][caps]:
+			get_viewport().get_texture().get_image().save_png("user://shots/chute_%d.png" % (caps + 1))
+			dire.call("  chute t=%.1f s : voiture à %.0f m sous la lèvre, rayon du cercle %.0f px" % [ch._t, ch._p0.y - car.global_position.y,
+				float(ch._mat.get_shader_parameter("rayon"))])
+			caps += 1
 	car.touch_throttle = 0.0
 	var dedans := ZoneJ.dedans(Vector2(car.global_position.x, car.global_position.z))
-	dire.call("pleins gaz 12 s vers le vide : %.0f km/h au plus, dans l'eau %s, au plus près à %.1f m de la limite, dans la zone à la fin %s" % [vmax, str(eau), -dmax, str(dedans)])
+	var route: String = hud_c.names.road_at(car.global_position)
+	var cq = hud_c.consigne_ouverte
+	var txt := PackedStringArray()
+	if cq:
+		for l in cq.find_children("*", "Label", true, false):
+			txt.append((l as Label).text)
+		for f in 6:
+			await get_tree().process_frame
+		get_viewport().get_texture().get_image().save_png("user://shots/chute_5.png")
+		for bt in cq.find_children("*", "Button", true, false):
+			(bt as Button).pressed.emit()
+	dire.call("pleins gaz vers le vide : %.0f km/h au plus, dans l'eau %s, chutes %d, après la chute : dans la zone %s, sur « %s », fenêtre « %s »" % [vmax, str(eau), ch.chutes, str(dedans), route, " | ".join(txt)])
+	var ok_chute: bool = ch.chutes == 1 and dedans and route != "" and txt.size() > 0 and txt[1] == ch.MESSAGE
 	var pe = PerfMon._sys.get("cascade", [0, 0, 1])
 	dire.call("cascade.gd : %.3f ms par image en moyenne, pire %.2f ms (tranche en cours)" % [float(pe[0]) / maxf(float(pe[2]), 1.0) / 1000.0, float(pe[1]) / 1000.0])
 	bd.set_cascade(false)
 	for f in 60:
 		await get_tree().process_frame
 	dire.call("retour aux collines : actif %s, talus chargés %d, morceaux de cascade %d" % [str(bd.cascade), bd.loaded.size(), cs._morceaux.size()])
-	dire.call("RÉSULTAT : " + ("OK" if dedans and dmax < -0.5 and eau and bd.loaded.size() > 0 else "ÉCHEC"))
+	dire.call("RÉSULTAT : " + ("OK" if ok_chute and eau and bd.loaded.size() > 0 else "ÉCHEC"))
 	get_tree().quit()
 
 ## #154 : flèches d'itinéraire sur la route. -- --drive-test --fleches-test --drive-from=-10975,236,-1100,90 : tournée du

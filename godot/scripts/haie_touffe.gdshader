@@ -24,7 +24,7 @@ void vertex() {
 }
 
 void fragment() {
-	if (!env_fade_keep(v_wp, FRAGCOORD.xy)) {
+	if (!env_fade_keep(v_wp, FRAGCOORD.xy) || env_dans_riviere(v_wp)) {          // #180 : pas dans la rivière du bord
 		discard;
 	}
 	vec4 t = texture(leaves, UV);

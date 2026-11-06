@@ -35,7 +35,7 @@ void vertex() {
 }
 
 void fragment() {
-	if (env_hors_monde(v_wp)) {          // bord « cascade » (#157)
+	if (env_dans_riviere(v_wp)) {          // bord « cascade » (#157, #180 : rivière comprise)
 		discard;
 	}
 	// s'efface là où l'imposteur apparaît : mêmes pixels de la trame, en négatif
