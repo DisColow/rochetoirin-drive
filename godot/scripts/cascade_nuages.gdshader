@@ -62,7 +62,8 @@ void fragment() {
 	float hx = haut(hit.xz + vec2(e, 0.0)) - hc;
 	float hz = haut(hit.xz + vec2(0.0, e)) - hc;
 	vec3 n = normalize(vec3(-hx * hmax / e, 1.0, -hz * hmax / e));
-	vec3 L = normalize(soleil_dir);
+	// soleil un peu abaissé pour les seuls nuages : à midi, il écraserait les ombres (dômes tout blancs)
+	vec3 L = normalize(vec3(soleil_dir.x, max(soleil_dir.y, 0.05) * 0.45, soleil_dir.z));
 	// ombres portées entre les bourgeons : 3 pas vers le soleil
 	float ombre = 1.0;
 	for (int j = 1; j <= 3; j++) {
@@ -71,16 +72,16 @@ void fragment() {
 			ombre -= 0.22;
 		}
 	}
-	float diff = clamp(dot(n, L) * 0.55 + 0.45, 0.0, 1.0) * ombre;           // éclairage enveloppant (nuage diffus)
+	float diff = clamp(dot(n, L) * 0.7 + 0.3, 0.0, 1.0) * ombre;           // éclairage enveloppant (nuage diffus)
 	float bord = pow(1.0 - clamp(dot(n, -rd), 0.0, 1.0), 3.0);                // liseré lumineux à contre-jour
 	float contre = clamp(dot(rd, L), 0.0, 1.0);
-	vec3 creux = mix(vec3(0.42, 0.50, 0.66), ciel_coul * 0.75, 0.35);
+	vec3 creux = mix(vec3(0.30, 0.37, 0.52), ciel_coul * 0.6, 0.3);
 	vec3 sommet = vec3(1.0, 0.995, 0.985) * soleil_coul;
 	vec3 c = mix(creux, sommet, clamp(diff * (0.55 + 0.45 * h), 0.0, 1.0));
 	c += soleil_coul * bord * contre * 0.35;
 	// brume : la mer se fond dans l'horizon au loin
 	float dist = length(hit - cam);
-	float f = 1.0 - exp(-dist / 7000.0);
+	float f = 1.0 - exp(-dist / 9000.0);
 	c = mix(c, ciel_coul, clamp(f * 1.1, 0.0, 1.0));
 	ALBEDO = c;
 }

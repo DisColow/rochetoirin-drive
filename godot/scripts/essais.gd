@@ -4084,6 +4084,12 @@ func _cascade_test() -> void:
 	for f in 30:
 		await get_tree().process_frame
 	get_viewport().get_texture().get_image().save_png("user://shots/cascade_5.png")
+	# #180 : depuis la lèvre, vers le large (vue de la cible de l'issue : mer de nuages à l'horizon)
+	cam.global_position = Vector3(p.x - nr.x * 4.0, h0 + 7.0, p.y - nr.y * 4.0)
+	cam.look_at(Vector3(p.x + nr.x * 400.0, h0 - 60.0, p.y + nr.y * 400.0), Vector3.UP)
+	for f in 6:
+		await get_tree().process_frame
+	get_viewport().get_texture().get_image().save_png("user://shots/cascade_6.png")
 	set_time(heure)
 	cam0.current = true
 	# pleins gaz vers le vide : #180, la voiture passe la lèvre et tombe du bout du monde (chute.gd)
