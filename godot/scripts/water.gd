@@ -75,6 +75,11 @@ func _process_corps(dt: float) -> void:
 	if _t > 0:
 		return
 	_t = 0.5
+	# #183 : couleur du ciel reflétée par l'eau (Fresnel du shader) = couleur de la brume du moment (heure, météo)
+	var envi = get_parent().get("_env") if get_parent() else null
+	if envi is Environment:
+		var fc: Color = (envi as Environment).fog_light_color
+		mat.set_shader_parameter("ciel", Vector3(fc.r, fc.g, fc.b))
 	var ws := {}
 	for k in _wanted(target.global_position):
 		ws[k] = true

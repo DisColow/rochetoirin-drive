@@ -548,6 +548,11 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_helico_test()
 		return
+	if Array(OS.get_cmdline_user_args()).any(func(a): return a.begins_with("--eau-vues=")):
+		if t >= 300 and not has_meta("eau_vues"):
+			set_meta("eau_vues", true)
+			_eau_vues()
+		return
 	if OS.get_cmdline_user_args().has("--chute-test"):
 		if t >= 300 and not has_meta("chute_t"):
 			set_meta("chute_t", true)
@@ -6290,8 +6295,8 @@ func _eau_routes_test() -> void:
 			var h: float = w.niveau_plan(p)
 			# #183 : points de route qui longent un plan d'eau (à 12-30 m de son bord) : lieux de captures
 			if bords.size() < 12 and i % 40 == 0:
-				for dd in [14.0, 22.0, 30.0]:
-					for ang in [0.0, 1.5708, 3.1416, 4.7124]:
+				for dd: float in [14.0, 22.0, 30.0]:
+					for ang: float in [0.0, 1.5708, 3.1416, 4.7124]:
 						var q2 := p + Vector3(cos(ang), 0.0, sin(ang)) * dd
 						if not is_nan(w.niveau_plan(q2)) and bords.size() < 12 and (bords.is_empty() or Vector2(bords[-1].x, bords[-1].z).distance_to(Vector2(p.x, p.z)) > 500.0):
 							bords.append(Vector3(p.x, p.y, p.z))
@@ -6439,4 +6444,38 @@ func _chute_test() -> void:
 			ok += 1
 		dire.call("%s : explosion %s, ensuite à %.1f m du point de chute et %.1f m de la route %s" % [c[0], str(boum), dpt, dr, "OK" if bien else "ÉCHEC"])
 	dire.call("RÉSULTAT : %d sur %d" % [ok, cas.size()])
+	get_tree().quit()
+
+## Captures de l'eau (#183) : -- --drive-test --eau-vues=x,y,z,angle;x,y,z,angle… (angle en degrés depuis +X vers +Z,
+## direction de l'eau vue de la route) : voiture posée sur la route, caméra à 3 m au-dessus, tournée vers un point
+## 30 m plus loin et 2 m plus bas ; captures user://shots/eau_<n>.png (et _soir avec --eau-soir).
+func _eau_vues() -> void:
+	var arg := ""
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--eau-vues="):
+			arg = a.trim_prefix("--eau-vues=")
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	circulation.set_densite(0)
+	var n := 0
+	for v in arg.split(";"):
+		var f := v.split(",")
+		var p := Vector3(float(f[0]), float(f[1]), float(f[2]))
+		var a := deg_to_rad(float(f[3]))
+		var d := Vector3(cos(a), 0.0, sin(a))
+		await _teleport(p + Vector3(0, 0.5, 0), rad_to_deg(atan2(d.x, -d.z)))
+		car.hold(30.0)
+		for i in 240:
+			await get_tree().physics_frame
+		cam_rig.set_process(false)
+		var cm := get_viewport().get_camera_3d()
+		cm.global_position = p + Vector3(0, 3.0, 0) - d * 2.0
+		cm.look_at(p + d * 30.0 + Vector3(0, -2.0, 0), Vector3.UP)
+		for i in 30:
+			await get_tree().process_frame
+		get_viewport().get_texture().get_image().save_png("user://shots/eau_%d.png" % n)
+		print("  [eau-vues] capture eau_%d en %s" % [n, str(p)])
+		cam_rig.set_process(true)
+		n += 1
 	get_tree().quit()
