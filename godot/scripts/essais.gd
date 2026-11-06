@@ -1620,6 +1620,64 @@ func _physics_process(_dt: float) -> void:
 		if t > 240 and t % 30 == 0:
 			print("  t=%.2f état=%s pos=%s portée=%s" % [t / 120.0, guardian.state, car.global_position.snapped(Vector3.ONE), car.carried])
 		return
+	if OS.get_cmdline_user_args().has("--rouler-test"):
+		# #177 : plein gaz sur la route de départ (--drive-from), écart vers la droite toutes les 6 s (bas-côté), relevé
+		# de la vitesse et des remises (lignes [remise] de car.gd) ; --rouler-duree=s (60 par défaut)
+		if not Chargement.fini:
+			return
+		if not has_meta("r0"):
+			set_meta("r0", t)
+		var tr: float = float(t - int(get_meta("r0"))) / Engine.physics_ticks_per_second
+		var duree := 60.0
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--rouler-duree="):
+				duree = float(a.trim_prefix("--rouler-duree="))
+		car.touch_throttle = 1.0 if car.kmh() < 92.0 else 0.0
+		car.touch_brake = 0.0                     # (la partie commune des essais freine après 1 200 pas)
+		# --rouler-decal=m : suit la route à m mètres à droite de son axe (bas-côté) ; sinon écart toutes les 6 s
+		var decal := -1.0
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--rouler-decal="):
+				decal = float(a.trim_prefix("--rouler-decal="))
+		if decal < 0.0:
+			car.touch_steer = 0.35 if fmod(tr, 6.0) > 4.5 and fmod(tr, 6.0) < 5.1 else 0.0
+		else:
+			if not has_meta("proches"):
+				var pr := PackedFloat32Array()
+				for i in range(0, car.road_pts.size(), 4):
+					if Vector2(car.road_pts[i] - car.global_position.x, car.road_pts[i + 1] - car.global_position.z).length() < 2500.0:
+						pr.append_array([car.road_pts[i], car.road_pts[i + 1]])
+				set_meta("proches", pr)
+			var pr: PackedFloat32Array = get_meta("proches")
+			var q := Vector2(car.global_position.x, car.global_position.z)
+			var fw := Vector2(car.global_basis.z.x, car.global_basis.z.z).normalized()
+			var dr := Vector2(-fw.y, fw.x)              # droite de la voiture (avant +Z, x à gauche)
+			var bi := -1
+			var bd := INF
+			for i in range(0, pr.size(), 2):
+				var c := Vector2(pr[i], pr[i + 1])
+				var d := c.distance_squared_to(q + fw * 12.0)
+				if d < bd:
+					bd = d; bi = i
+			var cible := Vector2(pr[bi], pr[bi + 1]) + dr * decal
+			car.touch_steer = clampf((cible - q).dot(-dr) / 12.0 * 2.5, -1.0, 1.0)      # > 0 : à gauche
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--rouler-pic=") and tr >= float(a.trim_prefix("--rouler-pic=")) and not has_meta("pic"):
+				set_meta("pic", true)                   # pic de vitesse simulé (#177) : 150 m/s vers l'avant
+				print("  [rouler] pic simulé à t=%.2f s : %d km/h, %s" % [tr, int(car.kmh()), car.global_position.snapped(Vector3(0.1, 0.1, 0.1))])
+				car.linear_velocity = car.global_basis.z * 150.0
+				return
+		var vp: float = get_meta("vprec", 0.0)
+		if absf(car.linear_velocity.length() - vp) > 8.0:
+			print("  [rouler] saut de vitesse %.1f -> %.1f m/s à t=%.2f s, %s, haut %.2f, contacts %s" % [vp, car.linear_velocity.length(), tr,
+				car.global_position.snapped(Vector3(0.1, 0.1, 0.1)), car.global_basis.y.y, str(car._touching())])
+		set_meta("vprec", car.linear_velocity.length())
+		if t % 60 == 0:
+			print("  [rouler] t=%.1f s %d km/h %s route %s" % [tr, int(car.kmh()), car.global_position.snapped(Vector3(0.1, 0.1, 0.1)),
+				get_node("HUD").names.road_at(car.global_position)])
+		if tr > duree:
+			get_tree().quit()
+		return
 	if OS.get_cmdline_user_args().has("--flip-test"):
 		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
 		if t >= 240 and Chargement.fini and not has_meta("retournee"):      # (t == 240 tombait pendant le chargement)
@@ -6154,10 +6212,13 @@ func _rampe_test() -> void:
 	car.freeze = true
 	cam_rig.set_process(false)
 	var cm := get_viewport().get_camera_3d()
-	var socle: Node3D = h.noeuds[0]
-	print("  [rampe] socle à %.2f m (repère voiture), bas du socle %.2f m" % [socle.position.y, socle.position.y - 0.05])
-	var c0: Vector3 = car.to_global(Vector3(0, socle.position.y - 0.1, socle.position.z))
-	var vues := {"cote": car.global_basis.x * 3.2 + Vector3(0, 0.15, 0), "arriere": -car.global_basis.z * 3.0 + car.global_basis.x * 1.6 + Vector3(0, 0.6, 0)}
+	var lp: Vector3 = (h.lueur as Node3D).position - Vector3(0, 0.4, 0)
+	var du_modele: bool = h.gyro.size() == 2 and not (h.gyro[0][0] in h.noeuds)
+	print("  [rampe] feux %s, haut du toit %.2f m (repère voiture), boîtes ajoutées %d" % ["du modèle (gyro_g, gyro_d)" if du_modele else "de la rampe du jeu",
+		lp.y, h.noeuds.size() - 2])
+	var c0: Vector3 = car.to_global(Vector3(0, lp.y - 0.25, lp.z))
+	var vues := {"cote": car.global_basis.x * 3.2 + Vector3(0, 0.15, 0), "arriere": -car.global_basis.z * 3.0 + car.global_basis.x * 1.6 + Vector3(0, 0.6, 0),
+		"ensemble": car.global_basis.z * 5.5 + car.global_basis.x * 4.5 + Vector3(0, 1.2, 0)}
 	for n in vues:
 		cm.global_position = c0 + vues[n]
 		cm.look_at(c0, Vector3.UP)

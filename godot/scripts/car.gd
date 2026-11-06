@@ -571,6 +571,9 @@ func blow_up() -> void:
 ## diffèrent d'au moins ECART_BOUM ; c'est alors le plus lent qui explose. Un choc n'est jugé qu'une fois (les deux
 ## voitures le voient).
 const ECART_BOUM := 30.0            # km/h
+var _v_ok := Vector3.ZERO             # #177 : dernières vitesses plausibles (pic du moteur physique)
+var _w_ok := Vector3.ZERO
+var _aberrant_t := 0.0
 var _vitesses := PackedFloat32Array([0.0, 0.0, 0.0])     # m/s aux trois derniers pas (la plus ancienne : avant le choc)
 static var _chocs_vus := {}         # paire d'instances -> instant (s)
 
@@ -1014,10 +1017,25 @@ func _recovery(dt: float) -> void:
 		safe.append(global_transform)
 		if safe.size() > 12:
 			safe.pop_front()
-	# état aberrant (moteur physique) : remise immédiate
-	if not global_transform.origin.is_finite() or not linear_velocity.is_finite() or linear_velocity.length() > 110.0:
-		reset_to_road("voiture éjectée par le moteur physique (%.0f km/h)" % (linear_velocity.length() * 3.6) if linear_velocity.is_finite() else "position impossible")
+	# état aberrant (moteur physique) : position ou vitesse impossible -> remise immédiate ; pic de vitesse (plus de
+	# 110 m/s) -> #177 : vitesse de l'image d'avant rendue (un pic d'un seul pas remettait la voiture sur la route en
+	# pleine ligne droite) ; remise seulement s'il dure plus de 0,5 s
+	if not global_transform.origin.is_finite() or not linear_velocity.is_finite():
+		reset_to_road("position impossible")
 		return
+	if linear_velocity.length() > 110.0:
+		if _aberrant_t == 0.0:
+			print("[remise] pic de vitesse du moteur physique (%.0f km/h) : vitesse d'avant rendue (%.0f km/h)" % [linear_velocity.length() * 3.6, _v_ok.length() * 3.6])
+		_aberrant_t += dt
+		linear_velocity = _v_ok
+		angular_velocity = _w_ok
+		if _aberrant_t > 0.5:
+			_aberrant_t = 0.0
+			reset_to_road("voiture éjectée par le moteur physique")
+		return
+	_aberrant_t = 0.0
+	_v_ok = linear_velocity
+	_w_ok = angular_velocity
 	# retourné ou sur le flanc plus de 1,2 s (presque à l'arrêt)
 	_flip_t = _flip_t + dt if (up < 0.5 and kmh() < 25.0) else 0.0
 	# v6.22 (demande de l'utilisateur) : plus de remise sur la route automatique quand la voiture est bloquée ou

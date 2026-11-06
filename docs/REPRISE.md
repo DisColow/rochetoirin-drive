@@ -3,7 +3,23 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 06/11/2026 (v6.84 #131 à v7.26 livrées)
+## État au 06/11/2026 (v6.84 #131 à v7.27 livrées)
+- **v7.27 (#177, #179, `à tester`)** : vidéo du 06/11 reçue (`/root/.claude/uploads/…Screenrecorder…mp4`, portrait
+  720 × 1280, jeu en 720 × 332 à y 474) : #176 confirmé (panneau sombre à gauche) ; #177 : à 72,9 s, Route de Trieux
+  (Saint-Chef, x ≈ −4 300), 88 km/h à plat, la voiture est remise au milieu de la route et repart de 2 km/h (deux fois),
+  et à 86 s (94 -> 8 km/h, « Voie de service ») : seule cause compatible, le filet « vitesse > 110 m/s » de
+  `car._physics` (pic d'un pas du moteur physique) ; désormais vitesse d'avant rendue (`_v_ok`, `_w_ok`), remise
+  seulement si le pic dure 0,5 s. Preuve : `--rouler-test --rouler-pic=9 --rouler-decal=1.8 --drive-from=D522`
+  (avant : 92 -> 8 km/h et remise ; après : 92 km/h, rien). Pic NON reproduit en roulant vraiment sur le bas-côté de
+  la Route de Trieux (`--rouler-decal=2.6`, 500 m à 92 km/h). `--rouler-test` : plein gaz, suit la route à
+  `--rouler-decal` m à droite de l'axe, relève les sauts de vitesse et ce que touche la caisse ; **piège** : la
+  partie commune des essais de conduite freine après 1 200 pas (`touch_brake`), toute branche qui conduit doit le
+  relâcher. #179 : choix B de l'utilisateur : « Police Sedan » du « Free Low Poly Vehicles Pack » de Rgsdev (CC0,
+  OpenGameArt, `fetch_voitures_joueur.py gendarme`, FBX lu par `blender_voitures_joueur.py`, entrée `gendarme` ;
+  l'ancienne Focus : `gendarme_focus`) ; caisse noire -> peinture bleu nuit, blanc gardé ; feux du toit du modèle
+  renommés `gyro_g`/`gyro_d` : `gendarme._feux_modele` leur donne un matériau sans ombrage qui clignote (plus de
+  rampe ajoutée) ; données publiées sur `donnees` (body.glb, wheel.glb, meta.json ; `.import` inchangés). Essai
+  `--rampe-test` (vues côté, arrière, ensemble). bpy : venv `scratchpad/bl` (pip install bpy).
 - **v7.26 (#175 #176 #177 #178 #179, `à tester`)** : issues du 06/11 (vidéo commune non envoyée). #176 : l'« encart vide »
   est le message bref « Défi du jour » (`hud.toast`) : libellé à retour à la ligne mesuré sur 0 px au premier calcul
   -> PanelContainer de 680 × 3 250 px, texte hors écran ; taille refaite en différé et à chaque image (`_process`),

@@ -172,36 +172,42 @@ static func _toit(v: Car, z: float) -> float:
 ## Rampe de gyrophares sur le toit : deux feux bleus et un témoin blanc, matériaux sans ombrage (éclats visibles de
 ## loin, la nuit comme le jour), lueur bleue la nuit.
 static func _rampe(v: Car) -> Dictionary:
-	var gyro := []
+	var gyro := _feux_modele(v)
 	var g := v.gabarit
-	var socle := MeshInstance3D.new()
-	var bm := BoxMesh.new()
-	bm.size = Vector3(minf(g.x * 0.62, 1.2), 0.1, 0.24)
-	socle.mesh = bm
-	var ms := StandardMaterial3D.new()
-	ms.albedo_color = Color(0.85, 0.86, 0.9)
-	socle.material_override = ms
-	socle.position = Vector3(0, _toit(v, -g.z * 0.05) + 0.03, -g.z * 0.05)
-	v.add_child(socle)
-	for dx in [-1.0, 1.0]:
-		var f := MeshInstance3D.new()
-		var fm := BoxMesh.new()
-		fm.size = Vector3(bm.size.x * 0.36, 0.12, 0.22)
-		f.mesh = fm
-		var m := StandardMaterial3D.new()
-		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		m.albedo_color = Color(0.08, 0.15, 0.45)
-		f.material_override = m
-		f.position = socle.position + Vector3(dx * bm.size.x * 0.3, 0.05, 0)
-		f.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		v.add_child(f)
-		gyro.append([f, m])
+	var ajoutes := []
+	var haut := Vector3(0, _toit(v, -g.z * 0.05) + 0.03, -g.z * 0.05)
+	if gyro.is_empty():                       # modèle sans feux de toit : rampe du jeu
+		var socle := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(minf(g.x * 0.62, 1.2), 0.1, 0.24)
+		socle.mesh = bm
+		var ms := StandardMaterial3D.new()
+		ms.albedo_color = Color(0.85, 0.86, 0.9)
+		socle.material_override = ms
+		socle.position = haut
+		v.add_child(socle)
+		ajoutes.append(socle)
+		for dx in [-1.0, 1.0]:
+			var f := MeshInstance3D.new()
+			var fm := BoxMesh.new()
+			fm.size = Vector3(bm.size.x * 0.36, 0.12, 0.22)
+			f.mesh = fm
+			var m := StandardMaterial3D.new()
+			m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			m.albedo_color = Color(0.08, 0.15, 0.45)
+			f.material_override = m
+			f.position = socle.position + Vector3(dx * bm.size.x * 0.3, 0.05, 0)
+			f.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			v.add_child(f)
+			gyro.append([f, m])
+			ajoutes.append(f)
+	var socle_pos := haut
 	var lueur := OmniLight3D.new()
 	lueur.light_color = Color(0.25, 0.4, 1.0)
 	lueur.omni_range = 14.0
 	lueur.light_energy = 0.0
 	lueur.shadow_enabled = false
-	lueur.position = socle.position + Vector3(0, 0.4, 0)
+	lueur.position = socle_pos + Vector3(0, 0.4, 0)
 	v.add_child(lueur)
 	var sirene := AudioStreamPlayer3D.new()
 	if ResourceLoader.exists("res://assets/sfx/sirene.ogg"):
@@ -215,7 +221,32 @@ static func _rampe(v: Car) -> Dictionary:
 	sirene.bus = "Monde"
 	v.add_child(sirene)
 	# noeuds : tout ce qui a été ajouté à la voiture (à retirer quand le joueur reprend sa voiture)
-	return {"gyro": gyro, "lueur": lueur, "sirene": sirene, "noeuds": [socle, lueur, sirene] + gyro.map(func(e): return e[0])}
+	return {"gyro": gyro, "lueur": lueur, "sirene": sirene, "noeuds": ajoutes + [lueur, sirene]}
+
+## Feux de toit du modèle (#179 : matériaux gyro_g et gyro_d de la Gendarmerette de Rgsdev) : surfaces repeintes d'un
+## matériau sans ombrage propre à cette voiture, rendues comme les feux de la rampe [[MeshInstance3D, matériau]] ;
+## [] si le modèle n'en a pas.
+static func _feux_modele(v: Car) -> Array:
+	var corps: Node3D = v.get("_body")
+	var feux := {}
+	if corps == null:
+		return []
+	for mi in corps.find_children("*", "MeshInstance3D", true, false):
+		var m3 := mi as MeshInstance3D
+		if m3.mesh == null:
+			continue
+		for k in m3.mesh.get_surface_count():
+			var mat := m3.get_active_material(k)
+			var nom := String(mat.resource_name) if mat else ""
+			if nom.begins_with("gyro_g") or nom.begins_with("gyro_d"):
+				var m := StandardMaterial3D.new()
+				m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+				m.albedo_color = Color(0.08, 0.15, 0.45)
+				m3.set_surface_override_material(k, m)
+				feux[nom.substr(0, 6)] = [m3, m]
+	if feux.size() < 2:
+		return []
+	return [feux["gyro_g"], feux["gyro_d"]]
 
 func voir_gyros(on: bool) -> void:
 	if _sirene == null:

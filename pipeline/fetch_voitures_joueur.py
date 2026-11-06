@@ -16,9 +16,29 @@ MODELES = {
     "twingo": ("a96fb412e30f450c864f74e2124ac2de", "Renault Twingo", "brentonmckey"),
 }
 OUT = "../godot/import/voitures"
+# Gendarmerette (#179, choix B de l'utilisateur) : « Police Sedan » du « Free Low Poly Vehicles Pack » de Rgsdev (CC0,
+# OpenGameArt ; pas de jeton) -> import/voitures/gendarme_rgs/Police Sedan.fbx
+RGSDEV = "https://opengameart.org/sites/default/files/free_low_poly_vehicles_pack_by_rgsdev.zip"
+
+
+def rgsdev():
+    d = os.path.join(OUT, "gendarme_rgs")
+    if os.path.isfile(os.path.join(d, "Police Sedan.fbx")):
+        return
+    req = urllib.request.Request(RGSDEV, headers={"User-Agent": "Mozilla/5.0"})
+    z = zipfile.ZipFile(io.BytesIO(urllib.request.urlopen(req).read()))
+    os.makedirs(d, exist_ok=True)
+    for n in z.namelist():
+        if n.endswith("Police Sedan/Police Sedan.fbx") or n.endswith("License.txt"):
+            open(os.path.join(d, os.path.basename(n)), "wb").write(z.read(n))
+    print("gendarme_rgs Police Sedan (Rgsdev, CC0) ok")
 
 
 def main(seuls=None):
+    if not seuls or "gendarme" in seuls:
+        rgsdev()
+        if seuls == ["gendarme"]:
+            return
     tok = os.environ.get("SKETCHFAB_TOKEN", "")
     if not tok:
         sys.exit("SKETCHFAB_TOKEN absent")
