@@ -3,7 +3,14 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 06/11/2026 (v6.84 #131 à v7.31 livrées)
+## État au 06/11/2026 (v6.84 #131 à v7.32 livrées)
+- **v7.32 (#183, `à tester`)** : `water.gdshader` refait : 4 trains de vagues (`vague()` : sinus, pente analytique),
+  rides en bruit, entraînement par le courant (UV2), Fresnel de Schlick vers `ciel` (plafonné à 0,6 : au-delà, eau
+  « piscine » laiteuse) que `water.gd` tient à jour (`main._env.fog_light_color`, toutes les 0,5 s), corps bleu-vert,
+  écume des cours d'eau rapides ; pas de texture de profondeur ni d'écran (interdites). Essai
+  `--eau-vues=x,y,z,angle;…` (lieux d'étangs relevés par `--eau-routes-test`, ex. -12356.4,228.4,-759.4,180 ;
+  -5274.5,288.3,2172.2,270). #186 : `pending` (pas reproduit : 8 essais sur 8 montent, Équilibré et Léger ; lieu
+  demandé). Reste #182 (radars).
 - **v7.31 (#181, #184, #185, `à tester`)** : #184 : `explosion.echelle` (champignon atomique ; 2 par défaut, 1,6 pour
   le joueur `car.exploser`, 1,3 pour circulation, voitures garées, concurrents, gendarmes) ; essai
   `--explosion-test --explosion-styles=atomique,atomique@1.3 --explosion-vue=14,3,3` (style@échelle, vue du

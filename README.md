@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v7.31.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.31/RochetoirinSimulator-v7.31.apk)**
+**[RochetoirinSimulator-v7.32.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.32/RochetoirinSimulator-v7.32.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,8 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.31 :
-- **Explosions des véhicules moins grosses** : la route reste visible.
-- **Plus d'explosion avant le choc** : une voiture percutée n'explose qu'au vrai contact.
-- **Chute de trop haut : KA-BOOM** à l'atterrissage ; loin de toute route, on réapparaît au point de chute.
+Nouveautés de la v7.32 :
+- **Eau des étangs et rivières refaite** : houle, reflets du ciel et du soleil, eau bleu-vert au lieu du vert presque noir, courant et écume sur les rivières.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
