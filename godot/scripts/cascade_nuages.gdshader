@@ -19,48 +19,54 @@ void vertex() {
 	v_wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
-float haut(vec2 xz) {
+// niveau de mipmap explicite (lectures dans des boucles à branches : pas de dérivées fiables) d'après la distance
+float haut(vec2 xz, float g_lod) {
 	vec2 uv = xz * echelle + vec2(TIME * 0.0012, TIME * 0.0007);
-	float n = texture(relief_nuages, uv).r * 0.72 + texture(relief_nuages, uv * 2.7 + 0.31).r * 0.28;
+	float n = textureLod(relief_nuages, uv, g_lod).r;          // une seule lecture (le bruit a déjà 4 octaves)
 	return sqrt(smoothstep(0.30, 0.86, n));          // dômes arrondis (racine : bords à pic, sommets ronds)
 }
 
 void fragment() {
 	vec3 cam = CAMERA_POSITION_WORLD;
 	vec3 rd = normalize(v_wp - cam);
+	float g_lod = clamp(log2(max(length(v_wp - cam), 1.0) * 0.004), 0.0, 6.0);
 	float haut0 = v_wp.y;                              // sommet de la couche (le plan)
 	float bas = haut0 - hmax;
 	vec3 p = v_wp;
 	vec3 hit = v_wp;
-	float h = 0.0;
-	// marche vers le bas : 12 pas de hmax / 12 en altitude (bornée à 900 m de long au ras de l'horizon)
-	float dy = hmax / 12.0;
-	float pas = min(dy / max(-rd.y, 0.02), 75.0);
-	float prec_y = p.y;
-	float prec_s = 1.0;
+	float h;
+	// marche vers le bas : 20 pas de hmax / 20 en altitude, 40 m au plus (au ras de l'horizon : 800 m de long), puis
+	// 4 pas de dichotomie au point de contact (sans eux, des stries apparaissent en vue rasante)
+	float pas = min((hmax / 20.0) / max(-rd.y, 0.02), 40.0);
 	bool trouve = false;
-	for (int i = 0; i < 12; i++) {
-		float hs = bas + hmax * haut(p.xz);
-		float s = p.y - hs;
-		if (s <= 0.0) {
-			float k = prec_s / max(prec_s - s, 1e-4);           // affinage linéaire entre les deux pas
-			hit = mix(p - rd * pas, p, k);
-			h = clamp((hit.y - bas) / hmax, 0.0, 1.0);
+	for (int i = 0; i < 20; i++) {
+		if (p.y <= bas + hmax * haut(p.xz, g_lod)) {
 			trouve = true;
 			break;
 		}
-		prec_s = s;
 		p += rd * pas;
 	}
-	if (!trouve) {
+	if (trouve) {
+		vec3 a = p - rd * pas;
+		vec3 b = p;
+		for (int j = 0; j < 4; j++) {
+			vec3 m = (a + b) * 0.5;
+			if (m.y <= bas + hmax * haut(m.xz, g_lod)) {
+				b = m;
+			} else {
+				a = m;
+			}
+		}
+		hit = b;
+	} else {
 		hit = p;
-		h = 0.0;
 	}
+	h = clamp((hit.y - bas) / hmax, 0.0, 1.0);
 	// normale : pente du relief
 	float e = 6.0;
-	float hc = haut(hit.xz);
-	float hx = haut(hit.xz + vec2(e, 0.0)) - hc;
-	float hz = haut(hit.xz + vec2(0.0, e)) - hc;
+	float hc = haut(hit.xz, g_lod);
+	float hx = haut(hit.xz + vec2(e, 0.0), g_lod) - hc;
+	float hz = haut(hit.xz + vec2(0.0, e), g_lod) - hc;
 	vec3 n = normalize(vec3(-hx * hmax / e, 1.0, -hz * hmax / e));
 	// soleil un peu abaissé pour les seuls nuages : à midi, il écraserait les ombres (dômes tout blancs)
 	vec3 L = normalize(vec3(soleil_dir.x, max(soleil_dir.y, 0.05) * 0.45, soleil_dir.z));
@@ -68,7 +74,7 @@ void fragment() {
 	float ombre = 1.0;
 	for (int j = 1; j <= 3; j++) {
 		vec3 q = hit + L * (14.0 * float(j)) + vec3(0.0, 1.0, 0.0);
-		if (q.y < bas + hmax * haut(q.xz)) {
+		if (q.y < bas + hmax * haut(q.xz, g_lod)) {
 			ombre -= 0.22;
 		}
 	}
