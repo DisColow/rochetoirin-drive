@@ -1622,7 +1622,8 @@ func _physics_process(_dt: float) -> void:
 		return
 	if OS.get_cmdline_user_args().has("--flip-test"):
 		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
-		if t == 240:
+		if t >= 240 and Chargement.fini and not has_meta("retournee"):      # (t == 240 tombait pendant le chargement)
+			set_meta("retournee", true)
 			var tr := car.global_transform
 			car.global_transform = Transform3D(tr.basis.rotated(tr.basis.z, PI), tr.origin + tr.basis.x * 14.0 + Vector3(0, 1.5, 0))
 			print("retournée en ", car.global_position)
