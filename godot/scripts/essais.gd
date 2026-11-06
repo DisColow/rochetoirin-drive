@@ -548,6 +548,11 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_helico_test()
 		return
+	if OS.get_cmdline_user_args().has("--eau-routes-test"):
+		if t >= 300 and not has_meta("eau_routes"):
+			set_meta("eau_routes", true)
+			_eau_routes_test()
+		return
 	if OS.get_cmdline_user_args().has("--rampe-test"):
 		if t == 300:
 			_rampe_test()
@@ -6160,4 +6165,35 @@ func _rampe_test() -> void:
 			await get_tree().process_frame
 		get_viewport().get_texture().get_image().save_png("user://shots/rampe_%s.png" % n)
 		print("  [rampe] capture ", n)
+	get_tree().quit()
+
+## Routes noyées (#177) : -- --drive-test --eau-routes-test : chaque point de route (teleport.bin) posé sur un plan d'eau
+## où la voiture coulerait (water.gd : niveau_plan, voiture à moins de 0,25 m au-dessus de l'eau) ; total, exemples.
+func _eau_routes_test() -> void:
+	var w = water
+	var rp: PackedFloat32Array = car.road_pts
+	var par_tuile := {}
+	for i in range(0, rp.size(), 4):
+		var k := Vector2i(floori(rp[i] / w.TILE), floori(rp[i + 1] / w.TILE))
+		if w.tiles.has(k):
+			if not par_tuile.has(k):
+				par_tuile[k] = []
+			par_tuile[k].append(i)
+	var noyes := 0
+	var exemples := []
+	var n := 0
+	for k in par_tuile:
+		w._add(k)
+		for i: int in par_tuile[k]:
+			n += 1
+			var p := Vector3(rp[i], rp[i + 2], rp[i + 1])
+			var h: float = w.niveau_plan(p)
+			if not is_nan(h) and p.y <= h + 0.25 + 0.6:
+				noyes += 1
+				if exemples.size() < 30:
+					exemples.append("(%.0f, %.1f, %.0f) eau %.2f" % [p.x, p.y, p.z, h])
+		w.loaded[k].queue_free(); w.loaded.erase(k); w.plans.erase(k)
+	print("  [eau-routes] %d points de route sur %d tuiles d'eau, %d noyés (route à moins de 0,85 m au-dessus d'un plan d'eau)" % [n, par_tuile.size(), noyes])
+	for e in exemples:
+		print("  [eau-routes]   ", e)
 	get_tree().quit()
