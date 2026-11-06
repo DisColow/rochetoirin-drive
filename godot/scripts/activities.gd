@@ -223,9 +223,12 @@ func _set_status(t: String, coul := Color.WHITE, gros := false) -> void:
 		large = large or f.get_string_size(ligne, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x > CARTE_L
 	_status_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if large else TextServer.AUTOWRAP_OFF
 	_status_l.custom_minimum_size.x = CARTE_L if large else 0.0
+	_status_l.size = Vector2(_status_l.custom_minimum_size.x, 0.0)      # #176 : largeur avant le calcul de la hauteur
 	_status.visible = t != ""
 	_stop_btn.visible = mode != "" and _status.visible
+	_status.size = Vector2.ZERO
 	_status.reset_size()
+	_status.reset_size.call_deferred()                   # #176 : après la mise en page du texte coupé
 	_status.position = Vector2(24, CARTE_Y)
 	_stop_btn.reset_size()
 	_stop_btn.position = Vector2(24, CARTE_Y + _status.get_combined_minimum_size().y + 10)

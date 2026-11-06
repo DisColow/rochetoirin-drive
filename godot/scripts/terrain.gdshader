@@ -260,6 +260,19 @@ void accumulate_material(const vec3 base_ddx, const vec3 base_ddy, const float w
  }
 }
 
+// bruit de valeur lissé à deux composantes (#178), sans texture
+vec2 hash_bord(vec2 p) {
+ vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));       // « hash22 » de Dave Hoskins, sans sinus
+ p3 += dot(p3, p3.yzx + 33.33);
+ return fract((p3.xx + p3.yz) * p3.zy);
+}
+vec2 bruit_bord(vec2 p) {
+ vec2 i = floor(p);
+ vec2 f = fract(p);
+ f = f * f * (3.0 - 2.0 * f);
+ return mix(mix(hash_bord(i), hash_bord(i + vec2(1, 0)), f.x), mix(hash_bord(i + vec2(0, 1)), hash_bord(i + vec2(1, 1)), f.x), f.y);
+}
+
 void fragment() {
 #ifdef BOUT_MONDE
 	if (env_hors_monde(v_vertex)) {          // bord « cascade » (#157) : variante chargée avec l'option (env.gd)
@@ -281,6 +294,11 @@ void fragment() {
  weight.x * invert.y,
  invert.x * invert.y
  );
+ // Économie et Léger (#178) : une seule matière par pixel, celle du coin le plus proche décalé par un bruit calculé
+ // au lieu du coin bas-gauche : limites herbe / bas-côté irrégulières au lieu de marches et de triangles nets
+ if (econome) {
+ index_id += step(vec2(0.5), weight + (bruit_bord(uv * 0.7) - 0.5) * 0.9);
+ }
 
  ivec3 index[4];
 

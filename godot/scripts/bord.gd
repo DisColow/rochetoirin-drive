@@ -200,7 +200,7 @@ func _physics_process(dt: float) -> void:
 		if OS.get_cmdline_user_args().has("--bord-debug"):
 			print("[bord] catapulte à %.1f m hors de la carte, %.1f m/s vers l'extérieur" % [d, sortie])
 	if d > 120.0:                                        # filet de sécurité (ne devrait pas arriver)
-		car.reset_to_road()
+		car.reset_to_road("trop loin hors de la carte")
 
 ## Bord « cascade » (#157) : freinée dans la bande d'eau (gerbes, plouf en y entrant), la voiture est renvoyée vers
 ## l'intérieur à MUR m de la limite (rebond amorti), jamais au-delà : le sol hors de la zone n'est plus dessiné.
@@ -217,7 +217,7 @@ func _physique_cascade(dt: float) -> void:
 	if vers == Vector2.ZERO:
 		_dans_eau = false
 		if not Geometry2D.is_point_in_polygon(Vector2(p.x, p.z), _zone):      # filet de sécurité
-			car.reset_to_road()
+			car.reset_to_road("hors de la zone de jeu")
 		return
 	var d: float = h[0]
 	var v3 := Vector3(vers.x, 0.0, vers.y)

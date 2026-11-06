@@ -548,6 +548,15 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_helico_test()
 		return
+	if OS.get_cmdline_user_args().has("--eau-routes-test"):
+		if t >= 300 and not has_meta("eau_routes"):
+			set_meta("eau_routes", true)
+			_eau_routes_test()
+		return
+	if OS.get_cmdline_user_args().has("--rampe-test"):
+		if t == 300:
+			_rampe_test()
+		return
 	if OS.get_cmdline_user_args().has("--gendarme-joueur-test"):
 		if t == 300:
 			_gendarme_joueur_test()
@@ -1613,7 +1622,8 @@ func _physics_process(_dt: float) -> void:
 		return
 	if OS.get_cmdline_user_args().has("--flip-test"):
 		car.touch_throttle = 0.0; car.touch_brake = 0.0; car.touch_steer = 0.0
-		if t == 240:
+		if t >= 240 and Chargement.fini and not has_meta("retournee"):      # (t == 240 tombait pendant le chargement)
+			set_meta("retournee", true)
 			var tr := car.global_transform
 			car.global_transform = Transform3D(tr.basis.rotated(tr.basis.z, PI), tr.origin + tr.basis.x * 14.0 + Vector3(0, 1.5, 0))
 			print("retournée en ", car.global_position)
@@ -4440,6 +4450,33 @@ func _gendarmes_test() -> void:
 	car.frein_parking = false
 	dire.call("message radio : « %s »" % gd.message)
 	dire.call("arrestation : %s après %.0f s, argent %+.2f €" % [str(gd.arrestations > arr0), t, garage.argent - argent0])
+	# #175 : conduit au poste le plus proche, fenêtre d'explication (capturée, puis refermée)
+	for k in 30:
+		await get_tree().process_frame
+	var tc := 0.0
+	while get_node("HUD").consigne_ouverte == null and tc < 4.0:
+		await get_tree().process_frame
+		tc += get_process_delta_time()
+	var cq = get_node("HUD").consigne_ouverte
+	if not gd.dernier_poste.is_empty():
+		dire.call("poste : %s (%s), voiture à %.0f m du poste" % [gd.dernier_poste.n, gd.dernier_poste.c,
+			Vector2(car.global_position.x - float(gd.dernier_poste.x), car.global_position.z - float(gd.dernier_poste.z)).length()])
+	else:
+		dire.call("ÉCHEC : aucun poste trouvé")
+	if cq:
+		var txt := PackedStringArray()
+		for l in cq.find_children("*", "Label", true, false):
+			txt.append((l as Label).text)
+		dire.call("fenêtre : " + " | ".join(txt))
+		for k in 8:
+			await get_tree().process_frame
+		get_viewport().get_texture().get_image().save_png("user://shots/arrestation.png")
+		for b in cq.find_children("*", "Button", true, false):
+			(b as Button).pressed.emit()
+		await get_tree().process_frame
+		dire.call("fenêtre fermée : %s, jeu en pause : %s" % [str(get_node("HUD").consigne_ouverte == null), str(get_tree().paused)])
+	else:
+		dire.call("ÉCHEC : pas de fenêtre après l'arrestation")
 	# 3) gendarme embouti, téléportation loin : semés
 	for k in 60:
 		await get_tree().physics_frame
@@ -6102,3 +6139,62 @@ func _explore2_pied(dire: Callable) -> void:
 		for f in 60:
 			await get_tree().physics_frame
 		dire.call("remonté : à pied %s, voiture sous contrôle %s" % [str(pied.get("actif")), str(car.controle)])
+
+## Rampe de gyrophares (#179) : -- --drive-test --rampe-test : la voiture du joueur en Gendarmerette habillée, vue de côté
+## et de trois quarts arrière à hauteur du toit (user://shots/rampe_*.png) ; écart rampe / toit dans le journal.
+func _rampe_test() -> void:
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	car.construire("gendarme")
+	var h: Dictionary = preload("res://scripts/gendarme.gd").habiller(car, Color(0.05, 0.33, 0.52))
+	h.gyro[0][1].albedo_color = Color(0.35, 0.55, 1.0) * 2.2
+	for i in 60:
+		await get_tree().physics_frame
+	car.freeze = true
+	cam_rig.set_process(false)
+	var cm := get_viewport().get_camera_3d()
+	var socle: Node3D = h.noeuds[0]
+	print("  [rampe] socle à %.2f m (repère voiture), bas du socle %.2f m" % [socle.position.y, socle.position.y - 0.05])
+	var c0: Vector3 = car.to_global(Vector3(0, socle.position.y - 0.1, socle.position.z))
+	var vues := {"cote": car.global_basis.x * 3.2 + Vector3(0, 0.15, 0), "arriere": -car.global_basis.z * 3.0 + car.global_basis.x * 1.6 + Vector3(0, 0.6, 0)}
+	for n in vues:
+		cm.global_position = c0 + vues[n]
+		cm.look_at(c0, Vector3.UP)
+		cm.fov = 40.0
+		for i in 12:
+			await get_tree().process_frame
+		get_viewport().get_texture().get_image().save_png("user://shots/rampe_%s.png" % n)
+		print("  [rampe] capture ", n)
+	get_tree().quit()
+
+## Routes noyées (#177) : -- --drive-test --eau-routes-test : chaque point de route (teleport.bin) posé sur un plan d'eau
+## où la voiture coulerait (water.gd : niveau_plan, voiture à moins de 0,25 m au-dessus de l'eau) ; total, exemples.
+func _eau_routes_test() -> void:
+	var w = water
+	var rp: PackedFloat32Array = car.road_pts
+	var par_tuile := {}
+	for i in range(0, rp.size(), 4):
+		var k := Vector2i(floori(rp[i] / w.TILE), floori(rp[i + 1] / w.TILE))
+		if w.tiles.has(k):
+			if not par_tuile.has(k):
+				par_tuile[k] = []
+			par_tuile[k].append(i)
+	var noyes := 0
+	var exemples := []
+	var n := 0
+	for k in par_tuile:
+		w._add(k)
+		for i: int in par_tuile[k]:
+			n += 1
+			var p := Vector3(rp[i], rp[i + 2], rp[i + 1])
+			var h: float = w.niveau_plan(p)
+			if not is_nan(h) and p.y <= h + 0.25 + 0.6:
+				noyes += 1
+				if exemples.size() < 30:
+					exemples.append("(%.0f, %.1f, %.0f) eau %.2f" % [p.x, p.y, p.z, h])
+		w.loaded[k].queue_free(); w.loaded.erase(k); w.plans.erase(k)
+	print("  [eau-routes] %d points de route sur %d tuiles d'eau, %d noyés (route à moins de 0,85 m au-dessus d'un plan d'eau)" % [n, par_tuile.size(), noyes])
+	for e in exemples:
+		print("  [eau-routes]   ", e)
+	get_tree().quit()

@@ -155,7 +155,12 @@ func toast(text: String, secs := 3.5) -> void:
 	var long := lt.get_theme_font("font").get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x > 600.0
 	lt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if long else TextServer.AUTOWRAP_OFF      # #162 : pas jusqu'au rétroviseur
 	lt.custom_minimum_size.x = 600.0 if long else 0.0
+	# #176 : le premier calcul (retour à la ligne sur 0 px de large : un caractère par ligne) donnait un panneau de
+	# 3 000 px de haut, texte hors de l'écran ; la taille est refaite une fois la mise en page faite (_process)
+	lt.size = Vector2(lt.custom_minimum_size.x, 0.0)
+	_toast.size = Vector2.ZERO
 	_toast.reset_size()
+	_toast.reset_size.call_deferred()
 	# #162 : à gauche, sous la carte d'activité (le milieu de l'écran reste libre)
 	var act = get_tree().get_first_node_in_group("activites")
 	_toast.position = Vector2(24, act.bas_carte() if act else 132.0)
@@ -166,7 +171,7 @@ func toast(text: String, secs := 3.5) -> void:
 ## Consigne d'activité (#160) : fenêtre au milieu de l'écran, jeu figé (comme dans les menus) jusqu'à « OK » ;
 ## `fin` est appelé après la fermeture. Les lignes de `points` sont précédées d'une puce.
 var consigne_ouverte: PanelContainer
-func consigne(titre: String, texte: String, points: PackedStringArray, fin := Callable()) -> void:
+func consigne(titre: String, texte: String, points: PackedStringArray, fin := Callable(), bouton := "OK, c'est parti !") -> void:
 	if consigne_ouverte and is_instance_valid(consigne_ouverte):
 		consigne_ouverte.queue_free()
 	_show_drive(false)
@@ -196,7 +201,7 @@ func consigne(titre: String, texte: String, points: PackedStringArray, fin := Ca
 		lp.custom_minimum_size.x = 980
 		v.add_child(lp)
 	var ok := Button.new()
-	ok.text = "OK, c'est parti !"
+	ok.text = bouton
 	ok.custom_minimum_size = Vector2(420, 84)
 	ok.add_theme_font_size_override("font_size", 34)
 	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -999,6 +1004,8 @@ func _process_corps(_dt: float) -> void:
 		_en_activite = en_act
 		replier(en_act)
 	if _toast and _toast.visible:
+		if _toast.size.y > _toast.get_combined_minimum_size().y + 1.0:
+			_toast.reset_size()                                     # #176
 		_toast_t -= _dt
 		_toast.modulate.a = clampf(_toast_t / 0.6, 0.0, 1.0)
 		var act = get_tree().get_first_node_in_group("activites")
