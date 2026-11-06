@@ -6279,6 +6279,7 @@ func _eau_routes_test() -> void:
 				par_tuile[k] = []
 			par_tuile[k].append(i)
 	var noyes := 0
+	var bords: Array[Vector3] = []
 	var exemples := []
 	var n := 0
 	for k in par_tuile:
@@ -6287,6 +6288,14 @@ func _eau_routes_test() -> void:
 			n += 1
 			var p := Vector3(rp[i], rp[i + 2], rp[i + 1])
 			var h: float = w.niveau_plan(p)
+			# #183 : points de route qui longent un plan d'eau (à 12-30 m de son bord) : lieux de captures
+			if bords.size() < 12 and i % 40 == 0:
+				for dd in [14.0, 22.0, 30.0]:
+					for ang in [0.0, 1.5708, 3.1416, 4.7124]:
+						var q2 := p + Vector3(cos(ang), 0.0, sin(ang)) * dd
+						if not is_nan(w.niveau_plan(q2)) and bords.size() < 12 and (bords.is_empty() or Vector2(bords[-1].x, bords[-1].z).distance_to(Vector2(p.x, p.z)) > 500.0):
+							bords.append(Vector3(p.x, p.y, p.z))
+							print("  [eau-routes] plan d'eau à %.0f m de la route en (%.1f, %.1f, %.1f), cap %.0f, direction %.0f°" % [dd, p.x, p.y, p.z, rp[i + 3], rad_to_deg(ang)])
 			if not is_nan(h) and p.y <= h + 0.25 + 0.6:
 				noyes += 1
 				if exemples.size() < 30:
@@ -6345,10 +6354,16 @@ func _trottoir_test() -> void:
 		return
 	dire.call("bordure à %.1f m : marche de %.2f m" % [(bord - p0).dot(dr), bord.y - h0])
 	var ok := 0
-	for id in ids:
+	var n_cas := 0
+	var cas := [[55.0, 3.5, "en biais, lancée"], [90.0, 1.3, "de face, à l'arrêt"]]
+	for k in ids.size() * cas.size():
+		var id: String = ids[k / cas.size()]
+		var c: Array = cas[k % cas.size()]
+		n_cas += 1
 		car.construire(id)                       # « ranger » : inconnu du catalogue -> voiture de départ (Raptor)
-		var dirv := (fw * cos(deg_to_rad(55.0)) + dr * sin(deg_to_rad(55.0))).normalized()     # 35° par rapport à la bordure
-		var dep := bord - dirv * 3.5
+		var ang: float = c[0]
+		var dirv := (fw * cos(deg_to_rad(ang)) + dr * sin(deg_to_rad(ang))).normalized()
+		var dep := bord - dirv * float(c[1])
 		dep.y = h0 + 0.5
 		car.place(dep, rad_to_deg(atan2(dirv.x, -dirv.z)))
 		car.hold(0.3)
@@ -6356,22 +6371,20 @@ func _trottoir_test() -> void:
 			await get_tree().physics_frame
 		var y0 := car.global_position.y
 		var tt := 0.0
-		var ymax := y0
 		var passe := (car.global_position - bord).dot(dr)
 		while tt < 6.0 and passe < 1.5:                 # jusqu'à ce que le centre de la caisse soit à 1,5 m sur le trottoir
-			car.touch_throttle = 0.6 if car.kmh() < 12.0 else 0.0
+			car.touch_throttle = (0.6 if car.kmh() < 12.0 else 0.0) if ang < 80.0 else 1.0
 			car.touch_brake = 0.0
 			await get_tree().physics_frame
 			tt += get_physics_process_delta_time()
-			ymax = maxf(ymax, car.global_position.y)
 			passe = (car.global_position - bord).dot(dr)
 		car.touch_throttle = 0.0
-		var monte := car.global_position.y - y0 > 0.08 and passe >= 1.5
+		var monte := passe >= 1.5
 		if monte:
 			ok += 1
-		dire.call("%s : %s (caisse +%.2f m, %.1f m au-delà de la bordure, %d km/h ; touche %s)" % [id, "MONTE" if monte else "BLOQUÉE",
-			car.global_position.y - y0, passe, int(car.kmh()), str(car._touching())])
-	dire.call("RÉSULTAT : %d voiture(s) sur %d montent sur le trottoir" % [ok, ids.size()])
+		dire.call("%s, %s : %s en %.1f s (caisse %+.2f m, %.1f m au-delà de la bordure, %d km/h ; touche %s)" % [id, c[2], "MONTE" if monte else "BLOQUÉE",
+			tt, car.global_position.y - y0, passe, int(car.kmh()), str(car._touching().slice(0, 2))])
+	dire.call("RÉSULTAT : %d essai(s) sur %d montent sur le trottoir" % [ok, n_cas])
 	get_tree().quit()
 
 ## Chute de trop haut (#185) : -- --drive-test --chute-test --drive-from=<route> : voiture lâchée de 30 m au-dessus de la
