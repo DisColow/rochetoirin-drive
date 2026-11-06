@@ -32,7 +32,7 @@ float vnoise(vec2 p) {
 }
 
 void fragment() {
-	if (!env_fade_keep(wpos, FRAGCOORD.xy)) {
+	if (!env_fade_keep(wpos, FRAGCOORD.xy) || env_dans_riviere(wpos)) {          // #180 : pas dans la rivière du bord
 		discard;
 	}
 	vec4 a = texture(albedo_tex, vec3(UV, layer));

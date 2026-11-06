@@ -52,7 +52,7 @@ void vertex() {
 }
 
 void fragment() {
-	if (env_hors_monde(v_wp)) {          // bord « cascade » (#157)
+	if (env_dans_riviere(v_wp)) {          // bord « cascade » (#157, #180 : rivière comprise)
 		discard;
 	}
 	// fondu large (dernier 40 % de la portée) : les plants s'éclaircissent peu à peu au lieu de finir en mur

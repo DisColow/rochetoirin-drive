@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v7.27.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.27/RochetoirinSimulator-v7.27.apk)**
+**[RochetoirinSimulator-v7.28.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.28/RochetoirinSimulator-v7.28.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,10 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.27 :
-- **Nouvelle voiture de la Gendarmerette** : berline bleu nuit et blanche, gyrophares sur son toit.
-- **Plus de remise sur la route en pleine ligne droite** : un à-coup du moteur physique ne téléporte plus la voiture.
-- Toute remise automatique sur la route en dit la cause.
+Nouveautés de la v7.28 (bord « cascade ») :
+- **On peut tomber du bout du monde** : la voiture plonge dans la mer de nuages, la caméra s'éloigne et l'image se referme en cercle sur elle, puis retour sur la route.
+- La rivière du bord n'a plus de champs, d'herbe, d'arbres ni de clôtures dans l'eau.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

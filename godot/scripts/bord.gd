@@ -30,6 +30,7 @@ const RESTITUTION := 0.45
 const FREIN_EAU := 0.9         # s⁻¹ : freinage horizontal dans l'eau
 var cascade := false
 var cascade_node: Node3D
+var chute: Node                # #180 : chute du bout du monde (chute.gd)
 var _dans_eau := false
 var _embruns_t := 0.0
 
@@ -37,6 +38,10 @@ func _ready() -> void:
 	name = "Bord"
 	cascade_node = preload("res://scripts/cascade.gd").new()
 	add_child(cascade_node)
+	chute = preload("res://scripts/chute.gd").new()
+	chute.name = "Chute"
+	chute.main = get_parent()
+	add_child(chute)
 	var cfg := ConfigFile.new()
 	if cfg.load("user://reglages.cfg") == OK and bool(cfg.get_value("affichage", "bord_cascade", false)):
 		set_cascade.call_deferred(true)
@@ -240,11 +245,7 @@ func _physique_cascade(dt: float) -> void:
 					D._nuage(mat, q, Vector3(vh.x * 0.25, randf_range(2.0, 4.0) + vh.length() * 0.12, vh.z * 0.25), 0.8)
 	else:
 		_dans_eau = false
-	if d > -MUR:
-		var sortie := -car.linear_velocity.dot(v3)
-		if sortie > 0.0:
-			car.linear_velocity += v3 * sortie * (1.0 + RESTITUTION)
-		if d > -MUR * 0.5:
-			car.global_position += v3 * (d + MUR * 0.5)
-		if OS.get_cmdline_user_args().has("--bord-debug"):
-			print("[bord] cascade : renvoyée à %.1f m de la limite, %.1f m/s vers l'extérieur" % [-d, sortie])
+	# #180 : plus de mur ; la voiture qui passe la lèvre tombe du bout du monde (chute.gd)
+	if d > 0.3 and chute and not chute.actif:
+		chute.car = car
+		chute.tomber(-vers, Vector3(p.x + vers.x * d, p.y, p.z + vers.y * d))

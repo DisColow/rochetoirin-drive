@@ -18,3 +18,16 @@ bool env_hors_monde(vec3 wp) {
 	}
 	return texture(env_zone_sdf, uv).r * 255.0 > 128.0;
 }
+
+// #180 : rivière du bord (les 15 derniers mètres avant la limite, cascade.gd) : cultures, herbe, arbres, haies et
+// clôtures s'y effacent aussi (le sol, les routes et les bâtiments gardent la limite stricte : env_hors_monde)
+bool env_dans_riviere(vec3 wp) {
+	if (env_bout_monde < 0.5) {
+		return false;
+	}
+	vec2 uv = (wp.xz - env_zone_rect.xy) * env_zone_rect.zw;
+	if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {
+		return true;
+	}
+	return texture(env_zone_sdf, uv).r * 255.0 > 128.0 - 15.0;
+}

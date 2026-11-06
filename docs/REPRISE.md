@@ -3,7 +3,19 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 06/11/2026 (v6.84 #131 à v7.27 livrées)
+## État au 06/11/2026 (v6.84 #131 à v7.28 livrées)
+- **v7.28 (#180 livraison 1 sur 3, `à tester`, issue laissée ouverte)** : plan et hypothèses postés dans #180
+  (1 chute, 2 rivière et cascade, 3 mer de nuages). `scripts/chute.gd` (enfant de Bord, `bord.chute`) : plus de mur
+  dans `bord._physique_cascade` ; voiture à plus de 0,3 m dehors -> `chute.tomber(dehors, lèvre)` : `car.carried`
+  (ni physique ni remise), trajectoire calculée (G 14, au moins 4 m/s vers le vide, bascule qui accélère), caméra
+  (`cam_rig` arrêté) qui passe au-dessus du vide au-delà du rideau (sinon le rideau cache la voiture) puis monte,
+  `look_at(p, UP + dehors)` ; fermeture en cercle : CanvasLayer 110, shader `IRIS` (centre = `unproject_position`) ;
+  noir, voiture reposée debout 30 m à l'intérieur tournée vers l'intérieur puis `reset_to_road()`, réouverture,
+  `hud.consigne(TITRE, MESSAGE, [], …, "Compris")`. `env_dans_riviere` (bout_monde.gdshaderinc : 15 m avant la
+  limite) efface cultures, plants, herbe, arbres, imposteurs, haies et clôtures dans la rivière. Essai
+  `--cascade-test` (refait : plein gaz vers le vide, captures `chute_1..5.png`, RÉSULTAT OK si une chute, retour
+  dans la zone sur une route et fenêtre au bon texte). Reste : livraisons 2 (rivière qui coule vers la lèvre, plus
+  belle ; cascade) et 3 (mer de nuages « skybox »).
 - **v7.27 (#177, #179, `à tester`)** : vidéo du 06/11 reçue (`/root/.claude/uploads/…Screenrecorder…mp4`, portrait
   720 × 1280, jeu en 720 × 332 à y 474) : #176 confirmé (panneau sombre à gauche) ; #177 : à 72,9 s, Route de Trieux
   (Saint-Chef, x ≈ −4 300), 88 km/h à plat, la voiture est remise au milieu de la route et repart de 2 km/h (deux fois),
