@@ -6320,20 +6320,25 @@ func _trottoir_test() -> void:
 	for f in 60:
 		await get_tree().physics_frame
 	var bord := Vector3.INF
-	var h0: float = sol.call(p0)
-	for k in range(5, 160):
-		var q := p0 + dr * (float(k) * 0.1)
-		var hq: float = sol.call(q)
-		if not is_nan(hq) and hq - h0 > 0.08 and hq - h0 < 0.25:
-			bord = Vector3(q.x, hq, q.z)
+	var h0: float = NAN
+	for cote in [1.0, -1.0]:                             # à droite, sinon à gauche
+		h0 = sol.call(p0)
+		for k in range(5, 160):
+			var q := p0 + dr * (cote * float(k) * 0.1)
+			var hq: float = sol.call(q)
+			if not is_nan(hq) and hq - h0 > 0.08 and hq - h0 < 0.25:
+				bord = Vector3(q.x, hq, q.z)
+				break
+			if not is_nan(hq):
+				h0 = hq
+		if bord.is_finite():
+			dr *= cote
 			break
-		if not is_nan(hq):
-			h0 = hq
 	if not bord.is_finite():
-		dire.call("ÉCHEC : pas de bordure à droite à moins de 16 m de %s" % str(p0))
+		dire.call("ÉCHEC : pas de bordure à moins de 16 m de %s" % str(p0))
 		get_tree().quit()
 		return
-	dire.call("bordure à %.1f m à droite : marche de %.2f m" % [(bord - p0).dot(dr), bord.y - h0])
+	dire.call("bordure à %.1f m : marche de %.2f m" % [(bord - p0).dot(dr), bord.y - h0])
 	var ok := 0
 	for id in ids:
 		car.construire(id)                       # « ranger » : inconnu du catalogue -> voiture de départ (Raptor)
