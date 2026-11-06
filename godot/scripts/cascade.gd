@@ -24,6 +24,7 @@ var _morceaux := {}                  # indice -> MeshInstance3D
 var _mat_eau: ShaderMaterial
 var _mat_rideau: ShaderMaterial
 var _nuages: MeshInstance3D
+var _mat_nuages: ShaderMaterial
 var _t := 0.0
 var _son: AudioStreamPlayer
 var sdf_tex: ImageTexture
@@ -46,9 +47,23 @@ func _ready() -> void:
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(60000.0, 60000.0)
 	_nuages.mesh = pm
-	var mn := ShaderMaterial.new()
-	mn.shader = preload("res://scripts/cascade_nuages.gdshader")
-	_nuages.material_override = mn
+	_mat_nuages = ShaderMaterial.new()
+	_mat_nuages.shader = preload("res://scripts/cascade_nuages.gdshader")
+	# #180 : relief des cumulus (bruit lisse sans couture, fait une fois sur un fil par Godot)
+	var bruit := FastNoiseLite.new()
+	bruit.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	bruit.frequency = 0.012
+	bruit.fractal_type = FastNoiseLite.FRACTAL_FBM
+	bruit.fractal_octaves = 4
+	bruit.seed = 157
+	var tex := NoiseTexture2D.new()
+	tex.width = 512
+	tex.height = 512
+	tex.seamless = true
+	tex.generate_mipmaps = true
+	tex.noise = bruit
+	_mat_nuages.set_shader_parameter("relief_nuages", tex)
+	_nuages.material_override = _mat_nuages
 	_nuages.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_nuages.extra_cull_margin = 2000.0
 	add_child(_nuages)
@@ -98,7 +113,22 @@ func _process(dt: float) -> void:
 		if _t <= 0.0:
 			_t = 0.5
 			_morceaux_autour(c)
+			_lumiere_nuages()
 	PerfMon.note("cascade", Time.get_ticks_usec() - t0)
+
+## Soleil et horizon de la mer de nuages (#180) : direction et couleur du soleil du jeu, couleur de la brume.
+func _lumiere_nuages() -> void:
+	var m := get_parent().get_parent() if get_parent() else null
+	var sol = m.get("_sun") if m else null
+	if sol is DirectionalLight3D:
+		var d: DirectionalLight3D = sol
+		_mat_nuages.set_shader_parameter("soleil_dir", d.global_basis.z.normalized())
+		var e := clampf(d.light_energy, 0.15, 1.3)
+		_mat_nuages.set_shader_parameter("soleil_coul", Vector3(d.light_color.r, d.light_color.g, d.light_color.b) * e)
+	var env = m.get("_env") if m else null
+	if env is Environment:
+		var fc: Color = (env as Environment).fog_light_color
+		_mat_nuages.set_shader_parameter("ciel_coul", Vector3(fc.r, fc.g, fc.b))
 
 ## Grondement de la chute selon la distance d (m) de l'auditeur au bord (bord.gd).
 func son(d: float) -> void:
