@@ -379,6 +379,7 @@ func _exploser() -> void:
 	detruit += 1
 	var fx = preload("res://scripts/explosion.gd").new()
 	fx.style = voiture.style_explosion
+	fx.echelle = 1.3                             # #184 : moins grosse, la vue reste dégagée
 	fx.position = voiture.global_position - Vector3(0, 0.3, 0)
 	main.add_child(fx)
 	if main.get("sound") and main.sound.has_method("boum"):

@@ -603,7 +603,8 @@ static func juger(a: Object, va: float, b: Object, vb: float) -> Object:
 		_chocs_vus.clear()
 	_chocs_vus[cle] = now
 	if OS.get_cmdline_user_args().has("--choc-debug"):
-		print("[choc] véhicules : %.0f et %.0f km/h" % [va, vb])
+		var dc: float = (a as Node3D).global_position.distance_to((b as Node3D).global_position) if a is Node3D and b is Node3D else -1.0
+		print("[choc] véhicules : %.0f et %.0f km/h, centres à %.1f m" % [va, vb, dc])
 	if maxf(va, vb) < VITESSE_BOUM or absf(va - vb) < ECART_BOUM:
 		return null
 	var lent: Object = a if va < vb else b
@@ -639,6 +640,7 @@ func exploser() -> void:
 		get_parent().succes.noter("explosions")          # succès (#133)
 	var fx = preload("res://scripts/explosion.gd").new()
 	fx.style = style_explosion
+	fx.echelle = 1.6                             # #184 : moins grosse, la vue reste dégagée
 	fx.position = global_position - Vector3(0, 0.3, 0)       # avant add_child : _ready lit le sol sous ce point
 	get_parent().add_child(fx)
 	linear_velocity = Vector3.ZERO

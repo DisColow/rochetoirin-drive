@@ -276,6 +276,7 @@ func exploser_garee(rb: Node) -> void:
 				var p: Vector3 = (rb as Node3D).global_position
 				var fx = preload("res://scripts/explosion.gd").new()
 				fx.style = "atomique"
+				fx.echelle = 1.3                             # #184 : moins grosse, la vue reste dégagée
 				fx.position = p - Vector3(0, 0.3, 0)
 				get_parent().add_child(fx)
 				var m := get_parent()

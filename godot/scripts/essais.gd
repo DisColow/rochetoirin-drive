@@ -2229,7 +2229,10 @@ func _explosion_test() -> void:
 	fw = fw.normalized()
 	var cote := fw.cross(Vector3.UP)
 	for st in styles:
-		var vue: Array = BOUM_VUES.get(st, [20.0, 5.0])
+		var vue: Array = BOUM_VUES.get(st.get_slice("@", 0), [20.0, 5.0])     # « atomique@1.3 » : style@échelle (#184)
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--explosion-vue="):                  # recul,visée,hauteur (#184 : vue du conducteur qui suit)
+				vue = Array(a.get_slice("=", 1).split(",")).map(func(x): return float(x))
 		var c: Camera3D = cam_rig.cam
 		c.fov = 62.0
 		c.global_position = xf.origin + fw * vue[0] * _boum_sens + cote * vue[0] * 0.35 + Vector3(0, vue[2] if vue.size() > 2 else 2.0 + vue[0] * 0.12, 0)
@@ -2240,7 +2243,9 @@ func _explosion_test() -> void:
 			fx.set_process(false)
 		else:
 			fx = preload("res://scripts/explosion.gd").new()
-			fx.style = st
+			fx.style = st.get_slice("@", 0)
+			if st.contains("@"):
+				fx.echelle = float(st.get_slice("@", 1))
 			fx.auto = false
 			fx.graine = 129
 		fx.position = xf.origin - Vector3(0, 0.3, 0)

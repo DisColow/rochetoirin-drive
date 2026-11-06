@@ -26,6 +26,7 @@ const PIED_CHAUD := Color(1.6, 1.0, 0.6, 0)            # pied du champignon écl
 const PIED_FROID := Color(1.05, 0.98, 0.9, 0)
 
 var style := "film"
+var echelle := 2.0                # champignon atomique (#184 : 1,3 pour les véhicules percutés, 1,6 pour le joueur)
 var temps := 0.0
 var auto := true                  # faux : le temps n'avance que par regler() (essais)
 var graine := -1                  # >= 0 : tirage fixe (captures comparables)
@@ -64,7 +65,7 @@ func _ready() -> void:
 		_recettes[nom] = []
 	match style:
 		"mini": _champignon(1.0, false)
-		"atomique": _champignon(2.0, true)
+		"atomique": _champignon(echelle, true)
 		_: _film()
 	for nom in PLANCHES:
 		var l: Array = _recettes[nom]

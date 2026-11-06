@@ -1357,9 +1357,19 @@ func _accident(i: int, par: Node3D) -> void:
 	rb.linear_velocity = (c.dir as Vector3) * float(c.v)
 	rb.set_meta("vehicule", true); rb.set_meta("epave", true); rb.set_meta("v_avant", float(c.v))
 	epaves.append({"rb": rb, "t": 0.0})
-	# #164 : le choc est jugé tout de suite (vitesse de la voiture de la circulation et du pilote avant le choc)
+	# #164 : choc jugé avec les vitesses d'avant le choc (voiture de la circulation, pilote) ; #181 : seulement au vrai
+	# contact entre l'épave et le pilote (avant, l'épave, faite quelques mètres avant pour que la physique la heurte,
+	# explosait aussitôt : « elle explose avant qu'on la touche ») ; frôlée sans contact : pas de jugement
 	var vp: float = par.vitesse_avant() * 3.6 if par.has_method("vitesse_avant") else (par as RigidBody3D).linear_velocity.length() * 3.6
-	preload("res://scripts/car.gd").juger(rb, float(c.v) * 3.6, par, vp)
+	var vc := float(c.v) * 3.6
+	rb.contact_monitor = true
+	rb.max_contacts_reported = 4
+	rb.body_entered.connect(func(b: Node):
+		if b == par and not rb.has_meta("juge"):
+			rb.set_meta("juge", true)
+			if _debug:
+				print("[circulation] contact : voiture %d touchée par %s à %.1f m de son centre" % [int(c.id), par.name, (par as Node3D).global_position.distance_to(rb.global_position)])
+			preload("res://scripts/car.gd").juger(rb, vc, par, vp))
 	voitures.remove_at(i)
 	accidents += 1
 	if par == _joueur() and main.get("succes"):
@@ -1378,6 +1388,7 @@ func exploser_epave(rb: Node) -> void:
 			var p: Vector3 = (rb as Node3D).global_position
 			var fx = preload("res://scripts/explosion.gd").new()
 			fx.style = "atomique"
+			fx.echelle = 1.3                             # #184 : moins grosse, la vue reste dégagée
 			fx.position = p - Vector3(0, 0.3, 0)
 			main.add_child(fx)
 			if main.get("sound") and main.sound.has_method("boum"):
