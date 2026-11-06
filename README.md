@@ -7,7 +7,7 @@ Chapelle-de-la-Tour et L'Isle-d'Abeau (communes entières), et les routes qui y 
 
 ## Télécharger
 
-**[RochetoirinSimulator-v7.26.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.26/RochetoirinSimulator-v7.26.apk)**
+**[RochetoirinSimulator-v7.27.apk — Android](https://github.com/DisColow/rochetoirin-drive/releases/download/v7.27/RochetoirinSimulator-v7.27.apk)**
 (construit automatiquement par GitHub Actions ; Android 8+, OpenGL ES 3).
 
 **Toutes les versions (Android, Windows, Steam Deck) : [Releases](https://github.com/DisColow/rochetoirin-drive/releases)** —
@@ -16,12 +16,10 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.26 (corrections) :
-- **Arrêté par les gendarmes** : conduit à la gendarmerie (ou au commissariat) la plus proche, avec une fenêtre qui explique ce qui s'est passé (motif, amende, argent restant).
-- **Plus de grand encart vide au démarrage** : le message « Défi du jour » s'affiche à sa vraie taille.
-- **Bas-côtés sans triangles** en Économie et Léger.
-- **Rampe de gyrophares posée sur le toit** de la Gendarmerette (elle flottait).
-- **Remise sur la route automatique expliquée** : un message en dit la cause (voiture retournée, chute, éjection…).
+Nouveautés de la v7.27 :
+- **Nouvelle voiture de la Gendarmerette** : berline bleu nuit et blanche, gyrophares sur son toit.
+- **Plus de remise sur la route en pleine ligne droite** : un à-coup du moteur physique ne téléporte plus la voiture.
+- Toute remise automatique sur la route en dit la cause.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 
