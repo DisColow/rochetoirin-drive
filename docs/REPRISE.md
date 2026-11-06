@@ -3,7 +3,13 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 06/11/2026 (v6.84 #131 à v7.28 livrées)
+## État au 06/11/2026 (v6.84 #131 à v7.29 livrées)
+- **v7.29 (#180 livraison 2 sur 3)** : `cascade_eau.gdshader` (courant : abscisse emportée `s = d(1 + 0,18 d)/2 + t·vit`,
+  vit 1,6 -> 7,1 m/s vers la lèvre ; stries étirées dans le sens du courant ; relief par gradient de surface à
+  l'écran (Mikkelsen : dFdx/dFdy de VERTEX et de la hauteur, sans tangentes ni texture) ; vert profond -> turquoise,
+  écume de bouillonnement à 4,5 m de la lèvre et sur les crêtes) ; `cascade_rideau.gdshader` (motif descendu au temps
+  de chute libre `sqrt(2h/g)`, trois octaves de filets, même relief, bourrelet d'écume à la lèvre, eau qui blanchit
+  en tombant). Aperçu `docs/apercus/riviere_cascade_180.jpg`. Reste la livraison 3 (mer de nuages).
 - **v7.28 (#180 livraison 1 sur 3, `à tester`, issue laissée ouverte)** : plan et hypothèses postés dans #180
   (1 chute, 2 rivière et cascade, 3 mer de nuages). `scripts/chute.gd` (enfant de Bord, `bord.chute`) : plus de mur
   dans `bord._physique_cascade` ; voiture à plus de 0,3 m dehors -> `chute.tomber(dehors, lèvre)` : `car.carried`
