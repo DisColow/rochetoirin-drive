@@ -131,16 +131,36 @@ static func _repeindre(v: Car, col: Color) -> void:
 				repeint += 1
 	print("[gendarmes] livrée : %d surface(s) teintée(s)" % repeint)
 
-## Haut de la carrosserie (repère de la voiture), d'après les boîtes des maillages ; gabarit à défaut.
-static func _toit(v: Car) -> float:
+## Hauteur du toit (repère de la voiture) sous la rampe, posée en (0, ?, z) : sommet le plus haut des maillages de la
+## carrosserie dans une bande de ±0,3 m en x et ±0,35 m en z (#179 : le haut de la boîte englobante, gonflée par la
+## rotation des maillages, faisait léviter la rampe) ; mis en cache par modèle ; boîtes puis gabarit à défaut.
+static var _toits := {}
+static func _toit(v: Car, z: float) -> float:
+	var cle := "%s@%.2f" % [String(v.get("voiture")), z]
+	if _toits.has(cle):
+		return _toits[cle]
 	var corps: Node3D = v.get("_body")
 	var h := -INF
+	var hb := -INF
 	if corps:
 		var inv := v.global_transform.affine_inverse()
 		for mi in corps.find_children("*", "MeshInstance3D", true, false):
-			var b: AABB = (inv * (mi as MeshInstance3D).global_transform) * (mi as MeshInstance3D).get_aabb()
-			h = maxf(h, b.end.y)
-	return h if is_finite(h) else v.gabarit.y
+			var m3 := mi as MeshInstance3D
+			if m3.mesh == null:
+				continue
+			var xf := inv * m3.global_transform
+			hb = maxf(hb, (xf * m3.get_aabb()).end.y)
+			for k in m3.mesh.get_surface_count():
+				var vs: PackedVector3Array = m3.mesh.surface_get_arrays(k)[Mesh.ARRAY_VERTEX]
+				for p in vs:
+					var q := xf * p
+					if absf(q.x) < 0.3 and absf(q.z - z) < 0.35 and q.y > h:
+						h = q.y
+	if not is_finite(h):
+		h = hb if is_finite(hb) else v.gabarit.y
+	_toits[cle] = h
+	print("[gendarmes] toit de %s : %.2f m sous la rampe (haut des boîtes %.2f m)" % [cle, h, hb])
+	return h
 
 ## Rampe de gyrophares sur le toit : deux feux bleus et un témoin blanc, matériaux sans ombrage (éclats visibles de
 ## loin, la nuit comme le jour), lueur bleue la nuit.
@@ -154,7 +174,7 @@ static func _rampe(v: Car) -> Dictionary:
 	var ms := StandardMaterial3D.new()
 	ms.albedo_color = Color(0.85, 0.86, 0.9)
 	socle.material_override = ms
-	socle.position = Vector3(0, _toit(v) + 0.04, -g.z * 0.05)
+	socle.position = Vector3(0, _toit(v, -g.z * 0.05) + 0.03, -g.z * 0.05)
 	v.add_child(socle)
 	for dx in [-1.0, 1.0]:
 		var f := MeshInstance3D.new()

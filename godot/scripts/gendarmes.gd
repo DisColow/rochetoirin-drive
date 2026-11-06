@@ -357,14 +357,18 @@ func _poursuite(dt: float, car: Node, p: Vector3) -> void:
 	_bandeau.text = t
 	_bandeau.visible = true
 	if _arret_t >= ARRET_T:
-		var amende := AMENDE * etoiles
+		var du := AMENDE * etoiles
+		var amende := du
 		arrestations += 1
 		var g = main.get("garage")
 		if g:
-			amende = g.payer(amende)
+			amende = g.payer(du)
 		if main.get("succes"):
 			main.succes.noter("arrestations")
-		_fin("Arrêté par la Gendarmerette : %s d'amende." % _euros(amende))
+		var n := etoiles
+		_fin("")
+		print("[gendarmes] fin : arrêté, %s d'amende" % _euros(amende))
+		_au_poste(p, n, du, amende)
 	elif _vu_t >= SEMER_T:
 		var prime := PRIME * etoiles
 		semes += 1
@@ -375,6 +379,55 @@ func _poursuite(dt: float, car: Node, p: Vector3) -> void:
 			main.succes.noter("semes")
 		_fin("Vous avez semé la Gendarmerette ! +%s" % _euros(prime))
 		_radio("À toutes les patrouilles : véhicule perdu de vue. Fin des recherches.")
+
+## Arrestation (#175) : le joueur est conduit au poste de gendarmerie (ou de police nationale) le plus proche, déposé
+## avec sa voiture sur la route devant, puis une fenêtre explique ce qui s'est passé (motif, amende, argent restant).
+func _au_poste(p: Vector3, n: int, du: float, amende: float) -> void:
+	var poste := poste_proche(p)
+	var car = main.car
+	if not poste.is_empty() and car.road_pts.size() >= 4:
+		var q := Vector2(float(poste.x), float(poste.z))
+		var best := -1
+		var bd := INF
+		var rp: PackedFloat32Array = car.road_pts
+		for i in range(0, rp.size(), 4):
+			var d := Vector2(rp[i] - q.x, rp[i + 1] - q.y).length_squared()
+			if d < bd:
+				bd = d; best = i
+		if best >= 0:
+			dernier_poste = poste
+			main._teleport(Vector3(rp[best], rp[best + 2] + 0.3, rp[best + 1]), rp[best + 3])
+	var g = main.get("garage")
+	var lieu := ("à la %s de %s" % [poste.n, poste.c]) if not poste.is_empty() else "au poste"
+	var points := PackedStringArray([
+		"Amende : %s (%s par étoile de recherche, %d étoile%s)." % [_euros(du), _euros(AMENDE), n, "s" if n > 1 else ""]])
+	if amende < du - 0.005:
+		points.append("Vous n'aviez que %s : le reste vous est pardonné pour cette fois." % _euros(amende))
+	if g:
+		points.append("Argent restant : %s." % _euros(g.argent))
+	points.append("Votre voiture vous attend devant le poste : vous êtes libre de repartir.")
+	var motif: String = MOTIFS.get(dernier, "infraction")
+	await get_tree().create_timer(0.8).timeout          # après la téléportation (appliquée hors pause)
+	main.get_node("HUD").consigne("Arrêté par la Gendarmerette",
+		"Les gendarmes vous ont interpellé (motif : %s) et vous ont conduit %s, où vous avez réglé l'amende." % [motif, lieu],
+		points, Callable(), "Compris")
+
+## Poste le plus proche de p (places.json : gendarmeries, police nationale) : {n, c, x, y, z}, ou {} sans lieu connu.
+var dernier_poste := {}             # essais
+static var _postes: Array = []
+static func poste_proche(p: Vector3) -> Dictionary:
+	if _postes.is_empty() and FileAccess.file_exists("res://world/places.json"):
+		for l in JSON.parse_string(FileAccess.get_file_as_string("res://world/places.json")):
+			var nom := String(l.get("n", ""))
+			if nom.begins_with("Gendarmerie") or nom == "Police nationale":
+				_postes.append(l)
+	var best := {}
+	var bd := INF
+	for l in _postes:
+		var d := Vector2(float(l.x) - p.x, float(l.z) - p.z).length()
+		if d < bd:
+			bd = d; best = l
+	return best
 
 ## Message des patrouilles sur l'autoradio (radio.gd : seulement si elle est allumée).
 func _radio(t: String) -> void:

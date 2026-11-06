@@ -166,7 +166,7 @@ func toast(text: String, secs := 3.5) -> void:
 ## Consigne d'activité (#160) : fenêtre au milieu de l'écran, jeu figé (comme dans les menus) jusqu'à « OK » ;
 ## `fin` est appelé après la fermeture. Les lignes de `points` sont précédées d'une puce.
 var consigne_ouverte: PanelContainer
-func consigne(titre: String, texte: String, points: PackedStringArray, fin := Callable()) -> void:
+func consigne(titre: String, texte: String, points: PackedStringArray, fin := Callable(), bouton := "OK, c'est parti !") -> void:
 	if consigne_ouverte and is_instance_valid(consigne_ouverte):
 		consigne_ouverte.queue_free()
 	_show_drive(false)
@@ -196,7 +196,7 @@ func consigne(titre: String, texte: String, points: PackedStringArray, fin := Ca
 		lp.custom_minimum_size.x = 980
 		v.add_child(lp)
 	var ok := Button.new()
-	ok.text = "OK, c'est parti !"
+	ok.text = bouton
 	ok.custom_minimum_size = Vector2(420, 84)
 	ok.add_theme_font_size_override("font_size", 34)
 	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

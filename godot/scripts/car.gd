@@ -1050,6 +1050,9 @@ func _touching() -> Array:
 func reset_to_road() -> void:
 	if carried:
 		return
+	var st := get_stack()
+	print("[remise] %s à %s, %d km/h, haut %.2f (%s)" % [Time.get_ticks_msec(), global_position, int(kmh()), global_transform.basis.y.y,
+		" < ".join(st.slice(1, 4).map(func(f): return "%s:%d" % [str(f.source).get_file(), f.line]))])
 	var p := global_position
 	if not p.is_finite():
 		p = safe[-1].origin if safe.size() > 0 else Vector3.ZERO
