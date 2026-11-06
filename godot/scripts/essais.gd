@@ -1633,6 +1633,7 @@ func _physics_process(_dt: float) -> void:
 			if a.begins_with("--rouler-duree="):
 				duree = float(a.trim_prefix("--rouler-duree="))
 		car.touch_throttle = 1.0 if car.kmh() < 92.0 else 0.0
+		car.touch_brake = 0.0                     # (la partie commune des essais freine après 1 200 pas)
 		# --rouler-decal=m : suit la route à m mètres à droite de son axe (bas-côté) ; sinon écart toutes les 6 s
 		var decal := -1.0
 		for a in OS.get_cmdline_user_args():
