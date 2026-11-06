@@ -105,16 +105,15 @@ func _process(dt: float) -> void:
 		var p := _p0 + _v0 * tc + Vector3(0.0, -0.5 * G * tc * tc, 0.0)
 		var b := Basis(_axe, 1.6 * tc + 0.35 * tc * tc) * _b0                  # tournoie de plus en plus vite
 		car.global_transform = Transform3D(b.orthonormalized(), p)
-		# caméra : reste au bord, recule et monte (s'éloigne de la voiture qui tombe), toujours tournée vers elle
 		if cam:
-			# caméra : rejoint en 0,7 s un point au-dessus de la lèvre (sinon la lèvre cache la voiture qui plonge), puis
-			# monte et recule vers l'intérieur : la voiture rapetisse au-dessus de la mer de nuages
-			var dedans := Vector3(-_dehors.x, 0.0, -_dehors.y)
-			var haut := _levre + dedans * 3.0 + Vector3(0.0, 7.0, 0.0)
-			var a := smoothstep(0.0, 0.7, tc)
-			var k := smoothstep(0.5, DUREE, tc)
-			cam.global_position = _cam0.lerp(haut, a) + dedans * (10.0 * k) + Vector3(0.0, 8.0 * k, 0.0)
-			cam.look_at(p, Vector3.UP)
+			# caméra : passe en 0,8 s au-dessus du vide, au-delà du rideau de la cascade (sinon l'eau qui tombe ou la lèvre
+			# cache la voiture), puis monte : la voiture s'enfonce et rapetisse vers la mer de nuages
+			var dehors := Vector3(_dehors.x, 0.0, _dehors.y)
+			var haut := _levre + dehors * 12.0 + Vector3(0.0, 6.0, 0.0)
+			var a := smoothstep(0.0, 0.8, tc)
+			var k := smoothstep(0.6, DUREE, tc)
+			cam.global_position = _cam0.lerp(haut, a) + Vector3(0.0, 16.0 * k, 0.0) - dehors * (4.0 * k)
+			cam.look_at(p, (Vector3.UP + dehors).normalized())      # (pas d'UP seul : visée presque verticale)
 			var c := cam.unproject_position(p) if not cam.is_position_behind(p) else vs * 0.5
 			_mat.set_shader_parameter("centre", c)
 		var f := clampf((_t - (DUREE - FERME)) / FERME, 0.0, 1.0)
