@@ -175,7 +175,7 @@ func _physics_process(dt: float) -> void:
 			_noyade = -1.0
 			car.freeze = false
 			car.controle = true
-			car.reset_to_road()
+			car.reset_to_road("voiture tombée dans l'eau")
 		return
 	var pd = m.get("pied")
 	if car.freeze or (pd and pd.get("actif")):

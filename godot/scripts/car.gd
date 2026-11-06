@@ -1016,14 +1016,29 @@ func _recovery(dt: float) -> void:
 			safe.pop_front()
 	# état aberrant (moteur physique) : remise immédiate
 	if not global_transform.origin.is_finite() or not linear_velocity.is_finite() or linear_velocity.length() > 110.0:
-		reset_to_road()
+		reset_to_road("voiture éjectée par le moteur physique (%.0f km/h)" % (linear_velocity.length() * 3.6) if linear_velocity.is_finite() else "position impossible")
 		return
 	# retourné ou sur le flanc plus de 1,2 s (presque à l'arrêt)
 	_flip_t = _flip_t + dt if (up < 0.5 and kmh() < 25.0) else 0.0
 	# v6.22 (demande de l'utilisateur) : plus de remise sur la route automatique quand la voiture est bloquée ou
 	# coincée à l'arrêt ; il reste le bouton rouge (« replacer »), la voiture retournée et la chute hors du monde
-	if p.y < -50.0 or _flip_t > 1.2 or (Input.is_action_just_pressed("replacer") and not preload("res://scripts/ui.gd").saisie_active()):
+	if p.y < -50.0:
+		reset_to_road("chute sous le relief")
+	elif _flip_t > 1.2:
+		reset_to_road("voiture retournée")
+	elif Input.is_action_just_pressed("replacer") and not preload("res://scripts/ui.gd").saisie_active():
+		print("[remise] bouton ou touche « replacer » (%s)" % _source_replacer())
 		reset_to_road()
+
+## Ce qui a déclenché « replacer » (#177) : écran tactile, manette ou clavier (journal).
+func _source_replacer() -> String:
+	var j := Input.get_connected_joypads()
+	for d in j:
+		if Input.is_joy_button_pressed(d, JOY_BUTTON_X):
+			return "manette %s, bouton X" % Input.get_joy_name(d)
+	if Input.is_physical_key_pressed(KEY_R):
+		return "touche R"
+	return "bouton ↺ de l'écran"
 
 ## Objets du décor qui touchent la carrosserie (diagnostic d'une voiture coincée).
 func _touching() -> Array:
@@ -1047,12 +1062,15 @@ func _touching() -> Array:
 	return out
 
 ## Remise sur la route la plus proche, dans le sens de la voie le plus proche de celui de la voiture.
-func reset_to_road() -> void:
+func reset_to_road(raison := "") -> void:
 	if carried:
 		return
-	var st := get_stack()
-	print("[remise] %s à %s, %d km/h, haut %.2f (%s)" % [Time.get_ticks_msec(), global_position, int(kmh()), global_transform.basis.y.y,
-		" < ".join(st.slice(1, 4).map(func(f): return "%s:%d" % [str(f.source).get_file(), f.line]))])
+	if raison != "":
+		# #177 : la cause d'une remise automatique est dite au joueur (et notée dans le journal)
+		print("[remise] %s à %s, %d km/h, haut %.2f" % [raison, global_position, int(kmh()), global_transform.basis.y.y])
+		var hud = get_tree().current_scene.get_node_or_null("HUD") if get_tree().current_scene else null
+		if hud and hud.has_method("toast"):
+			hud.toast("Remise sur la route : %s" % raison, 4.0)
 	var p := global_position
 	if not p.is_finite():
 		p = safe[-1].origin if safe.size() > 0 else Vector3.ZERO
