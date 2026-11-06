@@ -571,6 +571,13 @@ func blow_up() -> void:
 ## diffèrent d'au moins ECART_BOUM ; c'est alors le plus lent qui explose. Un choc n'est jugé qu'une fois (les deux
 ## voitures le voient).
 const ECART_BOUM := 30.0            # km/h
+const V_CHUTE := 17.0                # #185 : m/s vers le bas à l'impact (~15 m de chute libre) : explosion
+const LOIN_ROUTE := 60.0             # #185 : au-delà, réapparition au point de chute plutôt que sur la route
+var vol_libre := false               # vol voulu (catapulte du bord, bord.gd) : pas d'explosion à l'atterrissage
+var _air_t := 0.0
+var _vy_min := 0.0
+var _vy_prec := 0.0
+var _point_chute := Vector3.INF
 var _v_ok := Vector3.ZERO             # #177 : dernières vitesses plausibles (pic du moteur physique)
 var _w_ok := Vector3.ZERO
 var _aberrant_t := 0.0
@@ -647,7 +654,25 @@ func exploser() -> void:
 	angular_velocity = Vector3.ZERO
 	blow_up()
 	await get_tree().create_timer(float(fx.duree) + 0.1).timeout
+	# #185 : chute de trop haut loin de toute route : réapparition au point de chute (sinon route la plus proche)
+	var pc := _point_chute
+	_point_chute = Vector3.INF
+	if pc.is_finite() and _route_proche(pc) > LOIN_ROUTE:
+		print("[chute] loin de la route (%.0f m) : réapparition au point de chute" % _route_proche(pc))
+		var cap := rad_to_deg(PI - atan2(global_basis.z.x, global_basis.z.z))
+		var hs: float = preload("res://scripts/relief.gd").hauteur(pc)
+		respawn_at(Vector3(pc.x, (hs if is_finite(hs) else pc.y) + 1.0, pc.z), cap)
+		return
 	respawn_at(Vector3.INF, 0.0)
+
+## Distance (m) au point de route le plus proche (road_pts), en 2D.
+func _route_proche(p: Vector3) -> float:
+	var bd := INF
+	for i in range(0, road_pts.size(), 4):
+		var d := Vector2(road_pts[i] - p.x, road_pts[i + 1] - p.z).length_squared()
+		if d < bd:
+			bd = d
+	return sqrt(bd)
 
 ## Réapparition après l'explosion (position et cap choisis par le gardien ; INF : route la plus proche).
 func respawn_at(p: Vector3, heading_deg: float) -> void:
@@ -1038,6 +1063,27 @@ func _recovery(dt: float) -> void:
 	_aberrant_t = 0.0
 	_v_ok = linear_velocity
 	_w_ok = angular_velocity
+	# #185 : chute de trop haut -> KA-BOOM à l'impact (vitesse de descente de plus de V_CHUTE après au moins 0,4 s en
+	# l'air ; impact = roues de nouveau au sol, ou descente stoppée net) ; vol voulu (catapulte du bord) : épargné
+	var vy := linear_velocity.y
+	if not on_ground and not freeze:
+		_air_t += dt
+		_vy_min = minf(_vy_min, vy)
+	else:
+		_air_t = maxf(_air_t, 0.0)
+	var impact := _air_t > 0.4 and (on_ground or vy - _vy_prec > 8.0)
+	if impact:
+		if _vy_min < -V_CHUTE and not vol_libre and not blown:
+			print("[chute] impact à %.0f km/h vers le bas après %.1f s en l'air : explosion" % [-_vy_min * 3.6, _air_t])
+			_point_chute = global_position
+			exploser()
+		_air_t = 0.0
+		_vy_min = 0.0
+		vol_libre = false
+	elif on_ground:
+		_air_t = 0.0
+		_vy_min = 0.0
+	_vy_prec = vy
 	# retourné ou sur le flanc plus de 1,2 s (presque à l'arrêt)
 	_flip_t = _flip_t + dt if (up < 0.5 and kmh() < 25.0) else 0.0
 	# v6.22 (demande de l'utilisateur) : plus de remise sur la route automatique quand la voiture est bloquée ou

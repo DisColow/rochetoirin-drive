@@ -548,6 +548,11 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_helico_test()
 		return
+	if OS.get_cmdline_user_args().has("--chute-test"):
+		if t >= 300 and not has_meta("chute_t"):
+			set_meta("chute_t", true)
+			_chute_test()
+		return
 	if OS.get_cmdline_user_args().has("--trottoir-test"):
 		if t >= 300 and not has_meta("trottoir"):
 			set_meta("trottoir", true)
@@ -6321,7 +6326,7 @@ func _trottoir_test() -> void:
 		await get_tree().physics_frame
 	var bord := Vector3.INF
 	var h0: float = NAN
-	for cote in [1.0, -1.0]:                             # à droite, sinon à gauche
+	for cote: float in [1.0, -1.0]:                      # à droite, sinon à gauche
 		h0 = sol.call(p0)
 		for k in range(5, 160):
 			var q := p0 + dr * (cote * float(k) * 0.1)
@@ -6347,23 +6352,78 @@ func _trottoir_test() -> void:
 		dep.y = h0 + 0.5
 		car.place(dep, rad_to_deg(atan2(dirv.x, -dirv.z)))
 		car.hold(0.3)
-		for f in 60:
+		for f in 180:                                # posée et immobile (1,5 s) avant la mesure
 			await get_tree().physics_frame
 		var y0 := car.global_position.y
 		var tt := 0.0
 		var ymax := y0
-		while tt < 5.0:
+		var passe := (car.global_position - bord).dot(dr)
+		while tt < 6.0 and passe < 1.5:                 # jusqu'à ce que le centre de la caisse soit à 1,5 m sur le trottoir
 			car.touch_throttle = 0.6 if car.kmh() < 12.0 else 0.0
 			car.touch_brake = 0.0
 			await get_tree().physics_frame
 			tt += get_physics_process_delta_time()
 			ymax = maxf(ymax, car.global_position.y)
+			passe = (car.global_position - bord).dot(dr)
 		car.touch_throttle = 0.0
-		var passe := (car.global_position - bord).dot(dr)
-		var monte := car.global_position.y - y0 > 0.08 and passe > 0.8
+		var monte := car.global_position.y - y0 > 0.08 and passe >= 1.5
 		if monte:
 			ok += 1
 		dire.call("%s : %s (caisse +%.2f m, %.1f m au-delà de la bordure, %d km/h ; touche %s)" % [id, "MONTE" if monte else "BLOQUÉE",
 			car.global_position.y - y0, passe, int(car.kmh()), str(car._touching())])
 	dire.call("RÉSULTAT : %d voiture(s) sur %d montent sur le trottoir" % [ok, ids.size()])
+	get_tree().quit()
+
+## Chute de trop haut (#185) : -- --drive-test --chute-test --drive-from=<route> : voiture lâchée de 30 m au-dessus de la
+## route (explosion, retour sur la route), de 8 m (pas d'explosion), puis de 30 m au-dessus d'un point à plus de 60 m de
+## toute route (explosion, réapparition au point de chute).
+func _chute_test() -> void:
+	var dire := func(x: String): print("  [chute-test] " + x)
+	while not Chargement.fini:
+		await get_tree().process_frame
+	circulation.set_densite(0)
+	var p0 := car.global_position
+	var fw := car.global_basis.z
+	# point loin de toute route : on s'écarte de la route par pas de 20 m jusqu'à 60 m de tout point de route
+	var loin := Vector3.INF
+	for ang in range(0, 360, 30):
+		for dd in range(80, 400, 20):
+			var q := p0 + Vector3(cos(deg_to_rad(ang)), 0, sin(deg_to_rad(ang))) * float(dd)
+			if car._route_proche(q) > 75.0:
+				loin = q
+				break
+		if loin.is_finite():
+			break
+	var cas := [["route, 30 m", p0, 30.0, true], ["route, 8 m", p0, 8.0, false]]
+	if loin.is_finite():
+		cas.append(["champ à %.0f m de la route, 30 m" % car._route_proche(loin), loin, 30.0, true])
+	var ok := 0
+	for c in cas:
+		var q: Vector3 = c[1]
+		var hs: float = Relief.hauteur(q)
+		var y0 := (hs if is_finite(hs) else q.y) + float(c[2])
+		await _teleport(Vector3(q.x, y0, q.z), 30.0)
+		for f in 90:
+			await get_tree().physics_frame
+		car.global_position = Vector3(q.x, y0, q.z)
+		car.linear_velocity = Vector3.ZERO
+		car.angular_velocity = Vector3.ZERO
+		var boum := false
+		var tt := 0.0
+		while tt < 9.0:
+			await get_tree().physics_frame
+			tt += get_physics_process_delta_time()
+			boum = boum or car.blown
+			if boum and not car.blown and tt > 1.0:
+				break
+		for f in 60:
+			await get_tree().physics_frame
+		var dpt := Vector2(car.global_position.x - q.x, car.global_position.z - q.z).length()
+		var dr: float = car._route_proche(car.global_position)
+		var attendu: bool = c[3]
+		var bien: bool = boum == attendu and (not boum or (dpt < 6.0 if car._route_proche(q) > 60.0 else dr < 3.0))
+		if bien:
+			ok += 1
+		dire.call("%s : explosion %s, ensuite à %.1f m du point de chute et %.1f m de la route %s" % [c[0], str(boum), dpt, dr, "OK" if bien else "ÉCHEC"])
+	dire.call("RÉSULTAT : %d sur %d" % [ok, cas.size()])
 	get_tree().quit()

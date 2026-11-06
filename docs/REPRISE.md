@@ -3,7 +3,18 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 06/11/2026 (v6.84 #131 à v7.30 livrées)
+## État au 06/11/2026 (v6.84 #131 à v7.31 livrées)
+- **v7.31 (#181, #184, #185, `à tester`)** : #184 : `explosion.echelle` (champignon atomique ; 2 par défaut, 1,6 pour
+  le joueur `car.exploser`, 1,3 pour circulation, voitures garées, concurrents, gendarmes) ; essai
+  `--explosion-test --explosion-styles=atomique,atomique@1.3 --explosion-vue=14,3,3` (style@échelle, vue du
+  conducteur qui suit). #181 : `circulation._accident` fait toujours l'épave quelques mètres avant (marge 0,3 + 0,12 ×
+  vitesse de rapprochement, pour que la physique la heurte) mais `Car.juger` n'est plus appelé qu'au vrai contact
+  (`body_entered` de l'épave avec le pilote, `contact_monitor`) ; `--choc-debug` donne la distance des centres
+  (circulation-test : 6,4 m avant, 4,8 m après = contact). #185 : `car._recovery` : en l'air plus de 0,4 s puis impact
+  (roues au sol ou descente stoppée de plus de 8 m/s) à plus de `V_CHUTE` 17 m/s vers le bas -> `exploser()` ;
+  `_point_chute` : à plus de `LOIN_ROUTE` 60 m de la route (`_route_proche`), réapparition au point de chute ;
+  `vol_libre` (catapulte de bord.gd) épargné. Essai `--chute-test` (3 sur 3). #186 en cours : essai
+  `--trottoir-test [--voitures=…] --drive-from=-10461.9,241.5,-498.6,105` (bordure de 0,12 m trouvée à 2,5 m).
 - **v7.30 (#180 livraison 3 sur 3, `à tester`)** : `cascade_nuages.gdshader` refait (unshaded) : relief des cumulus
   lu dans une `NoiseTexture2D` sans couture (512 px, FastNoiseLite simplex FBM 4 octaves, faite par `cascade.gd`),
   hauteur `sqrt(smoothstep(0,30, 0,86, n))` × `hmax` 60 m, motif de 1 / `echelle` = 1 250 m ; parallaxe : 20 pas

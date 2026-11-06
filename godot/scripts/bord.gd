@@ -198,6 +198,7 @@ func _physics_process(dt: float) -> void:
 		car.linear_velocity = v3 * (24.0 + 14.0 * f) + Vector3.UP * (16.0 + 10.0 * f)
 		car.angular_velocity = Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)).normalized() * randf_range(5.0, 9.0) * f
 		_rebond_t = 2.5
+		car.vol_libre = true                             # #185 : vol voulu, pas d'explosion à l'atterrissage
 		var m := get_parent()
 		if m and m.get("sound") and m.sound.has_method("_one_shot"):
 			m.sound._one_shot("ressort", car.global_position, 1.6, randf_range(0.92, 1.08), 40.0, 800.0)   # « boing » (#88)
