@@ -10,8 +10,8 @@ uniform sampler2D relief_nuages : filter_linear_mipmap, repeat_enable;   // R : 
 uniform vec3 soleil_dir = vec3(0.4, 0.6, 0.3);       // vers le soleil (monde)
 uniform vec3 soleil_coul = vec3(1.0, 0.97, 0.92);
 uniform vec3 ciel_coul = vec3(0.70, 0.80, 0.92);     // horizon (couleur de la brume)
-uniform float echelle = 0.0011;                      // 1 / taille d'un motif (m)
-uniform float hmax = 90.0;                           // épaisseur des bourgeons (m)
+uniform float echelle = 0.0008;                      // 1 / taille d'un motif (m)
+uniform float hmax = 60.0;                           // épaisseur des bourgeons (m)
 
 varying vec3 v_wp;
 
@@ -63,7 +63,7 @@ void fragment() {
 	}
 	h = clamp((hit.y - bas) / hmax, 0.0, 1.0);
 	// normale : pente du relief
-	float e = 6.0;
+	float e = 10.0;
 	float hc = haut(hit.xz, g_lod);
 	float hx = haut(hit.xz + vec2(e, 0.0), g_lod) - hc;
 	float hz = haut(hit.xz + vec2(0.0, e), g_lod) - hc;
