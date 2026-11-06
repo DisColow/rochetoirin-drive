@@ -6210,7 +6210,8 @@ func _rampe_test() -> void:
 	print("  [rampe] feux %s, haut du toit %.2f m (repère voiture), boîtes ajoutées %d" % ["du modèle (gyro_g, gyro_d)" if du_modele else "de la rampe du jeu",
 		lp.y, h.noeuds.size() - 2])
 	var c0: Vector3 = car.to_global(Vector3(0, lp.y - 0.25, lp.z))
-	var vues := {"cote": car.global_basis.x * 3.2 + Vector3(0, 0.15, 0), "arriere": -car.global_basis.z * 3.0 + car.global_basis.x * 1.6 + Vector3(0, 0.6, 0)}
+	var vues := {"cote": car.global_basis.x * 3.2 + Vector3(0, 0.15, 0), "arriere": -car.global_basis.z * 3.0 + car.global_basis.x * 1.6 + Vector3(0, 0.6, 0),
+		"ensemble": car.global_basis.z * 5.5 + car.global_basis.x * 4.5 + Vector3(0, 1.2, 0)}
 	for n in vues:
 		cm.global_position = c0 + vues[n]
 		cm.look_at(c0, Vector3.UP)
