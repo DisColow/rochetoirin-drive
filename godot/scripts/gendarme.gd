@@ -131,9 +131,9 @@ static func _repeindre(v: Car, col: Color) -> void:
 				repeint += 1
 	print("[gendarmes] livrée : %d surface(s) teintée(s)" % repeint)
 
-## Hauteur du toit (repère de la voiture) sous la rampe, posée en (0, ?, z) : sommet le plus haut des maillages de la
-## carrosserie dans une bande de ±0,3 m en x et ±0,35 m en z (#179 : le haut de la boîte englobante, gonflée par la
-## rotation des maillages, faisait léviter la rampe) ; mis en cache par modèle ; boîtes puis gabarit à défaut.
+## Hauteur du toit (repère de la voiture) sous la rampe, posée en (0, ?, z) : médiane des sommets les plus hauts de la
+## carrosserie par case de 10 cm dans une bande de ±0,3 m en x et ±0,35 m en z (#179 : le haut de la boîte englobante,
+## au sommet de l'antenne de la Focus, faisait léviter la rampe) ; mis en cache par modèle ; boîtes puis gabarit à défaut.
 static var _toits := {}
 static func _toit(v: Car, z: float) -> float:
 	var cle := "%s@%.2f" % [String(v.get("voiture")), z]
@@ -142,6 +142,7 @@ static func _toit(v: Car, z: float) -> float:
 	var corps: Node3D = v.get("_body")
 	var h := -INF
 	var hb := -INF
+	var cases := {}
 	if corps:
 		var inv := v.global_transform.affine_inverse()
 		for mi in corps.find_children("*", "MeshInstance3D", true, false):
@@ -154,9 +155,15 @@ static func _toit(v: Car, z: float) -> float:
 				var vs: PackedVector3Array = m3.mesh.surface_get_arrays(k)[Mesh.ARRAY_VERTEX]
 				for p in vs:
 					var q := xf * p
-					if absf(q.x) < 0.3 and absf(q.z - z) < 0.35 and q.y > h:
-						h = q.y
-	if not is_finite(h):
+					if absf(q.x) < 0.3 and absf(q.z - z) < 0.35:
+						var c := Vector2i(floori(q.x / 0.1), floori((q.z - z) / 0.1))
+						cases[c] = maxf(cases.get(c, -INF), q.y)
+	# médiane des hauteurs par case de 10 cm : une antenne (une case) ne compte pas (#179)
+	if cases.size() >= 4:
+		var hs: Array = cases.values()
+		hs.sort()
+		h = hs[hs.size() / 2]
+	else:
 		h = hb if is_finite(hb) else v.gabarit.y
 	_toits[cle] = h
 	print("[gendarmes] toit de %s : %.2f m sous la rampe (haut des boîtes %.2f m)" % [cle, h, hb])

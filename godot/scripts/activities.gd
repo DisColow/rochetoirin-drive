@@ -228,6 +228,7 @@ func _set_status(t: String, coul := Color.WHITE, gros := false) -> void:
 	_stop_btn.visible = mode != "" and _status.visible
 	_status.size = Vector2.ZERO
 	_status.reset_size()
+	_status.reset_size.call_deferred()                   # #176 : après la mise en page du texte coupé
 	_status.position = Vector2(24, CARTE_Y)
 	_stop_btn.reset_size()
 	_stop_btn.position = Vector2(24, CARTE_Y + _status.get_combined_minimum_size().y + 10)
