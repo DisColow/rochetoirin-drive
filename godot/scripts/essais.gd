@@ -548,6 +548,11 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_helico_test()
 		return
+	if OS.get_cmdline_user_args().has("--trottoir-test"):
+		if t >= 300 and not has_meta("trottoir"):
+			set_meta("trottoir", true)
+			_trottoir_test()
+		return
 	if OS.get_cmdline_user_args().has("--eau-routes-test"):
 		if t >= 300 and not has_meta("eau_routes"):
 			set_meta("eau_routes", true)
@@ -6285,4 +6290,75 @@ func _eau_routes_test() -> void:
 	print("  [eau-routes] %d points de route sur %d tuiles d'eau, %d noyés (route à moins de 0,85 m au-dessus d'un plan d'eau)" % [n, par_tuile.size(), noyes])
 	for e in exemples:
 		print("  [eau-routes]   ", e)
+	get_tree().quit()
+
+## Trottoirs (#186) : -- --drive-test --trottoir-test [--voitures=twingo,p106,…] --drive-from=<rue à trottoirs> :
+## bordure cherchée à droite de la voiture (marche de 8 à 20 cm du sol, rayons vers le bas tous les 10 cm) ; pour
+## chaque voiture : posée 3,5 m avant la bordure, de biais (35°), plein gaz doux jusqu'à 12 km/h pendant 5 s ; montée
+## si la caisse a pris la hauteur de la bordure et a passé la bordure.
+func _trottoir_test() -> void:
+	var dire := func(x: String): print("  [trottoir] " + x)
+	while not Chargement.fini:
+		await get_tree().process_frame
+	circulation.set_densite(0)
+	car.aide_voie = false
+	var ids := ["twingo", "p106", "deuche", "clio", "p206", "p306", "r5", "laguna", "espace", "gt3", "ranger"]
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--voitures="):
+			ids = Array(a.trim_prefix("--voitures=").split(","))
+	var p0 := car.global_position
+	var fw := car.global_basis.z
+	fw.y = 0.0
+	fw = fw.normalized()
+	var dr := fw.cross(Vector3.UP).normalized()          # droite de la voiture (avant +Z)
+	var esp := get_world_3d().direct_space_state
+	var sol := func(q: Vector3) -> float:
+		var rq := PhysicsRayQueryParameters3D.create(q + Vector3(0, 3, 0), q - Vector3(0, 3, 0))
+		rq.exclude = [car.get_rid()]
+		var r := esp.intersect_ray(rq)
+		return float(r.position.y) if r else NAN
+	for f in 60:
+		await get_tree().physics_frame
+	var bord := Vector3.INF
+	var h0: float = sol.call(p0)
+	for k in range(5, 160):
+		var q := p0 + dr * (float(k) * 0.1)
+		var hq: float = sol.call(q)
+		if not is_nan(hq) and hq - h0 > 0.08 and hq - h0 < 0.25:
+			bord = Vector3(q.x, hq, q.z)
+			break
+		if not is_nan(hq):
+			h0 = hq
+	if not bord.is_finite():
+		dire.call("ÉCHEC : pas de bordure à droite à moins de 16 m de %s" % str(p0))
+		get_tree().quit()
+		return
+	dire.call("bordure à %.1f m à droite : marche de %.2f m" % [(bord - p0).dot(dr), bord.y - h0])
+	var ok := 0
+	for id in ids:
+		car.construire(id)                       # « ranger » : inconnu du catalogue -> voiture de départ (Raptor)
+		var dirv := (fw * cos(deg_to_rad(55.0)) + dr * sin(deg_to_rad(55.0))).normalized()     # 35° par rapport à la bordure
+		var dep := bord - dirv * 3.5
+		dep.y = h0 + 0.5
+		car.place(dep, rad_to_deg(atan2(dirv.x, -dirv.z)))
+		car.hold(0.3)
+		for f in 60:
+			await get_tree().physics_frame
+		var y0 := car.global_position.y
+		var tt := 0.0
+		var ymax := y0
+		while tt < 5.0:
+			car.touch_throttle = 0.6 if car.kmh() < 12.0 else 0.0
+			car.touch_brake = 0.0
+			await get_tree().physics_frame
+			tt += get_physics_process_delta_time()
+			ymax = maxf(ymax, car.global_position.y)
+		car.touch_throttle = 0.0
+		var passe := (car.global_position - bord).dot(dr)
+		var monte := car.global_position.y - y0 > 0.08 and passe > 0.8
+		if monte:
+			ok += 1
+		dire.call("%s : %s (caisse +%.2f m, %.1f m au-delà de la bordure, %d km/h ; touche %s)" % [id, "MONTE" if monte else "BLOQUÉE",
+			car.global_position.y - y0, passe, int(car.kmh()), str(car._touching())])
+	dire.call("RÉSULTAT : %d voiture(s) sur %d montent sur le trottoir" % [ok, ids.size()])
 	get_tree().quit()
