@@ -1268,13 +1268,14 @@ func _physics_process(_dt: float) -> void:
 		for a in OS.get_cmdline_user_args():
 			if a.begins_with("--mur-volant="):
 				volant = float(a.get_slice("=", 1))
-		car.touch_steer = volant if t >= 240 + 120 else 0.0; car.touch_brake = 0.0
-		car.touch_throttle = 1.0 if t >= 240 else 0.0
-		if t == 240 + 120 * 3 and not has_meta("mur_cap3"):
+		var rel: int = t - int(get_meta("mur_t0", t))           # pas depuis la pose du mur
+		car.touch_steer = volant if has_meta("mur_t0") and rel >= 120 else 0.0; car.touch_brake = 0.0
+		car.touch_throttle = 1.0 if has_meta("mur_t0") else 0.0
+		if has_meta("mur_t0") and rel >= 120 * 3 and not has_meta("mur_cap3"):
 			set_meta("mur_cap3", true)
 			DirAccess.make_dir_recursive_absolute("user://shots")
 			get_viewport().get_texture().get_image().save_png("user://shots/mur_3s.png")
-		if t == 240:
+		if t >= 240 and Chargement.fini and not has_meta("mur_p0"):
 			var ang := 0.0
 			var loin: float = car.gabarit.z * 0.5 + 2.5
 			for a in OS.get_cmdline_user_args():
@@ -1300,6 +1301,7 @@ func _physics_process(_dt: float) -> void:
 			mur.global_position = car.global_position + fw * loin + Vector3.UP * 1.0
 			mur.look_at(mur.global_position + fw.rotated(Vector3.UP, ang), Vector3.UP)
 			set_meta("mur_p0", car.global_position)
+			set_meta("mur_t0", t)
 			set_meta("mur_fw", fw)
 			print("  [mur] mur à %.1f m devant, angle %.0f°" % [loin, rad_to_deg(ang)])
 		if t > 240 and car.blown and not has_meta("boum_t"):
@@ -1310,11 +1312,12 @@ func _physics_process(_dt: float) -> void:
 		if has_meta("boum_t") and t - int(get_meta("boum_t")) in [25, 70, 160]:
 			DirAccess.make_dir_recursive_absolute("user://shots")
 			get_viewport().get_texture().get_image().save_png("user://shots/boum_%d.png" % (t - int(get_meta("boum_t"))))
-		if t > 240 and t % 60 == 0:
+		if has_meta("mur_t0") and rel % 60 == 0 and rel > 0:
 			var d: Vector3 = car.global_position - get_meta("mur_p0")
 			var fw0: Vector3 = get_meta("mur_fw")
-			print("  [mur] t=%.1f s : avancé %.1f m, latéral %.1f m, %.0f km/h, contact=%s explosée=%s cap %.0f° roues motrices %.0f N patine %.2f rotation %.2f rad/s inclinaison %.0f°" % [(t - 240) / 120.0, d.dot(fw0), d.dot(fw0.cross(Vector3.UP)), car.kmh(), car.mur_contact, car.blown, rad_to_deg(car.global_transform.basis.z.signed_angle_to(fw0, Vector3.UP)), car.engine_force, float(car.get("mur_patine")), car.angular_velocity.length(), rad_to_deg(acos(clampf(car.global_transform.basis.y.y, -1.0, 1.0)))])
-		if t == 240 + 120 * 7:
+			print("  [mur] t=%.1f s : avancé %.1f m, latéral %.1f m, %.0f km/h, contact=%s explosée=%s cap %.0f° roues motrices %.0f N patine %.2f rotation %.2f rad/s inclinaison %.0f°" % [rel / 120.0, d.dot(fw0), d.dot(fw0.cross(Vector3.UP)), car.kmh(), car.mur_contact, car.blown, rad_to_deg(car.global_transform.basis.z.signed_angle_to(fw0, Vector3.UP)), car.engine_force, float(car.get("mur_patine")), car.angular_velocity.length(), rad_to_deg(acos(clampf(car.global_transform.basis.y.y, -1.0, 1.0)))])
+		if has_meta("mur_t0") and rel >= 120 * 7 and not has_meta("mur_fin"):
+			set_meta("mur_fin", true)
 			DirAccess.make_dir_recursive_absolute("user://shots")
 			get_viewport().get_texture().get_image().save_png("user://shots/mur.png")
 			get_tree().quit()
