@@ -369,7 +369,7 @@ func _pas(dt: float) -> void:
 		voiture.frein_parking = false
 		_surveiller(dt)
 		return
-	if mode == "barrage" or mode == "arret":   # en travers de la route (ou fuyard immobilisé), frein serré
+	if mode == "barrage" or mode == "arret" or mode == "radar":   # en travers de la route, fuyard immobilisé ou contrôle radar (#182) : frein serré
 		voiture.touch_throttle = 0.0; voiture.touch_brake = 0.0; voiture.touch_steer = 0.0
 		voiture.frein_parking = true
 		_surveiller(dt)

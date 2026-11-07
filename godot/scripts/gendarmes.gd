@@ -122,7 +122,7 @@ func cible() -> Node3D:
 
 func _temoin(p: Vector3) -> bool:
 	for g in liste:
-		if is_instance_valid(g) and not g.blown and g.mode != "repli":
+		if is_instance_valid(g) and not g.blown and g.mode != "repli" and g.mode != "radar":   # #182 : le contrôle radar ne juge qu'au flash
 			var q: Vector3 = g.voiture.global_position
 			if q.distance_to(p) < VU and g.en_vue(q, p):
 				return true
@@ -133,7 +133,7 @@ func _temoin(p: Vector3) -> bool:
 func infraction(motif: String, p: Vector3, niveau := 0) -> void:
 	if not _permis() or _infr_t > 0.0:
 		return
-	if motif not in ["gendarme", "explosion"] and not _temoin(p):
+	if motif not in ["gendarme", "explosion", "radar"] and not _temoin(p):
 		return
 	_infr_t = 4.0
 	dernier = motif

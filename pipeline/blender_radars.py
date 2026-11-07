@@ -15,7 +15,7 @@ OUT = os.path.join(ICI, "../godot/assets/props")
 def griser(img):
     px = np.array(img.pixels[:], dtype=np.float32).reshape(-1, 4)
     lum = px[:, 0] * 0.3 + px[:, 1] * 0.59 + px[:, 2] * 0.11
-    g = np.clip(lum * 0.85 + 0.05, 0.0, 1.0)
+    g = np.clip(lum * 0.55 + 0.04, 0.0, 1.0)              # gris moyen des cabines françaises
     px[:, 0] = g * 0.96; px[:, 1] = g * 0.98; px[:, 2] = g
     img.pixels[:] = px.ravel()
     img.update()
