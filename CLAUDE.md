@@ -398,8 +398,13 @@
   amende `AMENDES` (`garage.payer`). Contrôles mobiles des gendarmes (`lancer_mobile` : Gendarmerette en mode « arret »
   dans `gendarmes.liste`, trépied `MOBILE_D` m devant, toutes les `MOBILE_T` s, routes rapides, balade libre) : au-delà
   de + `WANTED` km/h, `gendarmes.infraction("radar", p, niveau)` (2 étoiles au-delà de + `WANTED2`). Seulement au volant
-  en balade libre, taxi ou livraison (`MODES`). Modèles : `assets/props/radar_fixe.glb` / `radar_mobile.glb` s'ils
-  existent, sinon boîtes faites dans le script. Essai `--radars-test --radars-debug --drive-from=-8410.95,221,-7187.25,45.2`.
+  en balade libre, taxi ou livraison (`MODES`). Modèles (v7.36, choix de l'utilisateur : D et A) :
+  `pipeline/fetch_radars.py` (Sketchfab : « Speed Camera UK » ThomasRedfern12, « Portable Speed Camera » rxf10240, CC BY)
+  + `blender_radars.py` (cabine repeinte en gris) -> `assets/props/radar_fixe.glb` / `radar_mobile.glb` (+Z = face à la
+  circulation ; boîtes faites dans le script s'ils manquent), publiés sur `donnees`. Gendarme du contrôle en mode
+  « radar » (`gendarme.gd` : frein serré ; `gendarmes._temoin` l'ignore : il ne juge qu'au flash, motif « radar »).
+  **Clé Sketchfab** : secret réseau de l'environnement cloud « Par défaut » (hôte api.sketchfab.com, en-tête
+  Authorization) : le proxy l'ajoute aux appels ; les scripts envoient un jeton factice si `SKETCHFAB_TOKEN` manque. Essai `--radars-test --radars-debug --drive-from=-8410.95,221,-7187.25,45.2`.
 - **Chocs entre véhicules : le bélier ne vacille pas** (v7.34, #188) : `Car._garder_elan` (appelé par `juger`) rend au
   plus rapide sa vitesse (× 0,9) et sa rotation d'avant le choc, tient sa rotation `ELAN_TENUE` s (`_elan_t`) et coupe
   le contact avec l'autre pendant `ELAN_T` s. Essai `--choc-vehicules-test [--chocs-cas=4,5] [--elan-ancien]`.

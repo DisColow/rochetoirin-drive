@@ -6,7 +6,7 @@ MODELS = {
     "mouton": "08b05ae799d947f1a68c49b2d661eb53",     # Sheep — kenchoo
     "cheval": "bc64f4ff7966474ca9bacd42fa73a754",     # Horse Rigged (Game Ready) — abhayexe
 }
-TOK = os.environ.get("SKETCHFAB_TOKEN", "")
+TOK = os.environ.get("SKETCHFAB_TOKEN", "secret-du-proxy")   # sinon : secret réseau ajouté par le proxy
 OUT = "../godot/import/animaux"
 credits = {}
 for name, uid in MODELS.items():

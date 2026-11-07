@@ -7,7 +7,7 @@ MODELS = {
     "tracteur": "201a2464cd4e4501b14f438ca7893cee",   # « Tractor With Trailer – Low Poly 3D Model » — KidBi-Gaming
     "bus": "14fe03d792914d51b6c6250b393c44fd",        # « Generic Town Bus » — own.guest
 }
-TOK = os.environ.get("SKETCHFAB_TOKEN", "")
+TOK = os.environ.get("SKETCHFAB_TOKEN", "secret-du-proxy")   # sinon : secret réseau ajouté par le proxy
 OUT = "../godot/import/lourds"
 H = {"Authorization": "Token " + TOK}
 

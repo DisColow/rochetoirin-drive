@@ -9,7 +9,7 @@ MODELS = {
     "berline": "aeb2699532b4402e8b75ec8888b800b9",       # « Low-Poly Sedan car » — scailman
     "compacte": "a4c46087374a4a3e979092512f92c057",      # « Blue Sedan | Stylized Low Poly » — R3indeer
 }
-TOK = os.environ.get("SKETCHFAB_TOKEN", "")
+TOK = os.environ.get("SKETCHFAB_TOKEN", "secret-du-proxy")   # sinon : secret réseau ajouté par le proxy
 OUT = "../godot/import/voitures"
 H = {"Authorization": "Token " + TOK}
 

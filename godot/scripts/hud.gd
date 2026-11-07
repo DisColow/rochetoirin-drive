@@ -115,6 +115,7 @@ func replier(oui: bool) -> void:
 const CREDITS := """Enseigne de la boulangerie : polices Kaushan Script et Caveat (Pablo Impallari, SIL Open Font License).
 Voix du taxi : synthèse vocale de l'appareil ; à défaut, synthèse Piper (rhasspy) ; voix « Siwis » (Université d'Édimbourg, CC BY 4.0) et « Gilles » (CC0), effet talkie-walkie ffmpeg.
 Voiture : « Ford Ranger Raptor 2019 » par David_Holiday (Sketchfab, licence CC BY 4.0), repeint en noir.
+Radars (Sketchfab, licence CC BY 4.0) : « Speed Camera UK » par ThomasRedfern12 (repeint en gris), « Portable Speed Camera » par ayumi ikeda (rxf10240).
 Lampadaires : « Street Lantern » par Samuel Francis Johnson (Oneironauticus) (Sketchfab, licence CC BY 4.0).
 Circulation (Sketchfab, licence CC BY 4.0) : « Tractor With Trailer – Low Poly 3D Model » par KidBi-Gaming, « Generic Town Bus » par own.guest.
 Aéronefs (Sketchfab, licence CC BY 4.0) : « Free Cessna 172 Replica » par quadzii, « Low Poly Airliner » par maurogsw, « Low Poly Helicopter » par antonmoek, « UNDERPOLY: Free Sailplane Glider » par underpolyproject.

@@ -3,7 +3,10 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 07/11/2026 (v6.84 #131 à v7.35 livrées)
+## État au 07/11/2026 (v6.84 #131 à v7.36 livrées)
+- **v7.36 (#182, `à tester`)** : vrais modèles de radar (voir CLAUDE.md « Radars ») ; clé Sketchfab désormais dans les
+  secrets réseau de l'environnement cloud (permanente). Gendarme du contrôle en mode « radar ». Essai radars 3/3,
+  planche `docs/apercus/radars_182_modeles.jpg`. Branche `wip-182b` à supprimer.
 - **v7.35 (#189, `à tester`)** : `car._glisse_mur` refait d'après la vidéo Vice City de l'utilisateur (voir CLAUDE.md
   « Conduite ») : de face plaquée et roues qui patinent (`mur_patine` -> fumée dust.gd, crissement audio.gd), en biais
   glisse (`MUR_FROT`, `MUR_GLISSE`) et se range le long du mur, volant -> pivot autour du nez (`MUR_PIVOT`). Essai

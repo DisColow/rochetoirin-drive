@@ -2,7 +2,7 @@
 ## - radars fixes sur les routes limitées à 70 km/h et plus, un tous les ESPACE m en moyenne (circulation.points_radar),
 ##   panneau « Contrôles radar fréquents » ANNONCE m avant dans chaque sens ; au-delà de la limite + TOLERANCE : flash,
 ##   bip et amende (AMENDES) ; ⚙ > Conduite > Radars (`conduite/radars`) ;
-## - contrôles des gendarmes au radar mobile : de temps en temps (MOBILE_T), une Gendarmerette garée au bord d'une route
+## - contrôles des gendarmes au radar mobile (gendarme en mode « radar » : il ne juge qu'au flash, pas à vue) : de temps en temps (MOBILE_T), une Gendarmerette garée au bord d'une route
 ##   rapide MOBILE_D m devant, radar sur trépied derrière elle ; au-delà de + WANTED km/h, recherche (1 étoile, 2 au-delà
 ##   de + WANTED2) ; en dessous, flash et amende comme un radar fixe. Avec les gendarmes (⚙ > Conduite > Gendarmes).
 ## Seulement au volant, en balade libre, en taxi ou en livraison (pas en course, ni en service de gendarme ou de bus).
@@ -369,7 +369,7 @@ func lancer_mobile(d: float) -> bool:
 		return false
 	var g := Gendarme.new()
 	g.main = main
-	g.mode = "arret"
+	g.mode = "radar"
 	gd.add_child(g)
 	g.poser(Vector2(pv.x, pv.z), Vector2(pv.x + t.x, pv.z + t.y))
 	gd.liste.append(g)
@@ -382,7 +382,7 @@ func lancer_mobile(d: float) -> bool:
 	tp.visible = actif
 	_mobile_t = randf_range(MOBILE_T.x, MOBILE_T.y)
 	mobile = {"g": g, "noeuds": [tp], "r": {"axe": q - droite * 1.75, "t": t, "bord": 4.0, "lim": lim, "double": true, "poste": pt}}
-	print("[radars] contrôle mobile des gendarmes à %.0f m devant (limite %.0f)" % [d, lim])
+	print("[radars] contrôle mobile des gendarmes à %.0f m devant (limite %.0f) : voie %s, gendarmerie %s, trépied %s (sol %.1f)" % [d, lim, q.snapped(Vector3.ONE * 0.1), g.voiture.global_position.snapped(Vector3.ONE * 0.1), pt.snapped(Vector3.ONE * 0.1), _sol(pt)])
 	return true
 
 func _mobile_menage(p: Vector3) -> void:
@@ -390,8 +390,8 @@ func _mobile_menage(p: Vector3) -> void:
 		return
 	var g = mobile.g
 	var loin: bool = Vector2(mobile.r.poste.x - p.x, mobile.r.poste.z - p.z).length() > 480.0
-	if not is_instance_valid(g) or g.mode != "arret" or loin:
-		if is_instance_valid(g) and g.mode == "arret" and loin:
+	if not is_instance_valid(g) or g.mode != "radar" or loin:
+		if is_instance_valid(g) and g.mode == "radar" and loin:
 			var gd = main.get("gendarmes")
 			if gd:
 				gd.liste.erase(g)

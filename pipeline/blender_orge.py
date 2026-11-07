@@ -20,7 +20,7 @@ DENSITE = 70                      # tiges par mètre de rang (160 dans le candid
 def telecharger():
     if os.path.exists(os.path.join(D, "scene.gltf")):
         return
-    tok = os.environ.get("SKETCHFAB_TOKEN", "")
+    tok = os.environ.get("SKETCHFAB_TOKEN", "secret-du-proxy")   # sinon : secret réseau ajouté par le proxy
     if not tok:
         raise SystemExit("SKETCHFAB_TOKEN absent")
     h = {"Authorization": "Token " + tok}

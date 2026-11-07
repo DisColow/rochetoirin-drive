@@ -4069,7 +4069,7 @@ func _radars_test() -> void:
 	var g0: float = radars.amendes
 	var f0: int = radars.flashs
 	var lim: float = best.lim
-	await passer.call(best, lim + 25.0, 260.0, [[-ANNONCE_TEST - 25.0, "panneau"], [-45.0, "fixe"], [0.4, "flash"]])
+	await passer.call(best, lim + 25.0, 260.0, [[-ANNONCE_TEST - 25.0, "panneau"], [-15.0, "fixe"], [0.4, "flash"]])
 	var paye: float = radars.amendes - g0
 	n += 1
 	var b1: bool = radars.flashs == f0 + 1 and absf(paye - 90.0) < 0.5
@@ -4098,7 +4098,7 @@ func _radars_test() -> void:
 		dire.call("contrôle mobile : pas de route devant ÉCHEC")
 	else:
 		var rm: Dictionary = radars.mobile.r
-		await passer.call(rm, rm.lim + 40.0, 140.0, [[-35.0, "mobile"], [0.4, "mobile_flash"]])
+		await passer.call(rm, rm.lim + 40.0, 140.0, [[-15.0, "mobile"], [0.4, "mobile_flash"]])
 		var b3: bool = gendarmes.etoiles >= 1
 		ok += 1 if b3 else 0
 		dire.call("contrôle mobile, passage à %d km/h (limite %d) : %d étoile(s) %s" % [int(rm.lim + 40.0), int(rm.lim), gendarmes.etoiles, "OK" if b3 else "ÉCHEC"])
