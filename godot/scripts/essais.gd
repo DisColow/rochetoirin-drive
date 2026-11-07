@@ -3910,6 +3910,9 @@ func _choc_vehicules_test() -> void:
 		# le plus rapide derrière : il rattrape l'autre (même sens) ou fonce sur lui à l'arrêt
 		var pj := p0 if vj >= vf else p0 + d * 18.0
 		var pf := p0 + d * 18.0 if vj >= vf else p0
+		for v in [car, fu.voiture]:                     # #188 : contacts coupés par un choc précédent rendus
+			for e in v.get_collision_exceptions():
+				v.remove_collision_exception_with(e)
 		fu.mode = "arret" if vf == 0.0 else "fuite"
 		fu.voiture.place(pf + Vector3.UP * 0.5, cap)
 		car.place(pj + Vector3.UP * 0.5, cap)

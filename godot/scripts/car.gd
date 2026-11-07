@@ -624,6 +624,9 @@ static func juger(a: Object, va: float, b: Object, vb: float) -> Object:
 ## #188 : le véhicule bélier ne vacille pas quand l'autre explose : vitesse et rotation d'avant le choc rendues (un
 ## peu de vitesse perdue), et plus de contact avec l'épave pendant ELAN_T s (elle ne le pousse ni ne le soulève).
 const ELAN_T := 1.5
+const ELAN_TENUE := 0.4                  # s : rotation d'avant le choc tenue (ni roulis ni tangage du choc)
+var _elan_t := 0.0
+var _elan_w := Vector3.ZERO
 static var elan_ancien := false          # essais : comportement d'avant (#188)
 static func _garder_elan(r: Object, l: Object) -> void:
 	if elan_ancien or not (r is VehicleBody3D) or not ("_v_ok" in r):
@@ -634,6 +637,8 @@ static func _garder_elan(r: Object, l: Object) -> void:
 		return
 	rb.linear_velocity = v0 * 0.9
 	rb.angular_velocity = r._w_ok
+	r._elan_t = ELAN_TENUE
+	r._elan_w = r._w_ok
 	if l is PhysicsBody3D and (l as Node).is_inside_tree():
 		rb.add_collision_exception_with(l)
 		var ir := rb.get_instance_id(); var il := (l as Object).get_instance_id()
@@ -1089,6 +1094,9 @@ func _recovery(dt: float) -> void:
 			reset_to_road("voiture éjectée par le moteur physique")
 		return
 	_aberrant_t = 0.0
+	if _elan_t > 0.0:                         # #188 : bélier, le choc qui a fait exploser l'autre ne le fait pas vaciller
+		_elan_t -= dt
+		angular_velocity = _elan_w
 	_v_ok = linear_velocity
 	_w_ok = angular_velocity
 	# #185 : chute de trop haut -> KA-BOOM à l'impact (vitesse de descente de plus de V_CHUTE après au moins 0,4 s en
