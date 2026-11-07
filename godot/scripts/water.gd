@@ -1,6 +1,7 @@
 ## Eau (build_water.py) : étangs, rivières, ruisseaux en tuiles de 256 m chargées au fil de la route.
 extends Node3D
 const PerfMon := preload("res://scripts/perf_monitor.gd")
+const Relief := preload("res://scripts/relief.gd")
 
 const TILE := 256.0
 var VIEW := 1500.0          # × distance du niveau de performances (main.set_post, #174)
@@ -15,11 +16,28 @@ var _t := 0.0
 # plans d'eau où la voiture coule (v6.55, #86) : tuile -> {case de 8 m -> PackedVector3Array (triangles, 3 points)} ;
 # les cours d'eau (UV2 = sens du courant, non nul) n'y sont pas : on les traverse
 const CASE := 8.0
-const COULE := 3.2                # durée de la noyade (s), puis retour sur la route
 var plans := {}
+# #187 : vraie physique de l'eau (façon Vice City). La voiture entre dans le plan d'eau avec son élan, flotte un
+# moment, prend l'eau et coule en piquant du nez (poussée d'Archimède à chaque coin, frottement de l'eau), au fond d'un
+# bassin profond ; noyée (toit sous l'eau) depuis NOYE_T s ou dans l'eau depuis MAX_T s : remise sur la route.
+# Le relief n'est creusé que de 0,6 m sous l'eau (prepare_terrain.py) : pendant le bain, la voiture ne touche plus que
+# le fond « bassin » (HeightMapShape3D de BASSIN m autour d'elle, sur sa propre couche de collision) : relief du jeu
+# hors de l'eau, fond qui descend de PENTE m par m depuis la berge jusqu'à PROF m.
+const COUCHE_BAIN := 1 << 12
+const BASSIN := 64
+const PROF := 4.5
+const PENTE := 1.2
+const FLOTTE := 1.6               # poussée toute immergée au plongeon (× poids) : air de l'habitacle, elle flotte
+const PREND_EAU := 0.18           # poussée perdue par seconde (l'eau entre)
+const NEZ := 0.72                 # part de poussée à l'avant (moteur : elle pique du nez)
+const NOYE_T := 2.5
+const MAX_T := 12.0
 var _noyade := -1.0               # temps depuis le plongeon (-1 : rien)
 var _chk := 0.0
-var _xf0: Transform3D
+var _fond: StaticBody3D
+var _avant := {}                  # couches, amortissements de la voiture avant le bain
+var _noye_t := 0.0
+var _niveau := 0.0
 
 func _ready() -> void:
 	if not DirAccess.dir_exists_absolute("res://world/water"):
@@ -162,47 +180,32 @@ func niveau_plan(p: Vector3) -> float:
 			return a.y + u * (b.y - a.y) + v * (c.y - a.y)
 	return NAN
 
-## La voiture qui entre dans un plan d'eau coule (#86) : gerbe, plouf, moteur coupé, elle s'enfonce en piquant du nez,
-## puis réapparaît sur la route la plus proche.
+## Entrée dans un plan d'eau (#86, #187) : gerbe, plouf, moteur noyé ; ensuite flottaison, puis la voiture coule.
 func _physics_process(dt: float) -> void:
 	var m := get_parent()
 	var car = m.get("car") if m else null
 	if car == null:
 		return
 	if _noyade >= 0.0:
-		_noyade += dt
-		var k := _noyade / COULE
-		var xf := _xf0
-		xf.origin.y -= 2.8 * k * k + 0.4 * k
-		xf.basis = xf.basis * Basis(Vector3.RIGHT, 0.35 * k)
-		car.global_transform = xf
-		if _noyade >= COULE:
-			_noyade = -1.0
-			car.freeze = false
-			car.controle = true
-			car.reset_to_road("voiture tombée dans l'eau")
+		_bain(car, dt)
 		return
 	var pd = m.get("pied")
-	if car.freeze or (pd and pd.get("actif")):
+	if car.freeze or car.carried or (pd and pd.get("actif")):
 		return
 	_chk -= dt
 	if _chk > 0.0:
 		return
-	_chk = 0.1
+	_chk = 0.0
 	var p: Vector3 = car.global_position
 	var h := niveau_plan(p)
-	if is_nan(h) or p.y > h + 0.25:
+	if is_nan(h) or p.y > h + 1.0:
 		return
 	if OS.get_cmdline_user_args().has("--eau-debug"):
-		print("[eau] la voiture coule en %s (eau à %.2f m, voiture à %.2f m, %d km/h)" % [p, h, p.y, int(car.kmh())])
-	_noyade = 0.0
+		print("[eau] la voiture plonge en %s (eau à %.2f m, voiture à %.2f m, %d km/h)" % [p, h, p.y, int(car.kmh())])
+	_plonger(car, h)
 	var v: Vector3 = car.linear_velocity
-	_xf0 = car.global_transform
-	_xf0.origin += Vector3(v.x, 0.0, v.z).limit_length(6.0) * 0.25      # elle glisse encore un peu
-	car.controle = false
-	car.freeze = true
 	if m.get("sound") and m.sound.has_method("_one_shot"):
-		m.sound._one_shot("plouf", p, 1.8, randf_range(0.9, 1.05), 30.0, 500.0)
+		m.sound._one_shot("plouf", p, clampf(0.8 + v.length() / 10.0, 0.8, 2.0), randf_range(0.9, 1.05), 30.0, 500.0)
 	var D = m.get("dust")
 	if D:
 		var mat: Dictionary = D.MATIERES.get("eau", {})
@@ -210,3 +213,133 @@ func _physics_process(dt: float) -> void:
 			for i in 24:
 				var q := Vector3(p.x + randf_range(-1.6, 1.6), h + 0.1, p.z + randf_range(-2.4, 2.4))
 				D._nuage(mat, q, Vector3(v.x * 0.3 + randf_range(-2, 2), randf_range(3.0, 7.0), v.z * 0.3 + randf_range(-2, 2)), 1.0)
+
+## Début du bain : fond du bassin posé autour de la voiture, qui ne touche plus que lui ; moteur noyé.
+func _plonger(car: VehicleBody3D, h: float) -> void:
+	_noyade = 0.0
+	_noye_t = 0.0
+	_niveau = h
+	var p := car.global_position
+	var n := BASSIN + 1
+	var x0 := floorf(p.x) - BASSIN * 0.5
+	var z0 := floorf(p.z) - BASSIN * 0.5
+	# cases dans l'eau, distance à la berge (chanfrein 3-4 en deux passes), hauteur du fond
+	var dans := PackedByteArray(); dans.resize(n * n)
+	var niv := PackedFloat32Array(); niv.resize(n * n)
+	var dist := PackedFloat32Array(); dist.resize(n * n)
+	for j in n:
+		for i in n:
+			var q := Vector3(x0 + i, p.y, z0 + j)
+			var hq := niveau_plan(q)
+			var k := j * n + i
+			# hors des plans d'eau : sol sous le niveau de l'eau = lit d'un ruisseau qui s'y jette, berge noyée
+			if is_nan(hq) and Relief.hauteur(q) < h - 0.15:
+				hq = h
+			dans[k] = 0 if is_nan(hq) else 1
+			niv[k] = h if is_nan(hq) else hq
+			dist[k] = 1e6 if dans[k] else 0.0
+	for j in n:
+		for i in n:
+			var k := j * n + i
+			if dans[k] == 0:
+				continue
+			var d := dist[k]
+			if i > 0: d = minf(d, dist[k - 1] + 1.0)
+			if j > 0: d = minf(d, dist[k - n] + 1.0)
+			if i > 0 and j > 0: d = minf(d, dist[k - n - 1] + 1.4)
+			if i < n - 1 and j > 0: d = minf(d, dist[k - n + 1] + 1.4)
+			dist[k] = d
+	for j in range(n - 1, -1, -1):
+		for i in range(n - 1, -1, -1):
+			var k := j * n + i
+			if dans[k] == 0:
+				continue
+			var d := dist[k]
+			if i < n - 1: d = minf(d, dist[k + 1] + 1.0)
+			if j < n - 1: d = minf(d, dist[k + n] + 1.0)
+			if i < n - 1 and j < n - 1: d = minf(d, dist[k + n + 1] + 1.4)
+			if i > 0 and j < n - 1: d = minf(d, dist[k + n - 1] + 1.4)
+			dist[k] = d
+	var H := PackedFloat32Array(); H.resize(n * n)
+	var fond_min := INF
+	for j in n:
+		for i in n:
+			var k := j * n + i
+			var sol := Relief.hauteur(Vector3(x0 + i, 0.0, z0 + j))
+			if dans[k]:
+				# bord de la carte (pas de berge connue au-delà) : distance plafonnée par le bord de la grille
+				var d := minf(dist[k], 1e3)
+				H[k] = minf(sol, niv[k] - minf(0.6 + d * PENTE, PROF))
+				fond_min = minf(fond_min, H[k])
+			else:
+				H[k] = sol
+	var sh := HeightMapShape3D.new()
+	sh.map_width = n
+	sh.map_depth = n
+	sh.map_data = H
+	_fond = StaticBody3D.new()
+	_fond.collision_layer = COUCHE_BAIN
+	_fond.collision_mask = 0
+	var cs := CollisionShape3D.new()
+	cs.shape = sh
+	_fond.add_child(cs)
+	add_child(_fond)
+	_fond.global_position = Vector3(x0 + BASSIN * 0.5, 0.0, z0 + BASSIN * 0.5)
+	_avant = {"couche": car.collision_layer, "masque": car.collision_mask, "ld": car.linear_damp, "ad": car.angular_damp}
+	car.collision_layer = COUCHE_BAIN
+	car.collision_mask = COUCHE_BAIN
+	car.dans_eau = true
+	car.niveau_eau = h
+	if OS.get_cmdline_user_args().has("--eau-debug"):
+		print("[eau] bassin : %d cases dans l'eau sur %d, fond le plus bas %.2f m sous l'eau" % [Array(dans).count(1), n * n, h - fond_min])
+
+## Bain : poussée d'Archimède aux quatre coins (moins à l'avant), qui faiblit à mesure que l'eau entre ; l'eau freine.
+func _bain(car: VehicleBody3D, dt: float) -> void:
+	_noyade += dt
+	if not is_instance_valid(_fond) or Vector2(car.global_position.x - _fond.global_position.x, car.global_position.z - _fond.global_position.z).length() > BASSIN * 0.45 or car.carried:
+		_sortir(car, false)                    # téléportée, portée, ou sortie de la grille du bassin
+		return
+	var g: Vector3 = car.gabarit
+	var hb := maxf(g.y, 1.2)
+	var flotte := maxf(FLOTTE - PREND_EAU * _noyade, 0.0)
+	var poids: float = car.mass * 9.8
+	var sub_moy := 0.0
+	for c: Vector2 in [Vector2(-0.5, 0.5), Vector2(0.5, 0.5), Vector2(-0.5, -0.5), Vector2(0.5, -0.5)]:
+		var loc := Vector3(c.x * g.x * 0.8, 0.0, c.y * g.z * 0.8)
+		var w := car.global_transform * loc
+		var h := niveau_plan(w)
+		if is_nan(h):
+			h = _niveau
+		var sub := clampf((h - (w.y - 0.25)) / hb, 0.0, 1.0)
+		sub_moy += sub * 0.25
+		var part := NEZ if c.y > 0.0 else 2.0 - NEZ
+		car.apply_force(Vector3.UP * (poids * 0.25 * sub * flotte * part), w - car.global_position)
+	if OS.get_cmdline_user_args().has("--eau-debug") and int(_noyade * 60.0) % 15 == 0:
+		print("[eau] bain %.2f s : immersion %.2f, poussée %.2f × poids, gabarit %s, masse %.0f, aabb %s" % [_noyade, sub_moy, flotte * sub_moy, g, car.mass, car.get_node_or_null("Body").get_aabb() if car.get_node_or_null("Body") is VisualInstance3D else "-"])
+	# frottement de l'eau : fort à la verticale (la voiture ne rebondit pas, elle s'enfonce et remonte lentement),
+	# amortissements du moteur physique pour la vitesse et la rotation
+	car.apply_central_force(Vector3.UP * (-car.linear_velocity.y * car.mass * 2.2 * sub_moy))
+	car.linear_damp = 0.2 + 1.2 * sub_moy
+	car.angular_damp = 0.5 + 2.0 * sub_moy
+	# noyée : toit sous l'eau
+	var toit := car.global_transform * Vector3(0.0, hb, 0.0)
+	_noye_t = _noye_t + dt if toit.y < _niveau - 0.1 else 0.0
+	if _noye_t > NOYE_T or _noyade > MAX_T:
+		if OS.get_cmdline_user_args().has("--eau-debug"):
+			print("[eau] noyée après %.1f s (voiture à %.2f m sous l'eau)" % [_noyade, _niveau - car.global_position.y])
+		_sortir(car, true)
+
+func _sortir(car: VehicleBody3D, remettre: bool) -> void:
+	_noyade = -1.0
+	if is_instance_valid(_fond):
+		_fond.queue_free()
+	_fond = null
+	if not _avant.is_empty():
+		car.collision_layer = _avant.couche
+		car.collision_mask = _avant.masque
+		car.linear_damp = _avant.ld
+		car.angular_damp = _avant.ad
+		_avant = {}
+	car.dans_eau = false
+	if remettre:
+		car.reset_to_road("voiture tombée dans l'eau")

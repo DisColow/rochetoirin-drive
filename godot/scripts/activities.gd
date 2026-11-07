@@ -214,16 +214,12 @@ func _set_status(t: String, coul := Color.WHITE, gros := false) -> void:
 	_status_g.add_theme_font_size_override("font_size", 60 if gros else 40)     # chrono des missions (#161)
 	var l := t.split("\n", true, 1)
 	_status_g.text = l[0]
-	_status_l.text = l[1] if l.size() > 1 else ""
+	# #162 : la carte s'arrête avant le rétroviseur (haut-centre) : lignes longues coupées ; #176, #187 : coupées ici
+	# (le retour à la ligne automatique de Godot faisait osciller la hauteur du panneau)
+	_status_l.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_status_l.custom_minimum_size.x = 0.0
+	_status_l.text = preload("res://scripts/hud.gd").couper(l[1], _status_l.get_theme_font("font"), 26, CARTE_L) if l.size() > 1 else ""
 	_status_l.visible = _status_l.text != ""
-	# #162 : la carte s'arrête avant le rétroviseur (haut-centre) : lignes longues coupées
-	var f := _status_l.get_theme_font("font")
-	var large := false
-	for ligne in _status_l.text.split("\n"):
-		large = large or f.get_string_size(ligne, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x > CARTE_L
-	_status_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if large else TextServer.AUTOWRAP_OFF
-	_status_l.custom_minimum_size.x = CARTE_L if large else 0.0
-	_status_l.size = Vector2(_status_l.custom_minimum_size.x, 0.0)      # #176 : largeur avant le calcul de la hauteur
 	_status.visible = t != ""
 	_stop_btn.visible = mode != "" and _status.visible
 	_status.size = Vector2.ZERO

@@ -16,8 +16,9 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.32 :
-- **Eau des étangs et rivières refaite** : houle, reflets du ciel et du soleil, eau bleu-vert au lieu du vert presque noir, courant et écume sur les rivières.
+Nouveautés de la v7.33 :
+- **Vraie physique de l'eau** : la voiture qui entre dans un étang garde son élan, flotte un instant le nez dans l'eau, puis coule au fond d'un bassin profond avant d'être remise sur la route, comme dans Vice City.
+- Le bandeau « Défi du jour » ne prend plus toute la hauteur de l'écran.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

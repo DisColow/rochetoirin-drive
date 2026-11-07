@@ -3,7 +3,19 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 06/11/2026 (v6.84 #131 à v7.32 livrées)
+## État au 07/11/2026 (v6.84 #131 à v7.33 livrées)
+- **v7.33 (#187, `à tester`)** : vraie physique de l'eau (`water.gd` `_plonger`/`_bain`/`_sortir`) : voiture physique
+  (plus figée ni animée), poussée d'Archimède aux 4 coins (`FLOTTE` × poids immergé, moins à l'avant `NEZ`, perdue de
+  `PREND_EAU` par s), frottement vertical fort + amortissements ; fond = `HeightMapShape3D` de 64 m (relief hors de
+  l'eau, `PENTE` m/m depuis la berge jusqu'à `PROF` 4,5 m ; lits sous le niveau de l'eau comptés comme eau) sur la
+  couche `COUCHE_BAIN` (1<<12), voiture mise sur cette seule couche pendant le bain (le relief n'est creusé que de
+  0,6 m : pas de régénération). Remise quand le toit est sous l'eau depuis `NOYE_T` 2,5 s (`MAX_T` 12 s). `car.dans_eau`
+  (moteur noyé, ni explosion de chute ni remise « retournée »), `car.niveau_eau` (camera_rig : poursuite, caméra au
+  moins 1,6 m au-dessus de l'eau). Rivières toujours traversables. Essai `--eau-test --eau-debug
+  [--drive-from=-8989.8,255.3,96.2,90]` (sans drive-from : lâchée sur le plus grand plan d'eau). **#176 suite** :
+  `hud.couper()` coupe les lignes du toast et de la carte d'activité (l'autowrap de Godot faisait osciller la hauteur :
+  bandeau « Défi du jour » de 2 533 px vu sur les captures). `verifier.sh` ne marche pas dans le dépôt cloné sans
+  `.godot` (Terrain3D inconnu) : contrôle des scripts fait dans la copie `$S/jeu` (0 erreur).
 - **v7.32 (#183, `à tester`)** : `water.gdshader` refait : 4 trains de vagues (`vague()` : sinus, pente analytique),
   rides en bruit, entraînement par le courant (UV2), Fresnel de Schlick vers `ciel` (plafonné à 0,6 : au-delà, eau
   « piscine » laiteuse) que `water.gd` tient à jour (`main._env.fog_light_color`, toutes les 0,5 s), corps bleu-vert,

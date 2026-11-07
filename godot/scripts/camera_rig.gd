@@ -121,10 +121,12 @@ func _process_corps(dt: float) -> void:
 	# #129 : en vue conducteur ou capot, la caméra passe en poursuite le temps de l'explosion (on comprend ce qui se
 	# passe), puis revient à la vue d'avant
 	var boum: bool = bool(target.get("blown")) and not bool(target.get("carried"))
-	if boum and mode != 0 and _mode_avant < 0:
+	# #187 : voiture qui coule : poursuite aussi, caméra gardée au-dessus de l'eau (water.gd : car.niveau_eau)
+	var coule: bool = bool(target.get("dans_eau"))
+	if (boum or coule) and mode != 0 and _mode_avant < 0:
 		_mode_avant = mode
 		set_mode(0)
-	elif not boum and _mode_avant >= 0:
+	elif not boum and not coule and _mode_avant >= 0:
 		set_mode(_mode_avant)
 		_mode_avant = -1
 	if mode == 0:
@@ -161,6 +163,10 @@ func _process_corps(dt: float) -> void:
 			var hp: Vector3 = hit.position
 			_pos = head + (hp - head) * maxf(0.0, 1.0 - 0.45 / maxf((hp - head).length(), 0.01))
 		var look_at := (t.origin + Vector3(0, 1.3, 0) + flat * cv).lerp(t.origin + Vector3(0, 5.0, 0), c).lerp(t.origin + Vector3(0, 11.0, 0), cb)
+		if coule:
+			var ne: float = target.get("niveau_eau")
+			_pos.y = maxf(_pos.y, ne + 1.6)
+			look_at.y = maxf(look_at.y, ne - 0.6)
 		_look = t.origin + ((_look - _org_l) if _look != Vector3.ZERO else (look_at - t.origin)).lerp(look_at - t.origin, 1.0 - exp(-dt * 10.0))
 		_org_l = t.origin
 		cam.global_position = _pos

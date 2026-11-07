@@ -141,6 +141,21 @@ Modèles des commerces, équipements, haies, maisons, clôtures et sprite de la 
 ## Message bref (péage, étape franchie…), à gauche sous la carte d'activité (#162), qui s'efface tout seul.
 var _toast: PanelContainer
 var _toast_t := 0.0
+## Texte coupé en lignes de `largeur` px au plus (mots entiers ; les retours à la ligne du texte sont gardés).
+static func couper(texte: String, police: Font, taille: int, largeur: float) -> String:
+	var lignes := PackedStringArray()
+	for para in texte.split("\n"):
+		var ligne := ""
+		for mot in para.split(" "):
+			var essai := mot if ligne == "" else ligne + " " + mot
+			if ligne != "" and police.get_string_size(essai, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x > largeur:
+				lignes.append(ligne)
+				ligne = mot
+			else:
+				ligne = essai
+		lignes.append(ligne)
+	return "\n".join(lignes)
+
 func toast(text: String, secs := 3.5) -> void:
 	if _toast == null:
 		_toast = PanelContainer.new()
@@ -151,13 +166,11 @@ func toast(text: String, secs := 3.5) -> void:
 		_toast.add_child(l)
 		add_child(_toast)
 	var lt := _toast.get_child(0) as Label
-	lt.text = text
-	var long := lt.get_theme_font("font").get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x > 600.0
-	lt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if long else TextServer.AUTOWRAP_OFF      # #162 : pas jusqu'au rétroviseur
-	lt.custom_minimum_size.x = 600.0 if long else 0.0
-	# #176 : le premier calcul (retour à la ligne sur 0 px de large : un caractère par ligne) donnait un panneau de
-	# 3 000 px de haut, texte hors de l'écran ; la taille est refaite une fois la mise en page faite (_process)
-	lt.size = Vector2(lt.custom_minimum_size.x, 0.0)
+	# #162 : pas plus de 600 px de large (pas jusqu'au rétroviseur). #176, #187 : lignes coupées ici, sans le retour à
+	# la ligne automatique de Godot, dont la hauteur oscillait d'une image à l'autre (panneau de 2 500 px de haut)
+	lt.autowrap_mode = TextServer.AUTOWRAP_OFF
+	lt.custom_minimum_size.x = 0.0
+	lt.text = couper(text, lt.get_theme_font("font"), 28, 600.0)
 	_toast.size = Vector2.ZERO
 	_toast.reset_size()
 	_toast.reset_size.call_deferred()
