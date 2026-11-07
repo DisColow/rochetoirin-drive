@@ -1008,9 +1008,9 @@ func _glisse_mur(thr: float, brk: float, v: float, st: float) -> void:
 	side = side.normalized()
 	var ss := get_world_3d().direct_space_state
 	var n := Vector3.ZERO
-	for dx: float in [0.0, -0.4, 0.4]:
+	for dx: float in [0.0, -0.45, 0.45]:              # #189 : rayons jusqu'aux coins (mur de biais touché d'abord par un coin)
 		var o := global_position + Vector3.UP * 0.55 + side * dx * gabarit.x
-		var q := PhysicsRayQueryParameters3D.create(o, o + fwd * (gabarit.z * 0.5 + 0.6))
+		var q := PhysicsRayQueryParameters3D.create(o, o + fwd * (gabarit.z * 0.5 + 1.0))
 		q.exclude = [get_rid()]
 		var h := ss.intersect_ray(q)
 		if not h.is_empty() and absf((h.normal as Vector3).y) < 0.6:
@@ -1041,6 +1041,10 @@ func _glisse_mur(thr: float, brk: float, v: float, st: float) -> void:
 	linear_velocity = Vector3(hz.x, lv.y, hz.z)
 	var av := angular_velocity
 	av.y = move_toward(av.y, w, 0.2)
+	# ni cabrée ni sur le flanc contre le mur : roulis et tangage amortis
+	var ax := global_transform.basis.x
+	var az := global_transform.basis.z
+	av -= ax * av.dot(ax) * 0.5 + az * av.dot(az) * 0.5
 	angular_velocity = av
 	engine_force *= 0.15
 	mur_patine = pousse * clampf(1.0 - vt / MUR_GLISSE, 0.35, 1.0)
