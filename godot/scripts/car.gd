@@ -573,6 +573,7 @@ func blow_up() -> void:
 const ECART_BOUM := 30.0            # km/h
 const V_CHUTE := 17.0                # #185 : m/s vers le bas à l'impact (~15 m de chute libre) : explosion
 const LOIN_ROUTE := 60.0             # #185 : au-delà, réapparition au point de chute plutôt que sur la route
+var dans_eau := false                # #187 : dans un plan d'eau (water.gd) : moteur noyé, ni explosion ni remise
 var vol_libre := false               # vol voulu (catapulte du bord, bord.gd) : pas d'explosion à l'atterrissage
 var _air_t := 0.0
 var _vy_min := 0.0
@@ -867,6 +868,8 @@ func _physics_process(dt: float) -> void:
 	if not controle:
 		thr = 0.0; brk = 0.0; st = 0.0; fm = 0.0
 		frein_parking = true
+	if dans_eau:
+		thr = 0.0; brk = 0.0; st = 0.0; fm = 0.0
 	thr_in = thr; brk_in = brk
 	var v := forward_speed()
 	# sens de marche « jeu » : la pédale opposée au mouvement freine, puis la voiture repart dans l'autre sens dès
@@ -1073,7 +1076,7 @@ func _recovery(dt: float) -> void:
 		_air_t = maxf(_air_t, 0.0)
 	var impact := _air_t > 0.4 and (on_ground or vy - _vy_prec > 8.0)
 	if impact:
-		if _vy_min < -V_CHUTE and not vol_libre and not blown:
+		if _vy_min < -V_CHUTE and not vol_libre and not blown and not dans_eau:
 			print("[chute] impact à %.0f km/h vers le bas après %.1f s en l'air : explosion" % [-_vy_min * 3.6, _air_t])
 			_point_chute = global_position
 			exploser()
@@ -1085,7 +1088,7 @@ func _recovery(dt: float) -> void:
 		_vy_min = 0.0
 	_vy_prec = vy
 	# retourné ou sur le flanc plus de 1,2 s (presque à l'arrêt)
-	_flip_t = _flip_t + dt if (up < 0.5 and kmh() < 25.0) else 0.0
+	_flip_t = _flip_t + dt if (up < 0.5 and kmh() < 25.0 and not dans_eau) else 0.0
 	# v6.22 (demande de l'utilisateur) : plus de remise sur la route automatique quand la voiture est bloquée ou
 	# coincée à l'arrêt ; il reste le bouton rouge (« replacer »), la voiture retournée et la chute hors du monde
 	if p.y < -50.0:

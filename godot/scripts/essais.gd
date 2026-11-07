@@ -861,11 +861,14 @@ func _physics_process(_dt: float) -> void:
 			get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--eau-test"):
-		# #86 : la voiture posée à 18 m d'un plan d'eau fonce dedans ; elle doit couler puis revenir sur la route
+		# #86, #187 : avec --drive-from (route au bord d'un étang, cap vers l'eau) : la voiture fonce dans l'eau à fond ;
+		# sinon lâchée au-dessus du plus grand plan d'eau chargé. Elle doit flotter, couler au fond du bassin, puis
+		# revenir sur la route. Journal : profondeur, vitesse, assiette ; captures eau_N.png après le plongeon.
 		var wa = water
+		var lance: bool = Array(OS.get_cmdline_user_args()).any(func(a): return a.begins_with("--drive-from="))
 		car.touch_steer = 0.0; car.touch_brake = 0.0
-		car.touch_throttle = 0.0
-		if t == 300:
+		car.touch_throttle = 1.0 if lance and not car.dans_eau and not has_meta("eau_t0") and t > 300 else 0.0
+		if t == 300 and not lance:
 			var best := []
 			for k in wa.plans:
 				for kc in wa.plans[k]:
@@ -876,20 +879,25 @@ func _physics_process(_dt: float) -> void:
 				print("  [eau] aucun plan d'eau chargé"); get_tree().quit(); return
 			var T: PackedVector3Array = best[0]
 			var c := (T[0] + T[1] + T[2]) / 3.0
-			var ok := true
-			var s0 := c + Vector3(0, 1.6, 0)
-			car.place(s0, 0.0)
+			car.place(c + Vector3(0, 1.6, 0), 0.0)
 			print("  [eau] plan d'eau en %s (niveau %.2f), voiture lâchée au-dessus" % [c, wa.niveau_plan(c)])
-			if not ok:
-				print("  [eau] pas de départ trouvé"); get_tree().quit()
-		if t > 300 and t % 30 == 0:
+		if car.dans_eau and not has_meta("eau_t0"):
+			set_meta("eau_t0", t)
+			print("  [eau] plongeon à t=%.2f s, %d km/h" % [(t - 300) / 120.0, int(car.kmh())])
+		if t > 300 and t % 15 == 0:
 			var h: float = wa.niveau_plan(car.global_position)
-			print("  [eau] t=%.2f pos %s eau %s noyade %.2f figée %s contrôle %s" % [(t - 300) / 120.0, car.global_position, "-" if is_nan(h) else "%.2f" % h, wa._noyade, car.freeze, car.controle])
-		if t == 300 + 240:
-			DirAccess.make_dir_recursive_absolute("user://shots")
-			get_viewport().get_texture().get_image().save_png("user://shots/eau_%d.png" % t)
-		if t > 300 + 1000:
-			get_tree().quit()
+			var tg: Basis = car.global_transform.basis
+			print("  [eau] t=%.2f pos (%.1f, %.2f, %.1f) eau %s sous l'eau %s m  %d km/h  vy %.2f  assiette %.0f°  bain %s %.2f" % [(t - 300) / 120.0, car.global_position.x, car.global_position.y, car.global_position.z, "-" if is_nan(h) else "%.2f" % h, "-" if is_nan(h) else "%.2f" % (h - car.global_position.y), int(car.kmh()), car.linear_velocity.y, rad_to_deg(asin(clampf(tg.z.y, -1.0, 1.0))), car.dans_eau, wa._noyade])
+		if has_meta("eau_t0"):
+			var dt0: int = t - int(get_meta("eau_t0"))
+			if dt0 in [8, 60, 180, 360, 600]:
+				DirAccess.make_dir_recursive_absolute("user://shots")
+				get_viewport().get_texture().get_image().save_png("user://shots/eau_%d.png" % dt0)
+			if dt0 > 1500:
+				print("  [eau] fin : voiture en %s, dans l'eau %s" % [car.global_position, car.dans_eau])
+				get_tree().quit()
+		if t > 300 + 3000:
+			print("  [eau] pas de plongeon"); get_tree().quit()
 		return
 	if OS.get_cmdline_user_args().has("--gachettes-test"):
 		# #91 : gâchette d'une manette Android qui plafonne à 0,82 : gaz puis marche arrière doivent être à fond
