@@ -4038,20 +4038,22 @@ func _radars_test() -> void:
 					set_meta("ph_" + str(ph[1]), true)
 					await cap_.call(str(ph[1]))
 		car.linear_velocity = Vector3.ZERO
-	var g0: float = garage.argent
+	if garage.argent < 500.0:
+		garage.gagner(500.0)
+	var g0: float = radars.amendes
 	var f0: int = radars.flashs
 	var lim: float = best.lim
 	await passer.call(best, lim + 25.0, 260.0, [[-ANNONCE_TEST - 25.0, "panneau"], [-45.0, "fixe"], [0.4, "flash"]])
-	var paye := g0 - float(garage.argent)
+	var paye: float = radars.amendes - g0
 	n += 1
 	var b1: bool = radars.flashs == f0 + 1 and absf(paye - 90.0) < 0.5
 	ok += 1 if b1 else 0
 	dire.call("passage à %d km/h (limite %d) : flashs %d, amende %.0f € %s" % [int(lim + 25.0), int(lim), radars.flashs - f0, paye, "OK" if b1 else "ÉCHEC"])
-	g0 = garage.argent
+	g0 = radars.amendes
 	f0 = radars.flashs
 	await passer.call(best, lim - 10.0, 120.0, [])
 	n += 1
-	var b2: bool = radars.flashs == f0 and is_equal_approx(float(garage.argent), g0)
+	var b2: bool = radars.flashs == f0 and is_equal_approx(radars.amendes, g0)
 	ok += 1 if b2 else 0
 	dire.call("passage à %d km/h (limite %d) : flashs %d %s" % [int(lim - 10.0), int(lim), radars.flashs - f0, "OK" if b2 else "ÉCHEC"])
 	# contrôle mobile

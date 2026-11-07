@@ -42,6 +42,7 @@ var _lampe_t := 0.0
 var _mobile_t := 0.0
 var mobile := {}                    # contrôle mobile en cours : {g, r (radar), noeuds}
 var flashs := 0                     # essais
+var amendes := 0.0                  # essais : total des amendes payées
 var _prete := false
 
 func _ready() -> void:
@@ -186,6 +187,7 @@ func _passage(i: int, r: Dictionary, p: Vector3, kmh: float, ok: bool, est_mobil
 			break
 	var g = main.get("garage")
 	var paye: float = g.payer(montant) if g else 0.0
+	amendes += paye
 	main.get_node("HUD").toast("Flashé à %d km/h (limite %d) : −%d €" % [int(kmh), int(r.lim), int(paye)], 4.0)
 	print("[radars] flash à %.0f km/h (limite %.0f) : amende %.0f €" % [kmh, r.lim, paye])
 
