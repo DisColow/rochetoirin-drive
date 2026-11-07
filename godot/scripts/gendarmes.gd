@@ -33,8 +33,8 @@ const R_DISPARITION := 450.0
 const RENFORT := 6.0                # s entre deux renforts
 const BARRAGE_D := 230.0            # 3 étoiles : barrage à cette distance devant le joueur (m)
 const BARRAGE_T := 45.0             # s entre deux barrages
-const NIVEAUX := {"vitesse": 1, "feu": 1, "accrochage": 1, "gendarme": 2, "explosion": 3}
-const MOTIFS := {"vitesse": "excès de vitesse", "feu": "feu rouge grillé", "accrochage": "accident",
+const NIVEAUX := {"vitesse": 1, "feu": 1, "accrochage": 1, "gendarme": 2, "explosion": 3, "radar": 1}
+const MOTIFS := {"vitesse": "excès de vitesse", "feu": "feu rouge grillé", "accrochage": "accident", "radar": "grand excès de vitesse au radar",
 	"gendarme": "voiture de gendarmerie emboutie", "explosion": "voiture de gendarmerie détruite"}
 
 var main: Node
@@ -130,7 +130,7 @@ func _temoin(p: Vector3) -> bool:
 
 ## Infraction du joueur en p (motif : clé de NIVEAUX) : comptée si un gendarme la voit (une voiture de gendarmerie
 ## emboutie ou détruite l'est toujours).
-func infraction(motif: String, p: Vector3) -> void:
+func infraction(motif: String, p: Vector3, niveau := 0) -> void:
 	if not _permis() or _infr_t > 0.0:
 		return
 	if motif not in ["gendarme", "explosion"] and not _temoin(p):
@@ -139,7 +139,7 @@ func infraction(motif: String, p: Vector3) -> void:
 	dernier = motif
 	_vu_pos = p
 	var avant := etoiles
-	etoiles = clampi(maxi(etoiles + (1 if etoiles > 0 else 0), int(NIVEAUX[motif])), 1, 3)
+	etoiles = clampi(maxi(etoiles + (1 if etoiles > 0 else 0), maxi(int(NIVEAUX[motif]), niveau)), 1, 3)
 	_vu_t = 0.0
 	for g in liste:
 		if is_instance_valid(g) and not g.blown:

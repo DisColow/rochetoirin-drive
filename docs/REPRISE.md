@@ -3,7 +3,16 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 07/11/2026 (v6.84 #131 à v7.33 livrées)
+## État au 07/11/2026 (v6.84 #131 à v7.34 livrées)
+- **v7.34 (#182 radars, #188 bélier, `à tester`)** : voir CLAUDE.md « Radars » et « Chocs entre véhicules ». Radars :
+  modèles faits dans `radars.gd` (boîtes) en attendant les vrais : la clé Sketchfab n'est pas dans ce conteneur
+  (l'utilisateur a refusé le formulaire), aucun radar libre sur OpenGameArt, Kenney, Quaternius, Itch.io, Mesh2Motion
+  (Poly Pizza bloque l'accès automatique) ; question posée (#182, `pending`) : il télécharge A (0d274b384f55481494acdba43d9a3e4c)
+  et D (82b93e76b73a46be9ec78c440f9a15be) lui-même, ou je les modélise dans Blender. Les poser en
+  `assets/props/radar_fixe.glb` / `radar_mobile.glb` (+Z face à la circulation, base au sol) : `radars.gd` les prend
+  tout seuls. Essai radars 3/3. Bélier : essai `--chocs-cas=4,5` (avant : 99 -> 0 km/h, cap 26,7° ; après : vitesse
+  gardée, cap 0°) ; le cas « voiture garée » dépend de la position laissée par le cas précédent (instable, avant comme
+  après). Branche de travail `wip-182` (et `wip-187`) à supprimer (refusé par le proxy).
 - **v7.33 (#187, `à tester`)** : vraie physique de l'eau (`water.gd` `_plonger`/`_bain`/`_sortir`) : voiture physique
   (plus figée ni animée), poussée d'Archimède aux 4 coins (`FLOTTE` × poids immergé, moins à l'avant `NEZ`, perdue de
   `PREND_EAU` par s), frottement vertical fort + amortissements ; fond = `HeightMapShape3D` de 64 m (relief hors de

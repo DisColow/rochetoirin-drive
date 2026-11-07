@@ -617,8 +617,37 @@ static func juger(a: Object, va: float, b: Object, vb: float) -> Object:
 	if maxf(va, vb) < VITESSE_BOUM or absf(va - vb) < ECART_BOUM:
 		return null
 	var lent: Object = a if va < vb else b
+	_garder_elan(b if lent == a else a, lent)
 	_faire_exploser(lent)
 	return lent
+
+## #188 : le véhicule bélier ne vacille pas quand l'autre explose : vitesse et rotation d'avant le choc rendues (un
+## peu de vitesse perdue), et plus de contact avec l'épave pendant ELAN_T s (elle ne le pousse ni ne le soulève).
+const ELAN_T := 1.5
+const ELAN_TENUE := 0.4                  # s : rotation d'avant le choc tenue (ni roulis ni tangage du choc)
+var _elan_t := 0.0
+var _elan_w := Vector3.ZERO
+static var elan_ancien := false          # essais : comportement d'avant (#188)
+static func _garder_elan(r: Object, l: Object) -> void:
+	if elan_ancien or not (r is VehicleBody3D) or not ("_v_ok" in r):
+		return
+	var rb := r as VehicleBody3D
+	var v0: Vector3 = r._v_ok
+	if v0.length() < 1.0:
+		return
+	rb.linear_velocity = v0 * 0.9
+	rb.angular_velocity = r._w_ok
+	r._elan_t = ELAN_TENUE
+	r._elan_w = r._w_ok
+	if l is PhysicsBody3D and (l as Node).is_inside_tree():
+		rb.add_collision_exception_with(l)
+		var ir := rb.get_instance_id(); var il := (l as Object).get_instance_id()
+		rb.get_tree().create_timer(ELAN_T, false, true).timeout.connect(func():
+			var r2 = instance_from_id(ir); var l2 = instance_from_id(il)
+			if r2 is PhysicsBody3D and l2 is PhysicsBody3D:
+				(r2 as PhysicsBody3D).remove_collision_exception_with(l2))
+	if OS.get_cmdline_user_args().has("--choc-debug"):
+		print("[choc] bélier : vitesse d'avant le choc rendue (%.0f km/h)" % (v0.length() * 0.9 * 3.6))
 
 static func _faire_exploser(v: Object) -> void:
 	if not (v is Node) or not (v as Node).is_inside_tree():
@@ -1065,6 +1094,9 @@ func _recovery(dt: float) -> void:
 			reset_to_road("voiture éjectée par le moteur physique")
 		return
 	_aberrant_t = 0.0
+	if _elan_t > 0.0:                         # #188 : bélier, le choc qui a fait exploser l'autre ne le fait pas vaciller
+		_elan_t -= dt
+		angular_velocity = _elan_w
 	_v_ok = linear_velocity
 	_w_ok = angular_velocity
 	# #185 : chute de trop haut -> KA-BOOM à l'impact (vitesse de descente de plus de V_CHUTE après au moins 0,4 s en

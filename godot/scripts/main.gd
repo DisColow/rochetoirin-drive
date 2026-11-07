@@ -56,6 +56,7 @@ var ligne_bus: Node             # ligne de bus : le joueur conduit le bus d'arr�
 var gendarmes: Node             # patrouilles et courses-poursuites (#150, gendarmes.gd)
 var livreur: Node               # livreur de repas (#151, livreur.gd)
 var fleches_route: Node         # flèches d'itinéraire sur la route (#154)
+var radars: Node                 # radars fixes et contrôles mobiles des gendarmes (#182, radars.gd)
 var gendarme_joueur: Node       # activité « Gendarme » (#150, gendarme_joueur.gd)
 var dust: Node3D
 var _trample: Node                 # cultures fauchées (trample.gd)
@@ -312,6 +313,9 @@ func _ready() -> void:
 	gendarmes.main = self
 	gendarmes.actif = bool(cfg.get_value("conduite", "gendarmes", true))
 	add_child(gendarmes)
+	radars = preload("res://scripts/radars.gd").new()
+	radars.main = self
+	add_child(radars)
 	poles.set_night(_night)
 	await _etape("Voiture, sons et radio")
 	# gardien des limites de la carte

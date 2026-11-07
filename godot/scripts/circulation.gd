@@ -606,6 +606,33 @@ func bord_arret(arret: Vector3, ecart := 3.2) -> Vector3:
 	var droite := Vector3(g[1].x, 0.0, g[1].y).cross(Vector3.UP).normalized()
 	return p0 + droite * clampf((arret - p0).dot(droite), 1.5, ecart)
 
+## Radars fixes (#182) : un point tous les `espace` m en moyenne sur les routes limitées à `vmin` km/h au moins
+## (place tirée d'après le n° de l'arc : la même à chaque partie), à 150 m au moins des carrefours :
+## [[point de l'axe, sens de l'arc (Vector2), distance de l'axe au bord (m), limite (km/h), double sens], ...].
+func points_radar(espace: float, vmin: float) -> Array:
+	var out := []
+	if not ok:
+		return out
+	for k in _a.size():
+		if _v[k] * 3.6 < vmin:
+			continue
+		var c := _cum(k)
+		var L := c[c.size() - 1]
+		_cums.erase(k)
+		if L < 320.0:
+			continue
+		var s := fposmod(float(k) * 0.6180339 + 0.37, 1.0) * espace
+		while s < L:
+			if s > 150.0 and s < L - 150.0:
+				var g := _geo(k << 1, s, 0)
+				var t: Vector2 = g[1]
+				var double := not (_fl[k] & 1)
+				var axe: Vector3 = (g[0] as Vector3) - Vector3(-t.y, 0.0, t.x) * _dl[k]
+				var bord := _dl[k] * 2.0 if double else _dl[k] + LARGEUR_VOIE * 0.5
+				out.append([axe, t, maxf(bord, 2.5), _v[k] * 3.6, double])
+			s += espace
+	return out
+
 ## Gendarmes (#150) : vitesse autorisée (km/h) sur la route la plus proche de p (axe à moins de `r` m), -1 hors route.
 func limite(p: Vector3, r := 10.0) -> float:
 	if not ok:
