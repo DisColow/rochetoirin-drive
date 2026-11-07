@@ -3887,7 +3887,14 @@ func _choc_vehicules_test() -> void:
 		["joueur 70 km/h contre fuyard à 55 km/h (même sens)", 70.0, 55.0, ""],
 		["fuyard 90 km/h contre joueur arrêté", 0.0, 90.0, "joueur"],
 		["joueur 95 km/h contre fuyard arrêté", 95.0, 0.0, "fuyard"]]
-	for c in cas:
+	var sel := []                                     # --chocs-cas=4,5 : seulement ces cas (5 = voiture garée)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--chocs-cas="):
+			sel = Array(a.trim_prefix("--chocs-cas=").split(",")).map(func(x): return int(x))
+	for ic in cas.size():
+		var c: Array = cas[ic]
+		if not sel.is_empty() and not (ic + 1) in sel:
+			continue
 		if not gj.actif:
 			activities._gendarme_start()
 			for f in 5:
@@ -3949,6 +3956,10 @@ func _choc_vehicules_test() -> void:
 		for f in 90:                                      # réapparition : la voiture est maintenue 0,5 s
 			await get_tree().physics_frame
 	# voiture garée
+	if not sel.is_empty() and not 5 in sel:
+		dire.call("RÉSULTAT : %d/%d %s" % [ok_cas, n_cas, "OK" if ok_cas == n_cas else "ÉCHEC"])
+		get_tree().quit()
+		return
 	var it_g = null
 	var bd := INF
 	for k in props.items:
@@ -4084,21 +4095,21 @@ func _radars_test() -> void:
 	get_tree().quit()
 const ANNONCE_TEST := 200.0
 
-## #188 : vacillement du bélier pendant 1,5 s après l'explosion du véhicule percuté (journal [chocs]).
+## #188 : vacillement du bélier pendant 0,6 s après l'explosion du véhicule percuté (journal [chocs]).
 func _mesure_belier(dire: Callable) -> void:
 	var b0: Basis = car.global_transform.basis
 	var v0: float = car.linear_velocity.length()
 	var wmax := 0.0
 	var inc := 0.0
 	var t := 0.0
-	while t < 1.5:
+	while t < 0.6:
 		car.touch_throttle = 1.0
 		await get_tree().physics_frame
 		t += get_physics_process_delta_time()
 		wmax = maxf(wmax, car.angular_velocity.length())
 		inc = maxf(inc, rad_to_deg(acos(clampf(car.global_transform.basis.y.dot(Vector3.UP), -1.0, 1.0))))
 	var cap := rad_to_deg(Vector2(b0.z.x, b0.z.z).angle_to(Vector2(car.global_transform.basis.z.x, car.global_transform.basis.z.z)))
-	dire.call("bélier après l'explosion : rotation max %.2f rad/s, inclinaison max %.1f°, écart de cap %.1f°, vitesse %.0f -> %.0f km/h" % [wmax, inc, absf(cap), v0 * 3.6, car.linear_velocity.length() * 3.6])
+	dire.call("bélier, 0,6 s après l'explosion : rotation max %.2f rad/s, inclinaison max %.1f°, écart de cap %.1f°, vitesse %.0f -> %.0f km/h" % [wmax, inc, absf(cap), v0 * 3.6, car.linear_velocity.length() * 3.6])
 
 ## #158-#160 : activité « Gendarme ». -- --drive-test --fuyard-test --drive-from=-10975,236,-1100,90 [--fuite-ancienne]
 ## Consigne au lancement (jeu figé jusqu'à OK, capture fuyard_consigne.png) ; Gendarmerette du joueur : livrée et

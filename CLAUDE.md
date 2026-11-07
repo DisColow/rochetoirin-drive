@@ -390,6 +390,19 @@
   point d'itinéraire par pas : 860 km/h). Essai `--fixed-fps 8 -- --drive-test --gendarme-joueur-test
   [--gj-debug] --drive-from=-8410.95,221,-7187.25,45.2` (D522 dégagée ; à Bourgoin `-10975,236,-1100`, la voie OSM
   longe une façade : départ contre le mur ; capture `gendarme_joueur.png`).
+- **Radars** (v7.34, #182, hypothèses validées le 07/11, `scripts/radars.gd`, `main.radars`, ⚙ > Conduite > Radars,
+  `conduite/radars`) : radars fixes sur les routes limitées à 70 km/h et plus (`circulation.points_radar` : un tous les
+  `ESPACE` m en moyenne, place tirée d'après le n° de l'arc, à 150 m des carrefours ; poteau à droite du sens de l'arc,
+  panneau « Contrôles radar fréquents » `ANNONCE` m avant dans chaque sens) ; passage = abscisse le long de la route
+  qui change de signe à moins de `R_DETECTE` m ; au-delà de la limite + `TOLERANCE` : flash (voile blanc, lampe), bip,
+  amende `AMENDES` (`garage.payer`). Contrôles mobiles des gendarmes (`lancer_mobile` : Gendarmerette en mode « arret »
+  dans `gendarmes.liste`, trépied `MOBILE_D` m devant, toutes les `MOBILE_T` s, routes rapides, balade libre) : au-delà
+  de + `WANTED` km/h, `gendarmes.infraction("radar", p, niveau)` (2 étoiles au-delà de + `WANTED2`). Seulement au volant
+  en balade libre, taxi ou livraison (`MODES`). Modèles : `assets/props/radar_fixe.glb` / `radar_mobile.glb` s'ils
+  existent, sinon boîtes faites dans le script. Essai `--radars-test --radars-debug --drive-from=-8410.95,221,-7187.25,45.2`.
+- **Chocs entre véhicules : le bélier ne vacille pas** (v7.34, #188) : `Car._garder_elan` (appelé par `juger`) rend au
+  plus rapide sa vitesse (× 0,9) et sa rotation d'avant le choc, tient sa rotation `ELAN_TENUE` s (`_elan_t`) et coupe
+  le contact avec l'autre pendant `ELAN_T` s. Essai `--choc-vehicules-test [--chocs-cas=4,5] [--elan-ancien]`.
 - **Succès et statistiques** (v6.86, #133, initiative de Claude, `scripts/succes.gd`, onglet « Succès » du menu
   Activités) : `SUCCES` (id, titre, texte, statistique, but, prime au garage) et `STATS` (affichage). Compteurs
   `noter(clé, n)` appelés par car.gd (explosion du joueur), casse.gd (décor, arbres), activities.gd (taxi, 5 étoiles,
