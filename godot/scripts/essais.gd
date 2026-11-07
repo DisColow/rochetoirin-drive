@@ -3901,8 +3901,11 @@ func _choc_vehicules_test() -> void:
 		if fu == null or not gj.actif:
 			dire.call("ÉCHEC : pas de fuyard")
 			break
-		# une voie droite : celle de la voiture du joueur
-		var vp: Array = circulation.voie_proche(car.global_position, 80.0)
+		# une voie droite : celle de la voiture du joueur au premier cas (#188 : la même pour tous les cas ; le bélier
+		# garde son élan et peut finir loin)
+		if not has_meta("choc_voie"):
+			set_meta("choc_voie", circulation.voie_proche(car.global_position, 80.0))
+		var vp: Array = get_meta("choc_voie")
 		var p0: Vector3 = vp[0]
 		var d: Vector3 = vp[1]
 		var cap := rad_to_deg(atan2(d.x, -d.z))
@@ -3936,6 +3939,7 @@ func _choc_vehicules_test() -> void:
 			_mesure_belier(dire)
 			await get_tree().create_timer(1.6, true, true).timeout
 		car.touch_throttle = 0.0
+		dire.call("  fin du cas : joueur %s %d km/h, fuyard %s %d km/h, écart %.1f m, exceptions %d/%d, mode %s" % [car.global_position.snapped(Vector3.ONE * 0.1), int(car.kmh()), fu.voiture.global_position.snapped(Vector3.ONE * 0.1), int(fu.voiture.kmh()), car.global_position.distance_to(fu.voiture.global_position), car.get_collision_exceptions().size(), fu.voiture.get_collision_exceptions().size(), fu.mode])
 		var qui := "joueur" if car.blown else ("fuyard" if fu.blown else "")
 		n_cas += 1
 		ok_cas += 1 if qui == c[3] else 0
