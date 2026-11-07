@@ -273,6 +273,8 @@ func _process_corps(dt: float) -> void:
 			continue
 		var s := _surface(w)
 		var slip := 1.0 - w.get_skidinfo()             # 0 adhérence … 1 glisse
+		if w.use_as_traction:
+			slip = maxf(slip, float(car.get("mur_patine")))   # #189 : roues motrices qui patinent contre un mur
 		var spin: float = slip if w.use_as_traction else 0.0
 		var force := clampf(kmh / 60.0 + spin * 1.2 + lat / 8.0, 0.0, 1.0)
 		if kmh < 4.0 and spin < 0.3:

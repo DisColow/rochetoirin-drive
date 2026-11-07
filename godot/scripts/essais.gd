@@ -1264,8 +1264,16 @@ func _physics_process(_dt: float) -> void:
 	if OS.get_cmdline_user_args().has("--mur-test"):
 		# #106 : mur posé en travers devant la voiture (angle --mur-angle=°, 0 = de face) ; pleins gaz contre le mur :
 		# déplacement le long du mur après 4 s
-		car.touch_steer = 0.0; car.touch_brake = 0.0
+		var volant := 0.0                               # #189 : --mur-volant=-1..1 (gauche positive)
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--mur-volant="):
+				volant = float(a.get_slice("=", 1))
+		car.touch_steer = volant if t >= 240 + 120 else 0.0; car.touch_brake = 0.0
 		car.touch_throttle = 1.0 if t >= 240 else 0.0
+		if t == 240 + 120 * 3 and not has_meta("mur_cap3"):
+			set_meta("mur_cap3", true)
+			DirAccess.make_dir_recursive_absolute("user://shots")
+			get_viewport().get_texture().get_image().save_png("user://shots/mur_3s.png")
 		if t == 240:
 			var ang := 0.0
 			var loin: float = car.gabarit.z * 0.5 + 2.5
@@ -1305,7 +1313,7 @@ func _physics_process(_dt: float) -> void:
 		if t > 240 and t % 60 == 0:
 			var d: Vector3 = car.global_position - get_meta("mur_p0")
 			var fw0: Vector3 = get_meta("mur_fw")
-			print("  [mur] t=%.1f s : avancé %.1f m, latéral %.1f m, %.0f km/h, contact=%s explosée=%s cap %.0f° roues motrices %.0f N" % [(t - 240) / 120.0, d.dot(fw0), d.dot(fw0.cross(Vector3.UP)), car.kmh(), car.mur_contact, car.blown, rad_to_deg(car.global_transform.basis.z.signed_angle_to(fw0, Vector3.UP)), car.engine_force])
+			print("  [mur] t=%.1f s : avancé %.1f m, latéral %.1f m, %.0f km/h, contact=%s explosée=%s cap %.0f° roues motrices %.0f N patine %.2f rotation %.2f rad/s inclinaison %.0f°" % [(t - 240) / 120.0, d.dot(fw0), d.dot(fw0.cross(Vector3.UP)), car.kmh(), car.mur_contact, car.blown, rad_to_deg(car.global_transform.basis.z.signed_angle_to(fw0, Vector3.UP)), car.engine_force, float(car.get("mur_patine")), car.angular_velocity.length(), rad_to_deg(acos(clampf(car.global_transform.basis.y.y, -1.0, 1.0)))])
 		if t == 240 + 120 * 7:
 			DirAccess.make_dir_recursive_absolute("user://shots")
 			get_viewport().get_texture().get_image().save_png("user://shots/mur.png")

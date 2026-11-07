@@ -308,9 +308,12 @@ func _physics_process(dt: float) -> void:
 			skid = maxf(skid, 1.0 - w.get_skidinfo())
 	var lat: float = absf(car.linear_velocity.dot(car.global_transform.basis.x))
 	var sq := maxf(skid * 1.2, (lat - 2.5) / 6.0)
+	var mp := float(car.get("mur_patine"))             # #189 : roues qui patinent contre un mur, voiture presque arrêtée
+	if mp > 0.1:
+		sq = maxf(sq, mp * 0.8)
 	if brk > 0.8 and not car.reversing and kmh > 35.0:
 		sq = maxf(sq, 0.35)
-	sq = clampf(sq, 0.0, 1.0) * clampf(v / 8.0, 0.0, 1.0) * (cnt.asphalte / tot)
+	sq = clampf(sq, 0.0, 1.0) * clampf(maxf(v, mp * 8.0) / 8.0, 0.0, 1.0) * (cnt.asphalte / tot)
 	_vol(_squeal, sq * 0.8 * (1.0 if on else 0.0))
 	_squeal.pitch_scale = 0.92 + 0.16 * sq
 	# chocs : brusque variation de vitesse (hors gravité), objet heurté d'après sa famille de nœuds
