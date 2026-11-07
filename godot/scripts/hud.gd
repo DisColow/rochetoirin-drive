@@ -457,6 +457,25 @@ func _open_settings() -> void:
 			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
 			cfg.set_value("conduite", "gendarmes", on); cfg.save("user://reglages.cfg"))
 		v.add_child(b_gd)
+	# radars (#182) : radars fixes et contrôles des gendarmes au radar mobile
+	var rd = get_parent().get("radars")
+	if rd:
+		var b_rd := Button.new()
+		b_rd.toggle_mode = true
+		b_rd.button_pressed = rd.actif
+		b_rd.custom_minimum_size = Vector2(560, 70)
+		b_rd.add_theme_font_size_override("font_size", 28)
+		b_rd.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var etat_rd := func(on: bool):
+			b_rd.icon = _pastille(Color(0.25, 0.9, 0.35) if on else Color(0.45, 0.45, 0.48))
+			b_rd.text = "  Radars (flash et amendes) : " + ("ACTIVÉS" if on else "désactivés")
+		etat_rd.call(b_rd.button_pressed)
+		b_rd.toggled.connect(func(on: bool):
+			etat_rd.call(on)
+			rd.set_actif(on)
+			var cfg := ConfigFile.new(); cfg.load("user://reglages.cfg")
+			cfg.set_value("conduite", "radars", on); cfg.save("user://reglages.cfg"))
+		v.add_child(b_rd)
 	# son : volumes de l'ambiance, des effets (voiture, voix) et de la musique (radio), de 0 à 150 %
 	var ls := Label.new(); ls.text = "Son"; ls.add_theme_font_size_override("font_size", 30); v.add_child(ls)
 	var hs := HBoxContainer.new(); hs.add_theme_constant_override("separation", 24); v.add_child(hs)

@@ -520,6 +520,10 @@ func _physics_process(_dt: float) -> void:
 		if t == 300:
 			_deuche_test()
 		return
+	if OS.get_cmdline_user_args().has("--radars-test"):
+		if t == 300:
+			_radars_test()
+		return
 	if OS.get_cmdline_user_args().has("--choc-vehicules-test"):
 		if t == 300:
 			_choc_vehicules_test()
@@ -3871,6 +3875,7 @@ func _choc_vehicules_test() -> void:
 	while not Chargement.fini:
 		await get_tree().process_frame
 	Engine.max_physics_steps_per_frame = 16
+	CarS.elan_ancien = OS.get_cmdline_user_args().has("--elan-ancien")
 	circulation.set_densite(0)
 	gendarmes.actif = false
 	car.aide_voie = false
@@ -3923,6 +3928,10 @@ func _choc_vehicules_test() -> void:
 			fu.voiture.frein_parking = vf == 0.0
 			await get_tree().physics_frame
 			t += get_physics_process_delta_time()
+		# #188 : le bélier après l'explosion de l'autre : rotation la plus forte, roulis/tangage, cap, vitesse sur 1,5 s
+		if fu.blown and not car.blown:
+			_mesure_belier(dire)
+			await get_tree().create_timer(1.6, true, true).timeout
 		car.touch_throttle = 0.0
 		var qui := "joueur" if car.blown else ("fuyard" if fu.blown else "")
 		n_cas += 1
@@ -3963,6 +3972,9 @@ func _choc_vehicules_test() -> void:
 			await get_tree().physics_frame
 			t += get_physics_process_delta_time()
 		car.touch_throttle = 0.0
+		if it_g.mm == null and not car.blown:
+			_mesure_belier(dire)
+			await get_tree().create_timer(1.6, true, true).timeout
 		var g_ok: bool = it_g.mm == null and not car.blown
 		n_cas += 1
 		ok_cas += 1 if g_ok else 0
@@ -3970,6 +3982,114 @@ func _choc_vehicules_test() -> void:
 	dire.call("règle : %s" % str([[100.0, 0.0], [65.0, 40.0], [50.0, 0.0], [90.0, 70.0], [90.0, 50.0]].map(func(v): return "%d/%d km/h -> %s" % [v[0], v[1], "le plus lent" if maxf(v[0], v[1]) >= CarS.VITESSE_BOUM and absf(v[0] - v[1]) >= CarS.ECART_BOUM else "rien"])))
 	dire.call("RÉSULTAT : %d/%d %s" % [ok_cas, n_cas, "OK" if ok_cas == n_cas else "ÉCHEC"])
 	get_tree().quit()
+
+## #182 : radars. -- --drive-test --radars-test --radars-debug : radar fixe le plus proche, passages à limite + 25 km/h
+## (flash, amende de 90 €) et à limite - 10 (rien) ; panneau d'annonce ; contrôle mobile des gendarmes posé devant,
+## passage à limite + 40 (recherche, 1 étoile). Captures radar_*.png.
+func _radars_test() -> void:
+	var dire := func(x: String): print("  [radars] " + x)
+	DirAccess.make_dir_recursive_absolute("user://shots")
+	while not Chargement.fini:
+		await get_tree().process_frame
+	Engine.max_physics_steps_per_frame = 16
+	circulation.set_densite(0)
+	gendarmes.set_actif(false)
+	car.aide_voie = false
+	for f in 30:
+		await get_tree().physics_frame
+	if radars.radars.is_empty():
+		dire.call("ÉCHEC : aucun radar"); get_tree().quit(); return
+	dire.call("%d radars fixes, limites : %s" % [radars.radars.size(), str(radars.radars.map(func(r): return int(r.lim)).reduce(func(a, l): a[l] = a.get(l, 0) + 1; return a, {}))])
+	var best = null
+	var bd := INF
+	for r in radars.radars:
+		var d: float = (r.axe as Vector3).distance_to(car.global_position)
+		if d < bd:
+			bd = d; best = r
+	var ok := 0
+	var n := 0
+	var cap_ := func(nom: String):
+		await get_tree().process_frame
+		get_viewport().get_texture().get_image().save_png("user://shots/radar_%s.png" % nom)
+	# passage : la voiture posée `recul` m en amont sur la voie de droite, lancée à v km/h dans l'axe de la route
+	var passer := func(r: Dictionary, kmh: float, recul: float, photos: Array) -> void:
+		var tt: Vector2 = r.t
+		var dir3 := Vector3(tt.x, 0.0, tt.y)
+		var droite := Vector3(-tt.y, 0.0, tt.x)
+		var p0: Vector3 = (r.axe as Vector3) - dir3 * recul + droite * minf(1.8, float(r.bord) * 0.5)
+		var h := Relief.hauteur(p0)
+		car.place(Vector3(p0.x, (h if not is_nan(h) else p0.y) + 1.2, p0.z), rad_to_deg(atan2(tt.x, -tt.y)))
+		car.hold(1.5)
+		for f in 200:
+			await get_tree().physics_frame
+		var tps := 0.0
+		while tps < (recul + 60.0) / (kmh / 3.6):
+			var vy: float = car.linear_velocity.y
+			car.linear_velocity = dir3 * (kmh / 3.6) + Vector3.UP * vy
+			car.angular_velocity = Vector3.ZERO
+			await get_tree().physics_frame
+			tps += get_physics_process_delta_time()
+			var s: float = Vector2(car.global_position.x - r.axe.x, car.global_position.z - r.axe.z).dot(tt)
+			for ph in photos:
+				if s > float(ph[0]) and not has_meta("ph_" + str(ph[1])):
+					set_meta("ph_" + str(ph[1]), true)
+					await cap_.call(str(ph[1]))
+		car.linear_velocity = Vector3.ZERO
+	var g0: float = garage.argent
+	var f0: int = radars.flashs
+	var lim: float = best.lim
+	await passer.call(best, lim + 25.0, 260.0, [[-ANNONCE_TEST - 25.0, "panneau"], [-45.0, "fixe"], [0.4, "flash"]])
+	var paye := g0 - float(garage.argent)
+	n += 1
+	var b1: bool = radars.flashs == f0 + 1 and absf(paye - 90.0) < 0.5
+	ok += 1 if b1 else 0
+	dire.call("passage à %d km/h (limite %d) : flashs %d, amende %.0f € %s" % [int(lim + 25.0), int(lim), radars.flashs - f0, paye, "OK" if b1 else "ÉCHEC"])
+	g0 = garage.argent
+	f0 = radars.flashs
+	await passer.call(best, lim - 10.0, 120.0, [])
+	n += 1
+	var b2: bool = radars.flashs == f0 and is_equal_approx(float(garage.argent), g0)
+	ok += 1 if b2 else 0
+	dire.call("passage à %d km/h (limite %d) : flashs %d %s" % [int(lim - 10.0), int(lim), radars.flashs - f0, "OK" if b2 else "ÉCHEC"])
+	# contrôle mobile
+	gendarmes.set_actif(true)
+	var tt: Vector2 = best.t
+	var p1: Vector3 = (best.axe as Vector3) + Vector3(tt.x, 0.0, tt.y) * 60.0 + Vector3(-tt.y, 0.0, tt.x) * 1.8
+	car.place(p1 + Vector3.UP * 1.2, rad_to_deg(atan2(tt.x, -tt.y)))
+	car.hold(1.0)
+	for f in 140:
+		await get_tree().physics_frame
+	car.linear_velocity = Vector3(tt.x, 0.0, tt.y) * 8.0
+	await get_tree().physics_frame
+	var lance: bool = radars.lancer_mobile(160.0)
+	n += 1
+	if not lance or radars.mobile.is_empty():
+		dire.call("contrôle mobile : pas de route devant ÉCHEC")
+	else:
+		var rm: Dictionary = radars.mobile.r
+		await passer.call(rm, rm.lim + 40.0, 140.0, [[-35.0, "mobile"], [0.4, "mobile_flash"]])
+		var b3: bool = gendarmes.etoiles >= 1
+		ok += 1 if b3 else 0
+		dire.call("contrôle mobile, passage à %d km/h (limite %d) : %d étoile(s) %s" % [int(rm.lim + 40.0), int(rm.lim), gendarmes.etoiles, "OK" if b3 else "ÉCHEC"])
+	dire.call("RÉSULTAT : %d/%d %s" % [ok, n, "OK" if ok == n else "ÉCHEC"])
+	get_tree().quit()
+const ANNONCE_TEST := 200.0
+
+## #188 : vacillement du bélier pendant 1,5 s après l'explosion du véhicule percuté (journal [chocs]).
+func _mesure_belier(dire: Callable) -> void:
+	var b0: Basis = car.global_transform.basis
+	var v0: float = car.linear_velocity.length()
+	var wmax := 0.0
+	var inc := 0.0
+	var t := 0.0
+	while t < 1.5:
+		car.touch_throttle = 1.0
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+		wmax = maxf(wmax, car.angular_velocity.length())
+		inc = maxf(inc, rad_to_deg(acos(clampf(car.global_transform.basis.y.dot(Vector3.UP), -1.0, 1.0))))
+	var cap := rad_to_deg(Vector2(b0.z.x, b0.z.z).angle_to(Vector2(car.global_transform.basis.z.x, car.global_transform.basis.z.z)))
+	dire.call("bélier après l'explosion : rotation max %.2f rad/s, inclinaison max %.1f°, écart de cap %.1f°, vitesse %.0f -> %.0f km/h" % [wmax, inc, absf(cap), v0 * 3.6, car.linear_velocity.length() * 3.6])
 
 ## #158-#160 : activité « Gendarme ». -- --drive-test --fuyard-test --drive-from=-10975,236,-1100,90 [--fuite-ancienne]
 ## Consigne au lancement (jeu figé jusqu'à OK, capture fuyard_consigne.png) ; Gendarmerette du joueur : livrée et
