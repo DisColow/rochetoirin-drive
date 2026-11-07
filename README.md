@@ -16,9 +16,8 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.34 :
-- **Radars** : radars fixes sur les routes à 70 km/h et plus, annoncés par un panneau ; flash et amende si tu roules trop vite. Les gendarmes font aussi des contrôles au radar mobile : un gros excès de vitesse et ils te prennent en chasse. Réglage dans ⚙ > Conduite.
-- Quand tu fais exploser une voiture en la percutant, ta voiture garde sa trajectoire au lieu de s'arrêter net en vacillant.
+Nouveautés de la v7.35 :
+- **Voiture contre un mur, façon Vice City** : gaz à fond de face, les roues patinent en fumant sans que la voiture parte toute seule sur le côté ; en biais, elle glisse le long du mur et s'y range ; en tournant le volant, l'arrière pivote et elle se dégage.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

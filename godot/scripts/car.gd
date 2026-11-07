@@ -980,15 +980,24 @@ func _physics_process(dt: float) -> void:
 	if not ia:
 		_recovery(dt)
 
-## #106 : accélérer contre un mur ne laisse plus la voiture plantée : elle pivote pour longer le mur et glisse vers la
-## gauche ou la droite (côté où le nez est déjà tourné, sinon côté du volant, sinon au hasard, gardé tant qu'on pousse).
-var _mur_cote := 0.0
-var mur_contact := false             # essais : un mur est devant la voiture et elle glisse
+## #106, #189 (façon Vice City, d'après la vidéo de l'utilisateur) : accélérer contre un obstacle inamovible.
+## - De face, sans volant : la voiture reste plaquée, les roues motrices patinent (fumée, crissement : `mur_patine`).
+## - En biais : elle glisse le long du mur dans le sens où pointe son nez, si la poussée le long du mur l'emporte sur le
+##   frottement du nez (`MUR_FROT` : de face à ~30° près, elle ne glisse pas), jusqu'à `MUR_GLISSE` m/s.
+## - Volant tourné : le nez reste en appui sur le mur, l'arrière pivote (`MUR_PIVOT` rad/s volant à fond) ; en
+##   glissant, l'arrière se range peu à peu le long du mur.
+## - Marche arrière (ou autre pédale) : rien ne la retient. Vitesses imposées : des forces ne suffisaient pas (la caisse
+##   plaquée par le moteur restait collée au mur par frottement) ; le moteur ne la plaque plus contre le mur.
+const MUR_FROT := 0.35
+const MUR_GLISSE := 4.0
+const MUR_PIVOT := 0.6
+var mur_contact := false             # essais : un mur est devant la voiture et elle pousse dessus
+var mur_patine := 0.0                # 0-1 : roues motrices qui patinent contre le mur (dust.gd, audio.gd)
 func _glisse_mur(thr: float, brk: float, v: float, st: float) -> void:
 	var pousse := brk if reversing else thr
 	mur_contact = false
+	mur_patine = 0.0
 	if pousse < 0.3 or absf(v) > 3.0 or not controle:
-		_mur_cote = 0.0
 		return
 	var sens := -1.0 if reversing else 1.0
 	var fwd := global_transform.basis.z * sens
@@ -999,41 +1008,46 @@ func _glisse_mur(thr: float, brk: float, v: float, st: float) -> void:
 	side = side.normalized()
 	var ss := get_world_3d().direct_space_state
 	var n := Vector3.ZERO
-	for dx: float in [0.0, -0.4, 0.4]:
+	for dx: float in [0.0, -0.45, 0.45]:              # #189 : rayons jusqu'aux coins (mur de biais touché d'abord par un coin)
 		var o := global_position + Vector3.UP * 0.55 + side * dx * gabarit.x
-		var q := PhysicsRayQueryParameters3D.create(o, o + fwd * (gabarit.z * 0.5 + 0.6))
+		var q := PhysicsRayQueryParameters3D.create(o, o + fwd * (gabarit.z * 0.5 + 1.0))
 		q.exclude = [get_rid()]
 		var h := ss.intersect_ray(q)
 		if not h.is_empty() and absf((h.normal as Vector3).y) < 0.6:
 			n += h.normal
 	n.y = 0.0
 	if n.length() < 0.1:
-		_mur_cote = 0.0
 		return
-	n = n.normalized()
-	var t := n.cross(Vector3.UP)                       # le long du mur
-	if _mur_cote == 0.0:
-		var a := fwd.dot(t)
-		if absf(a) > 0.12:
-			_mur_cote = signf(a)
-		elif absf(st) > 0.1:
-			_mur_cote = signf(t.dot(side) * st * sens)   # volant à gauche : vers la gauche de la voiture
-		else:
-			_mur_cote = 1.0 if randf() < 0.5 else -1.0
-	t *= _mur_cote
+	n = n.normalized()                                 # vers l'extérieur du mur
 	mur_contact = true
-	# le nez tourne pour longer le mur et la caisse glisse le long du mur en s'en décollant un peu ; vitesses imposées
-	# (des forces ne suffisaient pas : la caisse plaquée par le moteur restait collée au mur par frottement), moteur
-	# réduit pour ne plus la plaquer
-	var ang := fwd.signed_angle_to(t, Vector3.UP)
-	var av := angular_velocity
-	av.y = move_toward(av.y, clampf(ang * 2.0, -1.4, 1.4) * pousse, 0.15)
-	angular_velocity = av
+	var face := maxf(fwd.dot(-n), 0.0)                 # 1 : de face
+	var t := n.cross(Vector3.UP)
+	if fwd.dot(t) < 0.0:
+		t = -t                                         # le long du mur, du côté où pointe le nez
+	var biais := fwd.dot(t)                            # 0 : de face, 1 : parallèle au mur
+	var vt := clampf((biais - MUR_FROT * face) / 0.5, 0.0, 1.0) * MUR_GLISSE * pousse
+	# pivot autour du bout en appui (nez, ou arrière en marche arrière) : volant à gauche, la voiture tourne à gauche
+	var w := st * MUR_PIVOT * pousse * sens
+	# en glissant, le nez retenu par le mur fait pivoter la voiture vers le mur (l'arrière se range le long du mur)
+	w += signf(fwd.cross(t).y) * 0.35 * (vt / MUR_GLISSE)
+	var appui := global_position + fwd * gabarit.z * 0.5
+	var r := global_position - appui
+	r.y = 0.0
+	var voulu := t * vt + Vector3.UP.cross(r) * w
 	var lv := linear_velocity
-	lv += t * (move_toward(lv.dot(t), 3.5 * pousse, 0.12) - lv.dot(t))
-	lv += n * (move_toward(lv.dot(n), 0.6, 0.12) - lv.dot(n))
-	linear_velocity = lv
-	engine_force *= 0.3
+	var hz := Vector3(lv.x, 0.0, lv.z).lerp(voulu, 0.25)
+	if hz.dot(n) < 0.0:
+		hz -= n * hz.dot(n)                            # jamais plaquée contre le mur (ni secousses)
+	linear_velocity = Vector3(hz.x, lv.y, hz.z)
+	var av := angular_velocity
+	av.y = move_toward(av.y, w, 0.2)
+	# ni cabrée ni sur le flanc contre le mur : roulis et tangage amortis
+	var ax := global_transform.basis.x
+	var az := global_transform.basis.z
+	av -= ax * av.dot(ax) * 0.5 + az * av.dot(az) * 0.5
+	angular_velocity = av
+	engine_force *= 0.15
+	mur_patine = pousse * clampf(1.0 - vt / MUR_GLISSE, 0.35, 1.0)
 
 ## Pédale d'une gâchette ou d'une touche, 0 à 1 (v6.56, #91) : beaucoup de manettes sur Android plafonnent leurs
 ## gâchettes vers 0,8 à 0,95 ; la course pleine est donc calée sur le plus grand enfoncement déjà vu (au moins

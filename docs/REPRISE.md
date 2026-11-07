@@ -3,7 +3,12 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 07/11/2026 (v6.84 #131 à v7.34 livrées)
+## État au 07/11/2026 (v6.84 #131 à v7.35 livrées)
+- **v7.35 (#189, `à tester`)** : `car._glisse_mur` refait d'après la vidéo Vice City de l'utilisateur (voir CLAUDE.md
+  « Conduite ») : de face plaquée et roues qui patinent (`mur_patine` -> fumée dust.gd, crissement audio.gd), en biais
+  glisse (`MUR_FROT`, `MUR_GLISSE`) et se range le long du mur, volant -> pivot autour du nez (`MUR_PIVOT`). Essai
+  `--mur-test --mur-angle=0|35|60 --mur-volant=0|1` (calé sur la pose du mur : `t == 240` était manqué). Avant/après
+  dans #189. Branche `wip-189` à supprimer.
 - **v7.34 (#182 radars, #188 bélier, `à tester`)** : voir CLAUDE.md « Radars » et « Chocs entre véhicules ». Radars :
   modèles faits dans `radars.gd` (boîtes) en attendant les vrais : la clé Sketchfab n'est pas dans ce conteneur
   (l'utilisateur a refusé le formulaire), aucun radar libre sur OpenGameArt, Kenney, Quaternius, Itch.io, Mesh2Motion

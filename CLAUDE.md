@@ -695,6 +695,11 @@
     - roue affichée à l'échelle (0,40 − 0,045) / 0,267, car la physique de Godot enfonce la roue de ~4,5 cm ;
     - essai `--roues-test` (enfoncement mesuré), capture `{"cam": 0, "place": [...], "cote": 4.5}` (vue de côté).
   - Fracas fort (`audio._fracas`, bus « Voiture ») quand un choc contre le décor arrête net la voiture.
+  - **Contre un mur, façon Vice City** (v7.35, #189, `car._glisse_mur`) : de face, plaquée, roues motrices qui
+    patinent (`mur_patine` : fumée et crissement) ; en biais, glisse le long du mur si la poussée l'emporte sur le
+    frottement du nez (`MUR_FROT`, jusqu'à `MUR_GLISSE` m/s) et se range le long du mur ; volant : pivot autour du bout
+    en appui (`MUR_PIVOT`) ; ni plaquée (vitesse vers le mur annulée), ni cabrée. Plus de côté tiré au hasard (#106).
+    Essai `--mur-test --mur-angle=° --mur-volant=-1..1`.
   - Arbres cassables : seulement ceux affichés (`vegetation.visibles(k)`, densité réglable). Avant, des arbres
     non dessinés « surgissaient » cassés devant la voiture.
 - **Itinéraire GPS du taxi** (v6.30, demande de l'utilisateur, `scripts/itineraire.gd`, données `world/graphe.bin`
