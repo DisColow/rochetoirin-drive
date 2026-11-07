@@ -984,12 +984,13 @@ func _physics_process(dt: float) -> void:
 ## - De face, sans volant : la voiture reste plaquée, les roues motrices patinent (fumée, crissement : `mur_patine`).
 ## - En biais : elle glisse le long du mur dans le sens où pointe son nez, si la poussée le long du mur l'emporte sur le
 ##   frottement du nez (`MUR_FROT` : de face à ~30° près, elle ne glisse pas), jusqu'à `MUR_GLISSE` m/s.
-## - Volant tourné : le nez reste en appui sur le mur, l'arrière pivote (`MUR_PIVOT` rad/s volant à fond).
+## - Volant tourné : le nez reste en appui sur le mur, l'arrière pivote (`MUR_PIVOT` rad/s volant à fond) ; en
+##   glissant, l'arrière se range peu à peu le long du mur.
 ## - Marche arrière (ou autre pédale) : rien ne la retient. Vitesses imposées : des forces ne suffisaient pas (la caisse
 ##   plaquée par le moteur restait collée au mur par frottement) ; le moteur ne la plaque plus contre le mur.
-const MUR_FROT := 0.55
+const MUR_FROT := 0.35
 const MUR_GLISSE := 4.0
-const MUR_PIVOT := 1.2
+const MUR_PIVOT := 0.6
 var mur_contact := false             # essais : un mur est devant la voiture et elle pousse dessus
 var mur_patine := 0.0                # 0-1 : roues motrices qui patinent contre le mur (dust.gd, audio.gd)
 func _glisse_mur(thr: float, brk: float, v: float, st: float) -> void:
@@ -1027,6 +1028,8 @@ func _glisse_mur(thr: float, brk: float, v: float, st: float) -> void:
 	var vt := clampf((biais - MUR_FROT * face) / 0.5, 0.0, 1.0) * MUR_GLISSE * pousse
 	# pivot autour du bout en appui (nez, ou arrière en marche arrière) : volant à gauche, la voiture tourne à gauche
 	var w := st * MUR_PIVOT * pousse * sens
+	# en glissant, le nez retenu par le mur fait pivoter la voiture vers le mur (l'arrière se range le long du mur)
+	w += signf(fwd.cross(t).y) * 0.35 * (vt / MUR_GLISSE)
 	var appui := global_position + fwd * gabarit.z * 0.5
 	var r := global_position - appui
 	r.y = 0.0

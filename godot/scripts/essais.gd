@@ -1315,7 +1315,7 @@ func _physics_process(_dt: float) -> void:
 		if has_meta("mur_t0") and rel % 60 == 0 and rel > 0:
 			var d: Vector3 = car.global_position - get_meta("mur_p0")
 			var fw0: Vector3 = get_meta("mur_fw")
-			print("  [mur] t=%.1f s : avancé %.1f m, latéral %.1f m, %.0f km/h, contact=%s explosée=%s cap %.0f° roues motrices %.0f N patine %.2f rotation %.2f rad/s inclinaison %.0f°" % [rel / 120.0, d.dot(fw0), d.dot(fw0.cross(Vector3.UP)), car.kmh(), car.mur_contact, car.blown, rad_to_deg(car.global_transform.basis.z.signed_angle_to(fw0, Vector3.UP)), car.engine_force, float(car.get("mur_patine")), car.angular_velocity.length(), rad_to_deg(acos(clampf(car.global_transform.basis.y.y, -1.0, 1.0)))])
+			print("  [mur] t=%.1f s : avancé %.1f m, latéral %.1f m, %.0f km/h, contact=%s explosée=%s cap %.0f° roues motrices %.0f N patine %.2f rotation %.2f rad/s inclinaison %.0f°" % [rel / 120.0, d.dot(fw0), d.dot(fw0.cross(Vector3.UP)), car.kmh(), car.mur_contact, car.blown, rad_to_deg(car.global_transform.basis.z.signed_angle_to(fw0, Vector3.UP)), car.engine_force, float(car.get("mur_patine")) if "mur_patine" in car else -1.0, car.angular_velocity.length(), rad_to_deg(acos(clampf(car.global_transform.basis.y.y, -1.0, 1.0)))])
 		if has_meta("mur_t0") and rel >= 120 * 7 and not has_meta("mur_fin"):
 			set_meta("mur_fin", true)
 			DirAccess.make_dir_recursive_absolute("user://shots")
