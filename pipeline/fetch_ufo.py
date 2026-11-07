@@ -2,7 +2,7 @@
 -> ../godot/import/ufo/ (glTF d'origine), converti par blender_ufo.py. Crédit : data/ufo_credits.json et ⚙ > Crédits."""
 import io, json, os, sys, urllib.request, zipfile
 UID = "75655f43c4fc4c56ab60746caf7119fe"      # « UFO » — sebslom
-TOK = os.environ.get("SKETCHFAB_TOKEN", "")
+TOK = os.environ.get("SKETCHFAB_TOKEN", "secret-du-proxy")   # sinon : secret réseau ajouté par le proxy
 OUT = "../godot/import/ufo"
 H = {"Authorization": "Token " + TOK}
 info = json.loads(urllib.request.urlopen(urllib.request.Request("https://api.sketchfab.com/v3/models/" + UID, headers=H)).read())

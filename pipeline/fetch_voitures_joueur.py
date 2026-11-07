@@ -39,7 +39,7 @@ def main(seuls=None):
         rgsdev()
         if seuls == ["gendarme"]:
             return
-    tok = os.environ.get("SKETCHFAB_TOKEN", "")
+    tok = os.environ.get("SKETCHFAB_TOKEN", "secret-du-proxy")   # sinon : secret réseau ajouté par le proxy
     if not tok:
         sys.exit("SKETCHFAB_TOKEN absent")
     h = {"Authorization": "Token " + tok}

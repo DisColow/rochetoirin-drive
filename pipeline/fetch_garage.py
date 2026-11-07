@@ -9,7 +9,7 @@ MODELES = {
     "J1": "4e50d45e5ff04d00927a50c150e088c1", "J2": "3efc6a0cb9cc44d9adf24e226991a261", "J3": "68f53cc291724ccda5d0659824bb273f",
     "J4": "c5798e6b29d046c798c38647455dfab2", "J5": "e36860f9f8de4d8e8429cb07007142f2",
 }
-TOK = os.environ.get("SKETCHFAB_TOKEN", "")
+TOK = os.environ.get("SKETCHFAB_TOKEN", "secret-du-proxy")   # sinon : secret réseau ajouté par le proxy
 H = {"Authorization": "Token " + TOK}
 cred = json.load(open("data/garage_credits.json")) if os.path.exists("data/garage_credits.json") else {}
 for code, uid in MODELES.items():

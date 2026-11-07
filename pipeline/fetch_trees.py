@@ -16,7 +16,7 @@ MODELS = {
     "tournesol": "3a9514b8df044abe809432201b8f1c6e",  # Sunflower — zvanstone
     "colza": "b5917d75d92b4108b0c2a2421bf25c13",      # Rapeseed, Brassica napus — ffish.asia / floraZia (CC0)
 }
-TOK = os.environ.get("SKETCHFAB_TOKEN", "")
+TOK = os.environ.get("SKETCHFAB_TOKEN", "secret-du-proxy")   # sinon : secret réseau ajouté par le proxy
 OUT = "../godot/import/trees"
 credits = {}
 for name, uid in MODELS.items():

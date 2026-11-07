@@ -7,7 +7,7 @@ MODELES = {
     "helico": "5bbed2de9baa4a13a7faa72653b78b64",     # Low Poly Helicopter — antonmoek
     "planeur": "45ffefc38fcf4e76a9d0c2a4e76262ef",    # UNDERPOLY: Free Sailplane — underpolyproject
 }
-TOK = os.environ.get("SKETCHFAB_TOKEN", "")
+TOK = os.environ.get("SKETCHFAB_TOKEN", "secret-du-proxy")   # sinon : secret réseau ajouté par le proxy
 H = {"Authorization": "Token " + TOK}
 cred = {}
 for nom, uid in MODELES.items():

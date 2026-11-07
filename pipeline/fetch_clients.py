@@ -2,7 +2,7 @@
 SKETCHFAB_TOKEN, jamais écrit) -> ../godot/import/clients/, découpé par blender_clients.py. Crédit dans ⚙ > Crédits."""
 import io, os, sys, json, urllib.request, zipfile
 UID = "f1c8018af59643e0b009a6f018ed9fd9"
-TOK = os.environ.get("SKETCHFAB_TOKEN", "")
+TOK = os.environ.get("SKETCHFAB_TOKEN", "secret-du-proxy")   # sinon : secret réseau ajouté par le proxy
 OUT = "../godot/import/clients"
 if not os.path.exists(os.path.join(OUT, "scene.gltf")):
     if not TOK:
