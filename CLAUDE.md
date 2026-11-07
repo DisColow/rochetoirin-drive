@@ -429,7 +429,10 @@
   remise sur le tracé si bloquée, retournée ou perdue ; à plus de `LOIN` m du joueur, figée (cinématique) et glissée
   sur le tracé (le relief n'a de collisions qu'à 96 m de la caméra). `activities.gd` : `CONCURRENTS` (modèles et temps
   visés par niveau), `avec_concurrents` (choix « Contre-la-montre / Course contre 3 voitures »), `ajouter_concurrent`
-  (grille), `_place`, `BONUS_PLACE`, `concurrent_detruit` (prime), `_fin_concurrents`. Essai
+  (grille), `_place`, `BONUS_PLACE`, `concurrent_detruit` (prime), `_fin_concurrents`. **v7.37 (#190)** : en épreuve,
+  `concurrent.a_fond` (pas de mise à l'échelle au temps visé ni de correction d'horaire, vitesse de pointe × 0,98) et
+  `a_lat` = `activities.A_LAT_NIV[niveau]` ; la carrière et la balade gardent leur allure réglée. Essai
+  `--course-ia-test [--joueur-fond] [--allure-ancienne]`. Essai
   `--fixed-fps 8 -- --drive-test --course-ia-test [--ep=N] [--niv=0-2] [--joueur=<s>] [--sans-boum]` (la voiture du
   joueur pilotée par un `concurrent.gd` sans voiture propre ; `--fixed-fps` : temps de jeu indépendant de la lenteur
   du rendu ici, 15 pas de physique par image).

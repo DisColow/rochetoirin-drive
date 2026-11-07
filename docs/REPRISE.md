@@ -3,7 +3,10 @@
 Fichier lu en premier par toute nouvelle session (ou après une coupure : limite d'utilisation, conteneur
 recyclé). Mis à jour et poussé après chaque livraison et chaque étape importante.
 
-## État au 07/11/2026 (v6.84 #131 à v7.36 livrées)
+## État au 07/11/2026 (v6.84 #131 à v7.37 livrées)
+- **v7.37 (#190, `à tester`)** : concurrents à fond en épreuve (voir CLAUDE.md « Concurrents »). Sprint 14 Normal :
+  avant, Nadine 151,8 s (visé 153) ; après, joueur piloté à fond aussi (concurrents en physique près de lui) : Dédé
+  119,9 s, Nadine 120,6 s, 0 explosion (hors explosion forcée de l'essai). Branche `wip-190` à supprimer.
 - **v7.36 (#182, `à tester`)** : vrais modèles de radar (voir CLAUDE.md « Radars ») ; clé Sketchfab désormais dans les
   secrets réseau de l'environnement cloud (permanente). Gendarme du contrôle en mode « radar ». Essai radars 3/3,
   planche `docs/apercus/radars_182_modeles.jpg`. Branche `wip-182b` à supprimer.

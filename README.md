@@ -16,9 +16,8 @@ chaque nouvelle version y crée automatiquement une release « vX.Y » avec l'AP
 fait office de doigt sur les boutons) et `RochetoirinSimulator-vX.Y-steamdeck.tar.gz` (mode Bureau : extraire, Steam >
 Jeux > Ajouter un jeu non Steam > `RochetoirinSimulator.x86_64`, puis mode Jeu ; voir `LISEZMOI.txt`).
 
-Nouveautés de la v7.36 :
-- **Vrais modèles de radar** : cabine grise sur poteau pour les radars fixes, radar sur trépied pour les contrôles des gendarmes.
-- Le gendarme du contrôle radar ne te prend en chasse qu'après le flash de son appareil.
+Nouveautés de la v7.37 :
+- **Concurrents à fond** : dans les épreuves, les trois concurrents roulent au maximum de leur voiture du départ à l'arrivée, au lieu de régler leur allure sur un temps visé.
 
 Les versions précédentes et leurs notes sont dans les [Releases](https://github.com/DisColow/rochetoirin-drive/releases).
 

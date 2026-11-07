@@ -2135,6 +2135,9 @@ func _course_ia_test() -> void:
 	pj.voiture = car
 	pj.nom = "joueur"
 	pj.temps_cible = tj if tj > 0.0 else float(cs[1].temps_cible)
+	if OS.get_cmdline_user_args().has("--joueur-fond"):  # #190 : joueur à fond aussi : les concurrents restent près de lui (physique)
+		pj.a_fond = true
+		pj.a_lat = cs[0].a_lat
 	var g0: Vector3 = act._grille[0]                  # tracé depuis la place de départ (comme les concurrents)
 	var pts2 := [Vector2(g0.x, g0.z)]
 	for i in range(1, act._route.size()):

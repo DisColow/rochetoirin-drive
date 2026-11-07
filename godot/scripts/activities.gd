@@ -52,6 +52,9 @@ const CONCURRENTS := [
 	[["p206", "or", 0.93], ["clio", "or", 0.97], ["p306", "or", 1.02]],
 	[["gt3", "or", 0.85], ["p306", "or", 0.9], ["p206", "or", 0.94]],
 ]
+# #190 (« les opposants ne roulent pas assez vite ») : en épreuve, les concurrents roulent à fond (concurrent.a_fond) ;
+# le niveau ne joue plus que sur les voitures (CONCURRENTS) et sur l'accélération latérale admise en virage
+const A_LAT_NIV := [6.0, 6.8, 7.5]
 const NOMS_CONC := ["Josiane", "Gégé", "Momo", "Bernadette", "Dédé", "Jacky", "Nadine", "Riton"]
 const COUL_CONC := [Color(0.85, 0.12, 0.08), Color(0.1, 0.32, 0.85), Color(0.95, 0.72, 0.08)]
 const PRIME_DETRUIT := 40.0                # × multiplicateur des primes du niveau
@@ -883,13 +886,13 @@ func _epreuve_depart(id: int, niv := 0, course := avec_concurrents) -> void:
 		_course_ia = true
 		for k in 3:
 			var d: Array = CONCURRENTS[niveau_ep][k]
-			ajouter_concurrent(String(d[0]), NOMS_CONC[(id + k * 3) % NOMS_CONC.size()], float(e[d[1]]) * float(d[2]), k + 1, COUL_CONC[k])
+			ajouter_concurrent(String(d[0]), NOMS_CONC[(id + k * 3) % NOMS_CONC.size()], float(e[d[1]]) * float(d[2]), k + 1, COUL_CONC[k], not OS.get_cmdline_user_args().has("--allure-ancienne"))
 	hud.toast("%s — %s%s\nOr %s · Argent %s · Bronze %s" % [e.nom, NIVEAUX_EP[niveau_ep][0], " — course contre 3 concurrents" if _course_ia else "", _fmt(temps_medaille(e, "or", niveau_ep)),
 		_fmt(temps_medaille(e, "argent", niveau_ep)), _fmt(temps_medaille(e, "bronze", niveau_ep))], 6.0)
 
 ## #128 : concurrent piloté par le jeu sur le tracé de la course en cours, sur la grille (rang 1 : à droite du joueur ;
 ## 2 et 3 : 8 m derrière). Il part au « Partez ! » ; retiré à l'arrêt de la course ou 8 s après l'arrivée du joueur.
-func ajouter_concurrent(modele: String, nom: String, temps: float, rang: int, col := Color(-1, 0, 0)) -> Node:
+func ajouter_concurrent(modele: String, nom: String, temps: float, rang: int, col := Color(-1, 0, 0), a_fond := false) -> Node:
 	var p: Vector3 = _grille[0]
 	var h := deg_to_rad(float(_grille[1]))
 	var av := Vector3(sin(h), 0.0, -cos(h))            # cap : 0 = Nord (-Z), sens horaire
@@ -898,6 +901,9 @@ func ajouter_concurrent(modele: String, nom: String, temps: float, rang: int, co
 	var c = preload("res://scripts/concurrent.gd").new()
 	c.main = main
 	c.modele = modele; c.nom = nom; c.temps_cible = temps; c.couleur = col
+	if a_fond:
+		c.a_fond = true
+		c.a_lat = A_LAT_NIV[clampi(niveau_ep, 0, 2)]
 	c.depart = Transform3D(Basis(Vector3.UP, PI - h), Vector3(q.x, _ground(q.x, q.z, p.y), q.z))
 	var pts2 := [Vector2(q.x, q.z)]
 	for i in range(1, _route.size()):

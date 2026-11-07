@@ -28,6 +28,7 @@ const VOIE := 2.2                   # décalage latéral maximal pour doubler (m
 var points: Array = []              # étapes (Vector2) : départ, points de passage, arrivée
 var temps_cible := 300.0            # temps visé (s)
 var a_lat := 5.0                    # accélération latérale admise en virage (m/s²)
+var a_fond := false                 # #190 : épreuves : à fond tout le long (pas de temps visé ni d'horaire)
 var modele := "p106"
 var nom := "Concurrent"
 var couleur := Color(-1, 0, 0)      # peinture (r < 0 : celle du modèle)
@@ -146,7 +147,7 @@ func _profil() -> void:
 	for i in range(1, n):
 		_s[i] = _s[i - 1] + p[i - 1].distance_to(p[i])
 	longueur = _s[n - 1]
-	var vmax := float(voiture.vmax) / 3.6 * 0.92
+	var vmax := float(voiture.vmax) / 3.6 * (0.98 if a_fond else 0.92)
 	for i in n:
 		# courbure sur ±3 points (6 m de part et d'autre) : angle entre les deux directions / distance
 		var i0 := maxi(i - 3, 0); var i1 := mini(i + 3, n - 1)
@@ -156,7 +157,7 @@ func _profil() -> void:
 			k = absf(d0.angle_to(d1)) / maxf(_s[i1] - _s[i0], 0.1)
 		_v[i] = minf(vmax, sqrt(a_lat / maxf(k, 1e-4)))
 	var T := _horaire()
-	if T < temps_cible:                       # plus rapide que visé : même allure partout, arrivée au temps visé
+	if T < temps_cible and not a_fond:        # plus rapide que visé : même allure partout, arrivée au temps visé
 		for i in n:
 			_v[i] *= T / temps_cible
 		_horaire()
@@ -258,7 +259,7 @@ func _piloter(dt: float) -> void:
 	var v := voiture.forward_speed()
 	var xf := voiture.global_transform
 	# allure : en retard sur l'horaire, un peu plus vite (jusqu'à +8 %), en avance, un peu moins
-	_allure = clampf(1.0 + (t - _tps[_i]) * 0.01, 0.9, 1.08)
+	_allure = 1.0 if a_fond else clampf(1.0 + (t - _tps[_i]) * 0.01, 0.9, 1.08)
 	# vitesse visée : celle qui permet d'atteindre chaque vitesse du profil à venir en freinant à 4 m/s² (le profil
 	# compte 6 m/s² ; marge pour le temps de réaction, les descentes et les virages pris en freinant)
 	var v_cible := INF
